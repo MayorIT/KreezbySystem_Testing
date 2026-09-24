@@ -13,6 +13,9 @@
     var STATUSES = ['Processing', 'Shipped', 'Completed'];
 
     function loadOrders() {
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+        }
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         } catch (e) {

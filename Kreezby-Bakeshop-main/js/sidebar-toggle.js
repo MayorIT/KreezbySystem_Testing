@@ -19,6 +19,7 @@
 
     function ensureActionMenuScriptLoaded() {
         if (isPoReceivePortalPage()) return;
+        if (window.KreezbyActions) return;
         // Avoid double-loading when pages already include it.
         if (document.getElementById(actionMenuScriptId)) return;
         if (window.KreezbyActionMenuLoaded) return;
@@ -31,6 +32,7 @@
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'action-menu.js');
         }
+        if (src.indexOf('?') < 0) src += '?v=20260924c';
 
         const s = document.createElement('script');
         s.id = actionMenuScriptId;

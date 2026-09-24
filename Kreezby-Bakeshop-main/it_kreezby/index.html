@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Kreezby — Issue Reports</title>
+    <link rel="stylesheet" href="../css/pages/staff/report_issue-received-students.css">
+</head>
+<body>
+<header class="top-navbar-node">
+    <div class="brand-logo-panel">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        <span>IT Kreezby</span>
+    </div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="index.html">Issue Reports</a>
+        <a class="top-nav-item" href="../auth/log_in.html" id="it-logout">↩ Log Out</a>
+    </div>
+</header>
+<div class="page-shell">
+    <div class="inbox-panel">
+        <div class="inbox-header">
+            <h1>Issue Reports Inbox</h1>
+            <p>This is the IT Kreezby queue. Every Report Issue submitted by a customer, retailer, wholesaler, staff, or admin lands in this folder.</p>
+        </div>
+        <div class="inbox-body">
+            <table class="inbox-table">
+                <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>User Role</th>
+                        <th>Submitted By</th>
+                        <th>Issue Type</th>
+                        <th>Reference</th>
+                        <th>Received</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="issue-reports-tbody"></tbody>
+            </table>
+            <div class="empty-state" id="issue-reports-empty" hidden>No issue reports yet. Submitted tickets from any portal will appear in this table.</div>
+            <div class="issue-detail-card" id="issue-report-detail" hidden></div>
+        </div>
+    </div>
+</div>
+<script src="../js/kreezby-issue-reports.js?v=20260924d"></script>
+<script src="../js/kreezby-issue-reports-inbox.js?v=20260924d"></script>
+<script>
+document.getElementById('it-logout').addEventListener('click', function () {
+    try { localStorage.removeItem('kreezby_session'); } catch (e) {}
+});
+</script>
+</body>
+</html>

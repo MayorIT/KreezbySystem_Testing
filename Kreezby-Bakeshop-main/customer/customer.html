@@ -398,6 +398,7 @@
 
     </div>
 
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
     <script src="../js/notification-store.js"></script>
     <script src="../js/customer-orders.js"></script>
     <script src="../js/customer-shop-cards.js"></script>
@@ -1108,12 +1109,14 @@
 
         function defaultCustomerProfile() {
             return {
-                username: 'bryle_atienza',
-                fullName: 'Bryle Atienza',
-                email: 'br***********@gmail.com',
-                contactNumber: '',
-                defaultAddress: '',
-                addresses: [],
+                username: 'maria_santos',
+                fullName: 'Maria Santos',
+                email: 'maria.santos@email.com',
+                contactNumber: '09171234567',
+                defaultAddress: '18 Dolorosa St., Poblacion, Batangas City',
+                addresses: [
+                    { id: 'addr-ms-home', label: 'Home', address: '18 Dolorosa St., Poblacion, Batangas City' }
+                ],
                 avatarDataUrl: ''
             };
         }

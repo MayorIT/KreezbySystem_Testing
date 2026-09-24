@@ -552,6 +552,7 @@
 
     var api = salesApi();
     if (!api) return;
+    var alreadyBound = !!(wrap && wrap.getAttribute('data-route-sheet-booted') === '1');
 
     var monthEl = document.getElementById('route-filter-month');
     var areaEl = document.getElementById('route-filter-area');
@@ -581,12 +582,9 @@
 
     function refreshAreaOptions() {
       if (!areaEl || !filterMeta) return;
-      var month = monthEl ? monthEl.value : '';
-      var reportDate = dateEl ? dateEl.value : '';
-      var bucket = filterMeta.byMonth[month];
-      var areas = (bucket && reportDate && bucket.byDate[reportDate]) || [];
+      var areas = filterMeta.areas || [];
       var prev = areaEl.value;
-      fillSelect(areaEl, areas, areas.length ? null : 'No areas on this date');
+      fillSelect(areaEl, areas, areas.length ? null : 'No areas');
       if (prev && areas.some(function (a) { return a.value === prev; })) {
         areaEl.value = prev;
       } else if (areas.length) {
@@ -630,12 +628,14 @@
 
     function onMonthChange() {
       refreshDateOptions();
-      refreshAreaOptions();
       rerender();
     }
 
     function onDateChange() {
-      refreshAreaOptions();
+      rerender();
+    }
+
+    function onAreaChange() {
       rerender();
     }
 
@@ -647,14 +647,17 @@
         fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
         if (defaults.month) monthEl.value = defaults.month;
       }
-      refreshDateOptions();
-      if (dateEl && defaults.reportDate) dateEl.value = defaults.reportDate;
       refreshAreaOptions();
       if (areaEl && defaults.source) areaEl.value = defaults.source;
+      refreshDateOptions();
+      if (dateEl && defaults.reportDate) dateEl.value = defaults.reportDate;
 
-      if (monthEl) monthEl.addEventListener('change', onMonthChange);
-      if (dateEl) dateEl.addEventListener('change', onDateChange);
-      if (areaEl) areaEl.addEventListener('change', rerender);
+      if (!alreadyBound) {
+        if (monthEl) monthEl.addEventListener('change', onMonthChange);
+        if (dateEl) dateEl.addEventListener('change', onDateChange);
+        if (areaEl) areaEl.addEventListener('change', onAreaChange);
+        if (wrap) wrap.setAttribute('data-route-sheet-booted', '1');
+      }
 
       window.getCurrentRouteFilters = currentFilters;
       window.refreshRouteSheetView = function () {
@@ -693,9 +696,12 @@
       var badge = document.getElementById('bauan-import-badge');
       if (badge && api.getImportSummary) {
         var s = api.getImportSummary();
-        badge.textContent =
+        var base =
           s.total + ' location entries · ' + filterMeta.months.length + ' months · ' +
           api.getDailyReports().length + ' route sheets (use filters to view one at a time)';
+        badge.textContent = s.isTestData
+          ? base + ' · synthetic test data (admin only)'
+          : base;
       }
     }
 
@@ -808,6 +814,41 @@
     console.error('[KreezbySalesList]', err);
   }
 
+  function renderCustomerSales() {
+    var tbody = document.getElementById('customer-sales-tbody');
+    if (!tbody) return;
+    if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+      window.KreezbyPortalSeed.apply();
+    }
+    var orders = [];
+    try { orders = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]'); } catch (e) { orders = []; }
+    if (!Array.isArray(orders) || !orders.length) return;
+    var sorted = orders.slice().sort(function (a, b) {
+      return String(b.date || '').localeCompare(String(a.date || ''));
+    });
+    tbody.innerHTML = sorted.map(function (order, i) {
+      var ship = order.shippingInfo || {};
+      var names = Object.keys(order.items || {}).map(function (k) {
+        var it = order.items[k];
+        return (it.qty || 1) + '× ' + (it.name || 'Item');
+      }).join(', ');
+      var statusClass = (order.status || '').toLowerCase() === 'completed' ? 'received'
+        : (order.status || '').toLowerCase() === 'shipped' ? 'partial' : 'pending';
+      var dateLabel = '';
+      try {
+        dateLabel = new Date(order.date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch (err) { dateLabel = order.date || ''; }
+      return '<tr>' +
+        '<td>' + (i + 1) + '</td>' +
+        '<td>' + esc(dateLabel) + '</td>' +
+        '<td>' + esc(order.receiptNumber || order.orderNumber) + '</td>' +
+        '<td><strong>' + esc(ship.fullName || order.poEntity || 'Customer') + '</strong><br><small>' + esc(names) + '</small></td>' +
+        '<td>' + esc(order.total || '') + '</td>' +
+        '<td><span class="status-pill-badge ' + statusClass + '">' + esc(order.status || 'Processing') + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
   function bootSalesList() {
     try {
       if (document.getElementById('saleslist-retailer-page')) {
@@ -818,6 +859,7 @@
       if (document.getElementById('bauan-route-sheets-wrap') || document.getElementById('bauan-retailer-sales-tbody')) {
         initAdminStaffPage();
       }
+      renderCustomerSales();
     } catch (err) {
       showBootError(err);
     }

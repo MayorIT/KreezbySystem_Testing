@@ -72,6 +72,16 @@
       accountType: 'Administrator',
       redirectUrl: 'admin/admin.html'
     },
+    itkreezby: {
+      userName: 'IT Kreezby',
+      accountType: 'IT Support',
+      redirectUrl: 'it_kreezby/index.html'
+    },
+    it: {
+      userName: 'IT Kreezby',
+      accountType: 'IT Support',
+      redirectUrl: 'it_kreezby/index.html'
+    },
     staff1: {
       userName: 'Claire Mendoza (Staff 1)',
       accountType: 'Staff',
@@ -149,6 +159,36 @@
     },
     guest: {
       userName: 'Guest Customer',
+      accountType: 'Customer',
+      redirectUrl: 'customer/customer.html'
+    },
+    metrobulk: {
+      userName: 'Metro Bulk Distributors',
+      accountType: 'Wholesaler',
+      redirectUrl: 'wholesaler/metrobulkdistributors/wholesaler-quezoncity_metrobulkdistributors.html'
+    },
+    'james@metrobulkcom': {
+      userName: 'Metro Bulk Distributors',
+      accountType: 'Wholesaler',
+      redirectUrl: 'wholesaler/metrobulkdistributors/wholesaler-quezoncity_metrobulkdistributors.html'
+    },
+    visayas: {
+      userName: 'Visayas Wholesale Hub',
+      accountType: 'Wholesaler',
+      redirectUrl: 'wholesaler/visayaswholesalehub/wholesaler-iloilocity_visayaswholesalehub.html'
+    },
+    'carla@visayaswholesalecom': {
+      userName: 'Visayas Wholesale Hub',
+      accountType: 'Wholesaler',
+      redirectUrl: 'wholesaler/visayaswholesalehub/wholesaler-iloilocity_visayaswholesalehub.html'
+    },
+    kylaramosemailcom: {
+      userName: 'Kyla Ramos',
+      accountType: 'Customer',
+      redirectUrl: 'customer/customer.html'
+    },
+    'kylaramos@emailcom': {
+      userName: 'Kyla Ramos',
       accountType: 'Customer',
       redirectUrl: 'customer/customer.html'
     }
@@ -343,7 +383,16 @@
     if (accountType === 'Staff') {
       return staffDashboardFromIdentity(identity);
     }
-    if (accountType === 'Wholesaler') return 'wholesaler/wholesaler-directory.html';
+    if (accountType === 'Wholesaler') {
+      var who = String(identity || '').toLowerCase();
+      if (who.indexOf('visayas') >= 0 || who.indexOf('carla') >= 0 || who.indexOf('iloilo') >= 0) {
+        return 'wholesaler/visayaswholesalehub/wholesaler-iloilocity_visayaswholesalehub.html';
+      }
+      if (who.indexOf('metro') >= 0 || who.indexOf('james') >= 0 || who.indexOf('quezon') >= 0) {
+        return 'wholesaler/metrobulkdistributors/wholesaler-quezoncity_metrobulkdistributors.html';
+      }
+      return 'wholesaler/wholesaler-directory.html';
+    }
     if (accountType === 'Retailer') return 'retailer/retailer-directory.html';
     if (accountType === 'Customer') return 'customer/customer.html';
     return 'customer/customer_guest.html';

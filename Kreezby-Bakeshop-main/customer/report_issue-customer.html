@@ -122,6 +122,7 @@
     </div>
 </main>
 
+<script src="../js/kreezby-issue-reports.js?v=20260924c"></script>
 <script>
 (function () {
     var form = document.getElementById('customer-report-form');
@@ -198,6 +199,21 @@
             };
             reports.unshift(report);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+            if (window.KreezbyIssueReports) {
+                KreezbyIssueReports.add({
+                    id: report.id,
+                    role: 'Customer',
+                    submittedBy: report.fullName,
+                    contact: report.contact,
+                    issueType: report.issueType,
+                    reference: report.orderNumber,
+                    description: report.description,
+                    notes: report.notes,
+                    attachmentName: report.attachmentName,
+                    status: 'New',
+                    submittedAt: report.submittedAt
+                });
+            }
 
             form.hidden = true;
             if (success) {

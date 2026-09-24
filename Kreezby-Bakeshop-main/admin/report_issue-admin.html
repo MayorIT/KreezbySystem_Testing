@@ -78,11 +78,27 @@
         </div>
     </div>
 </div>
+<script src="../js/kreezby-issue-reports.js?v=20260924c"></script>
 <script>
 function submitIssue(event, role) {
     event.preventDefault();
-    alert(role + ' issue report submitted successfully. Redirecting to the received issues inbox.');
-    window.location.href='report_issue-received-students.html';
+    var form = event.target;
+    var file = form.attachment && form.attachment.files && form.attachment.files[0];
+    if (window.KreezbyIssueReports) {
+        KreezbyIssueReports.add({
+            role: role,
+            submittedBy: (form.fullName && form.fullName.value) || '',
+            contact: (form.email && form.email.value) || '',
+            issueType: (form.issueType && form.issueType.value) || 'Other',
+            reference: (form.affectedArea && form.affectedArea.value) || '',
+            description: (form.description && form.description.value) || '',
+            notes: (form.steps && form.steps.value) || '',
+            priority: (form.priority && form.priority.value) || 'Normal',
+            attachmentName: file ? file.name : '',
+            status: 'New'
+        });
+    }
+    window.location.href = KreezbyIssueReports.inboxHref();
 }
 </script>
     <script src="../js/user-dropdown-nav.js"></script>

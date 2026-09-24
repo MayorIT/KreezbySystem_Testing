@@ -12,7 +12,7 @@
     var DEFAULT_RECEIPTS = {
         'recv-102': {
             id: 'recv-102', supplier: 'Supplier 102', sourceType: 'Supplier', dateReceived: '2024-05-20 10:30',
-            type: 'Supply', status: 'PARTIALLY RECEIVED', statusClass: 'partial', remarks: 'BO Receive (Partial)',
+            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0002', reference: '', subTotal: 30250,
             lineItems: [
                 { qty: 100, unit: 'Boxes', name: 'Item 102', note: 'Sample only', cost: 200, total: 20000 },
@@ -21,7 +21,7 @@
         },
         'recv-101': {
             id: 'recv-101', supplier: 'Retailer 101', sourceType: 'Retailer', dateReceived: '2024-05-18 14:15',
-            type: 'Returned Order', status: 'RECEIVED', statusClass: 'received', remarks: 'Complete',
+            type: 'Returned Order', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0001', reference: '', subTotal: 45200,
             lineItems: [
                 { qty: 100, unit: 'Boxes', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 },
@@ -31,7 +31,7 @@
         },
         'recv-103': {
             id: 'recv-103', supplier: 'Customer 301', sourceType: 'Customer', dateReceived: '2024-05-15 09:05',
-            type: 'Supply', status: 'RECEIVED', statusClass: 'received', remarks: 'Complete',
+            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0003', reference: '', subTotal: 12500,
             lineItems: [{ qty: 50, unit: 'Boxes', name: 'Item 106', note: 'Full delivery', cost: 250, total: 12500 }]
         },
@@ -42,7 +42,7 @@
         },
         'recv-104': {
             id: 'recv-104', supplier: 'Supplier 104', sourceType: 'Supplier', dateReceived: '2024-05-10 16:20',
-            type: 'Returned Order', status: 'PARTIALLY RECEIVED', statusClass: 'partial', remarks: 'Partial items received',
+            type: 'Returned Order', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0004', reference: '', subTotal: 18750,
             lineItems: [
                 { qty: 75, unit: 'Boxes', name: 'Item 107', note: 'Partial batch', cost: 150, total: 11250 },
@@ -52,8 +52,6 @@
     };
 
     var RECV_STATUSES = [
-        { class: 'received', label: 'Received', value: 'RECEIVED' },
-        { class: 'partial', label: 'Partially Received', value: 'PARTIALLY RECEIVED' },
         { class: 'pending', label: 'Pending', value: 'PENDING' }
     ];
 
@@ -67,6 +65,18 @@
 
     var PAGE_MODE = null;
     var RETAILER_SUPPLIER = 'Kreezby Bakeshop';
+    var retailerStoreName = '';
+
+    function applyPortalSeed() {
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+        }
+    }
+
+    function matchesPortalEntity(receipt) {
+        if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
+        return receipt.entity === retailerStoreName || receipt.supplier === retailerStoreName;
+    }
 
     function masterBlockId() {
         return PAGE_MODE === 'retailer' ? 'receiving-retailer-directory-panel-view' : 'receiving-master-directory-panel-view';
@@ -102,6 +112,8 @@
             theadRow.setAttribute('data-kreezby-portal-head', '1');
             theadRow.innerHTML = '<th>#</th><th>Date Received</th><th>Action</th><th>Supplier</th><th>Items</th><th>Status</th><th>Remarks</th>';
         }
+        var brand = document.querySelector('.panel-brand');
+        retailerStoreName = brand ? brand.textContent.trim() : '';
         var master = document.getElementById('receiving-retailer-directory-panel-view');
         if (master) {
             var tbody = master.querySelector('table.data-display-table tbody');
@@ -201,7 +213,7 @@
             '<div class="form-field-unit"><label>Date Received *</label><input type="datetime-local" id="recv-modal-date" required></div>' +
             '<div class="form-field-unit"><label>P.O. Origin</label><input type="text" id="recv-modal-po-origin" placeholder="e.g. PO-0001"></div>' +
             '<div class="form-field-unit"><label>Type *</label><select id="recv-modal-type"><option value="Supply">Supply</option><option value="Returned Order">Returned Order</option></select></div>' +
-            '<div class="form-field-unit"><label>Status *</label><select id="recv-modal-status"><option value="pending">Pending</option><option value="partial">Partially Received</option><option value="received">Received</option></select></div>' +
+            '<div class="form-field-unit"><label>Status *</label><select id="recv-modal-status"><option value="pending">Pending</option></select></div>' +
             '<div class="form-field-unit"><label>Reference</label><input type="text" id="recv-modal-reference"></div></div>' +
             '<div class="item-builder-sub-header"><span>■</span> Items Received</div>' +
             '<div class="item-entry-builder-bar">' +
@@ -225,13 +237,21 @@
     }
 
     function loadData() {
+        applyPortalSeed();
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             RECEIPTS = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_RECEIPTS));
         } catch (e) {
             RECEIPTS = JSON.parse(JSON.stringify(DEFAULT_RECEIPTS));
         }
-        Object.keys(RECEIPTS).forEach(function (k) { syncReceiptDerived(RECEIPTS[k]); });
+        Object.keys(RECEIPTS).forEach(function (k) {
+            var receipt = RECEIPTS[k];
+            if (receipt && (receipt.statusClass === 'received' || receipt.statusClass === 'partial')) {
+                receipt.statusClass = 'pending';
+                receipt.status = 'PENDING';
+            }
+            syncReceiptDerived(RECEIPTS[k]);
+        });
     }
 
     function saveData() {
@@ -243,6 +263,7 @@
     }
 
     function statusMeta(statusClass) {
+        if (statusClass === 'received' || statusClass === 'partial') statusClass = 'pending';
         for (var i = 0; i < RECV_STATUSES.length; i++) {
             if (RECV_STATUSES[i].class === statusClass) return RECV_STATUSES[i];
         }
@@ -397,6 +418,7 @@
     }
 
     function buildStatusActionItems(receiptId, currentClass) {
+        if (currentClass === 'received' || currentClass === 'partial') currentClass = 'pending';
         return RECV_STATUSES.map(function (s) {
             var current = s.class === currentClass ? ' is-current' : '';
             return '<div class="action-popup-item action-popup-item-status' + current + '" data-action="set-status"' +
@@ -415,12 +437,12 @@
             '<div class="action-popup-item" data-action="edit" data-receive-id="' + receiptId + '">Edit Record</div>' +
             '<div class="action-popup-item" data-action="print" data-receive-id="' + receiptId + '">Print Batch Sheet</div>' +
             '<div class="action-popup-divider" aria-hidden="true"></div>' +
-            buildStatusActionItems(receiptId, receipt ? receipt.statusClass : 'received') +
+            buildStatusActionItems(receiptId, receipt ? receipt.statusClass : 'pending') +
             '</div></div>';
     }
 
     function currentReceiveSource() {
-        var tab = document.querySelector('.recv-source-tab.active');
+        var tab = document.querySelector('.recv-source-tab.active, .po-order-tab.active[data-source]');
         if (tab) return tab.getAttribute('data-source') || activeReceiveSource;
         return activeReceiveSource;
     }
@@ -433,11 +455,12 @@
         var q = (filter || '').toLowerCase().trim();
         var list = Object.keys(RECEIPTS).map(function (k) { return RECEIPTS[k]; })
             .sort(function (a, b) { return b.dateReceived.localeCompare(a.dateReceived); });
-        var rows = list.filter(function (r) {
+        var scoped = list.filter(function (r) { return matchesPortalEntity(r); });
+        var rows = scoped.filter(function (r) {
             var sourceType = normalizeSourceType(r.sourceType);
-            if (sourceType !== selectedSource) return false;
+            if (PAGE_MODE !== 'retailer' && sourceType !== selectedSource) return false;
             if (!q) return true;
-            return [r.supplier, sourceType, r.dateReceived, r.status, r.remarks, r.poOrigin].join(' ').toLowerCase().indexOf(q) >= 0;
+            return [r.supplier, r.entity, sourceType, r.dateReceived, r.status, r.remarks, r.poOrigin].join(' ').toLowerCase().indexOf(q) >= 0;
         });
         tbody.innerHTML = rows.map(function (r, i) {
             var typeLabel = r.type || 'Supply';
@@ -446,13 +469,11 @@
                 return '<tr data-receive-id="' + r.id + '" class="recv-data-row">' +
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + r.dateReceived + '</td>' +
+                    '<td>' + buildActionMenu(r.id) + '</td>' +
                     '<td><strong>' + r.supplier + '</strong></td>' +
-                    '<td>' + sourceType + '</td>' +
-                    '<td>' + typeLabel + '</td>' +
                     '<td>' + r.items + '</td>' +
                     '<td><span class="status-pill-badge ' + r.statusClass + ' recv-status-link" data-receive-id="' + r.id + '">' + statusLabel(r) + '</span></td>' +
-                    '<td>' + r.remarks + '</td>' +
-                    '<td>' + buildActionMenu(r.id) + '</td></tr>';
+                    '<td>' + r.remarks + '</td></tr>';
             }
             return '<tr data-receive-id="' + r.id + '" class="recv-data-row">' +
                 '<td>' + (i + 1) + '</td>' +
@@ -465,7 +486,7 @@
                 '<td>' + r.remarks + '</td>' +
                 '<td>' + buildActionMenu(r.id) + '</td></tr>';
         }).join('');
-        if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + list.length + ' entries — sorted newest first (by date received)';
+        if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + scoped.length + ' entries — sorted newest first (by date received)';
     }
 
     function renderDetailsView(receipt) {
@@ -541,9 +562,7 @@
         if (!receipt) return;
         receipt.statusClass = statusClass;
         receipt.status = statusMeta(statusClass).value;
-        if (statusClass === 'received') receipt.remarks = 'Complete';
-        else if (statusClass === 'partial' && receipt.remarks.indexOf('Partial') < 0) receipt.remarks = 'Partial items received';
-        else if (statusClass === 'pending') receipt.remarks = 'Awaiting Delivery';
+        if (statusClass === 'pending') receipt.remarks = 'Awaiting Delivery';
         saveData();
         renderTable(document.getElementById('receiving-search') ? document.getElementById('receiving-search').value : '');
         if (currentReceiptId === receiptId) openDetails(receiptId);
@@ -757,7 +776,10 @@
 
         var masterSelector = PAGE_MODE === 'retailer' ? '#receiving-retailer-directory-panel-view' : '#receiving-master-directory-panel-view';
 
-        document.addEventListener('click', function (e) {
+        if (window.__kreezbyRecvDocClick) {
+            document.removeEventListener('click', window.__kreezbyRecvDocClick, true);
+        }
+        window.__kreezbyRecvDocClick = function (e) {
             var actionBtn = e.target.closest(masterSelector + ' .action-trigger-btn[data-menu]');
             if (actionBtn) {
                 e.preventDefault(); e.stopPropagation();
@@ -789,10 +811,18 @@
             if (!e.target.closest('.action-popup-menu') && !e.target.closest('.action-trigger-btn[data-menu]')) {
                 closeAllMenus();
             }
-        }, true);
+        };
+        document.addEventListener('click', window.__kreezbyRecvDocClick, true);
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeAllMenus();
+        });
+    }
+
+    function stripRetiredInboundLegendPills() {
+        document.querySelectorAll('.legend-container-box .status-pill-badge').forEach(function (el) {
+            var t = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            if (t === 'received' || t === 'partially received') el.parentNode.removeChild(el);
         });
     }
 
@@ -807,6 +837,7 @@
         loadData();
         renderTable();
         bindEvents();
+        stripRetiredInboundLegendPills();
     }
 
     window.ReceiveAdmin = {

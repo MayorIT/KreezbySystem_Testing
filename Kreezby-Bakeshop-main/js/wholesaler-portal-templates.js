@@ -111,8 +111,6 @@ function receiveBody(w, key) {
         + '                        </table></div>\n'
         + '                        <div class="legend-container-box">\n'
         + '                            <span><strong>Status Legend:</strong></span>\n'
-        + '                            <span class="status-pill-badge received">Received</span>\n'
-        + '                            <span class="status-pill-badge partial">Partially Received</span>\n'
         + '                            <span class="status-pill-badge pending">Pending</span>\n'
         + '                        </div>\n'
         + '                    </div>\n'
@@ -561,16 +559,29 @@ function notificationModalAndScript(w) {
 }
 
 function pageScripts(mod) {
-    var scripts = '    <script src="../../js/sidebar-toggle.js"></script>\n'
+    var scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+        + '    <script src="../../js/sidebar-toggle.js"></script>\n'
         + '    <script src="../../js/wholesaler-nav.js"></script>\n'
         + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
 
     if (mod.file === 'po') {
-        scripts = '    <script src="../../js/po-admin.js?v=3"></script>\n' + scripts;
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+            + '    <script src="../../js/po-admin.js?v=3"></script>\n'
+            + '    <script src="../../js/sidebar-toggle.js"></script>\n'
+            + '    <script src="../../js/wholesaler-nav.js"></script>\n'
+            + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
     } else if (mod.file === 'receive') {
-        scripts = '    <script src="../../js/receive-admin.js?v=3"></script>\n' + scripts;
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+            + '    <script src="../../js/receive-admin.js?v=3"></script>\n'
+            + '    <script src="../../js/sidebar-toggle.js"></script>\n'
+            + '    <script src="../../js/wholesaler-nav.js"></script>\n'
+            + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
     } else if (mod.file === 'bo') {
-        scripts = '    <script src="../../js/bo-admin.js?v=1"></script>\n' + scripts;
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+            + '    <script src="../../js/bo-admin.js?v=1"></script>\n'
+            + '    <script src="../../js/sidebar-toggle.js"></script>\n'
+            + '    <script src="../../js/wholesaler-nav.js"></script>\n'
+            + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
     }
 
     return scripts;

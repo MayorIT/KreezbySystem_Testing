@@ -208,6 +208,7 @@
         recordLogin: recordLogin,
         upgradeCustomerToRole: upgradeCustomerToRole,
         getAccountCounts: getAccountCounts,
+        findUserByIdentity: findUserByIdentity,
         DEFAULT_USERS: DEFAULT_USERS
     };
 })();

@@ -21,6 +21,7 @@
         activity: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
         mail: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
         report: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>',
+        clipboard: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>',
         truck: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>'
     };
 
@@ -51,7 +52,8 @@
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'aiforecast', label: 'AI Forecast', href: 'aiforecast-staff.html', icon: 'chart' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' }
+        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' },
+        { key: 'issuereports', label: 'Issue Reports', href: '../it_kreezby/index.html', icon: 'clipboard' }
     ];
 
     var CRITICAL_CSS = [
@@ -117,8 +119,12 @@
         return /inbox/i.test((href || '').split('/').pop());
     }
 
+    function isIssueReportsHref(href) {
+        return /it_kreezby|report_issue-received-students/i.test(href || '');
+    }
+
     function turboAttrs(href) {
-        if (isInboxHref(href)) return ' data-turbo-frame="_top"';
+        if (isInboxHref(href) || isIssueReportsHref(href)) return ' data-turbo-frame="_top"';
         if (document.getElementById('kreezby-main-content')) {
             return ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
         }
@@ -157,7 +163,12 @@
             });
         });
 
-        return items.length ? items : FALLBACK_NAV.slice();
+        return items.length ? items.concat([{
+            key: 'issuereports',
+            label: 'Issue Reports',
+            href: '../it_kreezby/index.html',
+            icon: 'clipboard'
+        }]) : FALLBACK_NAV.slice();
     }
 
     function activeKeyFor(filename) {
@@ -176,6 +187,7 @@
         if (filename === 'dailysales-staff.html') return 'dailysales';
         if (filename === 'inventoryreport-staff.html') return 'inventoryreport';
         if (filename === 'order-tracking-staff.html') return 'ordertracking';
+        if (filename === 'report_issue-received-students.html') return 'issuereports';
         return '';
     }
 

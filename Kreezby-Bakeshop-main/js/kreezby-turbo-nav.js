@@ -73,10 +73,11 @@
 
     function isReportIssuePage(href) {
         try {
-            var file = new URL(href, window.location.href).pathname.split('/').pop() || '';
-            return /report_issue/i.test(file);
+            var pathName = new URL(href, window.location.href).pathname || '';
+            var file = pathName.split('/').pop() || '';
+            return /report_issue/i.test(file) || /it_kreezby/i.test(pathName);
         } catch (e) {
-            return /report_issue/i.test(href || '');
+            return /report_issue/i.test(href || '') || /it_kreezby/i.test(href || '');
         }
     }
 
@@ -333,17 +334,60 @@
     function activateSalesList(frame) {
         var scope = frame || document;
         if (!scope.querySelector('#saleslist-retailer-page, #retailer-sales-panel, #bauan-route-sheets-wrap, #bauan-retailer-sales-tbody')) return;
-        if (!window.KreezbySalesListRenderer) return;
-        try {
-            if (scope.querySelector('#saleslist-retailer-page') && window.KreezbySalesListRenderer.initRetailerSalesListPage) {
-                window.KreezbySalesListRenderer.initRetailerSalesListPage();
-            } else if (scope.querySelector('#retailer-sales-panel') && window.KreezbySalesListRenderer.initRetailerPage) {
-                window.KreezbySalesListRenderer.initRetailerPage();
+
+        var root = moduleRelativeRoot();
+        var path = (window.location.pathname || '').replace(/\\/g, '/');
+        var isAdmin = /\/admin\//i.test(path);
+        var isRetailer = /\/retailer\//i.test(path);
+
+        function bootSalesUi() {
+            if (!window.KreezbySalesListRenderer) return;
+            try {
+                if (scope.querySelector('#saleslist-retailer-page') && window.KreezbySalesListRenderer.initRetailerSalesListPage) {
+                    window.KreezbySalesListRenderer.initRetailerSalesListPage();
+                } else if (scope.querySelector('#retailer-sales-panel') && window.KreezbySalesListRenderer.initRetailerPage) {
+                    window.KreezbySalesListRenderer.initRetailerPage();
+                }
+                if (scope.querySelector('#bauan-route-sheets-wrap, #bauan-retailer-sales-tbody') && window.KreezbySalesListRenderer.initAdminStaffPage) {
+                    window.KreezbySalesListRenderer.initAdminStaffPage();
+                }
+            } catch (e) {}
+        }
+
+        function afterDataReady() {
+            var api = window.KreezbySales;
+            if (api && typeof api.reload === 'function' && isAdmin && window.KREEZBY_ADMIN_TEST_SALES) {
+                api.reload().then(bootSalesUi);
+                return;
             }
-            if (scope.querySelector('#bauan-route-sheets-wrap, #bauan-retailer-sales-tbody') && window.KreezbySalesListRenderer.initAdminStaffPage) {
-                window.KreezbySalesListRenderer.initAdminStaffPage();
+            if (api && typeof api.load === 'function') {
+                api.load().then(bootSalesUi);
+                return;
             }
-        } catch (e) {}
+            bootSalesUi();
+        }
+
+        function loadRenderer() {
+            loadScript(root + 'js/sales-sheet-editor.js?v=20260920d', 'kreezby-sales-sheet-editor-script', function () {
+                loadScript(root + 'js/sales-list-renderer.js?v=20260920d', 'kreezby-sales-list-renderer-script-d', afterDataReady);
+            });
+        }
+
+        if (isRetailer) {
+            loadScript(root + 'js/kreezby-sales-retailer.js', 'kreezby-sales-retailer-script', loadRenderer);
+            return;
+        }
+
+        function loadAdminStaffData() {
+            loadScript(root + 'js/kreezby-sales-data.js?v=20260920d', 'kreezby-sales-data-script-d', loadRenderer);
+        }
+
+        if (isAdmin) {
+            loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260920d', 'kreezby-sales-fake-admin-script-d', loadAdminStaffData);
+            return;
+        }
+
+        loadAdminStaffData();
     }
 
     function onFrameLoad(event) {
@@ -351,22 +395,28 @@
         if (!frame || frame.id !== FRAME_ID) return;
 
         markTurboLinks(frame);
-        activatePageScripts();
-        ensurePageStyles();
-        activateStockLevel(frame);
-        activateAiForecast(frame);
-        activateSalesList(frame);
-        initInboxIfNeeded(frame);
-        document.dispatchEvent(new CustomEvent('kreezby:page-load', { detail: { frame: frame } }));
-        document.dispatchEvent(new CustomEvent('kreezby-admin-sidebar-ready'));
-        document.dispatchEvent(new CustomEvent('kreezby-staff-sidebar-ready'));
+        loadScript(moduleRelativeRoot() + 'js/kreezby-seed-portal-data.js?v=20260924c', 'kreezby-seed-portal-data-script', function () {
+            if (window.KreezbyPortalSeed) window.KreezbyPortalSeed.apply();
+            activatePageScripts();
+            ensurePageStyles();
+            activateStockLevel(frame);
+            activateAiForecast(frame);
+            activateSalesList(frame);
+            initInboxIfNeeded(frame);
+            document.dispatchEvent(new CustomEvent('kreezby:page-load', { detail: { frame: frame } }));
+            document.dispatchEvent(new CustomEvent('kreezby-admin-sidebar-ready'));
+            document.dispatchEvent(new CustomEvent('kreezby-staff-sidebar-ready'));
 
-        if (window.KreezbyMaintenanceUI && frame.querySelector('#maintenance-grid-workspace-root')) {
-            try { window.KreezbyMaintenanceUI.initSettingsPanel(); } catch (e) {}
-        }
-        if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
-            try { window.KreezbyActionMenu.scan(frame); } catch (e) {}
-        }
+            if (window.KreezbyMaintenanceUI && frame.querySelector('#maintenance-grid-workspace-root')) {
+                try { window.KreezbyMaintenanceUI.initSettingsPanel(); } catch (e) {}
+            }
+            if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
+                try { window.KreezbyActionMenu.scan(frame); } catch (e2) {}
+            }
+            if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.fillDashboardCounts === 'function') {
+                window.KreezbyPortalSeed.fillDashboardCounts();
+            }
+        });
     }
 
     function configureTurbo() {

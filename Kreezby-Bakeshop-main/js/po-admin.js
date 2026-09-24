@@ -12,13 +12,13 @@
     var DEFAULT_ORDERS = {
         'PO-0001': {
             code: 'PO-0001', dateCreated: '2021-11-03 11:20', entity: 'Retailer 101',
-            entityType: 'retailer', area: 'Batangas City', status: 'RECEIVED', statusClass: 'received',
+            entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
             remarks: 'Standard replenishment order',
             items: [{ qty: 100, unit: 'Boxes', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 }]
         },
         'PO-0002': {
             code: 'PO-0002', dateCreated: '2021-11-03 11:50', entity: 'Retailer 102',
-            entityType: 'retailer', area: 'Lipa City', status: 'RECEIVED', statusClass: 'received',
+            entityType: 'retailer', area: 'Lipa City', status: 'PENDING', statusClass: 'pending',
             remarks: 'Sample PO Only',
             items: [
                 { qty: 300, unit: 'Boxes', name: 'Item 102', note: 'Sample only', cost: 200, total: 60000 },
@@ -27,7 +27,7 @@
         },
         'PO-C001': {
             code: 'PO-C001', dateCreated: '2021-11-03 11:50', entity: 'Bryle Atienza',
-            entityType: 'customer', area: 'Lipa City', status: 'RECEIVED', statusClass: 'received',
+            entityType: 'customer', area: 'Lipa City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Customer walk-in order',
             items: [
                 { qty: 10, unit: 'PCS', name: 'Chocolate', note: 'Crinkles', cost: 50, total: 500 },
@@ -36,7 +36,7 @@
         },
         'PO-C002': {
             code: 'PO-C002', dateCreated: '2021-11-03 11:20', entity: 'Maria Santos',
-            entityType: 'customer', area: 'Batangas City', status: 'RECEIVED', statusClass: 'received',
+            entityType: 'customer', area: 'Batangas City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Pre-order pickup',
             items: [{ qty: 8, unit: 'Jars', name: 'Choco Butternut', note: '', cost: 120, total: 960 }]
         }
@@ -51,6 +51,21 @@
     var PAGE_MODE = null;
     var retailerStoreName = '';
     var SUPPLIER_LABEL = 'Kreezby Bakeshop';
+
+    function applyPortalSeed() {
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+        }
+    }
+
+    function isWholesalerPortal() {
+        return /\/wholesaler\//i.test((location.pathname || '').replace(/\\/g, '/'));
+    }
+
+    function matchesPortalEntity(order) {
+        if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
+        return order && order.entity === retailerStoreName;
+    }
 
     function masterBlockId() {
         return PAGE_MODE === 'retailer' ? 'po-retailer-directory-block' : 'po-master-lists-container-block';
@@ -191,8 +206,8 @@
             '<div class="form-field-unit"><label>Date Created *</label><input type="datetime-local" id="po-modal-date" required></div>' +
             '<div class="form-field-unit"><label>Area *</label><select id="po-modal-area" required><option value="' + areaLabel + '">' + areaLabel + '</option></select></div>' +
             '<div class="form-field-unit"><label>Retailer / Entity *</label><input type="text" id="po-modal-entity" required readonly></div>' +
-            '<div class="form-field-unit" style="display:none;"><select id="po-modal-type"><option value="retailer">retailer</option></select></div>' +
-            '<div class="form-field-unit"><label>Status *</label><select id="po-modal-status"><option value="pending">Pending</option><option value="partial">Partially Received</option><option value="received">Received</option></select></div>' +
+            '<div class="form-field-unit" style="display:none;"><select id="po-modal-type"><option value="retailer">retailer</option><option value="wholesaler">wholesaler</option></select></div>' +
+            '<div class="form-field-unit"><label>Status *</label><select id="po-modal-status"><option value="pending">Pending</option></select></div>' +
             '</div>' +
             '<div class="item-builder-sub-header"><span>■</span> Item Form</div>' +
             '<div class="item-entry-builder-bar">' +
@@ -218,12 +233,21 @@
     }
 
     function loadData() {
+        applyPortalSeed();
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             PO_ORDERS = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_ORDERS));
         } catch (e) {
             PO_ORDERS = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
         }
+        Object.keys(PO_ORDERS).forEach(function (code) {
+            var order = PO_ORDERS[code];
+            if (!order) return;
+            if (order.statusClass === 'received' || order.statusClass === 'partial') {
+                order.statusClass = 'pending';
+                order.status = order.entityType === 'customer' ? 'PROCESSING' : 'PENDING';
+            }
+        });
     }
 
     function saveData() {
@@ -245,19 +269,52 @@
         return item;
     }
 
-    function statusMeta(statusClass) {
-        var statusMap = {
-            received: { class: 'received', label: 'Received', value: 'RECEIVED' },
-            partial: { class: 'partial', label: 'Partially Received', value: 'PARTIALLY RECEIVED' },
-            pending: { class: 'pending', label: 'Pending', value: 'PENDING' },
-            packed: { class: 'packed', label: 'Packed', value: 'PACKED' },
-            'ready-for-dispatch': { class: 'ready-for-dispatch', label: 'Ready for Dispatch', value: 'READY FOR DISPATCH' },
-            shipped: { class: 'shipped', label: 'Packed', value: 'PACKED' },
-            'picked-up': { class: 'picked-up', label: 'Picked Up by Courier', value: 'PICKED UP BY COURIER' },
-            'out-for-delivery': { class: 'out-for-delivery', label: 'Out for Delivery', value: 'OUT FOR DELIVERY' },
-            completed: { class: 'completed', label: 'Delivered', value: 'DELIVERED' }
-        };
-        return statusMap[statusClass] || statusMap.pending;
+    var TRADE_STATUSES = [
+        { class: 'pending', label: 'Pending', value: 'PENDING' },
+        { class: 'packed', label: 'Packed', value: 'PACKED' },
+        { class: 'ready-for-dispatch', label: 'Ready for Dispatch', value: 'READY FOR DISPATCH' },
+        { class: 'out-for-delivery', label: 'Out for Delivery', value: 'OUT FOR DELIVERY' },
+        { class: 'completed', label: 'Delivered', value: 'DELIVERED' }
+    ];
+
+    var CUSTOMER_STATUSES = [
+        { class: 'pending', label: 'Processing', value: 'PROCESSING' },
+        { class: 'shipped', label: 'Shipped', value: 'SHIPPED' },
+        { class: 'completed', label: 'Completed', value: 'COMPLETED' }
+    ];
+
+    var PORTAL_TRADE_STATUSES = [
+        { class: 'pending', label: 'Pending', value: 'PENDING' }
+    ];
+
+    function statusListForOrder(order) {
+        if (PAGE_MODE === 'retailer') return PORTAL_TRADE_STATUSES.slice();
+        if (order && order.entityType === 'customer') return CUSTOMER_STATUSES.slice();
+        return TRADE_STATUSES.slice();
+    }
+
+    function lookupStatus(list, statusClass) {
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].class === statusClass) return list[i];
+        }
+        return null;
+    }
+
+    function statusMeta(statusClass, entityType) {
+        if (statusClass === 'received' || statusClass === 'partial') {
+            statusClass = 'pending';
+        }
+        var primary = entityType === 'customer' ? CUSTOMER_STATUSES : TRADE_STATUSES;
+        return lookupStatus(primary, statusClass)
+            || lookupStatus(TRADE_STATUSES, statusClass)
+            || lookupStatus(CUSTOMER_STATUSES, statusClass)
+            || lookupStatus(PORTAL_TRADE_STATUSES, statusClass)
+            || primary[0];
+    }
+
+    function displayStatus(order) {
+        if (!order) return 'Pending';
+        return statusMeta(order.statusClass, order.entityType).label;
     }
 
     function toDatetimeLocal(str) {
@@ -281,12 +338,15 @@
     }
 
     function generateNextCode(entityType) {
-        var prefix = entityType === 'customer' ? 'PO-C' : 'PO-';
+        var prefix = 'PO-';
+        if (entityType === 'customer') prefix = 'PO-C';
+        else if (entityType === 'wholesaler') prefix = 'WPO-';
         var max = 0;
         Object.keys(PO_ORDERS).forEach(function (k) {
             var o = PO_ORDERS[k];
             if (entityType === 'customer' && o.entityType !== 'customer') return;
-            if (entityType !== 'customer' && o.entityType === 'customer') return;
+            if (entityType === 'wholesaler' && o.entityType !== 'wholesaler') return;
+            if (entityType !== 'customer' && entityType !== 'wholesaler' && (o.entityType === 'customer' || o.entityType === 'wholesaler')) return;
             var num = parseInt(String(o.code).replace(/\D/g, ''), 10) || 0;
             if (num > max) max = num;
         });
@@ -304,6 +364,11 @@
 
     function ordersByType(type) {
         return Object.keys(PO_ORDERS).map(function (k) { return PO_ORDERS[k]; }).filter(function (o) {
+            if (PAGE_MODE === 'retailer') {
+                if (!matchesPortalEntity(o)) return false;
+                if (isWholesalerPortal()) return o.entityType === 'wholesaler';
+                return o.entityType !== 'customer' && o.entityType !== 'wholesaler';
+            }
             return type === 'customer' ? o.entityType === 'customer' : o.entityType !== 'customer';
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
@@ -391,40 +456,26 @@
         showMenuBackdrop();
     }
 
-    function buildCustomerActionItems(poCode, currentClass) {
-        var packedCurrent = currentClass === 'shipped' ? ' is-current' : '';
-        var pickedCurrent = currentClass === 'picked-up' ? ' is-current' : '';
-        var outCurrent = currentClass === 'out-for-delivery' ? ' is-current' : '';
-        var deliveredCurrent = currentClass === 'completed' ? ' is-current' : '';
-        return [
-            '<div class="action-popup-item action-popup-item-status' + packedCurrent + '" data-action="mark-shipped" data-po="' + poCode + '">Mark as Packed</div>',
-            '<div class="action-popup-item action-popup-item-status' + pickedCurrent + '" data-action="mark-picked-up" data-po="' + poCode + '">Picked Up by Courier</div>',
-            '<div class="action-popup-item action-popup-item-status' + outCurrent + '" data-action="mark-out-for-delivery" data-po="' + poCode + '">Out for Delivery</div>',
-            '<div class="action-popup-item action-popup-item-status' + deliveredCurrent + '" data-action="mark-delivered" data-po="' + poCode + '">Mark as Delivered</div>'
-        ].join('');
-    }
-
-    function buildRetailerActionItems(poCode, currentClass) {
-        var packedCurrent = currentClass === 'packed' ? ' is-current' : '';
-        var dispatchCurrent = currentClass === 'ready-for-dispatch' ? ' is-current' : '';
-        var outCurrent = currentClass === 'out-for-delivery' ? ' is-current' : '';
-        var deliveredCurrent = currentClass === 'completed' ? ' is-current' : '';
-        return [
-            '<div class="action-popup-item action-popup-item-status' + packedCurrent + '" data-action="mark-packed" data-po="' + poCode + '">Mark as Packed</div>',
-            '<div class="action-popup-item action-popup-item-status' + dispatchCurrent + '" data-action="mark-ready-for-dispatch" data-po="' + poCode + '">Ready for Dispatch</div>',
-            '<div class="action-popup-item action-popup-item-status' + outCurrent + '" data-action="mark-out-for-delivery" data-po="' + poCode + '">Out for Delivery</div>',
-            '<div class="action-popup-item action-popup-item-status' + deliveredCurrent + '" data-action="mark-delivered" data-po="' + poCode + '">Mark as Delivered</div>'
-        ].join('');
+    function buildStatusActionItems(poCode, order) {
+        var currentClass = order ? (order.statusClass || 'pending') : 'pending';
+        if (order && (currentClass === 'received' || currentClass === 'partial')) {
+            currentClass = 'pending';
+        }
+        var list = statusListForOrder(order);
+        if (order && !lookupStatus(list, currentClass) && currentClass !== 'received' && currentClass !== 'partial') {
+            list.push(statusMeta(currentClass, order.entityType));
+        }
+        return list.map(function (s) {
+            var current = s.class === currentClass ? ' is-current' : '';
+            return '<div class="action-popup-item action-popup-item-status' + current + '" data-action="set-status"' +
+                ' data-status-class="' + s.class + '" data-po="' + poCode + '">' + s.label + '</div>';
+        }).join('');
     }
 
     function buildActionMenu(poCode) {
         menuCounter += 1;
         var menuId = 'po-act-menu-' + menuCounter;
         var order = PO_ORDERS[poCode];
-        var currentClass = order ? (order.statusClass || 'received') : 'received';
-        var actionItems = order && order.entityType === 'customer'
-            ? buildCustomerActionItems(poCode, currentClass)
-            : buildRetailerActionItems(poCode, currentClass);
         return '<div class="action-menu-relative-container" data-kreezby-page-menu>' +
             '<button type="button" class="action-trigger-btn" data-menu="' + menuId + '">Action ▾</button>' +
             '<div class="action-popup-menu action-popup-menu-wide" id="' + menuId + '">' +
@@ -432,7 +483,7 @@
             '<div class="action-popup-item" data-action="edit" data-po="' + poCode + '">Edit Order</div>' +
             '<div class="action-popup-item" data-action="print" data-po="' + poCode + '">Print Receipt</div>' +
             '<div class="action-popup-divider" aria-hidden="true"></div>' +
-            actionItems + '</div></div>';
+            buildStatusActionItems(poCode, order) + '</div></div>';
     }
 
     function renderRetailerTable(filter) {
@@ -454,7 +505,7 @@
                     '<td>' + buildActionMenu(o.code) + '</td>' +
                     '<td>' + SUPPLIER_LABEL + '</td>' +
                     '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                    '<td><span class="status-pill-badge ' + (o.statusClass || 'received') + ' po-status-link" data-po="' + o.code + '">' + o.status + '</span></td></tr>';
+                    '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td></tr>';
             }).join('');
             return;
         }
@@ -464,7 +515,7 @@
                 '<td>' + o.dateCreated + '</td>' +
                 '<td><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                 '<td>' + o.entity + '</td>' +
-                '<td><span class="status-pill-badge ' + (o.statusClass || 'received') + ' po-status-link" data-po="' + o.code + '">' + o.status + '</span></td>' +
+                '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td>' +
                 '<td>' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -486,7 +537,7 @@
                 '<td>' + o.dateCreated + '</td>' +
                 '<td><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                 '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                '<td><span class="status-pill-badge ' + (o.statusClass || 'received') + '">' + o.status + '</span></td>' +
+                '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + '">' + displayStatus(o) + '</span></td>' +
                 '<td>' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -517,7 +568,7 @@
             courier +
             '</div><div>' +
             '<div class="meta-data-line"><strong>Entity:</strong> ' + order.entity + '</div>' +
-            '<div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge ' + (order.statusClass || 'received') + '" style="font-size:11px;">' + order.status + '</span></div>' +
+            '<div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge ' + (order.statusClass || 'pending') + '" style="font-size:11px;">' + displayStatus(order) + '</span></div>' +
             '</div></div>' +
             '<div class="viewer-table-title">Orders Matrix Breakdown</div>' +
             '<table class="data-display-table"><thead><tr style="background:#1a237e;color:#fff;">' +
@@ -527,7 +578,7 @@
             '<tr style="font-weight:bold;background:#f5f5f5;"><td colspan="4" style="text-align:right;">Sub Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '<tr style="font-weight:bold;background:#eee;"><td colspan="4" style="text-align:right;">Grand Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '</tfoot></table>' +
-            '<div class="details-dynamic-footer-status">Verification: ' + order.status + '</div></div>';
+            '<div class="details-dynamic-footer-status">Verification: ' + displayStatus(order) + '</div></div>';
     }
 
     function openDetails(poCode) {
@@ -559,19 +610,14 @@
     function applyStatus(poCode, statusClass) {
         var order = PO_ORDERS[poCode];
         if (!order) return;
-        order.statusClass = statusClass;
-        order.status = statusMeta(statusClass).value;
-        if (statusClass === 'shipped' || statusClass === 'picked-up' || statusClass === 'out-for-delivery') {
-            order.status = 'SHIPPED';
-        }
-        if (statusClass === 'completed') {
-            order.status = 'COMPLETED';
-        }
+        var meta = statusMeta(statusClass, order.entityType);
+        order.statusClass = meta.class;
+        order.status = meta.value;
         saveData();
         syncCustomerOrderFromPo(order);
         refreshTables();
         if (currentPoCode === poCode) openDetails(poCode);
-        showToast(poCode + ' set to ' + statusMeta(statusClass).label + '.');
+        showToast(poCode + ' set to ' + meta.label + '.');
     }
 
     function persistTrackingNotice(order, trackingNumber, courierName) {
@@ -597,9 +643,8 @@
         } catch (e) {
             existing = [];
         }
-        var statusText = 'Processing';
-        if (order.statusClass === 'shipped' || order.statusClass === 'picked-up' || order.statusClass === 'out-for-delivery') statusText = 'Shipped';
-        if (order.statusClass === 'completed') statusText = 'Completed';
+        var statusText = statusMeta(order.statusClass, 'customer').label;
+        if (order.statusClass === 'picked-up' || order.statusClass === 'out-for-delivery') statusText = 'Shipped';
         var orderNumber = order.code || 'PO-CUSTOMER';
         var mapped = {
             orderNumber: orderNumber,
@@ -685,14 +730,25 @@
 
     function populateModal(order) {
         document.getElementById('po-modal-title').textContent = order ? 'Edit Purchase Order' : 'Create New Purchase Order';
-        var type = order ? order.entityType : (activeTab === 'customer' ? 'customer' : 'retailer');
+        var type = order ? order.entityType : (PAGE_MODE === 'retailer'
+            ? (isWholesalerPortal() ? 'wholesaler' : 'retailer')
+            : (activeTab === 'customer' ? 'customer' : 'retailer'));
         var code = order ? order.code : generateNextCode(type);
         document.getElementById('po-modal-code').value = code;
         document.getElementById('po-modal-date').value = order ? toDatetimeLocal(order.dateCreated) : nowDatetimeLocal();
         document.getElementById('po-modal-area').value = order ? (order.area || '') : '';
         document.getElementById('po-modal-entity').value = order ? order.entity : (PAGE_MODE === 'retailer' ? retailerStoreName : '');
-        document.getElementById('po-modal-type').value = type === 'customer' ? 'customer' : 'retailer';
-        document.getElementById('po-modal-status').value = order ? (order.statusClass || 'received') : 'pending';
+        var typeSelect = document.getElementById('po-modal-type');
+        if (typeSelect) {
+            if (type === 'wholesaler' && !typeSelect.querySelector('option[value="wholesaler"]')) {
+                var whoOpt = document.createElement('option');
+                whoOpt.value = 'wholesaler';
+                whoOpt.textContent = 'Wholesaler Order';
+                typeSelect.appendChild(whoOpt);
+            }
+            typeSelect.value = type === 'customer' ? 'customer' : (type === 'wholesaler' ? 'wholesaler' : 'retailer');
+        }
+        document.getElementById('po-modal-status').value = order ? (order.statusClass || 'pending') : 'pending';
         document.getElementById('po-modal-remarks').value = order ? (order.remarks || '') : '';
         document.getElementById('po-modal-tracking').value = order ? (order.trackingNumber || '') : '';
         document.getElementById('po-modal-courier').value = order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines';
@@ -736,7 +792,7 @@
 
     function saveModal() {
         var code = document.getElementById('po-modal-code').value.trim();
-        var type = document.getElementById('po-modal-type').value;
+        var type = (document.getElementById('po-modal-type') || {}).value || (isWholesalerPortal() ? 'wholesaler' : 'retailer');
         var statusClass = document.getElementById('po-modal-status').value;
         var trackingNumber = (document.getElementById('po-modal-tracking') || {}).value || '';
         var courierName = (document.getElementById('po-modal-courier') || {}).value || 'J&T Express Philippines';
@@ -762,16 +818,12 @@
             entityType: type,
             area: document.getElementById('po-modal-area').value,
             statusClass: statusClass,
-            status: statusMeta(statusClass).value,
+            status: statusMeta(statusClass, type).value,
             remarks: document.getElementById('po-modal-remarks').value.trim(),
             trackingNumber: trackingNumber.trim(),
             courier: courierName.trim() || 'J&T Express Philippines',
             items: items
         };
-
-        if (statusClass === 'shipped' || statusClass === 'picked-up') {
-            payload.status = 'SHIPPED';
-        }
 
         if (editingPoCode && editingPoCode !== code) delete PO_ORDERS[editingPoCode];
         PO_ORDERS[code] = payload;
@@ -848,80 +900,20 @@
         closeAllMenus();
         if (action === 'view') { openDetails(poCode); return; }
         if (action === 'edit') { openEditModal(poCode); return; }
-        if (action === 'mark-packed') {
-            var packedOrder = PO_ORDERS[poCode];
-            if (!packedOrder) return;
-            packedOrder.statusClass = 'packed';
-            packedOrder.status = 'PACKED';
-            saveData();
-            if (packedOrder.entityType === 'customer') syncCustomerOrderFromPo(packedOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as packed.');
+        if (action === 'print') { printReceipt(poCode); return; }
+        var mapped = {
+            'mark-packed': 'packed',
+            'mark-ready-for-dispatch': 'ready-for-dispatch',
+            'mark-shipped': 'shipped',
+            'mark-picked-up': 'shipped',
+            'mark-out-for-delivery': 'out-for-delivery',
+            'mark-delivered': 'completed'
+        };
+        if (action === 'set-status' && statusClass) {
+            applyStatus(poCode, statusClass);
             return;
         }
-        if (action === 'mark-ready-for-dispatch') {
-            var dispatchOrder = PO_ORDERS[poCode];
-            if (!dispatchOrder) return;
-            dispatchOrder.statusClass = 'ready-for-dispatch';
-            dispatchOrder.status = 'READY FOR DISPATCH';
-            saveData();
-            if (dispatchOrder.entityType === 'customer') syncCustomerOrderFromPo(dispatchOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as ready for dispatch.');
-            return;
-        }
-        if (action === 'mark-shipped') {
-            var shippedOrder = PO_ORDERS[poCode];
-            if (!shippedOrder) return;
-            shippedOrder.statusClass = 'shipped';
-            shippedOrder.status = 'PACKED';
-            saveData();
-            if (shippedOrder.entityType === 'customer') syncCustomerOrderFromPo(shippedOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as packed.');
-            return;
-        }
-        if (action === 'mark-picked-up') {
-            var pickedOrder = PO_ORDERS[poCode];
-            if (!pickedOrder) return;
-            pickedOrder.statusClass = 'picked-up';
-            pickedOrder.status = 'PICKED UP BY COURIER';
-            saveData();
-            syncCustomerOrderFromPo(pickedOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as picked up by courier.');
-            return;
-        }
-        if (action === 'mark-out-for-delivery') {
-            var outOrder = PO_ORDERS[poCode];
-            if (!outOrder) return;
-            outOrder.statusClass = 'out-for-delivery';
-            outOrder.status = 'OUT FOR DELIVERY';
-            saveData();
-            if (outOrder.entityType === 'customer') syncCustomerOrderFromPo(outOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as out for delivery.');
-            return;
-        }
-        if (action === 'mark-delivered') {
-            var deliveredOrder = PO_ORDERS[poCode];
-            if (!deliveredOrder) return;
-            deliveredOrder.statusClass = 'completed';
-            deliveredOrder.status = 'DELIVERED';
-            saveData();
-            if (deliveredOrder.entityType === 'customer') syncCustomerOrderFromPo(deliveredOrder);
-            refreshTables();
-            if (currentPoCode === poCode) openDetails(poCode);
-            showToast(poCode + ' marked as delivered.');
-            return;
-        }
-        if (action === 'set-status' && statusClass) { applyStatus(poCode, statusClass); return; }
-        if (action === 'print') { printReceipt(poCode); }
+        if (mapped[action]) applyStatus(poCode, mapped[action]);
     }
 
     function bindEvents() {
@@ -954,7 +946,10 @@
 
         var masterSelector = PAGE_MODE === 'retailer' ? '#po-retailer-directory-block' : '#po-master-lists-container-block';
 
-        document.addEventListener('click', function (e) {
+        if (window.__kreezbyPoDocClick) {
+            document.removeEventListener('click', window.__kreezbyPoDocClick, true);
+        }
+        window.__kreezbyPoDocClick = function (e) {
             var actionBtn = e.target.closest(masterSelector + ' .action-trigger-btn[data-menu]');
             if (actionBtn) {
                 e.preventDefault(); e.stopPropagation();
@@ -986,10 +981,18 @@
             if (!e.target.closest('.action-popup-menu') && !e.target.closest('.action-trigger-btn[data-menu]')) {
                 closeAllMenus();
             }
-        }, true);
+        };
+        document.addEventListener('click', window.__kreezbyPoDocClick, true);
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeAllMenus();
+        });
+    }
+
+    function stripRetiredInboundLegendPills() {
+        document.querySelectorAll('.legend-container-box .status-pill-badge').forEach(function (el) {
+            var t = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            if (t === 'received' || t === 'partially received') el.parentNode.removeChild(el);
         });
     }
 
@@ -1004,6 +1007,7 @@
         loadData();
         refreshTables();
         bindEvents();
+        stripRetiredInboundLegendPills();
     }
 
     window.PoAdmin = {

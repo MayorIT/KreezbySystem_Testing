@@ -28,8 +28,9 @@
     var PRESETS = {
         admin: {
             contacts: [
-                { id: 'sidc', name: 'SIDC Retailer', preview: 'Next delivery inventory data is auto-synced...', time: '15:31', initials: 'S', online: true, unread: true },
-                { id: 'r101', name: 'Retailer 101', preview: 'Stock reorder verification flag code updated...', time: 'Yesterday', initials: 'R', unread: false },
+                { id: 'sidc', name: 'SIDC Batangas Hub', preview: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31', initials: 'S', online: true, unread: true },
+                { id: 'maria', name: 'Maria Santos', preview: 'Order ORD-2026-1042 is still packing.', time: 'Today', initials: 'M', unread: true },
+                { id: 'metro', name: 'Metro Bulk Distributors', preview: 'WPO-M-0091 awaiting truck assignment.', time: 'Yesterday', initials: 'W', unread: false },
                 { id: 'claire', name: 'Claire (Staff 1)', preview: 'AI Forecasting report compiled successfully.', time: 'May 14', initials: 'C', online: true, archived: true }
             ],
             messages: {
@@ -37,7 +38,16 @@
                     { type: 'incoming', text: 'Hello Admin, we have processed the weekly stock evaluation check.', time: '15:24' },
                     { type: 'incoming', text: 'Are there any active back-order dispatch batches this afternoon?', time: '15:25' },
                     { type: 'outgoing', text: 'Hello SIDC Team! Yes, the AI demand forecasting engine has auto-allocated an ingredient boost.', time: '15:30' },
-                    { type: 'outgoing', text: 'Next delivery inventory data is auto-synced.', time: '15:31' }
+                    { type: 'outgoing', text: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31' }
+                ],
+                maria: [
+                    { type: 'incoming', text: 'Hi, just checking on ORD-2026-1042 — chocolate and ube jars.', time: '09:12' },
+                    { type: 'outgoing', text: 'Hi Maria, we are packing that order at the main facility now.', time: '09:18' },
+                    { type: 'incoming', text: 'Order ORD-2026-1042 is still packing.', time: '09:20' }
+                ],
+                metro: [
+                    { type: 'incoming', text: 'QC warehouse is ready for the next bulk wave.', time: 'Yesterday' },
+                    { type: 'outgoing', text: 'WPO-M-0091 is queued — truck assignment later today.', time: 'Yesterday' }
                 ]
             }
         },

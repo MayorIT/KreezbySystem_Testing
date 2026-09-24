@@ -54,13 +54,28 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function init() {
         var file = currentFile();
         if (isWholesalerPortalPage(file)) {
             rememberHome(file);
         }
         patchHomeLinks();
-    });
+        if (window.KreezbyPortalSeed) {
+            window.KreezbyPortalSeed.apply();
+            if (typeof window.KreezbyPortalSeed.fillDashboardCounts === 'function') {
+                window.KreezbyPortalSeed.fillDashboardCounts();
+            }
+            if (typeof window.KreezbyPortalSeed.fillWholesalerSales === 'function') {
+                window.KreezbyPortalSeed.fillWholesalerSales();
+            }
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
     window.KreezbyWholesalerNav = {
         DIRECTORY: DIRECTORY,

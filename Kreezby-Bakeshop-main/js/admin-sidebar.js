@@ -36,7 +36,8 @@
 
         activity: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
 
-        truck: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>'
+        truck: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+        clipboard: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>'
 
     };
 
@@ -64,8 +65,8 @@
 
         { key: 'alert', label: 'Alert', href: 'alert-admin.html', icon: 'bell' },
 
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' }
-
+        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' },
+        { key: 'issuereports', label: 'Issue Reports', href: '../it_kreezby/index.html', icon: 'clipboard' }
     ];
 
 
@@ -205,6 +206,8 @@
 
         if (filename === 'alert-admin.html') return 'alert';
 
+        if (filename === 'report_issue-received-students.html') return 'issuereports';
+
         if (filename === 'inbox-admin.html') return 'dashboard';
 
         return '';
@@ -219,9 +222,13 @@
 
 
 
+        var frameAttrs = item.key === 'issuereports'
+            ? ' data-turbo="false" data-turbo-frame="_top"'
+            : ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
+
         return (
 
-            '<a href="' + item.href + '" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" class="kreezby-sidebar-nav-item' + (active ? ' is-active' : '') + '">' +
+            '<a href="' + item.href + '"' + frameAttrs + ' class="kreezby-sidebar-nav-item' + (active ? ' is-active' : '') + '">' +
 
                 '<span class="kreezby-sidebar-nav-icon" aria-hidden="true">' + (ICONS[item.icon] || '') + '</span>' +
 

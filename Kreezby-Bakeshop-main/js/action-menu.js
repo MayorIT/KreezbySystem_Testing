@@ -204,6 +204,7 @@
     }
 
     document.addEventListener('click', function (event) {
+        if (window.KreezbyActions) return;
         if (isPortalPage()) return;
 
         // PO / Receiving portal menus (staff, admin, retailer) — legacy fallback only
@@ -246,6 +247,7 @@
     }, true);
 
     document.addEventListener('click', function (event) {
+        if (window.KreezbyActions) return;
         if (isPortalPage()) return;
 
         var btn = closest(event.target, 'button.action-trigger-btn');
@@ -263,7 +265,7 @@
         }
 
         var existingSiblingMenu = btn.parentElement && btn.parentElement.querySelector('.action-popup-menu');
-        if (existingSiblingMenu && existingSiblingMenu.querySelector('[data-action]')) {
+        if (existingSiblingMenu) {
             return;
         }
 

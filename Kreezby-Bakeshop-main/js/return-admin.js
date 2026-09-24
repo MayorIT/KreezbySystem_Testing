@@ -54,6 +54,9 @@
     }
 
     function loadData() {
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+        }
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             RETURNS = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_RETURNS));
@@ -82,7 +85,14 @@
     }
 
     function returnsByType(type) {
-        return Object.keys(RETURNS).map(function (k) { return RETURNS[k]; }).filter(function (r) {
+        var list = Object.keys(RETURNS).map(function (k) { return RETURNS[k]; });
+        if (type !== 'customer' && !document.getElementById('return-tab-customer') && !document.getElementById('return-customer-tbody')) {
+            return list.sort(function (a, b) {
+                var d = b.dateCreated.localeCompare(a.dateCreated);
+                return d !== 0 ? d : b.code.localeCompare(a.code);
+            });
+        }
+        return list.filter(function (r) {
             return type === 'customer' ? r.entityType === 'customer' : r.entityType !== 'customer';
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
@@ -212,7 +222,7 @@
                 '<td><strong>' + r.poOrigin + '</strong></td>' +
                 '<td>' + r.entity + '</td>' +
                 '<td>' + (r.items ? r.items.length : 0) + '</td>' +
-                '<td><span class="status-pill-badge ' + r.statusClass + ' return-status-link" data-return="' + r.code + '">' + r.status + '</span></td>' +
+                '<td><span class="status-pill-badge ' + r.statusClass + ' return-status-link" data-return="' + r.code + '">' + statusMeta(r.statusClass).label + '</span></td>' +
                 '<td>' + buildActionMenu(r.code) + '</td></tr>';
         }).join('');
 
@@ -248,7 +258,7 @@
             '<div class="meta-data-line"><strong>Date Stamped:</strong> ' + record.dateCreated + '</div>' +
             '</div><div>' +
             '<div class="meta-data-line"><strong>Returnee Entity:</strong> ' + record.entity + '</div>' +
-            '<div class="meta-data-line"><strong>Status Marker:</strong> <span class="status-pill-badge ' + record.statusClass + '" style="font-size:11px;">' + record.status + '</span></div>' +
+            '<div class="meta-data-line"><strong>Status Marker:</strong> <span class="status-pill-badge ' + record.statusClass + '" style="font-size:11px;">' + statusMeta(record.statusClass).label + '</span></div>' +
             '<div class="meta-data-line"><strong>Grand Total:</strong> ₱' + formatMoney(total) + '</div>' +
             '</div><div style="border-left:1px dashed #ccc;padding-left:20px;">' +
             '<div class="meta-data-line"><strong>Reason for Return:</strong></div>' +
@@ -334,6 +344,14 @@
         var cs = document.querySelector('#return-tab-customer input[type="text"]');
         if (cs) cs.id = 'return-customer-search';
 
+        var master = document.getElementById('returns-master-list-panel-view');
+        if (master) {
+            var tbody = master.querySelector('table.data-display-table tbody');
+            if (tbody && !tbody.id) tbody.id = 'return-retailer-tbody';
+            var search = master.querySelector('input[type="text"]');
+            if (search && !search.id) search.id = 'return-retailer-search';
+        }
+
         if (!document.getElementById('return-print-root')) {
             var root = document.createElement('div');
             root.id = 'return-print-root';
@@ -385,8 +403,11 @@
         var backBtn = document.getElementById('return-details-back-btn');
         if (backBtn) backBtn.addEventListener('click', backToList);
 
-        document.addEventListener('click', function (e) {
-            var actionBtn = e.target.closest('#returns-master-list-panel-view .action-trigger-btn[data-menu]');
+        if (window.__kreezbyReturnDocClick) {
+            document.removeEventListener('click', window.__kreezbyReturnDocClick, true);
+        }
+        window.__kreezbyReturnDocClick = function (e) {
+            var actionBtn = e.target.closest('.action-trigger-btn[data-menu]');
             if (actionBtn) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -395,8 +416,8 @@
                 return;
             }
 
-            var actionItem = e.target.closest('#returns-master-list-panel-view .action-popup-item[data-return]');
-            if (actionItem && actionItem.closest('.action-popup-menu.active')) {
+            var actionItem = e.target.closest('.action-popup-item[data-return]');
+            if (actionItem && actionItem.closest('.action-popup-menu')) {
                 e.preventDefault();
                 e.stopPropagation();
                 handleAction(
@@ -426,7 +447,8 @@
             if (!e.target.closest('.action-popup-menu') && !e.target.closest('.action-trigger-btn[data-menu]')) {
                 closeAllMenus();
             }
-        }, true);
+        };
+        document.addEventListener('click', window.__kreezbyReturnDocClick, true);
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeAllMenus();

@@ -23,14 +23,14 @@
         'BO-0004': {
             code: 'BO-0004', poCode: 'PO-0004', dateCreated: '2021-11-03 11:52',
             entity: 'Retailer 102', entityType: 'retailer', supplier: 'Supplier 102',
-            expectedDelivery: 'May 25, 2024', status: 'RECEIVED', statusClass: 'received',
+            expectedDelivery: 'May 25, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Fully fulfilled.',
             items: [{ name: 'Item 106', unit: 'Boxes', note: '', ordered: 20, received: 20, backOrder: 0, cost: 250, total: 5000 }]
         },
         'BO-0003': {
             code: 'BO-0003', poCode: 'PO-0003', dateCreated: '2021-11-03 11:51',
             entity: 'Retailer 102', entityType: 'retailer', supplier: 'Supplier 102',
-            expectedDelivery: 'May 24, 2024', status: 'PARTIALLY RECEIVED', statusClass: 'partial',
+            expectedDelivery: 'May 24, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Partial delivery received. Some items are back ordered.',
             items: [
                 { name: 'Item 102', unit: 'Boxes', note: 'Sample only', ordered: 50, received: 30, backOrder: 20, cost: 200, total: 4000 },
@@ -40,14 +40,14 @@
         'BO-0002': {
             code: 'BO-0002', poCode: 'PO-0002', dateCreated: '2021-11-03 11:20',
             entity: 'Retailer 101', entityType: 'retailer', supplier: 'Supplier 101',
-            expectedDelivery: 'May 22, 2024', status: 'RECEIVED', statusClass: 'received',
+            expectedDelivery: 'May 22, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Complete delivery.',
             items: [{ name: 'Item 101', unit: 'Boxes', note: 'Standard batch', ordered: 100, received: 100, backOrder: 0, cost: 150, total: 15000 }]
         },
         'BO-0001': {
             code: 'BO-0001', poCode: 'PO-0001', dateCreated: '2021-11-03 11:20',
             entity: 'Retailer 101', entityType: 'retailer', supplier: 'Supplier 101',
-            expectedDelivery: 'May 21, 2024', status: 'PARTIALLY RECEIVED', statusClass: 'partial',
+            expectedDelivery: 'May 21, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Balance pending.',
             items: [{ name: 'Item 105', unit: 'pcs', note: '', ordered: 30, received: 18, backOrder: 12, cost: 95, total: 1140 }]
         },
@@ -61,14 +61,14 @@
         'BO-C011': {
             code: 'BO-C011', poCode: 'PO-0011', dateCreated: '2021-11-03 15:45',
             entity: 'Customer 201', entityType: 'customer', supplier: 'Kreezby Bakeshop',
-            expectedDelivery: 'May 27, 2024', status: 'RECEIVED', statusClass: 'received',
+            expectedDelivery: 'May 27, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Fulfilled.',
             items: [{ name: 'Lemon Crinkles', unit: 'PCS', note: '', ordered: 8, received: 8, backOrder: 0, cost: 45, total: 360 }]
         },
         'BO-C010': {
             code: 'BO-C010', poCode: 'PO-0010', dateCreated: '2021-11-03 14:30',
             entity: 'Customer 203', entityType: 'customer', supplier: 'Kreezby Bakeshop',
-            expectedDelivery: 'May 26, 2024', status: 'PARTIALLY RECEIVED', statusClass: 'partial',
+            expectedDelivery: 'May 26, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Partial fulfillment.',
             items: [
                 { name: 'Choco Almond', unit: 'PCS', note: '', ordered: 10, received: 6, backOrder: 4, cost: 55, total: 220 },
@@ -78,7 +78,7 @@
         'BO-C009': {
             code: 'BO-C009', poCode: 'PO-0009', dateCreated: '2021-11-03 13:05',
             entity: 'Customer 202', entityType: 'customer', supplier: 'Kreezby Bakeshop',
-            expectedDelivery: 'May 23, 2024', status: 'RECEIVED', statusClass: 'received',
+            expectedDelivery: 'May 23, 2024', status: 'PENDING', statusClass: 'pending',
             remarks: 'Complete.',
             items: [{ name: 'Chocolate', unit: 'PCS', note: '', ordered: 15, received: 15, backOrder: 0, cost: 50, total: 750 }]
         },
@@ -92,8 +92,6 @@
     };
 
     var BO_STATUSES = [
-        { class: 'received', label: 'Received', value: 'RECEIVED' },
-        { class: 'partial', label: 'Partially Received', value: 'PARTIALLY RECEIVED' },
         { class: 'pending', label: 'Pending', value: 'PENDING' }
     ];
 
@@ -104,6 +102,21 @@
     var activeBoTab = 'retailer';
     var retailerStoreName = '';
     var SUPPLIER_LABEL = 'Kreezby Bakeshop';
+
+    function applyPortalSeed() {
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+        }
+    }
+
+    function isWholesalerPortal() {
+        return /\/wholesaler\//i.test((location.pathname || '').replace(/\\/g, '/'));
+    }
+
+    function matchesPortalEntity(order) {
+        if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
+        return order && order.entity === retailerStoreName;
+    }
 
     function listBlockId() {
         return PAGE_MODE === 'retailer' ? 'bo-retailer-dashboard-view' : 'bo-master-dashboard-split-view';
@@ -268,12 +281,21 @@
     }
 
     function loadData() {
+        applyPortalSeed();
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             BO_ORDERS = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_ORDERS));
         } catch (e) {
             BO_ORDERS = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
         }
+        Object.keys(BO_ORDERS).forEach(function (code) {
+            var order = BO_ORDERS[code];
+            if (!order) return;
+            if (order.statusClass === 'received' || order.statusClass === 'partial') {
+                order.statusClass = 'pending';
+                order.status = 'PENDING';
+            }
+        });
     }
 
     function saveData() {
@@ -289,6 +311,7 @@
     }
 
     function statusMeta(statusClass) {
+        if (statusClass === 'received' || statusClass === 'partial') statusClass = 'pending';
         for (var i = 0; i < BO_STATUSES.length; i++) {
             if (BO_STATUSES[i].class === statusClass) return BO_STATUSES[i];
         }
@@ -297,7 +320,11 @@
 
     function ordersByType(type) {
         return Object.keys(BO_ORDERS).map(function (k) { return BO_ORDERS[k]; }).filter(function (o) {
-            if (PAGE_MODE === 'retailer') return o.entityType !== 'customer';
+            if (PAGE_MODE === 'retailer') {
+                if (!matchesPortalEntity(o)) return false;
+                if (isWholesalerPortal()) return o.entityType === 'wholesaler';
+                return o.entityType !== 'customer' && o.entityType !== 'wholesaler';
+            }
             return type === 'customer' ? o.entityType === 'customer' : o.entityType !== 'customer';
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
@@ -394,6 +421,7 @@
     }
 
     function buildStatusActionItems(boCode, currentClass) {
+        if (currentClass === 'received' || currentClass === 'partial') currentClass = 'pending';
         return BO_STATUSES.map(function (s) {
             var current = s.class === currentClass ? ' is-current' : '';
             return '<div class="action-popup-item action-popup-item-status' + current + '" data-action="set-status"' +
@@ -435,7 +463,7 @@
                     '<td>' + buildActionMenu(o.code) + '</td>' +
                     '<td>' + (o.supplier || SUPPLIER_LABEL) + '</td>' +
                     '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                    '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + o.status + '</span></td></tr>';
+                    '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td></tr>';
             }).join('');
             return;
         }
@@ -446,7 +474,7 @@
                 '<td><a href="#" class="bo-code-link" data-bo="' + o.code + '">' + o.poCode + '</a></td>' +
                 '<td>' + o.entity + '</td>' +
                 '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + o.status + '</span></td>' +
+                '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td>' +
                 '<td>' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -469,7 +497,7 @@
                 '<td><a href="#" class="bo-code-link" data-bo="' + o.code + '">' + o.poCode + '</a></td>' +
                 '<td>' + o.entity + '</td>' +
                 '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + o.status + '</span></td>' +
+                '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td>' +
                 '<td>' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -504,7 +532,7 @@
             '</div><div>' +
             '<div class="meta-data-line"><strong>Supplier:</strong> ' + (order.supplier || SUPPLIER_LABEL) + '</div>' +
             '<div class="meta-data-line"><strong>Expected Delivery:</strong> ' + (order.expectedDelivery || '—') + '</div>' +
-            '<div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge ' + order.statusClass + '" style="font-size:11px;">' + order.status + '</span></div>' +
+            '<div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge ' + order.statusClass + '" style="font-size:11px;">' + statusMeta(order.statusClass).label + '</span></div>' +
             '</div><div style="border-left:1px dashed #ccc;padding-left:20px;">' +
             '<div class="meta-data-line"><strong>Remarks:</strong> ' + (order.remarks || '—') + '</div>' +
             '</div></div>' +
@@ -585,7 +613,10 @@
 
         var masterSelector = PAGE_MODE === 'retailer' ? '#bo-retailer-dashboard-view' : '#bo-master-dashboard-split-view';
 
-        document.addEventListener('click', function (e) {
+        if (window.__kreezbyBoDocClick) {
+            document.removeEventListener('click', window.__kreezbyBoDocClick, true);
+        }
+        window.__kreezbyBoDocClick = function (e) {
             var actionBtn = e.target.closest(masterSelector + ' .action-trigger-btn[data-menu]');
             if (actionBtn) {
                 e.preventDefault(); e.stopPropagation();
@@ -617,10 +648,18 @@
             if (!e.target.closest('.action-popup-menu') && !e.target.closest('.action-trigger-btn[data-menu]')) {
                 closeAllMenus();
             }
-        }, true);
+        };
+        document.addEventListener('click', window.__kreezbyBoDocClick, true);
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeAllMenus();
+        });
+    }
+
+    function stripRetiredInboundLegendPills() {
+        document.querySelectorAll('.legend-container-box .status-pill-badge').forEach(function (el) {
+            var t = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            if (t === 'received' || t === 'partially received') el.parentNode.removeChild(el);
         });
     }
 
@@ -633,6 +672,7 @@
         loadData();
         refreshTables();
         bindEvents();
+        stripRetiredInboundLegendPills();
     }
 
     window.BoAdmin = {

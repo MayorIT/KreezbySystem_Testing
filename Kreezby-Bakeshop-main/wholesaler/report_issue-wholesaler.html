@@ -15,17 +15,38 @@
 </header>
 <div class="workspace-container" style="max-width:720px;margin:40px auto;padding:24px;">
     <h1 class="page-title">Report an Issue — Wholesaler</h1>
-    <p class="page-subtitle">Submit issues related to bulk orders, deliveries, invoicing, or stock allocation.</p>
+    <p class="page-subtitle">Submit issues related to bulk orders, deliveries, invoicing, or stock allocation. Reports go to the IT student Issue Reports Inbox.</p>
     <div class="panel-data-card">
         <div class="card-body-padded">
-            <form class="report-form" onsubmit="event.preventDefault(); alert('Issue submitted. Our team will contact you shortly.');">
-                <p><label>Full Name<br><input type="text" required style="width:100%;padding:8px;margin-top:4px;"></label></p>
-                <p style="margin-top:12px;"><label>Email<br><input type="email" required style="width:100%;padding:8px;margin-top:4px;"></label></p>
-                <p style="margin-top:12px;"><label>Issue Details<br><textarea required rows="5" style="width:100%;padding:8px;margin-top:4px;"></textarea></label></p>
+            <form class="report-form" id="wholesaler-report-form">
+                <p><label>Full Name<br><input name="fullName" type="text" required style="width:100%;padding:8px;margin-top:4px;"></label></p>
+                <p style="margin-top:12px;"><label>Email<br><input name="email" type="email" required style="width:100%;padding:8px;margin-top:4px;"></label></p>
+                <p style="margin-top:12px;"><label>PO / Reference<br><input name="reference" type="text" placeholder="E.g. WPO-M-0091" style="width:100%;padding:8px;margin-top:4px;"></label></p>
+                <p style="margin-top:12px;"><label>Issue Details<br><textarea name="description" required rows="5" style="width:100%;padding:8px;margin-top:4px;"></textarea></label></p>
                 <button type="submit" class="btn-call-to-action" style="margin-top:16px;">Submit Issue</button>
             </form>
         </div>
     </div>
 </div>
+<script src="../js/kreezby-issue-reports.js?v=20260924c"></script>
+<script>
+document.getElementById('wholesaler-report-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var form = event.target;
+    if (window.KreezbyIssueReports) {
+        KreezbyIssueReports.add({
+            role: 'Wholesaler',
+            submittedBy: form.fullName.value,
+            contact: form.email.value,
+            issueType: 'Bulk Order / Allocation',
+            reference: form.reference.value || '—',
+            description: form.description.value,
+            status: 'New'
+        });
+    }
+    alert('Issue report submitted. The IT team can review it in the Issue Reports Inbox.');
+    window.location.href = 'wholesaler-directory.html';
+});
+</script>
 </body>
 </html>

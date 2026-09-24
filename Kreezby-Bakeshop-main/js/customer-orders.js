@@ -19,7 +19,19 @@
     var currentFilter = 'all';
     var currentDetailOrder = null;
 
-    function loadOrders() {
+    function currentCustomerName() {
+        try {
+            var session = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
+            if (session && session.userName) return String(session.userName).trim();
+        } catch (e) { /* ignore */ }
+        try {
+            var profile = JSON.parse(localStorage.getItem('kreezbyCustomerProfile') || '{}');
+            if (profile && profile.fullName) return String(profile.fullName).trim();
+        } catch (e2) { /* ignore */ }
+        return '';
+    }
+
+    function loadAllOrders() {
         try {
             return JSON.parse(localStorage.getItem('kreezbyOrders') || '[]');
         } catch (e) {
@@ -27,8 +39,22 @@
         }
     }
 
+    function loadOrders() {
+        var orders = loadAllOrders();
+        var name = currentCustomerName().toLowerCase();
+        if (!name) return orders;
+        return orders.filter(function (o) {
+            var shipName = (((o.shippingInfo || {}).fullName) || o.poEntity || '').toLowerCase();
+            return shipName === name;
+        });
+    }
+
     function seedDemoOrderIfNeeded() {
-        var orders = loadOrders();
+        if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+            window.KreezbyPortalSeed.apply();
+            return;
+        }
+        var orders = loadAllOrders();
         if (orders && orders.length) return;
 
         var now = new Date().toISOString();

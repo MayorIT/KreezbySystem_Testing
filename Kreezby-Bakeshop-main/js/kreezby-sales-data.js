@@ -13,6 +13,7 @@
   var LITE_URL = 'data/kreezby-sales-lite.json';
   var FULL_URL = 'data/kreezby-sales-2026.json';
   var SESSION_CACHE_KEY = 'kreezby-sales-lite-v2';
+  var FAKE_ADMIN_URL = '../data/kreezby-sales-fake-admin.json';
 
   function zeroPayload() {
     return {
@@ -24,6 +25,29 @@
       sales: [],
       _salesBuilt: true
     };
+  }
+
+  function isAdminContext() {
+    try {
+      var path = (location.pathname || '').replace(/\\/g, '/');
+      if (/\/admin\//i.test(path)) return true;
+      var file = path.split('/').pop() || '';
+      return /admin\.html$/i.test(file) || /-admin\.html$/i.test(file);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clonePayload(data) {
+    return JSON.parse(JSON.stringify(data));
+  }
+
+  function adminTestPayload() {
+    if (!isAdminContext()) return null;
+    if (window.KREEZBY_ADMIN_TEST_SALES && window.KREEZBY_ADMIN_TEST_SALES.dailyReports) {
+      return clonePayload(window.KREEZBY_ADMIN_TEST_SALES);
+    }
+    return null;
   }
 
   var SOURCE_PREFIX = {
@@ -38,7 +62,39 @@
     batangas: 'BATANGAS'
   };
 
+  function applyBasePayload(data) {
+    BASE_CACHE = data;
+    CACHE = applyCache(mergeOverrides(BASE_CACHE));
+    ensureSalesBuilt();
+    return CACHE;
+  }
+
+  function loadFakeAdminJson() {
+    return fetch(FAKE_ADMIN_URL, { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('admin test sales ' + res.status);
+      return res.json();
+    });
+  }
+
+  function resetLoadState() {
+    CACHE = null;
+    BASE_CACHE = null;
+    loadPromise = null;
+    RANGE = null;
+    invalidateIndexes();
+  }
+
   function load() {
+    if (CACHE && isAdminContext()) {
+      var waiting = adminTestPayload();
+      if (waiting && waiting.dailyReports && waiting.dailyReports.length) {
+        var cacheRange = CACHE.dateRange || {};
+        var waitRange = waiting.dateRange || {};
+        var empty = !(CACHE.dailyReports && CACHE.dailyReports.length);
+        var rangeChanged = cacheRange.from !== waitRange.from || cacheRange.to !== waitRange.to;
+        if (empty || rangeChanged) resetLoadState();
+      }
+    }
     if (CACHE) return Promise.resolve(CACHE);
     if (loadPromise) return loadPromise;
 
@@ -46,9 +102,24 @@
       sessionStorage.removeItem(SESSION_CACHE_KEY);
     } catch (e) { /* ignore */ }
 
-    BASE_CACHE = zeroPayload();
-    CACHE = applyCache(mergeOverrides(BASE_CACHE));
-    loadPromise = Promise.resolve(CACHE);
+    if (!isAdminContext()) {
+      BASE_CACHE = zeroPayload();
+      CACHE = applyCache(mergeOverrides(BASE_CACHE));
+      loadPromise = Promise.resolve(CACHE);
+      return loadPromise;
+    }
+
+    var embedded = adminTestPayload();
+    if (embedded) {
+      loadPromise = Promise.resolve(applyBasePayload(embedded));
+      return loadPromise;
+    }
+
+    loadPromise = loadFakeAdminJson().then(function (data) {
+      return applyBasePayload(data);
+    }).catch(function () {
+      return applyBasePayload(zeroPayload());
+    });
     return loadPromise;
   }
 
@@ -211,6 +282,8 @@
       dateRange: base.dateRange,
       sources: base.sources,
       note: base.note,
+      isTestData: !!base.isTestData,
+      adminOnly: !!base.adminOnly,
       dailyReports: dailyReports,
       sales: allSales
     };
@@ -291,6 +364,7 @@
   }
 
   function inRange(dateStr) {
+    if (!RANGE || !RANGE.from || !RANGE.to) return true;
     return dateStr >= RANGE.from && dateStr <= RANGE.to;
   }
 
@@ -332,16 +406,18 @@
   }
 
   var AREA_LABELS = {
+    batangas: 'Batangas',
     bauan: 'Bauan',
     citimart: 'Citimart',
-    lucena: 'Lucena',
-    rosario: 'Rosario',
-    tagaytay: 'Tagaytay',
-    manila: 'Manila',
     lipa: 'Lipa',
+    lucena: 'Lucena',
+    manila: 'Manila',
+    rosario: 'Rosario',
     stotomas: 'Sto. Tomas',
-    batangas: 'Batangas'
+    tagaytay: 'Tagaytay'
   };
+
+  var AREA_ORDER = ['batangas', 'bauan', 'citimart', 'lipa', 'lucena', 'manila', 'rosario', 'stotomas', 'tagaytay'];
 
   function areaLabel(source) {
     return AREA_LABELS[source] || (source ? source.charAt(0).toUpperCase() + source.slice(1) : 'Unknown');
@@ -358,36 +434,44 @@
     return d.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
-  /** Options for admin/staff route sheet filters (month → area → date). */
+  function sortAreas(list) {
+    return list.slice().sort(function (a, b) {
+      var ia = AREA_ORDER.indexOf(a.value);
+      var ib = AREA_ORDER.indexOf(b.value);
+      if (ia < 0 && ib < 0) return a.label.localeCompare(b.label);
+      if (ia < 0) return 1;
+      if (ib < 0) return -1;
+      return ia - ib;
+    });
+  }
+
+  /** Options for admin/staff route sheet filters (month + area stay independent of date). */
   function getRouteFilterOptions() {
     if (INDEX.routeOptions) return INDEX.routeOptions;
     var reports = getDailyReports().slice().sort(function (a, b) {
       return a.reportDate < b.reportDate ? -1 : a.reportDate > b.reportDate ? 1 : 0;
     });
     var monthSet = {};
+    var areaMap = {};
     var byMonth = {};
 
     reports.forEach(function (r) {
       var ym = r.reportDate.slice(0, 7);
       monthSet[ym] = true;
-      if (!byMonth[ym]) byMonth[ym] = { byDate: {} };
-      if (!byMonth[ym].byDate[r.reportDate]) byMonth[ym].byDate[r.reportDate] = {};
-      byMonth[ym].byDate[r.reportDate][r.source] = areaLabel(r.source);
+      areaMap[r.source] = areaLabel(r.source);
+      if (!byMonth[ym]) byMonth[ym] = { dateSet: {} };
+      byMonth[ym].dateSet[r.reportDate] = true;
+    });
+
+    Object.keys(AREA_LABELS).forEach(function (src) {
+      if (!areaMap[src]) areaMap[src] = AREA_LABELS[src];
     });
 
     var months = Object.keys(monthSet).sort().reverse();
     months.forEach(function (ym) {
-      var dateKeys = Object.keys(byMonth[ym].byDate).sort().reverse();
+      var dateKeys = Object.keys(byMonth[ym].dateSet).sort().reverse();
       byMonth[ym].dateList = dateKeys.map(function (d) {
         return { value: d, label: formatDateLabel(d) };
-      });
-      dateKeys.forEach(function (d) {
-        var sources = byMonth[ym].byDate[d];
-        byMonth[ym].byDate[d] = Object.keys(sources)
-          .map(function (src) {
-            return { value: src, label: sources[src] };
-          })
-          .sort(function (a, b) { return a.label.localeCompare(b.label); });
       });
     });
 
@@ -395,6 +479,9 @@
       months: months.map(function (ym) {
         return { value: ym, label: formatMonthLabel(ym) };
       }),
+      areas: sortAreas(Object.keys(areaMap).map(function (src) {
+        return { value: src, label: areaMap[src] };
+      })),
       byMonth: byMonth
     };
     return INDEX.routeOptions;
@@ -404,11 +491,9 @@
     var opt = getRouteFilterOptions();
     if (!opt.months.length) return { month: '', source: '', reportDate: '' };
     var month = opt.months[0].value;
+    var source = opt.areas.length ? opt.areas[0].value : '';
     var bucket = opt.byMonth[month];
-    if (!bucket || !bucket.dateList.length) return { month: month, source: '', reportDate: '' };
-    var reportDate = bucket.dateList[0].value;
-    var areas = bucket.byDate[reportDate] || [];
-    var source = areas.length ? areas[0].value : '';
+    var reportDate = bucket && bucket.dateList.length ? bucket.dateList[0].value : '';
     return { month: month, source: source, reportDate: reportDate };
   }
 
@@ -494,7 +579,9 @@
       manilaRange: sources.manila || null,
       lipaRange: sources.lipa || null,
       stotomasRange: sources.stotomas || null,
-      batangasRange: sources.batangas || null
+      batangasRange: sources.batangas || null,
+      isTestData: !!(CACHE && CACHE.isTestData),
+      note: (CACHE && CACHE.note) || ''
     };
     return INDEX.importSummary;
   }
@@ -517,7 +604,13 @@
     saveReport: saveReport,
     getReportById: getReportById,
     getSalesForReport: getSalesForReport,
-    findSaleById: findSaleById,
+    isTestData: function () {
+      return !!(CACHE && CACHE.isTestData && isAdminContext());
+    },
+    reload: function () {
+      resetLoadState();
+      return load();
+    },
     reloadMerged: function () {
       if (BASE_CACHE) return Promise.resolve(mergeOverrides(BASE_CACHE));
       return load();
