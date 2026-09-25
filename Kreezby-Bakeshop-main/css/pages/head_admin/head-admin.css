@@ -1,0 +1,144 @@
+/* Head Admin shell extras on top of issue-reports.css */
+
+.head-admin-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.head-admin-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.head-admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.1);
+}
+
+.about-card {
+    background: #fff;
+    border: 1px solid #e6edf6;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.about-card h3 {
+    margin: 0 0 8px;
+}
+
+.about-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.settings-split-grid {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.roles-navigator-card {
+    background: #fff;
+    border: 1px solid #e6edf6;
+    border-radius: 20px;
+    padding: 16px;
+}
+
+.roles-navigator-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.role-selection-pill {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    text-align: left;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.role-selection-pill.active-role,
+.role-selection-pill:hover {
+    border-color: #fbc02d;
+    background: #fff8e1;
+}
+
+.staff-task-hint {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: #777;
+}
+
+.panel-card-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.btn-save-permissions {
+    min-height: 40px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 999px;
+    background: #ffca28;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matrix-table th,
+.matrix-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #edf2f7;
+    text-align: left;
+}
+
+.matrix-table th.center-align,
+.matrix-table td.center-align {
+    text-align: center;
+}
+
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.support-card-kicker {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b45309;
+}
+
+@media (max-width: 860px) {
+    .head-admin-cards,
+    .settings-split-grid {
+        grid-template-columns: 1fr;
+    }
+}

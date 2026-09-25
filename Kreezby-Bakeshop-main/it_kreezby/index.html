@@ -4,47 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IT Kreezby — Issue Reports</title>
-    <link rel="stylesheet" href="../css/pages/staff/report_issue-received-students.css">
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <script>
+    (function () {
+        try {
+            var s = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+            var type = s.accountType || '';
+            var id = String(s.identity || s.userName || '').toLowerCase().replace(/[\s_-]/g, '');
+            if (type === 'IT Support' || id === 'itkreezby' || id.indexOf('itkreezby') === 0) return;
+            var dest = '../auth/log_in.html';
+            if (type === 'Administrator' || type === 'Head Administrator') dest = '../admin/report_issue-admin.html';
+            else if (type === 'Staff') dest = '../staff/report_issue-staff.html';
+            else if (type === 'Customer') dest = '../customer/report_issue-customer.html';
+            else if (type === 'Retailer') dest = '../retailer/report_issue-retailer.html';
+            else if (type === 'Wholesaler') dest = '../wholesaler/report_issue-wholesaler.html';
+            location.replace(dest);
+        } catch (e) { /* ignore */ }
+    })();
+    </script>
 </head>
 <body>
-<header class="top-navbar-node">
-    <div class="brand-logo-panel">
+<header class="top-navbar-node customer-report-header">
+    <a class="brand-logo-panel" href="index.html" title="Issue Reports Inbox">
         <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
         <span>IT Kreezby</span>
-    </div>
-    <div class="top-nav-links-right">
-        <a class="top-nav-item home-badge" href="index.html">Issue Reports</a>
-        <a class="top-nav-item" href="../auth/log_in.html" id="it-logout">↩ Log Out</a>
-    </div>
+    </a>
+    <nav class="customer-report-header-actions" aria-label="Page shortcuts">
+        <a class="customer-outline-btn" href="../auth/log_in.html" id="it-logout">Log Out</a>
+        <a class="customer-home-btn" href="index.html">Inbox</a>
+    </nav>
 </header>
-<div class="page-shell">
-    <div class="inbox-panel">
-        <div class="inbox-header">
-            <h1>Issue Reports Inbox</h1>
-            <p>This is the IT Kreezby queue. Every Report Issue submitted by a customer, retailer, wholesaler, staff, or admin lands in this folder.</p>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">IT Support Queue</span>
+            <h1>Reports received</h1>
+            <p>Every Report Issue submitted by a customer, retailer, wholesaler, staff, or admin lands here for IT Kreezby review.</p>
+            <div class="report-highlights" role="group" aria-label="Filter by status">
+                <button type="button" class="report-highlight-chip is-active" data-status-filter="">All tickets</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="New">New</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="In Progress">In Progress</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="Resolved">Resolved</button>
+            </div>
         </div>
-        <div class="inbox-body">
-            <table class="inbox-table">
-                <thead>
-                    <tr>
-                        <th>Ticket</th>
-                        <th>User Role</th>
-                        <th>Submitted By</th>
-                        <th>Issue Type</th>
-                        <th>Reference</th>
-                        <th>Received</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="issue-reports-tbody"></tbody>
-            </table>
-            <div class="empty-state" id="issue-reports-empty" hidden>No issue reports yet. Submitted tickets from any portal will appear in this table.</div>
-            <div class="issue-detail-card" id="issue-report-detail" hidden></div>
+
+        <div class="report-body">
+            <div class="inbox-stats" aria-label="Ticket counts">
+                <div class="inbox-stat">
+                    <span>New</span>
+                    <strong id="stat-new">0</strong>
+                </div>
+                <div class="inbox-stat">
+                    <span>In Progress</span>
+                    <strong id="stat-progress">0</strong>
+                </div>
+                <div class="inbox-stat">
+                    <span>Resolved</span>
+                    <strong id="stat-resolved">0</strong>
+                </div>
+            </div>
+
+            <div class="report-layout">
+                <section class="inbox-list-card" aria-label="Received tickets">
+                    <div class="form-section-head">
+                        <h2>Issue Details</h2>
+                        <p>Select a ticket to read the full report and update its status.</p>
+                    </div>
+                    <table class="inbox-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Role</th>
+                                <th>From</th>
+                                <th>Issue</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="issue-reports-tbody"></tbody>
+                    </table>
+                    <div class="empty-state" id="issue-reports-empty" hidden>No issue reports yet. Submitted tickets from any portal will appear here.</div>
+                </section>
+
+                <aside class="report-side-panel" aria-label="Ticket review">
+                    <div class="support-card support-card-primary" id="issue-report-detail">
+                        <span class="support-card-kicker">Ticket detail</span>
+                        <h3>Select a report</h3>
+                        <p>Click a row to read the full issue, contact details, and update status.</p>
+                    </div>
+                    <div class="support-card">
+                        <span class="support-card-kicker">Review Tips</span>
+                        <ul class="support-tips">
+                            <li>Start with New tickets, then move them to In Progress.</li>
+                            <li>Check the reference number against the matching portal module.</li>
+                            <li>Mark Resolved only after the reporter’s issue is addressed.</li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
         </div>
     </div>
-</div>
+</main>
+
 <script src="../js/kreezby-issue-reports.js?v=20260924d"></script>
-<script src="../js/kreezby-issue-reports-inbox.js?v=20260924d"></script>
+<script src="../js/kreezby-issue-reports-inbox.js?v=20260925k"></script>
+<script src="../js/expanding-tabs.js?v=20260925sm"></script>
 <script>
 document.getElementById('it-logout').addEventListener('click', function () {
     try { localStorage.removeItem('kreezby_session'); } catch (e) {}

@@ -60,7 +60,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-page-transition-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/page-transition.css';
+        link.href = moduleRelativeRoot() + 'css/shared/page-transition.css?v=20260925sm';
         (document.head || document.documentElement).appendChild(link);
     }
 

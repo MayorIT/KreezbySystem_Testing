@@ -52,8 +52,7 @@
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'aiforecast', label: 'AI Forecast', href: 'aiforecast-staff.html', icon: 'chart' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' },
-        { key: 'issuereports', label: 'Issue Reports', href: '../it_kreezby/index.html', icon: 'clipboard' }
+        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' }
     ];
 
     var CRITICAL_CSS = [
@@ -163,12 +162,7 @@
             });
         });
 
-        return items.length ? items.concat([{
-            key: 'issuereports',
-            label: 'Issue Reports',
-            href: '../it_kreezby/index.html',
-            icon: 'clipboard'
-        }]) : FALLBACK_NAV.slice();
+        return items.length ? items : FALLBACK_NAV.slice();
     }
 
     function activeKeyFor(filename) {
@@ -187,7 +181,6 @@
         if (filename === 'dailysales-staff.html') return 'dailysales';
         if (filename === 'inventoryreport-staff.html') return 'inventoryreport';
         if (filename === 'order-tracking-staff.html') return 'ordertracking';
-        if (filename === 'report_issue-received-students.html') return 'issuereports';
         return '';
     }
 

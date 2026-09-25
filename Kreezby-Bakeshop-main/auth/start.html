@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Welcome</title>
-    <link rel="stylesheet" href="../css/pages/start.css">
+    <link rel="stylesheet" href="../css/pages/start.css?v=20260925restore">
     <link rel="stylesheet" href="../css/shared/origin-button.css">
-
 </head>
 <body>
 
     <div class="splash-card">
 
-        <!-- Main Choice Screen -->
         <div class="main-choice-container" id="mainChoiceScreen">
             <div class="brand-logo-large">Kreezby</div>
             <div class="screen-choice-prompt">How are you visiting us today?</div>
@@ -23,7 +21,6 @@
             </div>
         </div>
 
-        <!-- Guest Choice Screen -->
         <div class="guest-choice-container" id="guestChoiceScreen">
             <div class="guest-subtitle">Guest Access</div>
             <div class="guest-info-text">
@@ -45,7 +42,7 @@
         function showGuestOptions() {
             const mainChoice = document.getElementById('mainChoiceScreen');
             const guestChoice = document.getElementById('guestChoiceScreen');
-            
+
             mainChoice.classList.add('hidden');
             guestChoice.classList.add('active');
         }
@@ -53,7 +50,7 @@
         function backToMainChoice() {
             const mainChoice = document.getElementById('mainChoiceScreen');
             const guestChoice = document.getElementById('guestChoiceScreen');
-            
+
             mainChoice.classList.remove('hidden');
             guestChoice.classList.remove('active');
         }

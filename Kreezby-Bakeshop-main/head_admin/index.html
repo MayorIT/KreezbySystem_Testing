@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head Admin — Kreezby</title>
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <link rel="stylesheet" href="../css/pages/head_admin/head-admin.css">
+</head>
+<body>
+<header class="top-navbar-node customer-report-header">
+    <a class="brand-logo-panel" href="index.html" title="Head Admin home">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        <span>Head Admin</span>
+    </a>
+    <nav class="customer-report-header-actions" aria-label="Page shortcuts">
+        <a class="customer-outline-btn" href="../auth/log_in.html" id="head-admin-logout">Log Out</a>
+        <a class="customer-home-btn" href="index.html">Home</a>
+    </nav>
+</header>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">Head Administration</span>
+            <h1>Control admin and staff</h1>
+            <p>Head Admin sits above Admin and Staff. Partnership inquiries land here. You decide which modules each admin and each staff member can open — they only see what you allow.</p>
+        </div>
+        <div class="report-body">
+            <div class="head-admin-cards">
+                <a class="about-card head-admin-card" href="inquiries.html">
+                    <span class="support-card-kicker">Inbox</span>
+                    <h3>Partnership inquiries</h3>
+                    <p>Messages from the checkout ad. People who want to retail or wholesale Kreezby.</p>
+                </a>
+                <a class="about-card head-admin-card" href="admin-permissions.html">
+                    <span class="support-card-kicker">Access</span>
+                    <h3>Admin permissions</h3>
+                    <p>Turn modules on or off for each admin account. Changes apply on their next page load.</p>
+                </a>
+                <a class="about-card head-admin-card" href="staff-permissions.html">
+                    <span class="support-card-kicker">Access</span>
+                    <h3>Staff permissions</h3>
+                    <p>Turn tasks on or off for each staff member. Admins cannot change this.</p>
+                </a>
+                <a class="about-card head-admin-card" href="../admin/admin.html">
+                    <span class="support-card-kicker">Portal</span>
+                    <h3>Open admin portal</h3>
+                    <p>Head Admin has full access. Use this to review operations the same way admins do.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+document.getElementById('head-admin-logout').addEventListener('click', function () {
+    try { localStorage.removeItem('kreezby_session'); sessionStorage.removeItem('kreezby_current_admin'); } catch (e) {}
+});
+</script>
+</body>
+</html>

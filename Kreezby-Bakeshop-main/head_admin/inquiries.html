@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head Admin — Partnership Inquiries</title>
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <link rel="stylesheet" href="../css/pages/head_admin/head-admin.css">
+</head>
+<body>
+<header class="top-navbar-node customer-report-header">
+    <a class="brand-logo-panel" href="index.html" title="Head Admin home">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        <span>Head Admin</span>
+    </a>
+    <nav class="customer-report-header-actions" aria-label="Page shortcuts">
+        <a class="customer-outline-btn" href="../auth/log_in.html" id="head-admin-logout">Log Out</a>
+        <a class="customer-home-btn" href="index.html">Home</a>
+    </nav>
+</header>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">Partnership Queue</span>
+            <h1>Inquiries received</h1>
+            <p>Every “Partner with Kreezby” form from checkout lands here for Head Admin review.</p>
+            <div class="report-highlights" role="group" aria-label="Filter by status">
+                <button type="button" class="report-highlight-chip is-active" data-status-filter="">All inquiries</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="New">New</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="In Progress">In Progress</button>
+                <button type="button" class="report-highlight-chip" data-status-filter="Resolved">Resolved</button>
+            </div>
+        </div>
+
+        <div class="report-body">
+            <div class="inbox-stats" aria-label="Inquiry counts">
+                <div class="inbox-stat"><span>New</span><strong id="stat-new">0</strong></div>
+                <div class="inbox-stat"><span>In Progress</span><strong id="stat-progress">0</strong></div>
+                <div class="inbox-stat"><span>Resolved</span><strong id="stat-resolved">0</strong></div>
+            </div>
+
+            <div class="report-layout">
+                <section class="inbox-list-card" aria-label="Received inquiries">
+                    <div class="form-section-head">
+                        <h2>Inquiry list</h2>
+                        <p>Select a row to read the full request and update status.</p>
+                    </div>
+                    <table class="inbox-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Interest</th>
+                                <th>From</th>
+                                <th>Business</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inquiries-tbody"></tbody>
+                    </table>
+                    <div class="empty-state" id="inquiries-empty" hidden>No partnership inquiries yet. Checkout ad submissions will appear here.</div>
+                </section>
+
+                <aside class="report-side-panel" aria-label="Inquiry review">
+                    <div class="support-card support-card-primary" id="inquiry-detail">
+                        <span class="support-card-kicker">Inquiry detail</span>
+                        <h3>Select an inquiry</h3>
+                        <p>Click a row to read the partnership request and update its status.</p>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="../js/kreezby-partner-inquiries.js"></script>
+<script src="../js/kreezby-partner-inquiries-inbox.js"></script>
+<script src="../js/expanding-tabs.js?v=20260925sm"></script>
+<script>
+document.getElementById('head-admin-logout').addEventListener('click', function () {
+    try { localStorage.removeItem('kreezby_session'); sessionStorage.removeItem('kreezby_current_admin'); } catch (e) {}
+});
+</script>
+</body>
+</html>

@@ -65,8 +65,7 @@
 
         { key: 'alert', label: 'Alert', href: 'alert-admin.html', icon: 'bell' },
 
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' },
-        { key: 'issuereports', label: 'Issue Reports', href: '../it_kreezby/index.html', icon: 'clipboard' }
+        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' }
     ];
 
 
@@ -206,8 +205,6 @@
 
         if (filename === 'alert-admin.html') return 'alert';
 
-        if (filename === 'report_issue-received-students.html') return 'issuereports';
-
         if (filename === 'inbox-admin.html') return 'dashboard';
 
         return '';
@@ -222,9 +219,7 @@
 
 
 
-        var frameAttrs = item.key === 'issuereports'
-            ? ' data-turbo="false" data-turbo-frame="_top"'
-            : ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
+        var frameAttrs = ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
 
         return (
 
@@ -242,9 +237,18 @@
 
 
 
+    function allowedNav() {
+        if (!window.KreezbyAdminPermissions || window.KreezbyAdminPermissions.isHeadAdmin()) {
+            return NAV;
+        }
+        return NAV.filter(function (item) {
+            return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+        });
+    }
+
     function buildSidebarHtml(activeKey) {
 
-        var navHtml = NAV.map(function (item) {
+        var navHtml = allowedNav().map(function (item) {
 
             return navItem(item, activeKey);
 

@@ -1066,7 +1066,14 @@ main.workspace-canvas {
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #5d4037 0%, #4e342e 100%);
+            background-color: #1a120c;
+            background-image:
+                linear-gradient(180deg, rgba(9, 9, 11, 0.38) 0%, rgba(9, 9, 11, 0.62) 100%),
+                url("../../assets/auth/kreezby-auth-flavors-bg.png?v=20260925b");
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;

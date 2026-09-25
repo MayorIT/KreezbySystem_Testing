@@ -1,0 +1,246 @@
+/* Expanding pill tabs — HTML port of components/ui/expanding-tabs.tsx */
+
+.expanding-tabs,
+.expandable-nav-tabs {
+    --expanding-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100vw - 1.5rem);
+    padding: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.035);
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.98);
+}
+
+.expanding-tabs::-webkit-scrollbar,
+.expandable-nav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.expanding-tabs--on-dark,
+.expandable-nav-tabs,
+.auth-tabs.expanding-tabs {
+    border-color: rgba(255, 255, 255, 0.055);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.expanding-tab,
+.expandable-nav-tab {
+    box-sizing: border-box;
+    position: relative;
+    display: inline-flex !important;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    height: 40px !important;
+    min-height: 40px;
+    min-width: 40px;
+    gap: 0 !important;
+    margin: 0;
+    padding: 0 11px !important;
+    border: none !important;
+    border-radius: 999px !important;
+    border-bottom: none !important;
+    text-decoration: none !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: #161618 !important;
+    background: #f8f8fa !important;
+    box-shadow:
+        0 3px 9px rgba(32, 32, 36, 0.09),
+        0 1px 1px rgba(32, 32, 36, 0.06),
+        inset 0 2px 0 rgba(255, 255, 255, 0.92) !important;
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+    transform: none !important;
+    transition:
+        gap 0.24s var(--expanding-ease),
+        padding 0.24s var(--expanding-ease),
+        background-color 0.18s ease,
+        color 0.18s ease !important;
+}
+
+.expanding-tab:active,
+.expandable-nav-tab:active {
+    transform: none !important;
+}
+
+.expanding-tabs--on-dark .expanding-tab,
+.expandable-nav-tabs .expandable-nav-tab,
+.auth-tabs .expanding-tab {
+    color: rgba(243, 243, 244, 0.86) !important;
+    background: #202023 !important;
+    box-shadow:
+        0 3px 9px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 2px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.expanding-tab:focus-visible,
+.expandable-nav-tab:focus-visible {
+    box-shadow:
+        0 0 0 2px #e3e3e8,
+        0 0 0 4px rgba(0, 0, 0, 0.7);
+}
+
+.expanding-tabs--on-dark .expanding-tab:focus-visible,
+.expandable-nav-tab:focus-visible,
+.auth-tabs .expanding-tab:focus-visible {
+    box-shadow:
+        0 0 0 2px #0e0e0f,
+        0 0 0 4px rgba(255, 255, 255, 0.8);
+}
+
+.expanding-tab.is-expanded,
+.expandable-nav-tab.is-expanded {
+    gap: 8px !important;
+    padding: 0 16px 0 10px !important;
+    justify-content: flex-start;
+    background: #fcfcfd !important;
+    color: #161618 !important;
+    box-shadow:
+        0 7px 18px rgba(32, 32, 36, 0.14),
+        0 1px 2px rgba(32, 32, 36, 0.08),
+        inset 0 2px 0 rgba(255, 255, 255, 0.98) !important;
+}
+
+.expanding-tabs--on-dark .expanding-tab.is-expanded,
+.auth-tabs .expanding-tab.is-expanded {
+    background: #29292c !important;
+    color: #f3f3f4 !important;
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 2px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.expandable-nav-tab.is-active.is-expanded {
+    background: #ffca28 !important;
+    color: #1f1f1f !important;
+    box-shadow:
+        0 7px 18px rgba(32, 32, 36, 0.18),
+        inset 0 2px 0 rgba(255, 255, 255, 0.55) !important;
+}
+
+.expandable-nav-tab.is-active.is-expanded:hover {
+    background: #ffca28;
+    color: #1f1f1f;
+}
+
+.expanding-tab__icon,
+.expandable-nav-tab__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.18em;
+    height: 1.18em;
+    opacity: 0.78;
+}
+
+.expanding-tab.is-expanded .expanding-tab__icon,
+.expandable-nav-tab.is-expanded .expandable-nav-tab__icon {
+    opacity: 1;
+}
+
+.expanding-tab__icon svg,
+.expandable-nav-tab__icon svg {
+    width: 1.18em;
+    height: 1.18em;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.expanding-tab__label,
+.expandable-nav-tab__label {
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    vertical-align: middle;
+    transition:
+        max-width 0.24s var(--expanding-ease),
+        opacity 0.16s ease;
+}
+
+.expanding-tab.is-expanded .expanding-tab__label,
+.expandable-nav-tab.is-expanded .expandable-nav-tab__label {
+    max-width: 14rem;
+    opacity: 1;
+}
+
+.po-order-tabs.expanding-tabs,
+.bo-order-tabs.expanding-tabs,
+.modal-tabs.expanding-tabs,
+.auth-tabs.expanding-tabs,
+.forecast-sub-tabs-row.expanding-tabs,
+.maintenance-directory-tabs-row.expanding-tabs,
+.report-highlights.expanding-tabs,
+.ai-filter-pills.expanding-tabs,
+.notifications-filter-group.expanding-tabs {
+    display: flex;
+    grid-row: auto;
+    border-bottom: none;
+    background: rgba(255, 255, 255, 0.35);
+    padding: 6px;
+    margin: 0 0 1rem;
+}
+
+.auth-tabs.expanding-tabs {
+    display: flex;
+    grid-template-columns: none;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.expanding-tabs .po-order-tab,
+.expanding-tabs .bo-order-tab,
+.expanding-tabs .auth-tab,
+.expanding-tabs .tab-link,
+.expanding-tabs .forecast-tab-link,
+.expanding-tabs .maintenance-tab-link,
+.expanding-tabs .report-highlight-chip,
+.expanding-tabs .pill,
+.expanding-tabs .notification-filter-btn {
+    margin-bottom: 0;
+    border-bottom: none !important;
+    border-radius: 999px !important;
+}
+
+.expandable-nav-tabs .expandable-nav-tab.top-nav-item,
+.expandable-nav-tabs .expandable-nav-tab.home-badge {
+    height: 40px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: #202023;
+}
+
+.expandable-nav-tabs .expandable-nav-tab.top-nav-item.is-expanded,
+.expandable-nav-tabs .expandable-nav-tab.home-badge.is-expanded {
+    padding: 0 16px 0 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .expanding-tab,
+    .expandable-nav-tab,
+    .expanding-tab__label,
+    .expandable-nav-tab__label {
+        transition-duration: 0.01ms !important;
+    }
+}

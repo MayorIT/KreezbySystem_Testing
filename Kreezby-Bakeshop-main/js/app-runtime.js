@@ -69,6 +69,41 @@
   var LOGIN_ALIASES = {
     brentadmin: {
       userName: 'Brent Ramos',
+      accountType: 'Head Administrator',
+      redirectUrl: 'head_admin/index.html'
+    },
+    headadmin: {
+      userName: 'Brent Ramos',
+      accountType: 'Head Administrator',
+      redirectUrl: 'head_admin/index.html'
+    },
+    kreezbyadmin: {
+      userName: 'Elena Morales',
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
+    },
+    admin1: {
+      userName: 'Elena Morales',
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
+    },
+    elenaadmin: {
+      userName: 'Elena Morales',
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
+    },
+    marcoadmin: {
+      userName: 'Marco Del Rosario',
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
+    },
+    patriciaadmin: {
+      userName: 'Patricia Go',
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
+    },
+    jonasadmin: {
+      userName: 'Jonas Villanueva',
       accountType: 'Administrator',
       redirectUrl: 'admin/admin.html'
     },
@@ -379,6 +414,7 @@
   }
 
   function loginRedirectForType(accountType, identity) {
+    if (accountType === 'Head Administrator') return 'head_admin/index.html';
     if (accountType === 'Administrator') return 'admin/admin.html';
     if (accountType === 'Staff') {
       return staffDashboardFromIdentity(identity);
@@ -489,7 +525,7 @@
           }
           var resolved = resolveLoginIdentity(identity);
           if (!resolved) {
-            toast('Account not found. Try brent_admin, staff1, retailer, customer, or maria.santos@email.com', 'warn');
+            toast('Account not found. Try brent_admin, elena_admin, staff1, retailer, customer, or maria.santos@email.com', 'warn');
             return;
           }
           var expectedPassword = resolveExpectedPassword(identity, resolved);
@@ -506,6 +542,14 @@
               userName: resolved.userName,
               accountType: resolved.accountType
             }));
+            if (resolved.accountType === 'Administrator') {
+              var nid = normalizeLoginKey(resolved.identity || resolved.userName);
+              var adminId = 'elena';
+              if (nid.indexOf('marco') >= 0) adminId = 'marco';
+              else if (nid.indexOf('patricia') >= 0) adminId = 'patricia';
+              else if (nid.indexOf('jonas') >= 0) adminId = 'jonas';
+              try { sessionStorage.setItem('kreezby_current_admin', adminId); } catch (e2) { /* ignore */ }
+            }
           } catch (err) { /* ignore */ }
           toast('Welcome, ' + resolved.userName + '!', 'success');
           setTimeout(function () {
@@ -521,6 +565,7 @@
             lastName: fd.get('lastName') || '',
             contactInfo: fd.get('contactInfo') || '',
             email: fd.get('contactInfo') || '',
+            birthday: fd.get('birthday') || '',
             password: fd.get('password') || '',
             confirmPassword: fd.get('confirmPassword') || ''
           };

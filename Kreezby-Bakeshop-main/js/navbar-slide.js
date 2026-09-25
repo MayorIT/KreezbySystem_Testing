@@ -12,6 +12,7 @@
         home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9 20v-6h6v6"/></svg>',
         maintenance: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
         inbox: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+        reports: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8M8 12h8M8 17h5"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>',
         default: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
     };
 
@@ -20,7 +21,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler'];
+        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -39,7 +40,7 @@
     function ensureCss() {
         if (document.getElementById('kreezby-expandable-nav-style')) return;
 
-        var href = moduleRelativeRoot() + 'css/shared/expandable-nav-tabs.css';
+        var href = moduleRelativeRoot() + 'css/shared/expandable-nav-tabs.css?v=20260925sm';
         var link = document.createElement('link');
         link.id = 'kreezby-expandable-nav-style';
         link.rel = 'stylesheet';
@@ -62,6 +63,9 @@
 
         if (text.indexOf('maintenance') >= 0 || file.indexOf('maintenance') >= 0) {
             return ICONS.maintenance;
+        }
+        if (text.indexOf('issue report') >= 0 || href.indexOf('it_kreezby') >= 0) {
+            return ICONS.reports;
         }
         if (text.indexOf('inbox') >= 0 || file.indexOf('inbox') >= 0) {
             return ICONS.inbox;
@@ -211,10 +215,18 @@
         var tabs = Array.prototype.slice.call(wrap.querySelectorAll('.expandable-nav-tab'));
         var activeIndex = pickActiveIndex(tabs);
         var selectedIndex = activeIndex >= 0 ? activeIndex : null;
+        var i;
+        var already = true;
 
-        tabs.forEach(function (tab, i) {
-            tab.classList.toggle('is-active', i === activeIndex);
-            if (i === activeIndex) tab.setAttribute('aria-current', 'page');
+        for (i = 0; i < tabs.length; i++) {
+            if (tabs[i].classList.contains('is-active') !== (i === activeIndex)) already = false;
+            if (tabs[i].classList.contains('is-expanded') !== (i === selectedIndex)) already = false;
+        }
+        if (already) return;
+
+        tabs.forEach(function (tab, idx) {
+            tab.classList.toggle('is-active', idx === activeIndex);
+            if (idx === activeIndex) tab.setAttribute('aria-current', 'page');
             else tab.removeAttribute('aria-current');
         });
 
@@ -224,6 +236,23 @@
     function init() {
         ensureCss();
         document.querySelectorAll('.top-navbar-node .top-nav-links-right').forEach(wireContainer);
+        ensureExpandingPageTabs();
+    }
+
+    function ensureExpandingPageTabs() {
+        if (window.KreezbyExpandingTabsLoaded) {
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                window.KreezbyExpandingTabs.init();
+            }
+            return;
+        }
+        if (document.getElementById('kreezby-expanding-tabs-script')) return;
+
+        var s = document.createElement('script');
+        s.id = 'kreezby-expanding-tabs-script';
+        s.src = moduleRelativeRoot() + 'js/expanding-tabs.js?v=20260925sm';
+        s.defer = true;
+        document.head.appendChild(s);
     }
 
     if (document.readyState === 'loading') {

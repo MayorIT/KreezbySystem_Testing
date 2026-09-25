@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head Admin — Admin Permissions</title>
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <link rel="stylesheet" href="../css/pages/head_admin/head-admin.css">
+</head>
+<body>
+<header class="top-navbar-node customer-report-header">
+    <a class="brand-logo-panel" href="index.html" title="Head Admin home">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        <span>Head Admin</span>
+    </a>
+    <nav class="customer-report-header-actions" aria-label="Page shortcuts">
+        <a class="customer-outline-btn" href="../auth/log_in.html" id="head-admin-logout">Log Out</a>
+        <a class="customer-home-btn" href="index.html">Home</a>
+    </nav>
+</header>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">Admin Access</span>
+            <h1>What each admin can open</h1>
+            <p>Head Admin sits above Admin. Admins only see the modules you allow. Dashboard stays available so they always have a home page.</p>
+        </div>
+        <div class="report-body" id="admin-permissions-root">
+            <div class="settings-split-grid">
+                <div class="roles-navigator-card">
+                    <div class="roles-navigator-title">Admin accounts</div>
+                    <button type="button" class="role-selection-pill active-role" data-admin-id="elena">Elena Morales<br><span class="staff-task-hint">elena_admin · Operations</span></button>
+                    <button type="button" class="role-selection-pill" data-admin-id="marco">Marco Del Rosario<br><span class="staff-task-hint">marco_admin · Inventory</span></button>
+                    <button type="button" class="role-selection-pill" data-admin-id="patricia">Patricia Go<br><span class="staff-task-hint">patricia_admin · Sales</span></button>
+                    <button type="button" class="role-selection-pill" data-admin-id="jonas">Jonas Villanueva<br><span class="staff-task-hint">jonas_admin · Branch</span></button>
+                </div>
+                <div class="inbox-list-card">
+                    <div class="panel-card-title-bar">
+                        <h3 id="permissions-panel-title">Module access — Elena Morales</h3>
+                        <button type="button" class="btn-save-permissions" id="btn-save-permissions">Save Permissions</button>
+                    </div>
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Task / Module</th>
+                                <th class="center-align">Allow Access</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permissions-matrix-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="../js/admin-permissions.js"></script>
+<script>
+document.getElementById('head-admin-logout').addEventListener('click', function () {
+    try { localStorage.removeItem('kreezby_session'); sessionStorage.removeItem('kreezby_current_admin'); } catch (e) {}
+});
+</script>
+</body>
+</html>

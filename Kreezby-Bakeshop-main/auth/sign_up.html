@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join the Kreezby Family</title>
-    <link rel="stylesheet" href="../css/shared/auth-shell.css">
+    <link rel="stylesheet" href="../css/shared/auth-shell.css?v=20260925restore">
 </head>
 <body>
 
 <section class="auth-shell" aria-label="Sign up">
+    <div class="auth-shell__photo" aria-hidden="true"></div>
     <canvas class="auth-shell__particles" aria-hidden="true"></canvas>
     <div class="auth-shell__vignette" aria-hidden="true"></div>
     <div class="auth-shell__lines" aria-hidden="true">
@@ -47,37 +48,8 @@
                     </div>
 
                     <div class="auth-field">
-                        <label class="auth-label">Birthday</label>
-                        <div class="auth-row auth-row--birthday">
-                            <select class="auth-select" name="birthMonth" required>
-                                <option value="">Month</option>
-                                <option value="1">Jan</option>
-                                <option value="8" selected>Aug</option>
-                            </select>
-                            <select class="auth-select" name="birthDay" required>
-                                <option value="">Day</option>
-                                <option value="25" selected>25</option>
-                            </select>
-                            <select class="auth-select" name="birthYear" required>
-                                <option value="">Year</option>
-                                <option value="1998" selected>1998</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="auth-field">
-                        <label class="auth-label">Gender</label>
-                        <div class="auth-gender-grid">
-                            <label class="auth-gender-option">
-                                <input type="radio" name="gender" value="Female"> Female
-                            </label>
-                            <label class="auth-gender-option">
-                                <input type="radio" name="gender" value="Male" checked> Male
-                            </label>
-                            <label class="auth-gender-option">
-                                <input type="radio" name="gender" value="Others"> Others
-                            </label>
-                        </div>
+                        <label class="auth-label" for="birthday">Birthday</label>
+                        <input class="auth-input" id="birthday" type="date" name="birthday">
                     </div>
 
                     <div class="auth-field">
@@ -113,16 +85,16 @@
 
                     <button type="submit" class="auth-btn">Create account</button>
                 </form>
-
-                <p class="auth-card__footer" style="margin-top:1rem;text-align:center;">
-                    Already have an account? <a href="log_in.html">Log in</a>
-                </p>
             </div>
+
+            <p class="auth-card__footer">
+                Already have an account? <a href="log_in.html">Log in</a>
+            </p>
         </div>
     </div>
 </section>
 
-<script src="../js/auth-shell.js"></script>
+<script src="../js/auth-shell.js?v=20260925sm"></script>
 <script src="../js/maintenance-settings.js"></script>
 <script src="../js/app-runtime.js"></script>
 </body>

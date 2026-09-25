@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head Admin — Staff Permissions</title>
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <link rel="stylesheet" href="../css/pages/head_admin/head-admin.css">
+</head>
+<body>
+<header class="top-navbar-node customer-report-header">
+    <a class="brand-logo-panel" href="index.html" title="Head Admin home">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        <span>Head Admin</span>
+    </a>
+    <nav class="customer-report-header-actions" aria-label="Page shortcuts">
+        <a class="customer-outline-btn" href="../auth/log_in.html" id="head-admin-logout">Log Out</a>
+        <a class="customer-home-btn" href="index.html">Home</a>
+    </nav>
+</header>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">Staff Access</span>
+            <h1>What each staff member can open</h1>
+            <p>Head Admin sits above Staff. Staff only see the tasks you allow. Dashboard stays available so they always have a home page.</p>
+        </div>
+        <div class="report-body" id="staff-permissions-root">
+            <div class="settings-split-grid">
+                <div class="roles-navigator-card">
+                    <div class="roles-navigator-title">Staff accounts</div>
+                    <button type="button" class="role-selection-pill active-role" data-staff-id="staff-1">Claire (Staff 1)<br><span class="staff-task-hint">Frontline</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-2">Ryan (Staff 2)<br><span class="staff-task-hint">Receiving</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-3">Isabel (Staff 3)<br><span class="staff-task-hint">Inventory</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-4">Derek (Staff 4)<br><span class="staff-task-hint">Sales Floor</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-5">Nina (Staff 5)<br><span class="staff-task-hint">Packaging</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-6">Omar (Staff 6)<br><span class="staff-task-hint">Dispatch</span></button>
+                    <button type="button" class="role-selection-pill" data-staff-id="staff-7">Grace (Staff 7)<br><span class="staff-task-hint">Customer Service</span></button>
+                </div>
+                <div class="inbox-list-card">
+                    <div class="panel-card-title-bar">
+                        <h3 id="permissions-panel-title">Task access — Claire (Staff 1)</h3>
+                        <button type="button" class="btn-save-permissions" id="btn-save-permissions">Save Permissions</button>
+                    </div>
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Task / Module</th>
+                                <th class="center-align">Allow Access</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permissions-matrix-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="../js/staff-permissions.js"></script>
+<script>
+document.getElementById('head-admin-logout').addEventListener('click', function () {
+    try { localStorage.removeItem('kreezby_session'); sessionStorage.removeItem('kreezby_current_admin'); } catch (e) {}
+});
+if (window.KreezbyStaffPermissions) {
+    KreezbyStaffPermissions.initPermissionsEditor(document.getElementById('staff-permissions-root'));
+}
+</script>
+</body>
+</html>

@@ -1325,11 +1325,33 @@ main.workspace-canvas {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
+        .checkout-ad-link {
+            display: block;
+            position: relative;
+            color: inherit;
+            text-decoration: none;
+        }
+
         .checkout-ad-banner img {
             width: 100%;
             height: auto;
             display: block;
             object-fit: contain;
+        }
+
+        .checkout-ad-cta {
+            display: block;
+            padding: 10px 14px;
+            background: #3f2f14;
+            color: #ffca28;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .checkout-ad-link:hover .checkout-ad-cta,
+        .checkout-ad-link:focus-visible .checkout-ad-cta {
+            background: #2c200e;
         }
 
         .checkout-alert-overlay {

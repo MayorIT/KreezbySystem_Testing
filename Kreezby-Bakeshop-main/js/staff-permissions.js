@@ -1,5 +1,5 @@
 /**
- * Staff task permissions — admin controls which hamburger items each staff can access.
+ * Staff task permissions — Head Admin controls which hamburger items each staff can access.
  * Permissions persist in localStorage (key: kreezby_staff_permissions).
  */
 (function () {
@@ -516,7 +516,7 @@
         if (params.get('denied') === '1') {
             var notice = document.createElement('div');
             notice.className = 'staff-access-denied-banner';
-            notice.textContent = 'You do not have permission to open that page. Contact your administrator.';
+            notice.textContent = 'You do not have permission to open that page. Contact the Head Admin.';
             notice.style.cssText = 'background:#ffebee;color:#c62828;padding:12px 20px;margin-bottom:16px;border-radius:6px;font-size:14px;font-weight:600;';
             var container = document.querySelector('.workspace-container, .workspace-view-canvas, .workspace-canvas');
             if (container && container.firstChild) {

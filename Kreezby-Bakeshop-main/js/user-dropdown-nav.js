@@ -10,7 +10,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby'];
+        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -40,7 +40,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby'];
+        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -60,13 +60,15 @@
         var path = (window.location.pathname || '').toLowerCase();
         if (path.indexOf('/staff/') !== -1) return moduleLocalHref('report_issue-staff.html');
         if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('report_issue-retailer.html');
+        if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/wholesaler/') !== -1) return moduleRoot() + 'wholesaler/report_issue-wholesaler.html';
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('report_issue-admin.html');
         return moduleLocalHref('report_issue-admin.html');
     }
 
-    function issueReportsInboxHref() {
-        return moduleRoot() + 'it_kreezby/index.html';
+    function reportIssueMenuHtml() {
+        return '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' +
+            '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>';
     }
 
     function inboxHref() {
@@ -119,11 +121,32 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-navbar-slide-script';
-        s.src = jsBase() + 'navbar-slide.js';
+        s.src = jsBase() + 'navbar-slide.js?v=20260925sm';
         s.defer = true;
         s.onload = function () {
             if (window.KreezbyNavbarSlide && typeof window.KreezbyNavbarSlide.init === 'function') {
                 window.KreezbyNavbarSlide.init();
+            }
+        };
+        document.head.appendChild(s);
+    }
+
+    function ensureExpandingTabsLoaded() {
+        if (window.KreezbyExpandingTabsLoaded) {
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                window.KreezbyExpandingTabs.init();
+            }
+            return;
+        }
+        if (document.getElementById('kreezby-expanding-tabs-script')) return;
+
+        var s = document.createElement('script');
+        s.id = 'kreezby-expanding-tabs-script';
+        s.src = jsBase() + 'expanding-tabs.js?v=20260925sm';
+        s.defer = true;
+        s.onload = function () {
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                window.KreezbyExpandingTabs.init();
             }
         };
         document.head.appendChild(s);
@@ -181,6 +204,23 @@
         document.head.appendChild(s);
     }
 
+    function ensureAdminPermissionsLoaded() {
+        var path = window.location.pathname || '';
+        if (!/\/admin\//i.test(path) && !/\/head_admin\//i.test(path)) return;
+        if (window.KreezbyAdminPermissions) {
+            if (typeof window.KreezbyAdminPermissions.refreshAdminChrome === 'function') {
+                window.KreezbyAdminPermissions.refreshAdminChrome();
+            }
+            return;
+        }
+        if (document.getElementById('kreezby-admin-permissions-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-admin-permissions-script';
+        s.src = jsBase() + 'admin-permissions.js';
+        s.async = false;
+        document.head.appendChild(s);
+    }
+
     function ensureDashboardIconsLoaded() {
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
         if (!/\/(admin|staff|retailer)\//i.test(path)) return;
@@ -205,25 +245,15 @@
         return /\/admin\//i.test(window.location.pathname || '');
     }
 
-    function ensureStaffIssueReportsTopNav() {
-        if (!isStaffPage()) return;
-        var right = document.querySelector('.top-navbar-node .top-nav-links-right');
-        if (!right) return;
-        if (right.querySelector('a[href*="it_kreezby"]')) return;
-
-        var link = document.createElement('a');
-        link.className = 'top-nav-item';
-        link.href = moduleRoot() + 'it_kreezby/index.html';
-        link.textContent = 'Issue Reports';
-        link.setAttribute('data-turbo-frame', '_top');
-        link.setAttribute('title', 'Issue Reports');
-
-        var inbox = right.querySelector('a.top-nav-item[href*="inbox"]');
-        var home = right.querySelector('a.home-badge');
-        var anchor = inbox || home;
-        if (anchor && anchor.nextSibling) right.insertBefore(link, anchor.nextSibling);
-        else if (anchor) right.appendChild(link);
-        else right.insertBefore(link, right.firstChild);
+    function stripIssueReportsChrome() {
+        if (/\/it_kreezby\//i.test(window.location.pathname || '')) return;
+        document.querySelectorAll('.top-navbar-node a, .kreezby-sidebar-nav-item, .dropdown-item').forEach(function (link) {
+            var href = (link.getAttribute('href') || '').toLowerCase();
+            var text = ((link.querySelector('.expandable-nav-tab__label') || link).textContent || '').toLowerCase();
+            if (href.indexOf('it_kreezby') >= 0 || text.indexOf('issue reports') >= 0) {
+                link.remove();
+            }
+        });
     }
 
     function ensureAdminTopNavLinks() {
@@ -235,8 +265,7 @@
         var desired = [
             { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') },
             { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-admin.html') },
-            { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-admin.html') },
-            { key: 'issuereports', label: 'Issue Reports', href: moduleRoot() + 'it_kreezby/index.html' }
+            { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-admin.html') }
         ];
 
         function normalize(text) {
@@ -263,6 +292,11 @@
 
         topLinks.forEach(function (link) {
             var key = keyForLink(link);
+            var href = (link.getAttribute('href') || '').toLowerCase();
+            if (key === 'issuereports' || href.indexOf('it_kreezby') >= 0) {
+                link.remove();
+                return;
+            }
             if (key && !byKey[key]) byKey[key] = link;
         });
 
@@ -403,9 +437,7 @@
         wrap.innerHTML =
             '<button type="button" class="user-dropdown-pill" id="user-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Admin \u25be</button>' +
             '<div class="user-dropdown-menu" id="user-dropdown-menu">' +
-                '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' +
-                '<a href="' + issueReportsInboxHref() + '" class="dropdown-item">Issue Reports Inbox</a>' +
-                '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>' +
+                reportIssueMenuHtml() +
             '</div>';
         right.appendChild(wrap);
     }
@@ -422,23 +454,19 @@
     function ensureMenuMarkup(menu) {
         var reportHref = reportIssueHref();
         var loginHref = authLoginHref();
-        var inboxReportsHref = issueReportsInboxHref();
-        var reviewerMenu =
-            '<a href="' + reportHref + '" class="dropdown-item">Report Issue</a>' +
-            '<a href="' + inboxReportsHref + '" class="dropdown-item">Issue Reports Inbox</a>' +
-            '<a href="' + loginHref + '" class="dropdown-item">\u21a9 Log Out</a>';
 
-        if (isStaffPage() || isAdminPage()) {
-            menu.innerHTML = reviewerMenu;
+        if (isStaffPage() || isAdminPage() || isRetailerPage()) {
+            menu.innerHTML = reportIssueMenuHtml();
             return;
         }
 
-        if (isRetailerPage()) {
-            menu.innerHTML =
-                '<a href="' + reportHref + '" class="dropdown-item">Report Issue</a>' +
-                '<a href="' + loginHref + '" class="dropdown-item">\u21a9 Log Out</a>';
-            return;
-        }
+        Array.prototype.slice.call(menu.querySelectorAll('.dropdown-item')).forEach(function (link) {
+            var text = (link.textContent || '').toLowerCase();
+            var href = (link.getAttribute('href') || '').toLowerCase();
+            if (text.indexOf('issue reports') >= 0 || href.indexOf('it_kreezby') >= 0) {
+                link.remove();
+            }
+        });
 
         var items = menu.querySelectorAll('.dropdown-item');
         var hasReport = false;
@@ -446,9 +474,10 @@
 
         items.forEach(function (link) {
             var text = (link.textContent || '').toLowerCase();
-            if (text.indexOf('report') >= 0 && text.indexOf('inbox') < 0) {
+            if (text.indexOf('report issue') >= 0) {
                 hasReport = true;
                 link.setAttribute('href', reportHref);
+                link.textContent = 'Report Issue';
             }
             if (text.indexOf('log out') >= 0) {
                 hasLogout = true;
@@ -456,8 +485,21 @@
             }
         });
 
-        if (!hasReport || !hasLogout) {
-            menu.innerHTML = reviewerMenu;
+        if (!hasReport) {
+            var report = document.createElement('a');
+            report.href = reportHref;
+            report.className = 'dropdown-item';
+            report.textContent = 'Report Issue';
+            var logoutLink = menu.querySelector('.dropdown-item');
+            if (logoutLink) menu.insertBefore(report, logoutLink);
+            else menu.appendChild(report);
+        }
+        if (!hasLogout) {
+            var out = document.createElement('a');
+            out.href = loginHref;
+            out.className = 'dropdown-item';
+            out.textContent = '\u21a9 Log Out';
+            menu.appendChild(out);
         }
     }
 
@@ -548,15 +590,17 @@
         ensureActionButtonsLoaded();
         ensurePageTransitionLoaded();
         ensureNavbarSlideLoaded();
+        ensureExpandingTabsLoaded();
         ensureNotificationPopoverLoaded();
         ensureKreezbyAlertLoaded();
         ensurePortalIconSidebarLoaded();
         ensureDashboardIconsLoaded();
+        ensureAdminPermissionsLoaded();
     }
 
     function init() {
         ensureAdminTopNavLinks();
-        ensureStaffIssueReportsTopNav();
+        stripIssueReportsChrome();
         ensureAdminNotificationPill();
         bootSharedUi();
         ensureStaffUserDropdownShell();

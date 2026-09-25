@@ -183,12 +183,62 @@
         });
     }
 
+    function wireForgotPassword() {
+        document.querySelectorAll('[data-auth-forgot]').forEach(function (btn) {
+            if (btn.dataset.authBound === '1') return;
+            btn.dataset.authBound = '1';
+
+            var noteId = btn.getAttribute('aria-controls');
+            var note = noteId ? document.getElementById(noteId) : document.querySelector('.auth-forgot-note');
+            if (!note) return;
+
+            btn.addEventListener('click', function () {
+                var show = note.hidden;
+                note.hidden = !show;
+                btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+            });
+        });
+    }
+
+    function ensureExpandingTabs() {
+        if (window.KreezbyExpandingTabsLoaded) {
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                window.KreezbyExpandingTabs.init();
+            }
+            return;
+        }
+        if (document.getElementById('kreezby-expanding-tabs-script')) return;
+
+        var src = '../js/expanding-tabs.js?v=20260925sm';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var href = scripts[i].getAttribute('src') || '';
+            if (href.indexOf('auth-shell.js') >= 0) {
+                src = href.replace(/auth-shell\.js[^/]*$/, 'expanding-tabs.js?v=20260925sm');
+                break;
+            }
+        }
+
+        var s = document.createElement('script');
+        s.id = 'kreezby-expanding-tabs-script';
+        s.src = src;
+        s.defer = true;
+        s.onload = function () {
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                window.KreezbyExpandingTabs.init();
+            }
+        };
+        document.head.appendChild(s);
+    }
+
     function init() {
         initParticles();
         wirePasswordToggles();
         wireSocialButtons();
         wireSignupPasswordConfirm();
+        wireForgotPassword();
         initTabs();
+        ensureExpandingTabs();
     }
 
     if (document.readyState === 'loading') {

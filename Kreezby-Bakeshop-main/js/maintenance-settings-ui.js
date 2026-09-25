@@ -1,18 +1,16 @@
 /**
- * Settings panel UI inside Maintenance (login history, accounts, staff permissions).
+ * Settings panel UI inside Maintenance (login history and accounts).
  */
 (function () {
     'use strict';
 
     var currentSettingsSub = 'login-history';
-    var selectedStaffPermissionsId = 'staff-1';
 
     var settingsShellHtml = ''
         + '<div class="settings-section-title">System Settings</div>'
-        + '<p class="settings-section-desc">Manage user accounts, login activity, and staff task access.</p>'
+        + '<p class="settings-section-desc">Manage user accounts and login activity. Staff and admin module access is controlled by Head Admin.</p>'
         + '<div class="settings-sub-tabs-row" id="settings-sub-tabs">'
         + '<button type="button" class="settings-sub-tab active-sub" data-sub="login-history">Login History</button>'
-        + '<button type="button" class="settings-sub-tab" data-sub="permissions">Staff Permissions</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="customers">Customers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="retailers">Retailers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="wholesalers">Wholesalers</button>'
@@ -41,27 +39,6 @@
             + '<table class="data-display-table"><thead><tr style="background-color:#5d4037;color:#fff;">'
             + '<th style="width:40px;">#</th><th>Full Name</th><th>Account Type</th><th>Email / Username</th><th>Date &amp; Time</th>'
             + '</tr></thead><tbody>' + (rows || '<tr><td colspan="5">No login records yet.</td></tr>') + '</tbody></table>';
-    }
-
-    function renderPermissions() {
-        return ''
-            + '<p class="permissions-intro">Control which menu tasks each staff member can access. Use <strong>Inbox</strong> for the inbox page and <strong>Inbox — Retailer Chats</strong> to allow messaging retailer partners.</p>'
-            + '<div class="settings-split-grid">'
-            + '<div class="roles-navigator-card">'
-            + '<div class="roles-navigator-title">Staff Accounts</div>'
-            + '<button type="button" class="role-selection-pill active-role" data-staff-id="staff-1">Claire (Staff 1)<br><span class="staff-task-hint">Frontline</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-2">Staff 2<br><span class="staff-task-hint">Receiving</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-3">Staff 3<br><span class="staff-task-hint">Inventory</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-4">Derek (Staff 4)<br><span class="staff-task-hint">Sales Floor</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-5">Nina (Staff 5)<br><span class="staff-task-hint">Packaging</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-6">Omar (Staff 6)<br><span class="staff-task-hint">Dispatch</span></button>'
-            + '<button type="button" class="role-selection-pill" data-staff-id="staff-7">Grace (Staff 7)<br><span class="staff-task-hint">Customer Service</span></button>'
-            + '</div>'
-            + '<div class="panel-data-card" style="box-shadow:none;border:1px solid #e0e0e0;">'
-            + '<div class="panel-card-title-bar"><h3 id="permissions-panel-title">Task Access</h3>'
-            + '<button type="button" class="btn-save-permissions" id="btn-save-permissions">Save Permissions</button></div>'
-            + '<div class="card-body-padded"><table class="matrix-table"><thead><tr><th>Task / Module</th>'
-            + '<th class="center-align">Allow Access</th></tr></thead><tbody id="permissions-matrix-body"></tbody></table></div></div></div>';
     }
 
     function renderCustomers() {
@@ -109,13 +86,6 @@
             + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
-    function initStaffPermissionsPanel() {
-        if (!window.KreezbyStaffPermissions) return;
-        var root = document.getElementById('settings-sub-content');
-        if (!root) return;
-        KreezbyStaffPermissions.initPermissionsEditor(root);
-    }
-
     function renderSettingsSub(subKey) {
         currentSettingsSub = subKey;
         var root = document.getElementById('settings-sub-content');
@@ -126,7 +96,6 @@
         });
 
         if (subKey === 'login-history') root.innerHTML = renderLoginHistory();
-        else if (subKey === 'permissions') { root.innerHTML = renderPermissions(); initStaffPermissionsPanel(); }
         else if (subKey === 'customers') root.innerHTML = renderCustomers();
         else if (subKey === 'retailers') root.innerHTML = renderRetailers();
         else if (subKey === 'wholesalers') root.innerHTML = renderWholesalers();

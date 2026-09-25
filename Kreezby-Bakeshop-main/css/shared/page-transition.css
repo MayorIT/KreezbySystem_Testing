@@ -27,19 +27,15 @@ button,
 .btn-submit-pill,
 .checkout-btn,
 .auth-btn,
-.auth-tab,
 .payment-method-selector__item,
 .payment-method-selector__action,
 .stat-card,
 .kreezby-sidebar-nav-item,
 .top-nav-item,
-.expandable-nav-tab,
 .notification-popover-btn,
 .hamburger-toggle,
 .user-dropdown-pill,
-.back-btn,
-.po-order-tab,
-.bo-order-tab {
+.back-btn {
     transition:
         transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
         background-color 0.2s ease,
@@ -49,8 +45,8 @@ button,
         opacity 0.2s ease;
 }
 
-button:active:not(:disabled),
-[role="button"]:active:not(:disabled),
+button:active:not(:disabled):not(.expanding-tab):not(.expandable-nav-tab):not(.po-order-tab):not(.bo-order-tab):not(.auth-tab),
+[role="button"]:active:not(:disabled):not(.expanding-tab):not(.expandable-nav-tab):not(.po-order-tab):not(.bo-order-tab):not(.auth-tab),
 .btn-call-to-action:active,
 .btn-submit-pill:active,
 .checkout-btn:active:not(:disabled),
@@ -58,13 +54,10 @@ button:active:not(:disabled),
 .stat-card:active,
 .kreezby-sidebar-nav-item:active,
 .top-nav-item:active,
-.expandable-nav-tab:active,
 .notification-popover-btn:active,
 .hamburger-toggle:active,
 .user-dropdown-pill:active,
-.back-btn:active,
-.po-order-tab:active,
-.bo-order-tab:active {
+.back-btn:active {
     transform: scale(0.98);
 }
 
@@ -76,9 +69,7 @@ button:active:not(:disabled),
     button:active:not(:disabled),
     [role="button"]:active:not(:disabled),
     .stat-card:active,
-    .kreezby-sidebar-nav-item:active,
-    .po-order-tab:active,
-    .bo-order-tab:active {
+    .kreezby-sidebar-nav-item:active {
         transform: none;
     }
 }
