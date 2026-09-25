@@ -70,7 +70,7 @@
         if (text.indexOf('inbox') >= 0 || file.indexOf('inbox') >= 0) {
             return ICONS.inbox;
         }
-        if (text === 'home' || file === 'admin.html' || /^staff(-\d+)?\.html$/.test(file)) {
+        if (text === 'home' || file === 'admin.html' || file === 'head_admin.html' || /^staff(-\d+)?\.html$/.test(file)) {
             return ICONS.home;
         }
         if (/^(retailer|wholesaler)-/.test(file)) {

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - AI Assisted Forecast (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI-Powered Demand Forecasting Insights</h3>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-headadmin.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-headadmin.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-headadmin.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+                    
+                    <div class="forecast-parameter-bar">
+                        <div class="parameter-select-group">
+                            <span>Forecast Timeline Horizon:</span>
+                            <select id="forecast-range-timeline">
+                                <option value="7">Next 7 Days (Weekly)</option>
+                                <option value="30" selected>Next 30 Days (Monthly)</option>
+                                <option value="90">Next 90 Days (Quarterly)</option>
+                            </select>
+                        </div>
+                        <div class="parameter-select-group">
+                            <span>Historical Data Source:</span>
+                            <select>
+                                <option value="12">Past 12 Months Sales Logs</option>
+                                <option value="24">Past 24 Months Sales Logs</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-generate-ai" onclick="runSimulatedAIPredictionsEngine()">Compute AI Forecast</button>
+                    </div>
+
+                    <div class="ai-metrics-row">
+                        <div class="ai-stat-box">
+                            <label>Model Evaluation Confidence</label>
+                            <div id="ai-stat-confidence">94.6%</div>
+                        </div>
+                        <div class="ai-stat-box" style="border-left-color: var(--primary-blue);">
+                            <label>Top Predicted Growth Flavor</label>
+                            <div>Choco Butternut</div>
+                        </div>
+                        <div class="ai-stat-box" style="border-left-color: #4caf50;">
+                            <label>Recommended Ingredient Stock Boost</label>
+                            <div>+18.5% Batch Volume</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 15px; font-weight: 700; margin-bottom: 15px; color: var(--brand-brown); text-transform: uppercase;">
+                        ■ Estimated Item Unit Sales Demand Distribution
+                    </div>
+
+                    <div class="forecast-chart-panel">
+                        
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Choco Butternut (Jar)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill top-trend" id="bar-butternut" style="width: 92%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-butternut">1,420 Jars</div>
+                        </div>
+
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Chocolate (Pouch)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill stable-trend" id="bar-chocolate" style="width: 85%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-chocolate">1,150 Pcs</div>
+                        </div>
+
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Choco-Almond (Pouch)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" id="bar-almond" style="width: 68%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-almond">890 Pcs</div>
+                        </div>
+
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Ube Crinkles (Pouch)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" id="bar-ube" style="width: 55%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-ube">710 Pcs</div>
+                        </div>
+
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Lemon Crinkles (Pouch)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" id="bar-lemon" style="width: 38%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-lemon">420 Pcs</div>
+                        </div>
+
+                        <div class="chart-row-item">
+                            <div class="chart-flavor-label">Mango Crinkles (Jar)</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" id="bar-mango" style="width: 25%;"></div>
+                            </div>
+                            <div class="chart-numeric-value" id="val-mango">290 Jars</div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <script>
+        function runSimulatedAIPredictionsEngine() {
+            const range = document.getElementById('forecast-range-timeline').value;
+            alert(`Querying historical sales patterns... Running predictive intelligence matrix loops for a ${range}-day horizon.`);
+            
+            // Alter bar width metrics based on timeline chosen for simulated UI interactivity
+            if(range === '7') {
+                document.getElementById('bar-butternut').style.width = "40%";
+                document.getElementById('val-butternut').textContent = "310 Jars";
+                document.getElementById('bar-chocolate').style.width = "35%";
+                document.getElementById('val-chocolate').textContent = "260 Pcs";
+                document.getElementById('bar-almond').style.width = "28%";
+                document.getElementById('val-almond').textContent = "190 Pcs";
+                document.getElementById('ai-stat-confidence').textContent = "96.2%";
+            } else if(range === '30') {
+                document.getElementById('bar-butternut').style.width = "92%";
+                document.getElementById('val-butternut').textContent = "1,420 Jars";
+                document.getElementById('bar-chocolate').style.width = "85%";
+                document.getElementById('val-chocolate').textContent = "1,150 Pcs";
+                document.getElementById('bar-almond').style.width = "68%";
+                document.getElementById('val-almond').textContent = "890 Pcs";
+                document.getElementById('ai-stat-confidence').textContent = "94.6% ";
+            } else {
+                document.getElementById('bar-butternut').style.width = "100%";
+                document.getElementById('val-butternut').textContent = "4,210 Jars";
+                document.getElementById('bar-chocolate').style.width = "95%";
+                document.getElementById('val-chocolate').textContent = "3,580 Pcs";
+                document.getElementById('bar-almond').style.width = "88%";
+                document.getElementById('val-almond').textContent = "2,610 Pcs";
+                document.getElementById('ai-stat-confidence').textContent = "91.3%";
+            }
+        }
+    </script>
+    <script src="../js/aiforecast-pills.js"></script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

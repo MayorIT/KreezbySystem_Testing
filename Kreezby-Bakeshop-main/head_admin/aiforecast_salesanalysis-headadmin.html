@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - AI Sales Analysis (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_salesanalysis-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI Assisted Demand Forecasting</h3>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-headadmin.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-headadmin.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-headadmin.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+
+                    <div class="datatable-controls-bar">
+                        <div>
+                            Show 
+                            <select id="entries-limiter">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                            </select> 
+                            entries
+                        </div>
+                        <div>
+                            Search Flavor Analysis: <input type="text" placeholder="Filter flavor text...">
+                        </div>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: var(--ai-indigo); color: white;">
+                                <th style="width: 50px;">#</th>
+                                <th>Flavor</th>
+                                <th style="text-align: right;">In Stock Qty</th>
+                                <th style="text-align: right;">Sales Volume</th>
+                                <th style="text-align: right;">AI Forecasted Demand</th>
+                                <th style="text-align: right;">Variance Deviation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><strong>Choco Butternut</strong></td>
+                                <td style="text-align: right;">210</td>
+                                <td style="text-align: right;">1,420</td>
+                                <td style="text-align: right; color: #555;">1,350</td>
+                                <td style="text-align: right;" class="variance-text positive">+5.1% Growth</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><strong>Chocolate Crinkles</strong></td>
+                                <td style="text-align: right;">450</td>
+                                <td style="text-align: right;">1,150</td>
+                                <td style="text-align: right; color: #555;">1,200</td>
+                                <td style="text-align: right;" class="variance-text negative">-4.1% Short</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><strong>Choco-Almond</strong></td>
+                                <td style="text-align: right;">320</td>
+                                <td style="text-align: right;">890</td>
+                                <td style="text-align: right; color: #555;">850</td>
+                                <td style="text-align: right;" class="variance-text positive">+4.7% Growth</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><strong>Ube Crinkles</strong></td>
+                                <td style="text-align: right;">180</td>
+                                <td style="text-align: right;">710</td>
+                                <td style="text-align: right; color: #555;">700</td>
+                                <td style="text-align: right;" class="variance-text positive">+1.4% Growth</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td><strong>Lemon Crinkles</strong></td>
+                                <td style="text-align: right;">85</td>
+                                <td style="text-align: right;">420</td>
+                                <td style="text-align: right; color: #555;">450</td>
+                                <td style="text-align: right;" class="variance-text negative">-6.6% Short</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td><strong>Mango Crinkles</strong></td>
+                                <td style="text-align: right;">45</td>
+                                <td style="text-align: right;">290</td>
+                                <td style="text-align: right; color: #555;">310</td>
+                                <td style="text-align: right;" class="variance-text negative">-6.4% Short</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f5f5f5; font-weight: bold;">
+                                <td colspan="2" style="text-align: right;">Total Aggregated Inventory / Sales:</td>
+                                <td style="text-align: right;">1,290</td>
+                                <td style="text-align: right;">4,880</td>
+                                <td style="text-align: right;">4,860</td>
+                                <td style="text-align: right; color: var(--ai-indigo);">+0.4% Net Variance</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+    <script src="../js/aiforecast-pills.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

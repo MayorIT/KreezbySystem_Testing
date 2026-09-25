@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Inventory Receiving (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/receive-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+             <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="receiving-master-directory-panel-view">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-order-tabs" role="tablist">
+                        <button type="button" class="po-order-tab active" data-source="Supplier" role="tab" aria-selected="true">Supplier</button>
+                        <button type="button" class="po-order-tab" data-source="Retailer" role="tab" aria-selected="false">Retailer</button>
+                        <button type="button" class="po-order-tab" data-source="Customer" role="tab" aria-selected="false">Customer</button>
+                        <button type="button" class="po-order-tab" data-source="Wholesaler" role="tab" aria-selected="false">Wholesaler</button>
+                    </div>
+                    <div class="panel-card-title-bar">
+                        <h3>Received Supply List</h3>
+                        <button class="btn-call-to-action" id="recv-create-btn" type="button">+ Create New</button>
+                    </div>
+                    <div class="card-body-padded">
+                        <div class="datatable-filters-line">
+                            <div>Show <select><option value="10">10</option></select> entries</div>
+                            <div class="search-field-wrap">
+                                <input type="text" id="receiving-search" placeholder="Search by supplier or entity..."></div>
+                        </div>
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="receiving-supplies-table">
+                                <thead>
+                                    <tr style="background-color: var(--brand-brown); color: white;">
+                                        <th>#</th>
+                                        <th>Date Received</th>
+                                        <th>Supplier / Entity</th>
+                                        <th>Source Type</th>
+                                        <th>Type</th>
+                                        <th>Items</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receiving-supplies-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="legend-container-box">
+                            <span><strong>Status Legend:</strong></span>
+                            <span class="status-pill-badge pending">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="receiving-details-inspector-panel-view" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3 id="receiving-details-title">Received Order Details</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        <div id="receiving-details-content"></div>
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" id="recv-details-print-btn" type="button">Print Batch Sheet</button>
+                            <button class="btn-viewer-tool blue" id="recv-details-edit-btn" type="button">Edit Summary</button>
+                            <button class="btn-viewer-tool black" id="recv-details-back-btn" type="button">Back To Summary Directory</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <div class="system-modal-backdrop" id="create-received-modal-overlay">
+        <div class="form-modal-box">
+            <div class="modal-form-header">
+                <h2 id="recv-modal-title">Create New Received Supply</h2>
+                <button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" id="recv-modal-close-btn">✕</button>
+            </div>
+            <div class="modal-form-body">
+                <form action="#" method="POST" id="received-form-node" onsubmit="return false;">
+                    
+                    <div class="form-inputs-row-grid">
+                        <div class="form-field-unit">
+                            <label>Supplier *</label>
+                            <input type="text" id="recv-modal-supplier" list="recv-supplier-suggestions" placeholder="Supplier name" required>
+                            <datalist id="recv-supplier-suggestions">
+                                <option value="Supplier 101"></option>
+                                <option value="Supplier 102"></option>
+                                <option value="Supplier 103"></option>
+                                <option value="Supplier 104"></option>
+                                <option value="Supplier 105"></option>
+                            </datalist>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Date Received *</label>
+                            <input type="datetime-local" id="recv-modal-date" required>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>P.O. Origin</label>
+                            <input type="text" id="recv-modal-po-origin" placeholder="e.g. PO-0001">
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Source Type *</label>
+                            <select id="recv-modal-source-type" required>
+                                <option value="Supplier">Supplier</option>
+                                <option value="Retailer">Retailer</option>
+                                <option value="Customer">Customer</option>
+                                <option value="Wholesaler">Wholesaler</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Type *</label>
+                            <select id="recv-modal-type" required>
+                                <option value="Supply">Supply</option>
+                                <option value="Returned Order">Returned Order</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Status *</label>
+                            <select id="recv-modal-status" required>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Reference / Delivery Note</label>
+                            <input type="text" id="recv-modal-reference" placeholder="Enter reference or delivery note">
+                        </div>
+                    </div>
+
+                    <div class="item-builder-sub-header">
+                        <span>■</span> Items Received Form Builder
+                    </div>
+
+                    <div class="item-entry-builder-bar">
+                        <div class="form-field-unit">
+                            <label>Item Flavor Description</label>
+                            <select id="item-picker-flavor">
+                                <option value="">Please select an item flavor</option>
+                                <option value="Chocolate" data-cost="50.00">Chocolate</option>
+                                <option value="Lemon" data-cost="45.00">Lemon</option>
+                                <option value="Choco-Almond" data-cost="55.00">Choco-Almond</option>
+                                <option value="Cheesecake" data-cost="45.00">Cheesecake</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Unit</label>
+                            <input type="text" id="item-picker-unit" placeholder="e.g. PCS" value="PCS">
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Quantity</label>
+                            <input type="number" id="item-picker-qty" placeholder="e.g. 10" min="1">
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Unit Cost (₱)</label>
+                            <input type="number" id="item-picker-cost" placeholder="e.g. 100.00" step="0.01">
+                        </div>
+                        <button type="button" class="btn-call-to-action" style="background:#00897b;" id="recv-modal-add-item-btn">Add Item +</button>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: #00796b; color: white;">
+                                <th>#</th>
+                                <th>Item</th>
+                                <th>Unit</th>
+                                <th>Qty</th>
+                                <th>Unit Cost (₱)</th>
+                                <th>Total (₱)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="received-modal-rows-injector"></tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background-color: #e0e0e0;">
+                                <td colspan="5" style="text-align: right;">Total Received Value:</td>
+                                <td id="recv-modal-grand-total" colspan="2">0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="form-field-unit" style="margin-top: 15px;">
+                        <label>Remarks / Notes</label>
+                        <textarea id="recv-modal-remarks" style="width: 100%; height: 50px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; outline: none;" placeholder="Enter any additional batch parameters remarks (optional)"></textarea>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-action-footer-panel">
+                <button type="button" class="btn-modal-cancel" id="recv-modal-cancel-btn">Cancel</button>
+                <button type="button" class="btn-modal-save" id="recv-modal-save-btn">Save Received Supply</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        function openNotificationModal() {
+            const modal = document.getElementById('notification-modal-overlay');
+            const body = document.getElementById('notification-modal-body');
+            
+            body.innerHTML = notificationsData.map(notif => `
+                <div class="notification-item ${notif.status === 'unread' ? 'unread' : ''}">
+                    <div class="notification-icon">${notif.type === 'order' ? '🛒' : '📦'}</div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notif.title}</div>
+                        <div class="notification-message">${notif.message}</div>
+                        <div class="notification-time">${notif.time}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal-overlay').classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            document.getElementById('notification-modal-overlay').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeNotificationModal();
+                }
+            });
+        });
+    </script>
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/receive-admin.js?v=20260924a"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

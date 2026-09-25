@@ -46,7 +46,7 @@
 
   function detectPortal() {
     var p = (location.pathname || '').toLowerCase();
-    if (p.indexOf('/admin/') >= 0) return 'admin';
+    if (p.indexOf('/admin/') >= 0 || p.indexOf('/head_admin/') >= 0) return 'admin';
     if (p.indexOf('/staff/') >= 0) return 'staff';
     if (p.indexOf('/wholesaler/') >= 0) return 'wholesaler';
     if (p.indexOf('/retailer/') >= 0) return 'retailer';

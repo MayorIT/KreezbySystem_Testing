@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <title>Kreezby Bakeshop - Maintenance Inbox Chat (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/inbox-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/inbox-chat-layout.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="workspace-view-canvas inbox-page-main">
+        <div data-inbox-role="admin"></div>
+    </main>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/inbox-chat.js"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+</body>
+</html>

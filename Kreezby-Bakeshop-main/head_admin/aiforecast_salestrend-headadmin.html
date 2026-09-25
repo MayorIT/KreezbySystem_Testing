@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - AI Sales Trend Analysis (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_salestrend-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI Assisted Demand Analysis</h3>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-headadmin.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-headadmin.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-headadmin.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+
+                    <div class="analysis-filter-bar">
+                        <div class="filter-select-group">
+                            <span>Analysis Period Interval:</span>
+                            <select id="analysis-time-filter" onchange="triggerAnalysisFilterUpdate()">
+                                <option value="current">Current Month Analysis (May 2026)</option>
+                                <option value="quarter">Q2 2026 Comparative Summary</option>
+                                <option value="year">Full Year 2025 Audit Log</option>
+                            </select>
+                        </div>
+                        <div class="filter-select-group">
+                            <span>Fulfillment Stream:</span>
+                            <select>
+                                <option value="all">Combined (Retailer & Walk-in Customers)</option>
+                                <option value="retailer">Retailer Channels Only</option>
+                                <option value="customer">Direct Walk-In Orders Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 15px; font-weight: 700; margin-bottom: 15px; color: var(--brand-brown); text-transform: uppercase;">
+                        ■ Target Flavor Sales Metrics & Prediction Yield Variations
+                    </div>
+
+                    <div class="analysis-split-columns-layout">
+                        
+                        <table class="data-display-table" style="margin-top: 0;">
+                            <thead>
+                                <tr style="background-color: var(--ai-indigo); color: white;">
+                                    <th>Flavor Description</th>
+                                    <th>Category Unit</th>
+                                    <th style="text-align: right;">Actual Volume Sold</th>
+                                    <th style="text-align: right;">AI Target Projected</th>
+                                    <th style="text-align: right;">Variance Drift</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Choco Butternut</strong></td>
+                                    <td>Jar (250g)</td>
+                                    <td style="text-align: right; font-weight: 600;">1,420</td>
+                                    <td style="text-align: right; color:#555;">1,350</td>
+                                    <td style="text-align: right; font-weight: 700; color: #2e7d32;">+5.1%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Chocolate Crinkles</strong></td>
+                                    <td>Pouch (8 Pcs)</td>
+                                    <td style="text-align: right; font-weight: 600;">1,150</td>
+                                    <td style="text-align: right; color:#555;">1,200</td>
+                                    <td style="text-align: right; font-weight: 700; color: #c62828;">-4.1%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Choco-Almond</strong></td>
+                                    <td>Pouch (8 Pcs)</td>
+                                    <td style="text-align: right; font-weight: 600;">890</td>
+                                    <td style="text-align: right; color:#555;">850</td>
+                                    <td style="text-align: right; font-weight: 700; color: #2e7d32;">+4.7%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ube Crinkles</strong></td>
+                                    <td>Pouch (8 Pcs)</td>
+                                    <td style="text-align: right; font-weight: 600;">710</td>
+                                    <td style="text-align: right; color:#555;">700</td>
+                                    <td style="text-align: right; font-weight: 700; color: #2e7d32;">+1.4%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Lemon Crinkles</strong></td>
+                                    <td>Pouch (8 Pcs)</td>
+                                    <td style="text-align: right; font-weight: 600;">420</td>
+                                    <td style="text-align: right; color:#555;">450</td>
+                                    <td style="text-align: right; font-weight: 700; color: #c62828;">-6.6%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="comparison-bars-card">
+                            <div style="font-size:13px; font-weight:700; color:#1a237e; margin-bottom:15px; text-transform: uppercase; text-align: center;">
+                                Volume Target Accomplishment
+                            </div>
+
+                            <div class="comparison-row-item">
+                                <div class="comparison-flavor-meta"><span>Choco Butternut</span><span>105% Achieved</span></div>
+                                <div class="dual-progress-container">
+                                    <div class="progress-segment-actual" style="width: 55%;"></div>
+                                    <div class="progress-segment-projected" style="width: 45%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="comparison-row-item">
+                                <div class="comparison-flavor-meta"><span>Chocolate Crinkles</span><span>95% Achieved</span></div>
+                                <div class="dual-progress-container">
+                                    <div class="progress-segment-actual" style="width: 48%;"></div>
+                                    <div class="progress-segment-projected" style="width: 52%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="comparison-row-item">
+                                <div class="comparison-flavor-meta"><span>Choco-Almond</span><span>104% Achieved</span></div>
+                                <div class="dual-progress-container">
+                                    <div class="progress-segment-actual" style="width: 51%;"></div>
+                                    <div class="progress-segment-projected" style="width: 49%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="legend-indicator-line">
+                                <div class="legend-pill">
+                                    <div class="legend-dot" style="background-color: var(--primary-blue);"></div>
+                                    <span>Actual Sold Vol</span>
+                                </div>
+                                <div class="legend-pill">
+                                    <div class="legend-dot" style="background-color: #ab47bc; opacity: 0.7;"></div>
+                                    <span>AI Projected Target</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <script>
+        function triggerAnalysisFilterUpdate() {
+            const chosenValue = document.getElementById('analysis-time-filter').value;
+            alert(`Recalculating variance drifts. Pulling analytical records matching state selector index: "${chosenValue}"`);
+        }
+    </script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+    <script src="../js/aiforecast-pills.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

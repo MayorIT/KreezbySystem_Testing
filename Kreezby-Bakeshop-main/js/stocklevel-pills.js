@@ -36,7 +36,9 @@
 
     function roleSuffix() {
 
-        return location.pathname.indexOf('/staff/') !== -1 ? 'staff' : 'admin';
+        if (location.pathname.indexOf('/staff/') !== -1) return 'staff';
+        if (location.pathname.indexOf('/head_admin/') !== -1) return 'headadmin';
+        return 'admin';
 
     }
 

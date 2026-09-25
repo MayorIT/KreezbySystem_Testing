@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Issue - Head Admin</title>
+    <link rel="stylesheet" href="../css/pages/admin/report_issue-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+        <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+        <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+    </div>
+</header>
+<div class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <h1>Report an Issue — Head Admin</h1>
+            <p>Use this form to submit system issues, production incidents, or priority requests for the support team.</p>
+        </div>
+        <div class="report-body">
+            <form class="report-form" onsubmit="submitIssue(event, 'Admin');">
+                <div class="form-grid">
+                    <div class="form-row">
+                        <label for="admin-name">Full Name</label>
+                        <input id="admin-name" name="fullName" type="text" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="admin-email">Email Address</label>
+                        <input id="admin-email" name="email" type="email" placeholder="you@kreezby.com" required>
+                    </div>
+                    <div class="form-row full-width">
+                        <label for="admin-issue-type">Issue Type</label>
+                        <select id="admin-issue-type" name="issueType" required>
+                            <option value="">Select issue type</option>
+                            <option>System Bug</option>
+                            <option>Access / Permission</option>
+                            <option>Data Mismatch</option>
+                            <option>Reporting / Analytics</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="admin-priority">Priority Level</label>
+                        <select id="admin-priority" name="priority" required>
+                            <option>Normal</option>
+                            <option>High</option>
+                            <option>Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="admin-page">Affected Page / Module</label>
+                        <input id="admin-page" name="affectedArea" type="text" placeholder="E.g. Purchase Order, Alert Settings" required>
+                    </div>
+                    <div class="form-row full-width">
+                        <label for="admin-description">Issue Description</label>
+                        <textarea id="admin-description" name="description" placeholder="Describe the problem in detail." required></textarea>
+                    </div>
+                    <div class="form-row full-width">
+                        <label for="admin-steps">Steps to Reproduce</label>
+                        <textarea id="admin-steps" name="steps" placeholder="Step 1, Step 2, Step 3..." required></textarea>
+                    </div>
+                    <div class="form-row full-width">
+                        <label for="admin-attachment">Attach Screenshot / File (optional)</label>
+                        <input id="admin-attachment" name="attachment" type="file">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Submit Report</button>
+                    <a href="head_admin.html" class="btn-secondary">Return to Dashboard</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="../js/kreezby-issue-reports.js?v=20260924c"></script>
+<script>
+function submitIssue(event, role) {
+    event.preventDefault();
+    var form = event.target;
+    var file = form.attachment && form.attachment.files && form.attachment.files[0];
+    if (window.KreezbyIssueReports) {
+        KreezbyIssueReports.add({
+            role: role,
+            submittedBy: (form.fullName && form.fullName.value) || '',
+            contact: (form.email && form.email.value) || '',
+            issueType: (form.issueType && form.issueType.value) || 'Other',
+            reference: (form.affectedArea && form.affectedArea.value) || '',
+            description: (form.description && form.description.value) || '',
+            notes: (form.steps && form.steps.value) || '',
+            priority: (form.priority && form.priority.value) || 'Normal',
+            attachmentName: file ? file.name : '',
+            status: 'New'
+        });
+    }
+    window.location.href = 'head_admin.html';
+}
+</script>
+    <script src="../js/user-dropdown-nav.js"></script>
+</body>
+</html>

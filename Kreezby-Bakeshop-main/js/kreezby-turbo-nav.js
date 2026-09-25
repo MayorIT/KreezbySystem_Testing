@@ -50,7 +50,7 @@
     }
 
     function isModulePage() {
-        return /\/(admin|staff|retailer|customer|wholesaler)\//i.test(window.location.pathname || '');
+        return /\/(admin|head_admin|staff|retailer|customer|wholesaler)\//i.test(window.location.pathname || '');
     }
 
     function isCustomerShopPage(href) {
@@ -100,6 +100,7 @@
             if (url.origin !== window.location.origin) return false;
             if (!/\.html?$/i.test(url.pathname) &&
                 url.pathname.indexOf('/admin/') === -1 &&
+                url.pathname.indexOf('/head_admin/') === -1 &&
                 url.pathname.indexOf('/staff/') === -1 &&
                 url.pathname.indexOf('/retailer/') === -1) return false;
         } catch (e) {
@@ -271,7 +272,13 @@
         else if (path.indexOf('/retailer/') >= 0) area = 'retailer';
 
         if (page.indexOf('stocklevel') === 0) {
-            ensureStylesheet(root + 'css/pages/' + area + '/' + page.replace('.html', '.css'));
+            var cssName = page.replace('.html', '.css');
+            if (path.indexOf('/head_admin/') >= 0) {
+                cssName = page.replace(/-headadmin\.html$/i, '-admin.css');
+                ensureStylesheet(root + 'css/pages/admin/' + cssName);
+            } else {
+                ensureStylesheet(root + 'css/pages/' + area + '/' + cssName);
+            }
         }
 
         if (area === 'retailer' && path.indexOf('/retailer/') >= 0) {
@@ -337,7 +344,7 @@
 
         var root = moduleRelativeRoot();
         var path = (window.location.pathname || '').replace(/\\/g, '/');
-        var isAdmin = /\/admin\//i.test(path);
+        var isAdmin = /\/admin\//i.test(path) || /\/head_admin\//i.test(path);
         var isRetailer = /\/retailer\//i.test(path);
 
         function bootSalesUi() {

@@ -169,7 +169,8 @@
             });
         });
 
-        if ((window.location.pathname || '').indexOf('/admin/') !== -1) {
+        if ((window.location.pathname || '').indexOf('/admin/') !== -1
+            || (window.location.pathname || '').indexOf('/head_admin/') !== -1) {
             setInterval(function () {
                 var c = readJson(CURSOR_KEY, ensureCursor());
                 scanStorage(c);

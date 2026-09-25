@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">``
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - AI Inventory Report (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_inventoryreport-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI Assisted Demand Forecasting</h3>
+                    <button class="btn-print-report" onclick="window.print()">Export Report PDF</button>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-headadmin.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-headadmin.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-headadmin.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+
+                    <div class="datatable-controls-bar">
+                        <div>
+                            Show 
+                            <select>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                            </select> 
+                            entries
+                        </div>
+                        <div>
+                            Search Report: <input type="text" placeholder="Filter by flavor description...">
+                        </div>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: var(--ai-indigo); color: white;">
+                                <th style="width: 50px;">#</th>
+                                <th>Item Code</th>
+                                <th>Flavor</th>
+                                <th style="text-align: right;">Current Stock</th>
+                                <th style="text-align: right;">AI Suggested Restock Level</th>
+                                <th style="text-align: center; width: 220px;">Recommended Action Order</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><strong>CRK-BUT-J</strong></td>
+                                <td>Choco Butternut</td>
+                                  <td style="text-align: right; font-weight: 600;">210</td>
+                                <td style="text-align: right; color: #555;">500</td>
+                                <td style="text-align: center;"><span class="action-badge restock">Production Dispatch (+290 Jars)</span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><strong>CRK-CHO-P</strong></td>
+                                <td>Chocolate Crinkles</td>
+                                <td style="text-align: right; font-weight: 600;">450</td>
+                                <td style="text-align: right; color: #555;">400</td>
+                                <td style="text-align: center;"><span class="action-badge surplus">Surplus Hold (Sufficient)</span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><strong>CRK-ALM-P</strong></td>
+                                <td>Choco-Almond</td>
+                                <td style="text-align: right; font-weight: 600;">320</td>
+                                <td style="text-align: right; color: #555;">350</td>
+                                <td style="text-align: center;"><span class="action-badge restock">Production Dispatch (+30 Pouches)</span></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><strong>CRK-UBE-P</strong></td>
+                                <td>Ube Crinkles</td>
+                                <td style="text-align: right; font-weight: 600;">180</td>
+                                <td style="text-align: right; color: #555;">250</td>
+                                <td style="text-align: center;"><span class="action-badge restock">Production Dispatch (+70 Pouches)</span></td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td><strong>CRK-LEM-P</strong></td>
+                                <td>Lemon Crinkles</td>
+                                <td style="text-align: right; font-weight: 600;">85</td>
+                                <td style="text-align: right; color: #555;">200</td>
+                                <td style="text-align: center;"><span class="action-badge critical">CRITICAL RESTOCK (+115 Pouches)</span></td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td><strong>CRK-MNG-J</strong></td>
+                                <td>Mango Crinkles</td>
+                                <td style="text-align: right; font-weight: 600;">45</td>
+                                <td style="text-align: right; color: #555;">150</td>
+                                <td style="text-align: center;"><span class="action-badge critical">CRITICAL RESTOCK (+105 Jars)</span></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f5f5f5; font-weight: bold;">
+                                <td colspan="3" style="text-align: right;">Total Core Aggregated Units:</td>
+                                <td style="text-align: right;">1,290</td>
+                                <td style="text-align: right;">1,850</td>
+                                <td style="text-align: center; color: #c62828;">Deficit Restock Target: 560 Units</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <script src="../js/aiforecast-pills.js"></script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

@@ -62,6 +62,7 @@
         if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('report_issue-retailer.html');
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/wholesaler/') !== -1) return moduleRoot() + 'wholesaler/report_issue-wholesaler.html';
+        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('report_issue-admin.html');
         return moduleLocalHref('report_issue-admin.html');
     }
@@ -83,6 +84,7 @@
         if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('inbox-retailer.html');
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('inbox-customer.html');
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('inbox-admin.html');
+        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('inbox-headadmin.html');
         return moduleLocalHref('inbox-admin.html');
     }
 
@@ -223,7 +225,7 @@
 
     function ensureDashboardIconsLoaded() {
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
-        if (!/\/(admin|staff|retailer)\//i.test(path)) return;
+        if (!/\/(admin|staff|retailer|head_admin)\//i.test(path)) return;
         if (document.getElementById('kreezby-dashboard-icons-script')) return;
 
         var s = document.createElement('script');
@@ -245,6 +247,21 @@
         return /\/admin\//i.test(window.location.pathname || '');
     }
 
+    function isHeadAdminPortalPage() {
+        var path = window.location.pathname || '';
+        if (!/\/head_admin\//i.test(path)) return false;
+        var file = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+        return file !== 'index.html'
+            && file !== 'admin-permissions.html'
+            && file !== 'staff-permissions.html'
+            && file !== 'inquiries.html'
+            && file !== '';
+    }
+
+    function isAdminLikePage() {
+        return isAdminPage() || isHeadAdminPortalPage();
+    }
+
     function stripIssueReportsChrome() {
         if (/\/it_kreezby\//i.test(window.location.pathname || '')) return;
         document.querySelectorAll('.top-navbar-node a, .kreezby-sidebar-nav-item, .dropdown-item').forEach(function (link) {
@@ -257,16 +274,23 @@
     }
 
     function ensureAdminTopNavLinks() {
-        if (!isAdminPage()) return;
+        if (!isAdminLikePage()) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
 
-        var desired = [
-            { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') },
-            { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-admin.html') },
-            { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-admin.html') }
-        ];
+        var desired = isHeadAdminPortalPage()
+            ? [
+                { key: 'control', label: 'Control', href: moduleLocalHref('index.html') },
+                { key: 'home', label: 'Home', href: moduleLocalHref('head_admin.html') },
+                { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-headadmin.html') },
+                { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-headadmin.html') }
+            ]
+            : [
+                { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') },
+                { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-admin.html') },
+                { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-admin.html') }
+            ];
 
         function normalize(text) {
             return (text || '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -277,10 +301,11 @@
             var href = (link.getAttribute('href') || '').toLowerCase();
             var file = href.split('/').pop().split('?')[0];
 
-            if (text === 'home' || file === 'admin.html') return 'home';
-            if (text.indexOf('maintenance') >= 0 || file === 'maintenance-admin.html') return 'maintenance';
+            if (text === 'control' || file === 'index.html') return 'control';
+            if (text === 'home' || file === 'admin.html' || file === 'head_admin.html') return 'home';
+            if (text.indexOf('maintenance') >= 0 || file === 'maintenance-admin.html' || file === 'maintenance-headadmin.html') return 'maintenance';
             if (text.indexOf('issue report') >= 0 || href.indexOf('it_kreezby') >= 0) return 'issuereports';
-            if (text.indexOf('inbox') >= 0 || file === 'inbox-admin.html') return 'inbox';
+            if (text.indexOf('inbox') >= 0 || file === 'inbox-admin.html' || file === 'inbox-headadmin.html') return 'inbox';
             return '';
         }
 
@@ -340,7 +365,7 @@
     }
 
     function ensureAdminNotificationPill() {
-        if (!isAdminPage()) return;
+        if (!isAdminLikePage()) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
@@ -357,7 +382,7 @@
     }
 
     function ensureAdminDropdownAfterNavTabs() {
-        if (!isAdminPage()) return;
+        if (!isAdminLikePage()) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
@@ -426,7 +451,7 @@
     }
 
     function ensureAdminUserDropdownShell() {
-        if (!isAdminPage()) return;
+        if (!isAdminLikePage()) return;
         if (document.getElementById('user-dropdown-trigger')) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
@@ -435,7 +460,9 @@
         var wrap = document.createElement('div');
         wrap.className = 'user-dropdown';
         wrap.innerHTML =
-            '<button type="button" class="user-dropdown-pill" id="user-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Admin \u25be</button>' +
+            '<button type="button" class="user-dropdown-pill" id="user-dropdown-trigger" aria-haspopup="true" aria-expanded="false">' +
+            (isHeadAdminPortalPage() ? 'Head Admin \u25be' : 'Admin \u25be') +
+            '</button>' +
             '<div class="user-dropdown-menu" id="user-dropdown-menu">' +
                 reportIssueMenuHtml() +
             '</div>';
@@ -455,7 +482,7 @@
         var reportHref = reportIssueHref();
         var loginHref = authLoginHref();
 
-        if (isStaffPage() || isAdminPage() || isRetailerPage()) {
+        if (isStaffPage() || isAdminLikePage() || isRetailerPage()) {
             menu.innerHTML = reportIssueMenuHtml();
             return;
         }
@@ -525,6 +552,9 @@
         ensureCss();
         ensureMenuMarkup(menu);
         wireLogoutLinks(menu);
+        if (isHeadAdminPortalPage()) {
+            trigger.textContent = 'Head Admin \u25be';
+        }
 
         trigger.setAttribute('aria-haspopup', 'true');
         if (!trigger.hasAttribute('aria-expanded')) {
@@ -609,6 +639,7 @@
         ensureAdminDropdownAfterNavTabs();
         bindDropdownDelegation();
         wireUserDropdown();
+        stripIssueReportsChrome();
     }
 
     bootSharedUi();

@@ -17,8 +17,5 @@
   "bugs": {
     "url": "https://github.com/MayorIT/Kreezby-Bakeshop-zero-data/issues"
   },
-  "homepage": "https://github.com/MayorIT/Kreezby-Bakeshop-zero-data#readme",
-  "dependencies": {
-    "playwright": "^1.60.0"
-  }
+  "homepage": "https://github.com/MayorIT/Kreezby-Bakeshop-zero-data#readme"
 }

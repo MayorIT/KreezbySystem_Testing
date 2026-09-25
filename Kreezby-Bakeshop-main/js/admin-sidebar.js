@@ -90,8 +90,25 @@
 
     function isAdminPage() {
 
-        return location.pathname.indexOf('/admin/') !== -1;
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (path.indexOf('/admin/') !== -1) return true;
+        if (path.indexOf('/head_admin/') === -1) return false;
+        var file = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+        return file !== 'index.html'
+            && file !== 'admin-permissions.html'
+            && file !== 'staff-permissions.html'
+            && file !== 'inquiries.html';
 
+    }
+
+    function isHeadAdminPortal() {
+        return (location.pathname || '').replace(/\\/g, '/').indexOf('/head_admin/') !== -1 && isAdminPage();
+    }
+
+    function portalHref(href) {
+        if (!isHeadAdminPortal()) return href;
+        if (href === 'admin.html') return 'head_admin.html';
+        return String(href || '').replace(/-admin\.html$/i, '-headadmin.html');
     }
 
 
@@ -183,29 +200,29 @@
 
     function activeKeyFor(filename) {
 
-        if (!filename || filename === 'admin.html') return 'dashboard';
+        if (!filename || filename === 'admin.html' || filename === 'head_admin.html') return 'dashboard';
 
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
 
         if (filename.indexOf('aiforecast') === 0) return 'aiforecast';
 
-        if (filename === 'po-admin.html') return 'po';
+        if (filename.indexOf('po-') === 0) return 'po';
 
-        if (filename === 'receive-admin.html') return 'receive';
+        if (filename.indexOf('receive-') === 0) return 'receive';
 
-        if (filename === 'bo-admin.html') return 'bo';
+        if (filename.indexOf('bo-') === 0) return 'bo';
 
-        if (filename === 'return-admin.html') return 'return';
+        if (filename.indexOf('return-') === 0) return 'return';
 
-        if (filename === 'stocks-admin.html') return 'stocks';
+        if (filename.indexOf('stocks-') === 0) return 'stocks';
 
-        if (filename === 'saleslist-admin.html') return 'saleslist';
+        if (filename.indexOf('saleslist-') === 0) return 'saleslist';
 
-        if (filename === 'order-tracking-admin.html') return 'ordertracking';
+        if (filename.indexOf('order-tracking-') === 0) return 'ordertracking';
 
-        if (filename === 'alert-admin.html') return 'alert';
+        if (filename.indexOf('alert-') === 0) return 'alert';
 
-        if (filename === 'inbox-admin.html') return 'dashboard';
+        if (filename.indexOf('inbox-') === 0) return 'dashboard';
 
         return '';
 
@@ -238,11 +255,19 @@
 
 
     function allowedNav() {
-        if (!window.KreezbyAdminPermissions || window.KreezbyAdminPermissions.isHeadAdmin()) {
-            return NAV;
+        var items = NAV;
+        if (window.KreezbyAdminPermissions && !window.KreezbyAdminPermissions.isHeadAdmin()) {
+            items = NAV.filter(function (item) {
+                return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+            });
         }
-        return NAV.filter(function (item) {
-            return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+        return items.map(function (item) {
+            return {
+                key: item.key,
+                label: item.label,
+                href: portalHref(item.href),
+                icon: item.icon
+            };
         });
     }
 

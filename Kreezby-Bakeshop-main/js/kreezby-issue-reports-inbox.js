@@ -21,7 +21,8 @@
         try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { /* ignore */ }
         var type = session.accountType || '';
         var dest = '../auth/log_in.html';
-        if (type === 'Administrator' || type === 'Head Administrator') dest = '../admin/report_issue-admin.html';
+        if (type === 'Head Administrator') dest = '../head_admin/report_issue-headadmin.html';
+        else if (type === 'Administrator') dest = '../admin/report_issue-admin.html';
         else if (type === 'Staff') dest = '../staff/report_issue-staff.html';
         else if (type === 'Customer') dest = '../customer/report_issue-customer.html';
         else if (type === 'Retailer') dest = '../retailer/report_issue-retailer.html';

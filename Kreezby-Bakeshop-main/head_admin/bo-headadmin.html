@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Back Order Management (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/bo-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+
+</head>
+<body data-kreezby-portal="admin-bo">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="bo-master-dashboard-split-view">
+                <div class="panel-data-card bo-tabbed-card">
+                    <div class="bo-order-tabs" role="tablist">
+                        <button type="button" class="bo-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Back Orders</button>
+                        <button type="button" class="bo-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Back Orders</button>
+                    </div>
+
+                    <div id="bo-tab-retailer" class="bo-tab-panel active" role="tabpanel">
+                        <div class="panel-card-title-bar">
+                            <h3>Retailer Back Orders</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="datatable-filters-line">
+                                <div>Show <select id="bo-retailer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                                <div class="search-field-wrap">
+                                    <input type="text" id="bo-retailer-search" placeholder="P.O. code, date, retailer, status...">
+                                </div>
+                            </div>
+                            <div class="bo-table-scroll-wrap">
+                                <table class="data-display-table" id="bo-retailer-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>Date Created</th><th>P.O. Code</th><th>Retailer</th><th>Items</th><th>Status</th><th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bo-retailer-tbody"></tbody>
+                                </table>
+                            </div>
+                            <div class="datatable-footer-line" id="bo-retailer-footer"></div>
+                        </div>
+                    </div>
+
+                    <div id="bo-tab-customer" class="bo-tab-panel" role="tabpanel">
+                        <div class="panel-card-title-bar">
+                            <h3>Customer Back Orders</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="datatable-filters-line">
+                                <div>Show <select id="bo-customer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                                <div class="search-field-wrap">
+                                    <input type="text" id="bo-customer-search" placeholder="P.O. code, date, customer, status...">
+                                </div>
+                            </div>
+                            <div class="bo-table-scroll-wrap">
+                                <table class="data-display-table" id="bo-customer-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>Date Created</th><th>P.O. Code</th><th>Customer</th><th>Items</th><th>Status</th><th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bo-customer-tbody"></tbody>
+                                </table>
+                            </div>
+                            <div class="datatable-footer-line" id="bo-customer-footer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="bo-details-inspection-panel-view" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3>Back Order Details</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        
+                        <div class="details-inspection-sheet">
+                            
+                            <div class="details-header-meta-block">
+                                <div>
+                                    <div class="meta-data-line"><strong>Back Order No:</strong> BO-0004</div>
+                                    <div class="meta-data-line"><strong>From P.O. Code:</strong> PO-0002</div>
+                                    <div class="meta-data-line"><strong>Date Created:</strong> May 20, 2024 10:30 AM</div>
+                                </div>
+                                <div>
+                                    <div class="meta-data-line"><strong>Supplier:</strong> Supplier 102</div>
+                                    <div class="meta-data-line"><strong>Expected Delivery:</strong> May 25, 2024</div>
+                                    <div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge pending">PENDING</span></div>
+                                </div>
+                                <div style="border-left: 1px dashed #ccc; padding-left: 20px;">
+                                    <div class="meta-data-line"><strong>Remarks:</strong> Partial delivery received. Some items are back ordered.</div>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #1a237e; text-transform: uppercase;">
+                                ■ Back Ordered Items Audit breakdown
+                            </div>
+
+                            <table class="data-display-table">
+                                <thead>
+                                    <tr style="background-color: #1a237e; color: white;">
+                                        <th>Item</th>
+                                        <th>Unit</th>
+                                        <th style="text-align: center;">Ordered Qty</th>
+                                        <th style="text-align: center;">Received Qty</th>
+                                        <th style="text-align: center; color: #ffb74d;">Back Ordered Qty</th>
+                                        <th style="text-align: right;">Unit Cost</th>
+                                        <th style="text-align: right;">Total (Back Order)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Item 102</strong><br><small style="color:#666;">Sample only</small></td>
+                                        <td>Boxes</td>
+                                        <td style="text-align: center;">50</td>
+                                        <td style="text-align: center;">30</td>
+                                        <td style="text-align: center; font-weight:700; color:#d32f2f;">20</td>
+                                        <td style="text-align: right;">200.00</td>
+                                        <td style="text-align: right; font-weight: 700;">4,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Item 104</strong><br><small style="color:#666;">Sample only</small></td>
+                                        <td>pcs</td>
+                                        <td style="text-align: center;">20</td>
+                                        <td style="text-align: center;">15</td>
+                                        <td style="text-align: center; font-weight:700; color:#d32f2f;">5</td>
+                                        <td style="text-align: right;">205.00</td>
+                                        <td style="text-align: right; font-weight: 700;">1,025.00</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="font-weight: bold; background-color: #f5f5f5; font-size: 15px;">
+                                        <td colspan="6" style="text-align: right;">Total (Back Order Value Balance):</td>
+                                        <td style="text-align: right; color:#b71c1c;">₱5,025.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <div class="proof-gallery-header">Proof of Partial Delivery Attachments</div>
+                            <div class="proof-images-grid">
+                                <div class="image-attachment-card" style="border-style: solid; background: #e8f0fe;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zm-4.44-6.23l-2.6 3.14-1.71-2.06c-.2-.24-.56-.24-.76 0L5.3 16.63c-.25.3.04.72.43.72h12.55c.39 0 .68-.42.43-.72l-3.46-4.61c-.19-.26-.57-.26-.76-.02z"/></svg>
+                                    Delivery_Receipt.jpg<br><small style="color:#2b6cb0;">Click to open view</small>
+                                </div>
+                                <div class="image-attachment-card" style="border-style: solid; background: #e8f0fe;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zm-4.44-6.23l-2.6 3.14-1.71-2.06c-.2-.24-.56-.24-.76 0L5.3 16.63c-.25.3.04.72.43.72h12.55c.39 0 .68-.42.43-.72l-3.46-4.61c-.19-.26-.57-.26-.76-.02z"/></svg>
+                                    Items_Boxes_Proof.jpg<br><small style="color:#2b6cb0;">Click to open view</small>
+                                </div>
+                                <div class="image-attachment-card">
+                                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    <span>Add More Images</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" onclick="window.print()">Print Report</button>
+                            <button class="btn-viewer-tool blue" onclick="alert('Fulfillment tracking modification window active...')">Edit Details</button>
+                            <button class="btn-viewer-tool black" onclick="switchToBackOrderMasterDashboardView()">Back To Lists Summary</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <div id="bo-print-root" class="bo-print-root" aria-hidden="true"></div>
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/tab-panel-transition.js"></script>
+    <script src="../js/bo-admin.js?v=3"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

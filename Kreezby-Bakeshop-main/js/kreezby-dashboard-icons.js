@@ -60,7 +60,7 @@
     function iconForHref(href) {
         var file = fileFromHref(href);
         if (!file) return 'home';
-        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || file === 'admin.html') return 'home';
+        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || file === 'admin.html' || file === 'head_admin.html') return 'home';
         if (file === 'po-staff.html' || file === 'po-admin.html' || file.indexOf('po-') === 0) return 'cart';
         if (file === 'receive-staff.html' || file === 'receive-admin.html' || file.indexOf('receive-') === 0) return 'package';
         if (file === 'bo-staff.html' || file === 'bo-admin.html' || file.indexOf('bo-') === 0) return 'layers';

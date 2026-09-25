@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Stock Capacity (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/stocklevel-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>Inventory Dashboard</h3>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="stocklevel-filter-pills"></div>
+                    <div id="stocklevel-dashboard-root" data-view="capacity" data-report-href="stocks-headadmin.html"></div>
+                </div>
+            </div>
+        </main>
+</turbo-frame>
+</div>
+    <script src="../js/stocklevel-dashboard.js"></script>
+    <script src="../js/stocklevel-pills.js"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - System Configuration Maintenance</title>
+    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">Head Admin ▾</button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div class="maintenance-overview-grid">
+                <div class="overview-card-box">
+                    <label>Active Suppliers</label>
+                    <span id="metric-suppliers-count">3</span>
+                </div>
+                <div class="overview-card-box blue-theme">
+                    <label>Retailers</label>
+                    <span id="metric-retailers-count">1</span>
+                </div>
+                <div class="overview-card-box" style="border-left-color:#00897b;">
+                    <label>Wholesalers</label>
+                    <span id="metric-wholesalers-count">1</span>
+                </div>
+                <div class="overview-card-box green-theme">
+                    <label>Customers</label>
+                    <span id="metric-customers-count">3</span>
+                </div>
+            </div>
+            
+            <div class="panel-data-card">
+                <div class="card-body-padded">
+                    
+                    <div class="maintenance-directory-tabs-row">
+                        <button class="maintenance-tab-link active-tab" onclick="switchMaintenanceDataTab(this, 'supplier')">Supplier List</button>
+                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'items')">Item List</button>
+                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'settings')">Settings</button>
+                    </div>
+
+                    <div id="maintenance-grid-workspace-root">
+                        
+                        <div class="maintenance-sub-view">
+                            <div class="datatable-controls-bar">
+                                <div>Show <select><option>10</option></select> entries</div>
+                                <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Supplier')">+ Add New Supplier</button>
+                            </div>
+                            <table class="data-display-table">
+                                <thead>
+                                    <tr style="background-color: var(--brand-brown); color: white;">
+                                        <th style="width: 50px;">#</th><th>Supplier Name</th><th>Contact Person</th><th>Email Node</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td><td><strong>Supplier Hub 101</strong></td><td>Juan Dela Cruz</td><td>juan@supplier101.com</td>
+                                        <td><button type="button" class="action-trigger-btn">Action ▾</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <div class="system-modal-backdrop" id="maintenance-form-modal-node">
+        <div class="form-modal-box">
+            <div class="modal-form-header">
+                <h2 id="modal-title-injector">Add New Record</h2>
+                <button style="background:none; border:none; font-size:16px; cursor:pointer;" onclick="toggleMaintenanceFormModal(false)">✕</button>
+            </div>
+            <div class="modal-form-body">
+                <form action="#" method="POST" id="maintenance-modal-form">
+                    
+                    <div id="dynamic-form-fields-injector"></div>
+
+                </form>
+            </div>
+            <div class="modal-action-footer-panel">
+                <button class="btn-modal-cancel" onclick="toggleMaintenanceFormModal(false)">Cancel</button>
+                <button class="btn-modal-save" type="button" onclick="handleFormSubmissionSave()">Save Parameters</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Multi-page sub-tabs templates definitions catalog directory mapping configurations
+        const dataTemplates = {
+            supplier: `
+                <div class="datatable-controls-bar">
+                    <div>Show <select><option>10</option></select> entries</div>
+                    <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Supplier')">+ Add New Supplier</button>
+                </div>
+                <table class="data-display-table">
+                    <thead>
+                        <tr style="background-color: var(--brand-brown); color: white;">
+                            <th style="width: 50px;">#</th><th>Supplier Name</th><th>Contact Person</th><th>Email Node</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td><td><strong>Supplier Hub 101</strong></td><td>Juan Dela Cruz</td><td>juan@supplier101.com</td>
+                            <td><button class="action-trigger-btn">Action ▾</button></td>
+                        </tr>
+                    </tbody>
+                </table>`,
+            retailer: `
+                <div class="datatable-controls-bar">
+                    <div>Show <select><option>10</option></select> entries</div>
+                    <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Retailer')">+ Add New Retailer</button>
+                </div>
+                <table class="data-display-table">
+                    <thead>
+                        <tr style="background-color: var(--brand-brown); color: white;">
+                            <th style="width: 50px;">#</th><th>Retailer Branch Name</th><th>Area Location</th><th>Sync Connection</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td><td><strong>SIDC Batangas Hub</strong></td><td>Batangas City</td><td><span class="status-pill-badge received" style="font-size:11px; padding:2px 8px;">ACTIVE SYNC</span></td>
+                            <td><button class="action-trigger-btn">Action ▾</button></td>
+                        </tr>
+                    </tbody>
+                </table>`,
+            items: `
+                <div class="datatable-controls-bar">
+                    <div>Show <select><option>10</option></select> entries</div>
+                    <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Flavor Item')">+ Add New Flavor Item</button>
+                </div>
+                <table class="data-display-table">
+                    <thead>
+                        <tr style="background-color: var(--brand-brown); color: white;">
+                            <th style="width: 50px;">#</th><th>Item SKU Code</th><th>Flavor Item Description</th><th>Packaging Variant</th><th>Base Rate</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td><td><strong>CRK-BUT-J</strong></td><td>Choco Butternut Specialty</td><td>Jar (250g)</td><td>₱200.00</td>
+                            <td><button class="action-trigger-btn">Action ▾</button></td>
+                        </tr>
+                    </tbody>
+                </table>`,
+            users: `
+                <div class="datatable-controls-bar">
+                    <div>Show <select><option>10</option></select> entries</div>
+                    <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'User Account')">+ Add System User Account</button>
+                </div>
+                <table class="data-display-table">
+                    <thead>
+                        <tr style="background-color: var(--brand-brown); color: white;">
+                            <th style="width: 50px;">#</th><th>Account Name</th><th>Username</th><th>Assigned Authorization Role</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td><td><strong>Brent Ramos</strong></td><td>brent_admin</td><td>System Administrator</td>
+                            <td><button class="action-trigger-btn">Action ▾</button></td>
+                        </tr>
+                    </tbody>
+                </table>`,
+            permissions: `
+                <p class="permissions-intro">Staff task access is controlled by Head Admin. Open the Head Admin portal to change what each staff member can see.</p>`
+        };
+
+        // Form fields matrix constructor mapping specific properties to active popup frames
+        const formFieldBlueprints = {
+            'Supplier': `
+                <div class="form-field-unit"><label>Supplier Name *</label><input type="text" placeholder="e.g. Supplier Hub Corp" required></div>
+                <div class="form-field-unit"><label>Contact Person *</label><input type="text" placeholder="e.g. Juan Dela Cruz" required></div>
+                <div class="form-field-unit"><label>Email Address</label><input type="text" placeholder="e.g. contact@supplier.com"></div>`,
+            'Retailer': `
+                <div class="form-field-unit"><label>Retailer Branch Name *</label><input type="text" placeholder="e.g. SIDC Branch" required></div>
+                <div class="form-field-unit"><label>Area / Location *</label><input type="text" placeholder="e.g. Batangas City" required></div>`,
+            'Flavor Item': `
+                <div class="form-field-unit"><label>Item SKU Code *</label><input type="text" placeholder="e.g. CRK-CHO-P" required></div>
+                <div class="form-field-unit"><label>Flavor Name *</label><input type="text" placeholder="e.g. Chocolate Crinkles" required></div>
+                <div class="form-field-unit"><label>Packaging Variant Category</label><select><option>Pouch (8 Pcs)</option><option>Jar (250g Container)</option></select></div>
+                <div class="form-field-unit"><label>Base Unit Rate Cost (₱) *</label><input type="number" placeholder="165.00" required></div>`,
+            'User Account': `
+                <div class="form-field-unit"><label>Full Employee Name *</label><input type="text" placeholder="e.g. Elton McJosh" required></div>
+                <div class="form-field-unit"><label>Username ID *</label><input type="text" required></div>
+                <div class="form-field-unit"><label>Authorization System Role</label><select><option>Administrator</option><option>Staff Personnel</option><option>Retailer Client Partner</option></select></div>`
+        };
+
+        let selectedStaffPermissionsId = 'staff-1';
+
+        function switchMaintenanceDataTab(tabNode, directoryKey) {
+            const tabRow = tabNode.parentElement;
+            tabRow.querySelectorAll('.maintenance-tab-link').forEach(btn => btn.classList.remove('active-tab'));
+            tabNode.classList.add('active-tab');
+
+            const rootWorkspace = document.getElementById('maintenance-grid-workspace-root');
+            if (!rootWorkspace) return;
+
+            const applyContent = function () {
+                if (directoryKey === 'settings') {
+                    if (window.KreezbyMaintenanceUI) KreezbyMaintenanceUI.initSettingsPanel();
+                } else {
+                    rootWorkspace.innerHTML = dataTemplates[directoryKey] || '';
+                }
+                requestAnimationFrame(function () {
+                    rootWorkspace.classList.remove('is-fading');
+                });
+            };
+
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                applyContent();
+                return;
+            }
+
+            rootWorkspace.classList.add('is-fading');
+            window.setTimeout(applyContent, 160);
+        }
+
+        function initStaffPermissionsPanel() {
+            if (!window.KreezbyStaffPermissions) return;
+
+            const pills = document.querySelectorAll('.role-selection-pill');
+            const matrixBody = document.getElementById('permissions-matrix-body');
+            const titleEl = document.getElementById('permissions-panel-title');
+            const saveBtn = document.getElementById('btn-save-permissions');
+
+            function renderMatrix() {
+                const profile = KreezbyStaffPermissions.getStaffProfile(selectedStaffPermissionsId);
+                const allowed = KreezbyStaffPermissions.getStaffTasks(selectedStaffPermissionsId);
+                titleEl.textContent = 'Task Access — ' + profile.name;
+                matrixBody.innerHTML = '';
+                Object.keys(KreezbyStaffPermissions.TASKS).forEach(function (taskKey) {
+                    if (taskKey === 'dashboard') return;
+                    const task = KreezbyStaffPermissions.TASKS[taskKey];
+                    const checked = allowed.indexOf(taskKey) !== -1 ? ' checked' : '';
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td>' + task.label + '</td><td class="center-align"><label class="checkbox-container"><input type="checkbox" data-task="' + taskKey + '"' + checked + '><span class="custom-checkmark"></span></label></td>';
+                    matrixBody.appendChild(row);
+                });
+            }
+
+            pills.forEach(function (pill) {
+                pill.onclick = function () {
+                    pills.forEach(function (p) { p.classList.remove('active-role'); });
+                    pill.classList.add('active-role');
+                    selectedStaffPermissionsId = pill.getAttribute('data-staff-id');
+                    renderMatrix();
+                };
+            });
+
+            saveBtn.onclick = function () {
+                const tasks = ['dashboard'];
+                matrixBody.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+                    tasks.push(cb.getAttribute('data-task'));
+                });
+                const all = KreezbyStaffPermissions.getAllPermissions();
+                all[selectedStaffPermissionsId] = tasks;
+                KreezbyStaffPermissions.saveAllPermissions(all);
+                alert('Permissions saved for ' + KreezbyStaffPermissions.getStaffProfile(selectedStaffPermissionsId).name + '.');
+            };
+
+            renderMatrix();
+        }
+
+        // Overlay Modal toggle state machine visibility engine routine controls
+        function toggleMaintenanceFormModal(shouldDisplay, entityContextKey = '') {
+            const backdrop = document.getElementById('maintenance-form-modal-node');
+            if (shouldDisplay) {
+                document.getElementById('modal-title-injector').textContent = `Create New ${entityContextKey}`;
+                document.getElementById('dynamic-form-fields-injector').innerHTML = formFieldBlueprints[entityContextKey] || '';
+                backdrop.classList.add('modal-triggered');
+            } else {
+                backdrop.classList.remove('modal-triggered');
+            }
+        }
+
+        function handleFormSubmissionSave() {
+            alert('Parameters processed! New record entry successfully saved to database array clusters.');
+            toggleMaintenanceFormModal(false);
+        }
+    </script>
+    <script src="../js/maintenance-settings.js"></script>
+    <script src="../js/staff-permissions.js"></script>
+    <script src="../js/maintenance-settings-ui.js"></script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

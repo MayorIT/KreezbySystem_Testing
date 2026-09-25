@@ -852,7 +852,12 @@
 
         var view = root.getAttribute('data-view') || 'units';
 
-        var reportHref = root.getAttribute('data-report-href') || 'stocks-admin.html';
+        var reportHref = root.getAttribute('data-report-href');
+        if (!reportHref) {
+            reportHref = /\/head_admin\//i.test(location.pathname || '')
+                ? 'stocks-headadmin.html'
+                : 'stocks-admin.html';
+        }
 
         var fn = RENDERERS[view] || renderUnits;
 

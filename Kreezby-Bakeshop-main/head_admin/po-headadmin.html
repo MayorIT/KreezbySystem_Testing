@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Head Admin Purchase Orders</title>
+    <link rel="stylesheet" href="../css/pages/admin/po-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div id="po-master-lists-container-block">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-order-tabs" role="tablist">
+                        <button type="button" class="po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Orders</button>
+                        <button type="button" class="po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Orders</button>
+                    </div>
+
+                    <div id="po-tab-retailer" class="po-tab-panel active" role="tabpanel">
+                        <div class="panel-card-title-bar">
+                            <h3>Retailer Orders</h3>
+                            <button class="btn-call-to-action" id="po-create-retailer-btn" type="button">+ Create New</button>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="datatable-filters-line">
+                                <div>Show <select id="retailer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                                <div class="search-field-wrap">
+                                    <input type="text" id="retailer-search" placeholder="PO code, date, entity, status...">
+                                </div>
+                            </div>
+                            <div class="po-table-scroll-wrap">
+                                <table class="data-display-table" id="retailer-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>Date Created</th><th>PO Code</th><th>Entity</th><th>Status</th><th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="retailer-orders-tbody"></tbody>
+                                </table>
+                            </div>
+                            <div class="datatable-footer-line" id="retailer-orders-footer"></div>
+                        </div>
+                    </div>
+
+                    <div id="po-tab-customer" class="po-tab-panel" role="tabpanel">
+                        <div class="panel-card-title-bar">
+                            <h3>Customer Orders</h3>
+                            <button class="btn-call-to-action" id="po-create-customer-btn" type="button">+ Create New</button>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="datatable-filters-line">
+                                <div>Show <select id="customer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                                <div class="search-field-wrap">
+                                    <input type="text" id="customer-search" placeholder="PO code, date, items, status...">
+                                </div>
+                            </div>
+                            <div class="po-table-scroll-wrap">
+                                <table class="data-display-table" id="customer-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>Date Created</th><th>PO Code</th><th>Items</th><th>Status</th><th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customer-orders-tbody"></tbody>
+                                </table>
+                            </div>
+                            <div class="datatable-footer-line" id="customer-orders-footer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="po-details-viewer-container-block" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3 id="po-details-title">Purchase Order Details</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        <div class="details-container-view" id="po-details-content"></div>
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" id="po-details-print-btn" type="button">Print Receipt</button>
+                            <button class="btn-viewer-tool blue" id="po-details-edit-btn" type="button">Edit Record</button>
+                            <button class="btn-viewer-tool black" id="po-details-back-btn" type="button">Back To Master List</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <div class="system-modal-backdrop" id="purchase-order-modal-node">
+        <div class="form-modal-box">
+            <div class="modal-form-header">
+                <h2 id="po-modal-title">Create New Purchase Order</h2>
+                <button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" id="po-modal-close-btn">✕</button>
+            </div>
+            <div class="modal-form-body">
+                <form action="#" method="POST" id="po-form-element" onsubmit="return false;">
+                    
+                    <div class="form-inputs-row-grid">
+                        <div class="form-field-unit">
+                            <label>PO Code *</label>
+                            <input type="text" id="po-modal-code" value="Auto-generated" readonly>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Date Created *</label>
+                            <input type="datetime-local" id="po-modal-date" required>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Area of Location *</label>
+                            <select id="po-modal-area" required>
+                                <option value="">Please select an area</option>
+                                <option value="Batangas City">Batangas City</option>
+                                <option value="Lipa City">Lipa City</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Retailer / Entity *</label>
+                            <input type="text" id="po-modal-entity" placeholder="Enter retailer or customer name" required>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Order Type *</label>
+                            <select id="po-modal-type" required>
+                                <option value="retailer">Retailer Order</option>
+                                <option value="wholesaler">Wholesaler Order</option>
+                                <option value="customer">Customer Order</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit" style="display:none;">
+                            <label>Status *</label>
+                            <select id="po-modal-status" required>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="item-builder-sub-header">
+                        <span>■</span> Item Form
+                    </div>
+
+                    <div class="item-entry-builder-bar">
+                        <div class="form-field-unit">
+                            <label>Flavor</label>
+                            <select id="builder-flavor-picker">
+                                <option value="">Please select a flavor</option>
+                                <option value="Chocolate" data-rate="50.00">Chocolate</option>
+                                <option value="Lemon" data-rate="45.00">Lemon</option>
+                                <option value="Choco Almond" data-rate="55.00">Choco Almond</option>
+                            </select>
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Unit</label>
+                            <input type="text" id="builder-unit-input" placeholder="e.g. PCS" value="PCS">
+                        </div>
+                        <div class="form-field-unit">
+                            <label>Qty</label>
+                            <input type="number" id="builder-qty-input" placeholder="e.g. 1" min="1">
+                        </div>
+                        <button type="button" class="btn-call-to-action" style="background:#00897b;" id="po-modal-add-item-btn">Add Item +</button>
+                    </div>
+
+                    <table class="data-display-table" style="margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background-color:#1a237e; color:#ffffff;">
+                                <th>#</th><th>Item</th><th>Unit</th><th>Qty</th><th>Cost</th><th>Total</th><th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="po-modal-items-injector"></tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold; background-color:#f5f5f5;">
+                                <td colspan="5" style="text-align:right;">Grand Total</td>
+                                <td id="po-modal-grand-total" colspan="2">0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="form-field-unit" style="margin-bottom: 10px;">
+                        <label>Tracking Number (J&T Express)</label>
+                        <input type="text" id="po-modal-tracking" placeholder="e.g. JT1234567890123" style="width:100%; border:1px solid #ccc; border-radius:4px; padding:8px; outline:none;">
+                    </div>
+
+                    <div class="form-field-unit" style="margin-bottom: 10px;">
+                        <label>Courier</label>
+                        <input type="text" id="po-modal-courier" value="J&T Express Philippines" style="width:100%; border:1px solid #ccc; border-radius:4px; padding:8px; outline:none;">
+                    </div>
+
+                    <div class="form-field-unit" style="margin-bottom: 10px;">
+                        <label>Remarks</label>
+                        <textarea id="po-modal-remarks" style="width:100%; height:60px; border:1px solid #ccc; border-radius:4px; padding:8px; outline:none;" placeholder="Enter any additional notes (optional)"></textarea>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-action-footer-panel">
+                <button type="button" class="btn-modal-cancel" id="po-modal-cancel-btn">Cancel</button>
+                <button class="btn-modal-save" type="button" id="po-modal-save-btn">Save Purchase Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal Overlay -->
+    <div class="notification-modal-overlay" id="notification-modal-overlay">
+        <div class="notification-modal-box">
+            <div class="notification-modal-header">
+                <h2>📢 Notifications</h2>
+                <button class="notification-modal-close-btn" onclick="closeNotificationModal()">✕</button>
+            </div>
+            <div class="notification-modal-body" id="notification-modal-body">
+                <!-- Notifications will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="po-print-receipt-root" class="po-print-receipt-root" aria-hidden="true"></div>
+
+    <script>
+        function switchToDetailsViewPane(poCode) {
+            if (window.PoAdmin && PoAdmin.openDetails) PoAdmin.openDetails(poCode);
+        }
+        function switchToMasterListsPane() {
+            if (window.PoAdmin && PoAdmin.backToList) PoAdmin.backToList();
+        }
+        function togglePurchaseOrderFormModal(shouldDisplay, poCode) {
+            if (window.PoAdmin) {
+                if (shouldDisplay) PoAdmin.openEditModal(poCode || null);
+                else PoAdmin.closeModal();
+            }
+        }
+    </script>
+    <script>
+        // Sample notifications data
+        const notificationsData = [
+            {
+                id: 1,
+                type: 'order',
+                title: 'Customer Order Placed',
+                message: 'New order #ORD-2026-005 from Bryle Atienza - 10 pouches of Chocolate Crinkles',
+                time: '5 minutes ago',
+                status: 'unread'
+            },
+            {
+                id: 2,
+                type: 'reorder',
+                title: 'Branch Reorder Received',
+                message: 'Branch #102 (Makati) reordered 25 units of Choco-Almond Crinkles',
+                time: '2 hours ago',
+                status: 'unread'
+            },
+            {
+                id: 3,
+                type: 'reorder',
+                title: 'Branch Reorder Received',
+                message: 'Branch #05 (BGC) reordered 15 units of Mango Crinkles',
+                time: '4 hours ago',
+                status: 'read'
+            },
+            {
+                id: 4,
+                type: 'order',
+                title: 'Customer Order Placed',
+                message: 'New order #ORD-2026-004 from Maria Santos - 5 jars of Choco Butternut',
+                time: '1 day ago',
+                status: 'read'
+            }
+        ];
+
+        function openNotificationModal() {
+            const modal = document.getElementById('notification-modal-overlay');
+            const body = document.getElementById('notification-modal-body');
+            
+            body.innerHTML = notificationsData.map(notif => `
+                <div class="notification-item ${notif.status === 'unread' ? 'unread' : ''}">
+                    <div class="notification-icon">${notif.type === 'order' ? '🛒' : '📦'}</div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notif.title}</div>
+                        <div class="notification-message">${notif.message}</div>
+                        <div class="notification-time">${notif.time}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal-overlay').classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            document.getElementById('notification-modal-overlay').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeNotificationModal();
+                }
+            });
+        });
+    </script>
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/tab-panel-transition.js"></script>
+    <script src="../js/po-admin.js"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

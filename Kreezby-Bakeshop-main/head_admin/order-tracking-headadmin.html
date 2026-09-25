@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Customer Order Tracking (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-alert.css">
+    <link rel="stylesheet" href="../css/shared/order-tracking.css">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">Head Admin ▾</button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas" data-order-tracking-page>
+
+            <div id="order-tracking-toast" class="kreezby-alert kreezby-alert--success kreezby-alert--light kreezby-alert--md" hidden role="status" style="margin-bottom:16px;">
+                <div class="kreezby-alert__content"><div class="kreezby-alert__description">Saved.</div></div>
+            </div>
+
+            <div class="order-tracking-layout">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar order-tracking-panel-title-bar">
+                        <h3>Customer Order Tracking</h3>
+                        <button type="button" class="btn-call-to-action" id="ot-create-btn">+ Create New</button>
+                    </div>
+                    <div class="card-body-padded">
+                        <p style="font-size:13px;color:#6b7280;margin:0 0 16px;">
+                            Update processing status and enter J&amp;T Express Philippines tracking IDs for online customer orders.
+                        </p>
+                        <div class="datatable-controls-bar">
+                            <div>
+                                Status
+                                <select id="ot-status-filter">
+                                    <option value="all">All</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div>
+                                Search:
+                                <input type="text" id="ot-search" placeholder="Order #, PO code, customer, tracking ID">
+                            </div>
+                        </div>
+                        <table class="data-display-table order-tracking-table">
+                            <thead>
+                                <tr style="background-color: var(--brand-brown); color: white;">
+                                    <th>Order #</th>
+                                    <th>PO Code</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>J&amp;T Tracking ID</th>
+                                    <th>Courier</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-tracking-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="order-tracking-detail" class="order-tracking-detail-panel" hidden></div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/order-tracking.js"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

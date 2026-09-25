@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Head Admin Stocks</title>
+    <link rel="stylesheet" href="../css/pages/admin/stocks-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <button class="notification-pill" type="button" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="stocks-admin-master-block">
+                <div class="dashboard-split-layout">
+
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>List of Stocks</h3>
+                </div>
+                <div class="card-body-padded">
+                    
+                    <div class="datatable-filters-line">
+                        <div>
+                            Show 
+                            <select id="entries-per-page">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                            </select> 
+                            entries
+                            &nbsp;|&nbsp;
+                            Stock Type:
+                            <select id="stock-type-filter" onchange="filterStockType()">
+                                <option value="all">All Types</option>
+                                <option value="finished-product">Finished Product</option>
+                                <option value="raw-material">Raw Material</option>
+                                <option value="packaging-material">Packaging Material</option>
+                            </select>
+                        </div>
+                        <div>
+                            Search: <input type="text" id="stock-search-input" placeholder="Filter item name or code..." oninput="filterStockType()">
+                        </div>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: var(--brand-brown); color: #ffffff;">
+                                <th style="width: 50px;">#</th>
+                                <th>Item Code</th>
+                                <th>Stock Type</th>
+                                <th>Item Name</th>
+                                <th>Unit / Packaging</th>
+                                <th style="text-align: right;">In Stock Qty</th>
+                                <th style="text-align: right;">Cost Per Unit</th>
+                                <th style="text-align: right;">Total Asset Value</th>
+                                <th style="text-align: center; width: 100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stocks-table-body">
+                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-cho-p chocolate crinkles pouch">
+                                <td>1</td>
+                                <td><strong>CRK-CHO-P</strong></td>
+                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
+                                <td>Chocolate Crinkles</td>
+                                <td>Pouch (8 Pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">450</td>
+                                <td style="text-align: right;">₱120.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱54,000.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-1')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-1">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Chocolate Crinkles')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Chocolate Crinkles')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Chocolate Crinkles')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-alm-p choco-almond crinkles pouch">
+                                <td>2</td>
+                                <td><strong>CRK-ALM-P</strong></td>
+                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
+                                <td>Choco-Almond Crinkles</td>
+                                <td>Pouch (8 Pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">320</td>
+                                <td style="text-align: right;">₱125.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱40,000.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-2')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-2">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Choco-Almond Crinkles')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Choco-Almond Crinkles')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Choco-Almond Crinkles')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-lem-p lemon crinkles pouch">
+                                <td>3</td>
+                                <td><strong>CRK-LEM-P</strong></td>
+                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
+                                <td>Lemon Crinkles</td>
+                                <td>Pouch (8 Pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">85</td>
+                                <td style="text-align: right;">₱120.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱10,200.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-3')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-3">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Lemon Crinkles')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Lemon Crinkles')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Lemon Crinkles')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-but-j choco butternut crinkles jar">
+                                <td>4</td>
+                                <td><strong>CRK-BUT-J</strong></td>
+                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
+                                <td>Choco Butternut Crinkles</td>
+                                <td>Jar (250g Container)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">210</td>
+                                <td style="text-align: right;">₱150.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱31,500.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-4')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-4">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Choco Butternut Crinkles')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Choco Butternut Crinkles')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Choco Butternut Crinkles')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-mng-j mango crinkles jar">
+                                <td>5</td>
+                                <td><strong>CRK-MNG-J</strong></td>
+                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
+                                <td>Mango Crinkles</td>
+                                <td>Jar (250g Container)</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">45</td>
+                                <td style="text-align: right;">₱150.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱6,750.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-5')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-5">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Mango Crinkles')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Mango Crinkles')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Mango Crinkles')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-flr-01 all-purpose flour sack">
+                                <td>6</td>
+                                <td><strong>RM-FLR-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>All-Purpose Flour</td>
+                                <td>25 kg Sack</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">120</td>
+                                <td style="text-align: right;">₱850.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱102,000.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-6')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-6">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'All-Purpose Flour')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'All-Purpose Flour')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'All-Purpose Flour')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-coc-01 cocoa powder bag">
+                                <td>7</td>
+                                <td><strong>RM-COC-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Cocoa Powder</td>
+                                <td>5 kg Bag</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">45</td>
+                                <td style="text-align: right;">₱1,200.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱54,000.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-7')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-7">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Cocoa Powder')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Cocoa Powder')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Cocoa Powder')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-sug-01 granulated sugar sack">
+                                <td>8</td>
+                                <td><strong>RM-SUG-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Granulated Sugar</td>
+                                <td>50 kg Sack</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">80</td>
+                                <td style="text-align: right;">₱620.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱49,600.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-8')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-8">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Granulated Sugar')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Granulated Sugar')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Granulated Sugar')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-but-01 unsalted butter block">
+                                <td>9</td>
+                                <td><strong>RM-BUT-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Unsalted Butter</td>
+                                <td>2.5 kg Block</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">60</td>
+                                <td style="text-align: right;">₱280.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱16,800.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-9')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-9">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Unsalted Butter')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Unsalted Butter')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Unsalted Butter')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-pou-01 crinkle pouch roll">
+                                <td>10</td>
+                                <td><strong>PKG-POU-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>Crinkle Pouch (8 Pcs)</td>
+                                <td>Roll (500 pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">35</td>
+                                <td style="text-align: right;">₱450.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱15,750.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-10')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-10">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Crinkle Pouch')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Crinkle Pouch')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Crinkle Pouch')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-jar-01 glass jar lid carton">
+                                <td>11</td>
+                                <td><strong>PKG-JAR-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>250g Glass Jar with Lid</td>
+                                <td>Carton (24 pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">18</td>
+                                <td style="text-align: right;">₱960.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱17,280.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-11')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-11">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Glass Jar with Lid')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Glass Jar with Lid')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Glass Jar with Lid')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-lbl-01 product label sticker roll">
+                                <td>12</td>
+                                <td><strong>PKG-LBL-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>Product Label Sticker</td>
+                                <td>Roll (1,000 labels)</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">12</td>
+                                <td style="text-align: right;">₱350.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱4,200.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-12')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-12">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Product Label Sticker')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Product Label Sticker')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Product Label Sticker')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-box-01 shipping carton box bundle">
+                                <td>13</td>
+                                <td><strong>PKG-BOX-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>Corrugated Shipping Box</td>
+                                <td>Bundle (50 pcs)</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">25</td>
+                                <td style="text-align: right;">₱420.00</td>
+                                <td style="text-align: right; font-weight: 600;">₱10,500.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-13')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-13">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Shipping Box')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Shipping Box')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Shipping Box')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #fafafa; font-weight: bold; font-size: 14px;">
+                                <td colspan="5" style="text-align: right;">Total Aggregated Inventory Assets:</td>
+                                <td style="text-align: right; color: var(--brand-brown);">Mixed Units</td>
+                                <td>-</td>
+                                <td style="text-align: right; color: #0d47a1;">₱412,580.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notification Modal Overlay (same pattern as po-admin) -->
+    <div class="notification-modal-overlay" id="notification-modal-overlay">
+        <div class="notification-modal-box">
+            <div class="notification-modal-header">
+                <h2>📢 Notifications</h2>
+                <button type="button" class="notification-modal-close-btn" onclick="closeNotificationModal()">✕</button>
+            </div>
+            <div class="notification-modal-body" id="notification-modal-body">
+                <!-- Notifications will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleActionPopupMenu(event, popupElementId) {
+            // Prevent event from bubbling up and closing immediately
+            event.stopPropagation();
+            
+            // Close all active dropdown elements first
+            const activeMenus = document.querySelectorAll('.action-popup-menu');
+            activeMenus.forEach(menu => {
+                if(menu.id !== popupElementId) {
+                    menu.classList.remove('active');
+                }
+            });
+
+            // Toggle target element state
+            const targetMenu = document.getElementById(popupElementId);
+            targetMenu.classList.toggle('active');
+        }
+
+        // Close popup menus instantly when user clicks anywhere outside options frame surfaces
+        window.addEventListener('click', function() {
+            const activeMenus = document.querySelectorAll('.action-popup-menu');
+            activeMenus.forEach(menu => {
+                menu.classList.remove('active');
+            });
+        });
+
+        function filterStockType() {
+            const typeFilter = document.getElementById('stock-type-filter').value;
+            const searchQuery = (document.getElementById('stock-search-input').value || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#stocks-table-body .stock-row');
+
+            let visibleIndex = 0;
+            rows.forEach((row) => {
+                const matchesType = typeFilter === 'all' || row.dataset.stockType === typeFilter;
+                const matchesSearch = !searchQuery || (row.dataset.search || '').includes(searchQuery);
+                const visible = matchesType && matchesSearch;
+                row.style.display = visible ? '' : 'none';
+                if (visible) {
+                    visibleIndex += 1;
+                    row.querySelector('td').textContent = String(visibleIndex);
+                }
+            });
+        }
+    </script>
+    <script>
+        const notificationsData = [
+            {
+                id: 1,
+                type: 'order',
+                title: 'Low stock: Mango Crinkles',
+                message: 'Mango Crinkles jars are below the restock threshold. Review the Stocks list.',
+                time: '5 minutes ago',
+                status: 'unread'
+            },
+            {
+                id: 2,
+                type: 'reorder',
+                title: 'Raw material delivery scheduled',
+                message: 'Cocoa powder (RM-COC-01) inbound delivery expected tomorrow.',
+                time: '2 hours ago',
+                status: 'unread'
+            },
+            {
+                id: 3,
+                type: 'reorder',
+                title: 'Packaging reorder confirmed',
+                message: 'PKG-POU-01 roll restock PO has been approved.',
+                time: '1 day ago',
+                status: 'read'
+            }
+        ];
+
+        function openNotificationModal() {
+            const modal = document.getElementById('notification-modal-overlay');
+            const body = document.getElementById('notification-modal-body');
+
+            body.innerHTML = notificationsData.map(notif => `
+                <div class="notification-item ${notif.status === 'unread' ? 'unread' : ''}">
+                    <div class="notification-icon">${notif.type === 'order' ? '🛒' : '📦'}</div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notif.title}</div>
+                        <div class="notification-message">${notif.message}</div>
+                        <div class="notification-time">${notif.time}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.classList.add('active');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal-overlay').classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('notification-modal-overlay').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeNotificationModal();
+                }
+            });
+        });
+    </script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

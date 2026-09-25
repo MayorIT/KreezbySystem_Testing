@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - System Alerts & Thresholds (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-alert.css">
+
+</head>
+<body>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div class="kreezby-alert-stack" id="admin-alert-banners">
+                <div role="alert" class="kreezby-alert kreezby-alert--destructive kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>
+                    <div class="kreezby-alert__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+                    <div class="kreezby-alert__content">
+                        <div class="kreezby-alert__title">Critical stock alert</div>
+                        <div class="kreezby-alert__description">Mango Crinkles dropped below the safety threshold. Review restock options in the log below.</div>
+                    </div>
+                    <button type="button" class="kreezby-alert__close" data-kreezby-alert-dismiss aria-label="Dismiss"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                </div>
+                <div role="alert" class="kreezby-alert kreezby-alert--info kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>
+                    <div class="kreezby-alert__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div>
+                    <div class="kreezby-alert__content">
+                        <div class="kreezby-alert__title">AI back-order notice</div>
+                        <div class="kreezby-alert__description">Automated back-order entries were generated for missing batch lines. No action required unless flagged.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>System Stock Alerts & Logs</h3>
+                </div>
+                <div class="card-body-padded">
+                    
+                    <div class="datatable-controls-bar">
+                        <div>
+                            Show 
+                            <select id="entries-selector">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                            </select> 
+                            entries
+                        </div>
+                        <div>
+                            Search Alert logs: <input type="text" placeholder="Filter by message or item...">
+                        </div>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: var(--brand-brown); color: white;">
+                                <th style="width: 50px;">#</th>
+                                <th>Timestamp</th>
+                                <th>Trigger Source Item</th>
+                                <th>Alert Message Description</th>
+                                <th style="text-align: center; width: 120px;">Severity</th>
+                                <th style="text-align: center; width: 100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>2026-05-16 14:20</td>
+                                <td><strong>CRK-MNG-J</strong></td>
+                                <td>Mango Crinkles stock levels dropped below the safety threshold value. Current: 45 Jars.</td>
+                                <td style="text-align: center;"><span class="severity-badge critical">Critical</span></td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleAlertActionMenu(event, 'alert-pop-1')">Action ▾</button>
+                                        <div class="action-popup-menu" id="alert-pop-1">
+                                            <div class="action-popup-item" onclick="handleAlertTrigger('restock', 'Mango Crinkles')">Create Restock P.O.</div>
+                                            <div class="action-popup-item text-muted" onclick="handleAlertTrigger('modify', 'Mango Crinkles')">Adjust Threshold</div>
+                                            <div class="action-popup-item dismiss-action" onclick="handleAlertTrigger('dismiss', 'Mango Crinkles')">Dismiss Alert</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2026-05-16 11:05</td>
+                                <td><strong>CRK-LEM-P</strong></td>
+                                <td>Lemon Crinkles stock levels reaching warning limit limits. Current: 85 Pouches.</td>
+                                <td style="text-align: center;"><span class="severity-badge warning">Warning</span></td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleAlertActionMenu(event, 'alert-pop-2')">Action ▾</button>
+                                        <div class="action-popup-menu" id="alert-pop-2">
+                                            <div class="action-popup-item" onclick="handleAlertTrigger('restock', 'Lemon Crinkles')">Create Restock P.O.</div>
+                                            <div class="action-popup-item text-muted" onclick="handleAlertTrigger('modify', 'Lemon Crinkles')">Adjust Threshold</div>
+                                            <div class="action-popup-item dismiss-action" onclick="handleAlertTrigger('dismiss', 'Lemon Crinkles')">Dismiss Alert</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>2026-05-15 09:12</td>
+                                <td><strong>PO-0005</strong></td>
+                                <td>Back Order processing generated automatically by AI system metrics loops for missing batch lines.</td>
+                                <td style="text-align: center;"><span class="severity-badge info">Info</span></td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleAlertActionMenu(event, 'alert-pop-3')">Action ▾</button>
+                                        <div class="action-popup-menu" id="alert-pop-3">
+                                            <div class="action-popup-item" onclick="handleAlertTrigger('view', 'PO-0005')">View Back Order</div>
+                                            <div class="action-popup-item dismiss-action" onclick="handleAlertTrigger('dismiss', 'PO-0005')">Dismiss Alert</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>2026-05-14 16:45</td>
+                                <td><strong>RET-0001</strong></td>
+                                <td>Return Order request submitted to active log queues from Retailer 102. Action required.</td>
+                                <td style="text-align: center;"><span class="severity-badge warning">Warning</span></td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleAlertActionMenu(event, 'alert-pop-4')">Action ▾</button>
+                                        <div class="action-popup-menu" id="alert-pop-4">
+                                            <div class="action-popup-item" onclick="handleAlertTrigger('view', 'RET-0001')">Inspect Return Slip</div>
+                                            <div class="action-popup-item dismiss-action" onclick="handleAlertTrigger('dismiss', 'RET-0001')">Dismiss Alert</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Alert Details Modal Overlay -->
+    <div class="alert-modal-overlay" id="alert-modal-overlay">
+        <div class="alert-modal-box">
+            <div class="alert-modal-header">
+                <h2>Alert Details</h2>
+                <button class="alert-modal-close-btn" onclick="closeAlertModal()">✕</button>
+            </div>
+            <div class="alert-modal-body">
+                <div class="alert-detail-row">
+                    <div class="alert-detail-label">Alert ID / Trigger Source</div>
+                    <div class="alert-detail-value" id="modal-alert-id">—</div>
+                </div>
+                <div class="alert-detail-row">
+                    <div class="alert-detail-label">Timestamp</div>
+                    <div class="alert-detail-value" id="modal-alert-timestamp">—</div>
+                </div>
+                <div class="alert-modal-divider"></div>
+                <div class="alert-detail-row">
+                    <div class="alert-detail-label">Message Description</div>
+                    <div class="alert-detail-value" id="modal-alert-message">—</div>
+                </div>
+                <div class="alert-detail-row">
+                    <div class="alert-detail-label">Severity Level</div>
+                    <div class="alert-detail-value"><span id="modal-alert-severity" class="alert-detail-badge">—</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAlertActionMenu(event, popupElementId) {
+            event.stopPropagation();
+            
+            // Close all active dropdown elements first
+            const activeMenus = document.querySelectorAll('.action-popup-menu');
+            activeMenus.forEach(menu => {
+                if(menu.id !== popupElementId) {
+                    menu.classList.remove('active');
+                }
+            });
+
+            const targetMenu = document.getElementById(popupElementId);
+            targetMenu.classList.toggle('active');
+        }
+
+        window.addEventListener('click', function() {
+            const activeMenus = document.querySelectorAll('.action-popup-menu');
+            activeMenus.forEach(menu => {
+                menu.classList.remove('active');
+            });
+        });
+
+        /* handleAlertTrigger provided by action-buttons.js */
+
+        // Alert modal functions
+        const alertsData = [
+            {
+                id: 1,
+                source: "CRK-MNG-J",
+                timestamp: "2026-05-16 14:20",
+                message: "Mango Crinkles stock levels dropped below the safety threshold value. Current: 45 Jars.",
+                severity: "Critical"
+            },
+            {
+                id: 2,
+                source: "CRK-LEM-P",
+                timestamp: "2026-05-16 11:05",
+                message: "Lemon Crinkles stock levels reaching warning limit limits. Current: 85 Pouches.",
+                severity: "Warning"
+            },
+            {
+                id: 3,
+                source: "PO-0005",
+                timestamp: "2026-05-15 09:12",
+                message: "Back Order processing generated automatically by AI system metrics loops for missing batch lines.",
+                severity: "Info"
+            },
+            {
+                id: 4,
+                source: "RET-0001",
+                timestamp: "2026-05-14 16:45",
+                message: "Return Order request submitted to active log queues from Retailer 102. Action required.",
+                severity: "Warning"
+            }
+        ];
+
+        function openAlertModal(alertId) {
+            const alert = alertsData.find(a => a.id === alertId);
+            if (alert) {
+                document.getElementById('modal-alert-id').textContent = alert.source;
+                document.getElementById('modal-alert-timestamp').textContent = alert.timestamp;
+                document.getElementById('modal-alert-message').textContent = alert.message;
+                const severityElement = document.getElementById('modal-alert-severity');
+                severityElement.textContent = alert.severity.toUpperCase();
+                severityElement.className = 'alert-detail-badge severity-badge ' + alert.severity.toLowerCase();
+                document.getElementById('alert-modal-overlay').classList.add('active');
+            }
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alert-modal-overlay').classList.remove('active');
+        }
+
+        // Close modal when clicking outside the modal box
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('alert-modal-overlay').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeAlertModal();
+                }
+            });
+
+            // Make table rows clickable
+            const tableRows = document.querySelectorAll('.data-display-table tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('.action-menu-relative-container')) return;
+                    const alertId = parseInt(this.cells[0].textContent);
+                    openAlertModal(alertId);
+                });
+            });
+        });
+    </script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
+    <script src="../js/kreezby-alert.js"></script>
+        <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>

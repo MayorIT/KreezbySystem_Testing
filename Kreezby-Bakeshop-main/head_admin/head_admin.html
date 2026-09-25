@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Head Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/pages/admin/admin.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
+            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
+            <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+ 
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="admin-dashboard-root">
+                <div class="dashboard-split-layout">
+                    <div class="panel-data-card">
+                        <div class="panel-card-title-bar">
+                            <h3>Dashboard Overview</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="dashboard-grid">
+                                <a class="stat-card" href="po-headadmin.html">
+                                    <div class="stat-title">PO Records</div>
+                                    <div class="stat-value">2</div>
+                                </a>
+                                <a class="stat-card blue-bar" href="receive-headadmin.html">
+                                    <div class="stat-title">Receiving Records</div>
+                                    <div class="stat-value">6</div>
+                                </a>
+                                <a class="stat-card" href="bo-headadmin.html">
+                                    <div class="stat-title">BO Records</div>
+                                    <div class="stat-value">4</div>
+                                </a>
+                                <a class="stat-card red-bar" href="return-headadmin.html">
+                                    <div class="stat-title">Return Records</div>
+                                    <div class="stat-value">3</div>
+                                </a>
+                                <a class="stat-card green-bar" href="saleslist-headadmin.html">
+                                    <div class="stat-title">Sales Records</div>
+                                    <div class="stat-value">4</div>
+                                </a>
+                                <a class="stat-card" href="order-tracking-headadmin.html">
+                                    <div class="stat-title">Order Tracking</div>
+                                    <div class="stat-value" data-order-tracking-count>0</div>
+                                </a>
+                                <a class="stat-card" href="stocks-headadmin.html">
+                                    <div class="stat-title">Stocks</div>
+                                    <div class="stat-value">13</div>
+                                </a>
+                                <a class="stat-card blue-bar" href="aiforecast-headadmin.html">
+                                    <div class="stat-title">AI Forecast</div>
+                                    <div class="stat-value">4</div>
+                                </a>
+                                <a class="stat-card" href="alert-headadmin.html">
+                                    <div class="stat-title">Alert</div>
+                                    <div class="stat-value">4</div>
+                                </a>
+                                <a class="stat-card red-bar" href="report_issue-headadmin.html">
+                                    <div class="stat-title">Report Issue</div>
+                                    <div class="stat-value">Submit</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <div class="notification-modal-overlay" id="notification-modal-overlay" hidden aria-hidden="true"></div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/order-tracking.js"></script>
+    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/admin-permissions.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/sidebar-toggle.js"></script>
+</body>
+</html>
