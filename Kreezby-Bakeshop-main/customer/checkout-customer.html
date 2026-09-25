@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
     <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
     <link rel="stylesheet" href="../css/shared/payment-summary.css">
 </head>
@@ -14,7 +16,7 @@
             <span class="logo-title">Kreezby</span>
             <span class="logo-tagline">The Crinkle Factory</span>
         </div>
-        <a href="customer.html" class="back-btn">← Back to Shop</a>
+        <a href="customer.html" class="back-btn">Shop</a>
     </header>
 
     <div class="checkout-container">
@@ -99,7 +101,7 @@
                     <h3 class="qr-title">Scan QR Code to Pay</h3>
                     <div class="qr-placeholder">
                         <div>
-                            <div style="font-size: 48px; margin-bottom: 8px;">📷</div>
+                            <div style="font-size: 48px; margin-bottom: 8px;">??</div>
                             <div>QR Code Placeholder</div>
                             <div style="font-size: 12px; margin-top: 4px;">(Scan with your e-wallet app)</div>
                         </div>
@@ -107,12 +109,12 @@
                     <p class="qr-instructions">
                         1. Open your selected e-wallet app<br>
                         2. Scan the QR code above<br>
-                        3. Enter the exact amount: <strong id="qr-amount">₱0.00</strong><br>
+                        3. Enter the exact amount: <strong id="qr-amount">?0.00</strong><br>
                         4. Complete the payment<br>
                         5. Click "Verify Payment" below after payment
                     </p>
                     <button type="button" class="checkout-btn checkout-btn--verify" id="verify-payment-btn" onclick="verifyPayment()">
-                        ✓ Verify Payment
+                        ? Verify Payment
                     </button>
                     <div class="verification-status" id="verification-status" aria-live="polite"></div>
                 </div>
@@ -143,7 +145,7 @@
                         <div class="payment-summary__separator" aria-hidden="true"></div>
                         <div class="payment-summary__row payment-summary__row--total">
                             <span class="payment-summary__total-label" data-ps-total-label>Total</span>
-                            <span class="payment-summary__total-value" data-ps-total-value id="total-amount">₱0.00</span>
+                            <span class="payment-summary__total-value" data-ps-total-value id="total-amount">?0.00</span>
                         </div>
                     </div>
                 </div>
@@ -167,5 +169,6 @@
     </script>
     <script src="../js/payment-method-selector.js"></script>
     <script src="../js/checkout-customer.js"></script>
+    <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>
 </body>
 </html>

@@ -42,7 +42,20 @@
         document.head.appendChild(s);
     }
 
+    function isPhoneLayout() {
+        return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    }
+
     function toggleSidebar() {
+        if (isPhoneLayout()) {
+            if (window.KreezbyMobile) {
+                if (document.body.classList.contains('kreezby-nav-open')) window.KreezbyMobile.closeNav();
+                else window.KreezbyMobile.openNav();
+            } else {
+                document.body.classList.toggle('kreezby-nav-open');
+            }
+            return;
+        }
         const isCollapsed = body.classList.toggle(collapsedClass);
         try {
             localStorage.setItem('kreezbySidebarCollapsed', isCollapsed ? '1' : '0');
@@ -130,6 +143,25 @@
         }
     }
 
+    function ensureMobileLoaded() {
+        if (window.KreezbyMobileLoaded) return;
+        if (document.getElementById('kreezby-mobile-script')) return;
+        const path = (window.location && window.location.pathname) ? window.location.pathname : '';
+        let src = 'js/kreezby-mobile.js';
+        if (/\/retailer\/[^/]+\//i.test(path)) src = '../../js/kreezby-mobile.js';
+        else if (/\/(admin|staff|customer|wholesaler|head_admin|it_kreezby|auth)\//i.test(path)) src = '../js/kreezby-mobile.js';
+        const ref = document.querySelector('script[src*="sidebar-toggle.js"]');
+        if (ref && ref.getAttribute('src')) {
+            src = ref.getAttribute('src').replace(/[^/]+$/, 'kreezby-mobile.js');
+        }
+        if (src.indexOf('?') < 0) src += '?v=20260925phone9';
+        const s = document.createElement('script');
+        s.id = 'kreezby-mobile-script';
+        s.src = src;
+        s.defer = true;
+        document.head.appendChild(s);
+    }
+
     function ensureUserDropdownNavLoaded() {
         if (window.KreezbyUserDropdown) return;
         if (document.getElementById('kreezby-user-dropdown-nav-script')) return;
@@ -153,6 +185,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        ensureMobileLoaded();
         ensureActionMenuScriptLoaded();
         ensureNotificationPopoverLoaded();
         ensureUserDropdownNavLoaded();
@@ -171,6 +204,7 @@
     document.addEventListener('kreezby-staff-sidebar-ready', wireExistingRows);
     document.addEventListener('kreezby-portal-sidebar-ready', wireExistingRows);
     document.addEventListener('kreezby:page-load', function () {
+        ensureMobileLoaded();
         ensureUserDropdownNavLoaded();
         addToggleButton();
         wireExistingRows();

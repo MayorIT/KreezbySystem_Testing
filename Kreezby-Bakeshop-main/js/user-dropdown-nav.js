@@ -230,7 +230,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-dashboard-icons-script';
-        s.src = jsBase() + 'kreezby-dashboard-icons.js';
+        s.src = jsBase() + 'kreezby-dashboard-icons.js?v=20260925inquiry';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -281,7 +281,6 @@
 
         var desired = isHeadAdminPortalPage()
             ? [
-                { key: 'control', label: 'Control', href: moduleLocalHref('index.html') },
                 { key: 'home', label: 'Home', href: moduleLocalHref('head_admin.html') },
                 { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-headadmin.html') },
                 { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-headadmin.html') }
@@ -301,7 +300,8 @@
             var href = (link.getAttribute('href') || '').toLowerCase();
             var file = href.split('/').pop().split('?')[0];
 
-            if (text === 'control' || file === 'index.html') return 'control';
+            if (text.indexOf("what's new") >= 0 || text === 'control' || file === 'index.html') return 'whatsnew';
+            if (text.indexOf('inquiry') >= 0 || file === 'inquiries.html') return 'inquiry';
             if (text === 'home' || file === 'admin.html' || file === 'head_admin.html') return 'home';
             if (text.indexOf('maintenance') >= 0 || file === 'maintenance-admin.html' || file === 'maintenance-headadmin.html') return 'maintenance';
             if (text.indexOf('issue report') >= 0 || href.indexOf('it_kreezby') >= 0) return 'issuereports';
@@ -318,7 +318,7 @@
         topLinks.forEach(function (link) {
             var key = keyForLink(link);
             var href = (link.getAttribute('href') || '').toLowerCase();
-            if (key === 'issuereports' || href.indexOf('it_kreezby') >= 0) {
+            if (key === 'issuereports' || key === 'whatsnew' || key === 'inquiry' || href.indexOf('it_kreezby') >= 0) {
                 link.remove();
                 return;
             }

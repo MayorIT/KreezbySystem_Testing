@@ -70,12 +70,12 @@
     brentadmin: {
       userName: 'Brent Ramos',
       accountType: 'Head Administrator',
-      redirectUrl: 'head_admin/index.html'
+      redirectUrl: 'head_admin/head_admin.html'
     },
     headadmin: {
       userName: 'Brent Ramos',
       accountType: 'Head Administrator',
-      redirectUrl: 'head_admin/index.html'
+      redirectUrl: 'head_admin/head_admin.html'
     },
     kreezbyadmin: {
       userName: 'Elena Morales',
@@ -267,7 +267,7 @@
         identity: identity,
         userName: LOGIN_ALIASES[key].userName,
         accountType: LOGIN_ALIASES[key].accountType,
-        redirectUrl: LOGIN_ALIASES[key].redirectUrl
+        redirectUrl: loginRedirectForType(LOGIN_ALIASES[key].accountType, identity) || LOGIN_ALIASES[key].redirectUrl
       };
     }
     if (window.KreezbyMaintenanceSettings) {
@@ -414,7 +414,7 @@
   }
 
   function loginRedirectForType(accountType, identity) {
-    if (accountType === 'Head Administrator') return 'head_admin/index.html';
+    if (accountType === 'Head Administrator') return 'head_admin/head_admin.html';
     if (accountType === 'Administrator') return 'admin/admin.html';
     if (accountType === 'Staff') {
       return staffDashboardFromIdentity(identity);

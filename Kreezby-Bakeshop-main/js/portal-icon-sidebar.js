@@ -26,7 +26,8 @@
         'aside.sidebar-panel.kreezby-icon-sidebar{overflow:hidden!important;flex-shrink:0!important}',
         'aside.sidebar-panel.kreezby-icon-sidebar:not(.kreezby-sidebar-ready){visibility:hidden!important;pointer-events:none!important;width:256px!important;min-width:256px!important;max-width:256px!important;background:#424242!important}',
         'body.sidebar-collapsed aside.sidebar-panel.kreezby-icon-sidebar:not(.kreezby-sidebar-ready){width:64px!important;min-width:64px!important;max-width:64px!important}',
-        'aside.sidebar-panel.kreezby-icon-sidebar svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important}'
+        'aside.sidebar-panel.kreezby-icon-sidebar svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important}',
+        '@media (max-width:900px){aside.sidebar-panel.kreezby-icon-sidebar{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.sidebar-panel.kreezby-icon-sidebar{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}'
     ].join('');
 
     function moduleRelativeRoot() {
@@ -102,6 +103,13 @@
 
     function ensureCss() {
         ensureCriticalCss();
+        if (!document.getElementById('kreezby-mobile-style')) {
+            var mobile = document.createElement('link');
+            mobile.id = 'kreezby-mobile-style';
+            mobile.rel = 'stylesheet';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            document.head.appendChild(mobile);
+        }
         if (document.getElementById('kreezby-portal-icon-sidebar-style')) return;
         var link = document.createElement('link');
         link.id = 'kreezby-portal-icon-sidebar-style';

@@ -24,7 +24,7 @@
             <div class="user-dropdown">
                 <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
                     <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
-                    Admin ▾
+                    Head Admin ▾
                 </button>
                 <div class="user-dropdown-menu" id="user-dropdown-menu">
                     <a href="report_issue-headadmin.html" class="dropdown-item">Report Issue</a>
@@ -87,7 +87,11 @@
                                 </a>
                                 <a class="stat-card red-bar" href="report_issue-headadmin.html">
                                     <div class="stat-title">Report Issue</div>
-                                    <div class="stat-value">Submit</div>
+                                    <div class="stat-value">0</div>
+                                </a>
+                                <a class="stat-card has-stat-icon" data-stat-icon="inquiry" href="inquiries.html" data-turbo="false" data-turbo-frame="_top">
+                                    <div class="stat-title">Inquiry</div>
+                                    <div class="stat-value" data-inquiry-count>0</div>
                                 </a>
                             </div>
                         </div>
@@ -102,10 +106,20 @@
     <div class="notification-modal-overlay" id="notification-modal-overlay" hidden aria-hidden="true"></div>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
+    <script src="../js/kreezby-partner-inquiries.js"></script>
     <script src="../js/order-tracking.js"></script>
-    <script src="../js/user-dropdown-nav.js"></script>
+    <script src="../js/user-dropdown-nav.js?v=20260925inquiry"></script>
     <script src="../js/admin-permissions.js"></script>
-    <script src="../js/admin-sidebar.js"></script>
+    <script src="../js/admin-sidebar.js?v=20260925inquiry"></script>
     <script src="../js/sidebar-toggle.js"></script>
+    <script>
+        (function () {
+            var el = document.querySelector('[data-inquiry-count]');
+            if (!el || !window.KreezbyPartnerInquiries) return;
+            try {
+                el.textContent = String((window.KreezbyPartnerInquiries.list() || []).length);
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
 </body>
 </html>

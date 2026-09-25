@@ -1733,7 +1733,7 @@
             }
         }
 
-        /* Customer orders — Shopee/Lazada-style list + detail */
+        /* Customer orders — list + detail */
         .modal-box.orders-modal {
             width: min(94vw, 820px);
             max-width: 820px;

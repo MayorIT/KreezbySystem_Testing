@@ -61,7 +61,8 @@
         'body.sidebar-collapsed aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){width:64px!important;min-width:64px!important;max-width:64px!important}',
         'aside.dark-sidebar-panel svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important}',
         'turbo-frame#kreezby-main-content,.kreezby-turbo-main{display:flex!important;flex:1 1 0%!important;flex-grow:1!important;min-width:0!important;max-width:none!important;width:auto!important}',
-        'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}'
+        'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}',
+        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}'
     ].join('');
 
     function isStaffDarkSidebarPage() {
@@ -102,6 +103,13 @@
     function ensureCss() {
         ensureCriticalCss();
         ensureNavSmooth();
+        if (!document.getElementById('kreezby-mobile-style')) {
+            var mobile = document.createElement('link');
+            mobile.id = 'kreezby-mobile-style';
+            mobile.rel = 'stylesheet';
+            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            document.head.appendChild(mobile);
+        }
         if (document.getElementById('kreezby-staff-icon-sidebar-style')) return;
         var link = document.createElement('link');
         link.id = 'kreezby-staff-icon-sidebar-style';

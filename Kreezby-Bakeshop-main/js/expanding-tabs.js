@@ -94,6 +94,22 @@
         document.head.appendChild(link);
     }
 
+    function ensureMobile() {
+        if (!document.getElementById('kreezby-mobile-style')) {
+            var css = document.createElement('link');
+            css.id = 'kreezby-mobile-style';
+            css.rel = 'stylesheet';
+            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            document.head.appendChild(css);
+        }
+        if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-mobile-script';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260925phone9';
+        s.defer = true;
+        document.head.appendChild(s);
+    }
+
     function pickIcon(label, el) {
         var text = String(label || '').toLowerCase();
         var href = ((el && el.getAttribute('href')) || '').toLowerCase();
@@ -254,6 +270,7 @@
 
     function init() {
         ensureCss();
+        ensureMobile();
         collectLists().forEach(enhanceList);
     }
 

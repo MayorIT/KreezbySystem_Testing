@@ -20,7 +20,8 @@
         activity: '<svg' + SVG_ATTRS + '><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
         mail: '<svg' + SVG_ATTRS + '><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
         report: '<svg' + SVG_ATTRS + '><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>',
-        truck: '<svg' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>'
+        truck: '<svg' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+        inquiry: '<svg' + SVG_ATTRS + '><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg>'
     };
 
     function moduleRelativeRoot() {
@@ -28,7 +29,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth'];
+        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -49,7 +50,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-dashboard-stat-icons-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/dashboard-stat-icons.css';
+        link.href = moduleRelativeRoot() + 'css/shared/dashboard-stat-icons.css?v=20260925inquiry';
         document.head.appendChild(link);
     }
 
@@ -60,6 +61,7 @@
     function iconForHref(href) {
         var file = fileFromHref(href);
         if (!file) return 'home';
+        if (file === 'inquiries.html' || file.indexOf('inquir') === 0) return 'inquiry';
         if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || file === 'admin.html' || file === 'head_admin.html') return 'home';
         if (file === 'po-staff.html' || file === 'po-admin.html' || file.indexOf('po-') === 0) return 'cart';
         if (file === 'receive-staff.html' || file === 'receive-admin.html' || file.indexOf('receive-') === 0) return 'package';
@@ -83,7 +85,9 @@
 
         scope.querySelectorAll('.dashboard-grid .stat-card[href], a.stat-card[href]').forEach(function (card) {
             var href = card.getAttribute('href') || '';
+            var title = ((card.querySelector('.stat-title') || {}).textContent || '').toLowerCase();
             var key = iconForHref(href);
+            if (title.indexOf('inquiry') >= 0 || title.indexOf('inquiries') >= 0) key = 'inquiry';
 
             card.setAttribute('data-stat-icon', key);
             card.classList.add('has-stat-icon');

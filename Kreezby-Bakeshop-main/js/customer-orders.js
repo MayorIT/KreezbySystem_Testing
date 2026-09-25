@@ -1,5 +1,5 @@
 /**
- * Customer order list + Shopee/Lazada-style order detail view.
+ * Customer order list + order detail view.
  */
 (function () {
     'use strict';

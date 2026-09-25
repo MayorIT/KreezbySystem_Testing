@@ -37,7 +37,8 @@
         activity: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
 
         truck: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
-        clipboard: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>'
+        clipboard: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>',
+        inquiry: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg>'
 
     };
 
@@ -82,7 +83,9 @@
 
         'turbo-frame#kreezby-main-content,.kreezby-turbo-main{display:flex!important;flex:1 1 0%!important;flex-grow:1!important;min-width:0!important;max-width:none!important;width:auto!important}',
 
-        'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}'
+        'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}',
+
+        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}'
 
     ].join('');
 
@@ -108,6 +111,7 @@
     function portalHref(href) {
         if (!isHeadAdminPortal()) return href;
         if (href === 'admin.html') return 'head_admin.html';
+        if (href === 'index.html' || href === 'inquiries.html') return href;
         return String(href || '').replace(/-admin\.html$/i, '-headadmin.html');
     }
 
@@ -151,6 +155,14 @@
 
         ensureCriticalCss();
         ensureNavSmooth();
+
+        if (!document.getElementById('kreezby-mobile-style')) {
+            var mobile = document.createElement('link');
+            mobile.id = 'kreezby-mobile-style';
+            mobile.rel = 'stylesheet';
+            mobile.href = '../css/shared/kreezby-mobile.css?v=20260925phone9';
+            document.head.appendChild(mobile);
+        }
 
         if (document.getElementById('kreezby-admin-icon-sidebar-style')) return;
 
@@ -223,6 +235,7 @@
         if (filename.indexOf('alert-') === 0) return 'alert';
 
         if (filename.indexOf('inbox-') === 0) return 'dashboard';
+        if (filename === 'inquiries.html' || filename.indexOf('inquir') === 0) return 'inquiry';
 
         return '';
 
@@ -236,7 +249,9 @@
 
 
 
-        var frameAttrs = ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
+        var frameAttrs = (item.top || item.href === 'inquiries.html' || item.href === 'index.html')
+            ? ' data-turbo="false" data-turbo-frame="_top"'
+            : ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
 
         return (
 
@@ -255,18 +270,22 @@
 
 
     function allowedNav() {
-        var items = NAV;
-        if (window.KreezbyAdminPermissions && !window.KreezbyAdminPermissions.isHeadAdmin()) {
-            items = NAV.filter(function (item) {
+        var items = NAV.slice();
+        if (window.KreezbyAdminPermissions && !window.KreezbyAdminPermissions.isHeadAdmin() && !isHeadAdminPortal()) {
+            items = items.filter(function (item) {
                 return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
             });
+        }
+        if (isHeadAdminPortal()) {
+            items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries.html', icon: 'inquiry', top: true });
         }
         return items.map(function (item) {
             return {
                 key: item.key,
                 label: item.label,
                 href: portalHref(item.href),
-                icon: item.icon
+                icon: item.icon,
+                top: item.top
             };
         });
     }

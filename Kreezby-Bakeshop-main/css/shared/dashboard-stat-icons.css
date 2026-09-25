@@ -165,6 +165,15 @@ a.stat-card.has-stat-icon {
     border-top-color: #6b7280 !important;
 }
 
+.stat-card[data-stat-icon="inquiry"] .stat-card-icon {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="inquiry"] {
+    border-top-color: #0f766e !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .stat-card.has-stat-icon {
         transition-duration: 0.01ms !important;

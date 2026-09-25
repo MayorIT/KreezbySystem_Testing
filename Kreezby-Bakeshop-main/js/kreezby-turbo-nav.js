@@ -41,12 +41,26 @@
     }
 
     function ensureNavCss() {
-        if (document.getElementById('kreezby-turbo-nav-style')) return;
-        var link = document.createElement('link');
-        link.id = 'kreezby-turbo-nav-style';
-        link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/kreezby-turbo-nav.css';
-        (document.head || document.documentElement).appendChild(link);
+        if (!document.getElementById('kreezby-turbo-nav-style')) {
+            var link = document.createElement('link');
+            link.id = 'kreezby-turbo-nav-style';
+            link.rel = 'stylesheet';
+            link.href = moduleRelativeRoot() + 'css/shared/kreezby-turbo-nav.css';
+            (document.head || document.documentElement).appendChild(link);
+        }
+        if (!document.getElementById('kreezby-mobile-style')) {
+            var mobile = document.createElement('link');
+            mobile.id = 'kreezby-mobile-style';
+            mobile.rel = 'stylesheet';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            (document.head || document.documentElement).appendChild(mobile);
+        }
+        if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-mobile-script';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260925phone9';
+        s.defer = true;
+        (document.head || document.documentElement).appendChild(s);
     }
 
     function isModulePage() {
@@ -81,12 +95,22 @@
         }
     }
 
+    function isHeadAdminShellPage(href) {
+        try {
+            var pathName = new URL(href, window.location.href).pathname || '';
+            return /\/head_admin\/(index|inquiries|admin-permissions|staff-permissions)\.html$/i.test(pathName);
+        } catch (e) {
+            return /head_admin\/(index|inquiries|admin-permissions|staff-permissions)\.html/i.test(href || '');
+        }
+    }
+
     function shouldTurboLink(link) {
         if (!link || !link.href) return false;
         if (link.dataset.turbo === 'false') return false;
         if (isInboxPage(link.href)) return false;
         if (isReportIssuePage(link.href)) return false;
         if (isCustomerShopPage(link.href)) return false;
+        if (isHeadAdminShellPage(link.href)) return false;
         if (link.target && link.target !== '_self') return false;
         if (link.hasAttribute('download')) return false;
         if (link.closest('.user-dropdown-menu')) return false;
@@ -113,7 +137,7 @@
         (root || document).querySelectorAll('a[href]').forEach(function (link) {
             if (!link.href) return;
 
-            if (isInboxPage(link.href) || isReportIssuePage(link.href) || isCustomerShopPage(link.href)) {
+            if (isInboxPage(link.href) || isReportIssuePage(link.href) || isCustomerShopPage(link.href) || isHeadAdminShellPage(link.href)) {
                 link.setAttribute('data-turbo', 'false');
                 link.setAttribute('data-turbo-frame', '_top');
                 link.removeAttribute('data-turbo-action');
