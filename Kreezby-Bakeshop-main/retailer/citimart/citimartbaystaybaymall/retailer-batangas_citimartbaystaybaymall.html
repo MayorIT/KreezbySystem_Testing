@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../css/pages/retailer/citimartbaystaybaymall/retailer-batangas_citimartbaystaybaymall.css">
 
     <link rel="stylesheet" href="../../../css/pages/retailer/citimart-retailer-brand.css">
+    <link rel="stylesheet" href="../../../css/shared/kreezby-welcome-home.css">
 </head>
 <body>
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -52,40 +53,18 @@
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-canvas">
         <div class="workspace-container">
-            <h2 class="page-title">Citimart Baystay/Baymall — Batangas</h2>
-
-        <div class="sync-status-bar">
-            <span><strong>Admin Status:</strong> Daily logs auto-submitted to Admin Dashboard summary view nodes</span>
-            <span>Last Sync: 15:31 (1 min ago)</span>
+            <section class="kreezby-welcome" aria-label="Welcome">
+            <figure class="kreezby-welcome-photo">
+                <img src="../../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+            </figure>
+            <div class="kreezby-welcome-copy">
+                <p class="kreezby-welcome-kicker">The Crinkle Factory</p>
+                <h2>Welcome, Citimart Baystay/Baymall</h2>
+                <p class="kreezby-welcome-tagline">Making your life sweeter!</p>
+                <p>Your home is ready. Use the menu to open purchase orders, deliveries, sales, and alerts whenever you need them.</p>
+            </div>
+        </section>
         </div>
-        
-        <div class="dashboard-grid">
-            <a class="stat-card" href="po-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">PO Records</div>
-                <div class="stat-value">2</div>
-            </a>
-            <a class="stat-card blue-bar" href="receive-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">Receiving Records</div>
-                <div class="stat-value">6</div>
-            </a>
-            <a class="stat-card" href="bo-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">BO Records</div>
-                <div class="stat-value">4</div>
-            </a>
-            <a class="stat-card blue-bar" href="return-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">Return Records</div>
-                <div class="stat-value">4</div>
-            </a>
-            <a class="stat-card" href="alert-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">Alert</div>
-                <div class="stat-value">4</div>
-            </a>
-            <a class="stat-card" href="saleslist-batangas_citimartbaystaybaymall.html">
-                <div class="stat-title">Sales Records</div>
-                <div class="stat-value">6</div>
-            </a>
-        </div>
-</div>
 </main>
         </turbo-frame>
 
@@ -102,8 +81,8 @@
         </div>
     </div>
 
-    <script src="../../../js/sidebar-toggle.js"></script>
-    <script src="../../../js/retailer-nav.js"></script>
+    <script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../../../js/retailer-nav.js?v=20260927nav"></script>
 <script>
         // Retailer-specific notifications data
         const notificationsData = [
@@ -196,6 +175,6 @@
         });
     </script>
     <script src="../../../js/notification-popover.js"></script>
-    <script src="../../../js/user-dropdown-nav.js"></script>
+    <script src="../../../js/user-dropdown-nav.js?v=20260927sheet"></script>
     </body>
 </html>

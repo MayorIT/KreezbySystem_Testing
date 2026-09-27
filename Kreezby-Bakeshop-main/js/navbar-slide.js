@@ -21,7 +21,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -40,7 +40,7 @@
     function ensureCss() {
         if (document.getElementById('kreezby-expandable-nav-style')) return;
 
-        var href = moduleRelativeRoot() + 'css/shared/expandable-nav-tabs.css?v=20260925sm';
+        var href = moduleRelativeRoot() + 'css/shared/expandable-nav-tabs.css?v=20260927home';
         var link = document.createElement('link');
         link.id = 'kreezby-expandable-nav-style';
         link.rel = 'stylesheet';
@@ -49,17 +49,21 @@
     }
 
     function ensureMobile() {
-        if (!document.getElementById('kreezby-mobile-style')) {
-            var css = document.createElement('link');
+        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
+        var css = document.getElementById('kreezby-mobile-style');
+        if (!css) {
+            css = document.createElement('link');
             css.id = 'kreezby-mobile-style';
             css.rel = 'stylesheet';
-            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
             document.head.appendChild(css);
+        }
+        if ((css.getAttribute('href') || '').indexOf('20260927sheet') < 0) {
+            css.href = mobileHref;
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260925phone9';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260927sheet';
         s.defer = true;
         document.head.appendChild(s);
     }
@@ -95,14 +99,28 @@
         return ICONS.default;
     }
 
+    function isHomeNavLink(link, label) {
+        if (link.classList.contains('home-badge') || link.classList.contains('is-icon-only')) return true;
+        return String(label || '').trim().toLowerCase() === 'home';
+    }
+
     function enhanceLink(link) {
-        if (link.classList.contains('expandable-nav-tab')) return;
+        if (link.classList.contains('expandable-nav-tab')) {
+            var existing = link.getAttribute('aria-label') || link.getAttribute('title') || '';
+            if (isHomeNavLink(link, existing)) link.classList.add('is-icon-only');
+            return;
+        }
         var label = (link.textContent || '').trim();
         var icon = pickIcon(link, label);
+        var iconOnly = isHomeNavLink(link, label);
 
         link.textContent = '';
         link.classList.remove('top-nav-item', 'home-badge');
         link.classList.add('expandable-nav-tab');
+        if (iconOnly) {
+            link.classList.add('is-icon-only');
+            link.setAttribute('aria-label', label || 'Home');
+        }
 
         var iconSpan = document.createElement('span');
         iconSpan.className = 'expandable-nav-tab__icon';
@@ -119,7 +137,8 @@
 
     function setExpanded(tabs, index) {
         tabs.forEach(function (tab, i) {
-            tab.classList.toggle('is-expanded', index === i);
+            var expand = index === i && !tab.classList.contains('is-icon-only');
+            tab.classList.toggle('is-expanded', expand);
         });
     }
 

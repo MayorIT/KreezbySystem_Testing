@@ -38,7 +38,10 @@
 
         truck: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
         clipboard: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>',
-        inquiry: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg>'
+        inquiry: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg>',
+        gear: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><circle cx="12" cy="12" r="3"/><path d="M12 3v2.2M12 18.8V21M4.9 6.5l1.6 1.6M17.5 15.9l1.6 1.6M3 12h2.2M18.8 12H21M4.9 17.5l1.6-1.6M17.5 8.1l1.6-1.6"/></svg>',
+        mail: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+        flag: '<svg viewBox="0 0 24 24"' + SVG_ATTRS + '><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>'
 
     };
 
@@ -66,7 +69,11 @@
 
         { key: 'alert', label: 'Alert', href: 'alert-admin.html', icon: 'bell' },
 
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' }
+        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-admin.html', icon: 'activity' },
+
+        { key: 'maintenance', label: 'Maintenance', href: 'maintenance-admin.html', icon: 'gear' },
+
+        { key: 'inbox', label: 'Inbox', href: 'inbox-admin.html', icon: 'mail', top: true }
     ];
 
 
@@ -75,9 +82,11 @@
 
         'aside.dark-sidebar-panel{overflow:hidden!important;flex-shrink:0!important}',
 
-        'aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){visibility:hidden!important;pointer-events:none!important;width:256px!important;min-width:256px!important;max-width:256px!important;background:#424242!important}',
+        'aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){visibility:hidden!important;pointer-events:none!important;position:fixed!important;transform:translateX(-110%)!important;width:256px!important;min-width:0!important;max-width:256px!important;background:#424242!important}',
 
-        'body.sidebar-collapsed aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){width:64px!important;min-width:64px!important;max-width:64px!important}',
+        'body aside.dark-sidebar-panel.kreezby-sidebar-ready,body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,60px)!important;height:calc(100vh - var(--kreezby-admin-header-height,60px))!important;width:256px!important;min-width:256px!important;max-width:256px!important;transform:translateX(-110%)!important;pointer-events:none!important;z-index:1400!important}',
+
+        'body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-sidebar-ready,body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}',
 
         'aside.dark-sidebar-panel svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important}',
 
@@ -85,15 +94,24 @@
 
         'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}',
 
-        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}'
+        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}',
+
+        '.kreezby-sidebar-nav-item.is-active,.kreezby-sidebar-nav-item.is-active:hover{background:#ffca28!important;color:#1f1f1f!important;box-shadow:inset 4px 0 0 #e6a800!important}.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-label{color:#1f1f1f!important;font-weight:800!important}.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg,.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg *{stroke:#1f1f1f!important}'
 
     ].join('');
 
 
 
+    function assetPrefix() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (/\/admin_names\/[^/]+\//i.test(path) || /\/staff_names\/[^/]+\//i.test(path)) return '../../';
+        return '../';
+    }
+
     function isAdminPage() {
 
         var path = (location.pathname || '').replace(/\\/g, '/');
+        if (/\/admin_names\//i.test(path)) return true;
         if (path.indexOf('/admin/') !== -1) return true;
         if (path.indexOf('/head_admin/') === -1) return false;
         var file = (path.split('/').pop() || '').toLowerCase().split('?')[0];
@@ -111,7 +129,8 @@
     function portalHref(href) {
         if (!isHeadAdminPortal()) return href;
         if (href === 'admin.html') return 'head_admin.html';
-        if (href === 'index.html' || href === 'inquiries.html') return href;
+        if (href === 'inquiries.html') return 'inquiries-headadmin.html';
+        if (href === 'index.html') return href;
         return String(href || '').replace(/-admin\.html$/i, '-headadmin.html');
     }
 
@@ -144,7 +163,7 @@
             var pt = document.createElement('link');
             pt.id = 'kreezby-page-transition-style';
             pt.rel = 'stylesheet';
-            pt.href = '../css/shared/kreezby-turbo-nav.css';
+            pt.href = assetPrefix() + 'css/shared/kreezby-turbo-nav.css';
             (document.head || document.documentElement).appendChild(pt);
         }
     }
@@ -160,7 +179,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = '../css/shared/kreezby-mobile.css?v=20260925phone9';
+            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
             document.head.appendChild(mobile);
         }
 
@@ -172,7 +191,7 @@
 
         link.rel = 'stylesheet';
 
-        link.href = '../css/shared/admin-icon-sidebar.css';
+        link.href = assetPrefix() + 'css/shared/admin-icon-sidebar.css?v=20260927names';
 
         document.head.appendChild(link);
 
@@ -192,7 +211,7 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = '../js/notification-store.js';
+        script.src = assetPrefix() + 'js/notification-store.js';
 
         script.defer = true;
 
@@ -234,8 +253,12 @@
 
         if (filename.indexOf('alert-') === 0) return 'alert';
 
-        if (filename.indexOf('inbox-') === 0) return 'dashboard';
+        if (filename.indexOf('maintenance') === 0) return 'maintenance';
+
+        if (filename.indexOf('inbox-') === 0) return 'inbox';
+        if (filename.indexOf('issue-reports-') === 0) return 'issuereports';
         if (filename === 'inquiries.html' || filename.indexOf('inquir') === 0) return 'inquiry';
+        if (filename === 'admin_permissions-headadmin.html' || filename === 'admin-permissions.html' || filename === 'staff-permissions.html') return 'adminpermissions';
 
         return '';
 
@@ -255,7 +278,7 @@
 
         return (
 
-            '<a href="' + item.href + '"' + frameAttrs + ' class="kreezby-sidebar-nav-item' + (active ? ' is-active' : '') + '">' +
+            '<a href="' + item.href + '"' + frameAttrs + (active ? ' aria-current="page"' : '') + ' class="kreezby-sidebar-nav-item' + (active ? ' is-active' : '') + '">' +
 
                 '<span class="kreezby-sidebar-nav-icon" aria-hidden="true">' + (ICONS[item.icon] || '') + '</span>' +
 
@@ -269,15 +292,46 @@
 
 
 
+    function issueReportsHref() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        if (path.indexOf('/head_admin/') >= 0) return 'issue-reports-headadmin.html';
+        if (path.indexOf('/admin_names/') >= 0) return '../../admin/issue-reports-admin.html';
+        return 'issue-reports-admin.html';
+    }
+
+    function canSeeIssueReports() {
+        if (isHeadAdminPortal()) return true;
+        var api = window.KreezbyAdminPermissions;
+        if (!api) return false;
+        var insideNamedAdmin = /\/admin_names\//i.test((location.pathname || '').replace(/\\/g, '/'));
+        if (api.isHeadAdmin() && !insideNamedAdmin) return true;
+        return api.adminCanAccessTask('issuereports');
+    }
+
     function allowedNav() {
         var items = NAV.slice();
-        if (window.KreezbyAdminPermissions && !window.KreezbyAdminPermissions.isHeadAdmin() && !isHeadAdminPortal()) {
-            items = items.filter(function (item) {
-                return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+        if (window.KreezbyAdminPermissions && !isHeadAdminPortal()) {
+            var insideNamedAdmin = /\/admin_names\//i.test((location.pathname || '').replace(/\\/g, '/'));
+            var unlockAll = window.KreezbyAdminPermissions.isHeadAdmin() && !insideNamedAdmin;
+            if (!unlockAll) {
+                items = items.filter(function (item) {
+                    return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+                });
+            }
+        }
+        if (isHeadAdminPortal()) {
+            ['maintenance', 'inbox'].forEach(function (key) {
+                if (items.some(function (item) { return item.key === key; })) return;
+                var extra = NAV.filter(function (item) { return item.key === key; })[0];
+                if (extra) items.push(extra);
             });
         }
         if (isHeadAdminPortal()) {
-            items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries.html', icon: 'inquiry', top: true });
+            items.push({ key: 'adminpermissions', label: 'Permissions', href: 'admin_permissions-headadmin.html', icon: 'clipboard', top: true });
+            items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries-headadmin.html', icon: 'inquiry', top: true });
+        }
+        if (canSeeIssueReports() && !items.some(function (item) { return item.key === 'issuereports'; })) {
+            items.push({ key: 'issuereports', label: 'Issue Reports', href: issueReportsHref(), icon: 'flag', top: true });
         }
         return items.map(function (item) {
             return {

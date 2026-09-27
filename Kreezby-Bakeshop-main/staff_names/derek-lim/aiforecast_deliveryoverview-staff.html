@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - AI Delivery Overview (Staff)</title>
+    <link rel="stylesheet" href="../../css/pages/staff/aiforecast_deliveryoverview-staff.css">
+
+    <link rel="stylesheet" href="../../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="staff-1.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI Assisted Demand Forecasting</h3>
+                    <button class="btn-optimize-routes" onclick="alert('Recalculating GPS telemetry coordinates... AI Route Optimization complete!')">Refresh Route Logistics</button>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-staff.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-staff.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-staff.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-staff.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+                    <div class="forecast-sub-tabs-row">
+                        <a href="aiforecast-staff.html" class="forecast-tab-link">AI Forecast Outlook</a>
+                        <a href="aiforecast_salestrend-staff.html" class="forecast-tab-link">Sales Trend Analysis Matrix</a>
+                        <a href="aiforecast_salesanalysis-staff.html" class="forecast-tab-link">AI Sales Analysis</a>
+                        <a href="aiforecast_inventoryreport-staff.html" class="forecast-tab-link">AI Inventory Report</a>
+                        <a href="aiforecast_deliveryoverview-staff.html" class="forecast-tab-link active-tab">AI Delivery Overview</a>
+                    </div>
+
+                    <div class="datatable-controls-bar">
+                        <div>
+                            Show 
+                            <select>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                            </select> 
+                            entries
+                        </div>
+                        <div>
+                            Search Deliveries: <input type="text" placeholder="Filter dispatch name...">
+                        </div>
+                    </div>
+
+                    <table class="data-display-table">
+                        <thead>
+                            <tr style="background-color: var(--ai-indigo); color: white;">
+                                <th style="width: 50px;">#</th>
+                                <th>P.O. Code</th>
+                                <th>Retailer / Client Name</th>
+                                <th style="text-align: right;">Order Quantity</th>
+                                <th>AI Optimum Route Strategy</th>
+                                <th style="text-align: right;">Estimated Delivery Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><strong>PO-0002</strong></td>
+                                <td>SIDC Batangas Branch</td>
+                                <td style="text-align: right; font-weight: 600;">500 Units</td>
+                                <td><span class="strategy-pill priority">Priority Route Alpha (High Volume Dispatch)</span></td>
+                                <td style="text-align: right; font-weight: 600; color: #1565c0;">45 mins</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script src="../../js/aiforecast-pills.js"></script>
+    <script src="../../js/staff-permissions.js?v=20260927names"></script>
+        <script src="../../js/user-dropdown-nav.js?v=20260927sheet"></script>
+        <script src="../../js/staff-sidebar.js?v=20260927sheet"></script>
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

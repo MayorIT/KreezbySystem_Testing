@@ -8,6 +8,15 @@
     var STORAGE_KEY = 'kreezby_admin_permissions';
     var SESSION_ADMIN_KEY = 'kreezby_current_admin';
 
+    var ACCOUNT_STORAGE_KEY = 'kreezby_admin_accounts';
+
+    var SEED_ADMIN_ACCOUNTS = {
+        elena: { id: 'elena', name: 'Elena Morales', username: 'elena_admin', role: 'Operations', folder: 'elena-morales', dashboard: 'admin.html', home: 'admin_names/elena-morales/admin.html', status: 'active', aliases: ['elenaadmin', 'kreezbyadmin', 'admin1'] },
+        marco: { id: 'marco', name: 'Marco Del Rosario', username: 'marco_admin', role: 'Inventory', folder: 'marco-del-rosario', dashboard: 'admin.html', home: 'admin_names/marco-del-rosario/admin.html', status: 'active', aliases: ['marcoadmin'] },
+        patricia: { id: 'patricia', name: 'Patricia Go', username: 'patricia_admin', role: 'Sales', folder: 'patricia-go', dashboard: 'admin.html', home: 'admin_names/patricia-go/admin.html', status: 'active', aliases: ['patriciaadmin'] },
+        jonas: { id: 'jonas', name: 'Jonas Villanueva', username: 'jonas_admin', role: 'Branch', folder: 'jonas-villanueva', dashboard: 'admin.html', home: 'admin_names/jonas-villanueva/admin.html', status: 'active', aliases: ['jonasadmin'] }
+    };
+
     var ADMIN_PROFILES = {
         'elena': {
             id: 'elena',
@@ -52,7 +61,8 @@
         alert: { label: 'Alert', page: 'alert-admin.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-admin.html' },
         maintenance: { label: 'Maintenance', page: 'maintenance-admin.html' },
-        inbox: { label: 'Inbox', page: 'inbox-admin.html' }
+        inbox: { label: 'Inbox', page: 'inbox-admin.html' },
+        issuereports: { label: 'Issue Reports', page: 'issue-reports-admin.html' }
     };
 
     var DEFAULT_PERMISSIONS = {
@@ -65,7 +75,7 @@
     var TASK_ORDER = [
         'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
         'saleslist', 'ordertracking', 'aiforecast', 'alert', 'stocklevel',
-        'maintenance', 'inbox'
+        'maintenance', 'inbox', 'issuereports'
     ];
 
     var PERMISSION_MATRIX_ORDER = TASK_ORDER.filter(function (key) {
@@ -79,6 +89,7 @@
         }
     });
     PAGE_TO_TASK['admin.html'] = 'dashboard';
+    PAGE_TO_TASK['issue-reports-headadmin.html'] = 'issuereports';
 
     function getCurrentPageFilename() {
         return ((location.pathname || '').split('/').pop() || '').split('?')[0];
@@ -120,9 +131,14 @@
     }
 
     function getCurrentAdminId() {
+        var fromPath = adminIdFromPath();
+        if (fromPath) {
+            try { sessionStorage.setItem(SESSION_ADMIN_KEY, fromPath); } catch (e) { /* ignore */ }
+            return fromPath;
+        }
         try {
             var stored = sessionStorage.getItem(SESSION_ADMIN_KEY);
-            if (stored && ADMIN_PROFILES[stored]) return stored;
+            if (stored && (getAdminAccounts()[stored] || ADMIN_PROFILES[stored])) return stored;
         } catch (e) { /* ignore */ }
         var session = readSession();
         var inferred = inferAdminIdFromIdentity(session.identity || session.userName);
@@ -131,8 +147,48 @@
     }
 
     function setCurrentAdminId(adminId) {
-        if (!ADMIN_PROFILES[adminId]) return;
+        if (!getAdminAccounts()[adminId] && !ADMIN_PROFILES[adminId]) return;
         try { sessionStorage.setItem(SESSION_ADMIN_KEY, adminId); } catch (e) { /* ignore */ }
+    }
+
+    function slugifyName(value) {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'account';
+    }
+
+    function getAdminAccounts() {
+        var stored = {};
+        try {
+            stored = JSON.parse(localStorage.getItem(ACCOUNT_STORAGE_KEY) || '{}') || {};
+        } catch (e) { /* ignore */ }
+        var merged = {};
+        Object.keys(SEED_ADMIN_ACCOUNTS).forEach(function (id) {
+            merged[id] = Object.assign({}, SEED_ADMIN_ACCOUNTS[id], stored[id] || {});
+        });
+        Object.keys(stored).forEach(function (id) {
+            if (!merged[id]) merged[id] = stored[id];
+        });
+        return merged;
+    }
+
+    function saveAdminAccounts(all) {
+        try { localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(all)); } catch (e) { /* ignore */ }
+    }
+
+    function adminIdFromPath() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var match = path.match(/\/admin_names\/([^/]+)\//i);
+        if (!match) return '';
+        var slug = match[1].toLowerCase();
+        var accounts = getAdminAccounts();
+        var ids = Object.keys(accounts);
+        for (var i = 0; i < ids.length; i++) {
+            if (String(accounts[ids[i]].folder || '').toLowerCase() === slug) return ids[i];
+        }
+        return '';
+    }
+
+    function namedAdminPortal() {
+        return /\/admin_names\//i.test((location.pathname || '').replace(/\\/g, '/'));
     }
 
     function getAllPermissions() {
@@ -153,6 +209,8 @@
     }
 
     function getAdminProfile(adminId) {
+        var account = getAdminAccounts()[adminId];
+        if (account) return account;
         return ADMIN_PROFILES[adminId] || ADMIN_PROFILES.elena;
     }
 
@@ -163,7 +221,7 @@
     }
 
     function getAdminTasks(adminId) {
-        if (isHeadAdmin()) return TASK_ORDER.slice();
+        if (isHeadAdmin() && !namedAdminPortal()) return TASK_ORDER.slice();
         adminId = adminId || getCurrentAdminId();
         var all = getAllPermissions();
         return all[adminId] || ['dashboard'];
@@ -171,7 +229,7 @@
 
     function adminCanAccessTask(taskKey, adminId) {
         if (!taskKey) return true;
-        if (isHeadAdmin()) return true;
+        if (isHeadAdmin() && !namedAdminPortal()) return true;
         return getAdminTasks(adminId).indexOf(taskKey) !== -1;
     }
 
@@ -227,7 +285,8 @@
     }
 
     function refreshAdminChrome() {
-        if (location.pathname.indexOf('/admin/') === -1) return;
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
         filterDashboardCards();
         applyTopNavPermissions();
         if (window.KreezbyAdminSidebar && typeof window.KreezbyAdminSidebar.render === 'function') {
@@ -254,34 +313,131 @@
         });
     }
 
+    function createAdminAccount(fields) {
+        var name = String(fields.name || '').trim();
+        var username = String(fields.username || '').trim();
+        var role = String(fields.role || '').trim();
+        if (!name || !username || !role) return { ok: false, message: 'Name, username, and role are required.' };
+        var accounts = getAdminAccounts();
+        var taken = Object.keys(accounts).some(function (id) {
+            return String(accounts[id].username || '').toLowerCase() === username.toLowerCase();
+        });
+        if (taken) return { ok: false, message: 'That username is already used.' };
+        var id = slugifyName(name).replace(/-/g, '');
+        var folder = slugifyName(name);
+        var n = 2;
+        while (accounts[id]) {
+            id = slugifyName(name).replace(/-/g, '') + n;
+            n += 1;
+        }
+        while (Object.keys(accounts).some(function (key) { return accounts[key].folder === folder; })) {
+            folder = slugifyName(name) + '-' + n;
+            n += 1;
+        }
+        accounts[id] = {
+            id: id,
+            name: name,
+            username: username,
+            role: role,
+            folder: folder,
+            dashboard: 'admin.html',
+            home: 'admin_names/' + folder + '/admin.html',
+            status: 'active',
+            aliases: [],
+            portalReady: false
+        };
+        saveAdminAccounts(accounts);
+        var perms = getAllPermissions();
+        perms[id] = ['dashboard'];
+        saveAllPermissions(perms);
+        return { ok: true, id: id, message: name + ' was created with Dashboard only. The current roster already has a portal folder. New accounts are saved and listed immediately.' };
+    }
+
+    function setAdminAccountStatus(adminId, status) {
+        var accounts = getAdminAccounts();
+        if (!accounts[adminId]) return;
+        accounts[adminId].status = status;
+        saveAdminAccounts(accounts);
+    }
+
     function initPermissionsEditor(root) {
         if (!root) return null;
-        var pills = root.querySelectorAll('.role-selection-pill');
         var matrixBody = root.querySelector('#permissions-matrix-body');
         var titleEl = root.querySelector('#permissions-panel-title');
         var saveBtn = root.querySelector('#btn-save-permissions');
+        var listEl = root.querySelector('[data-account-list]');
+        var archivedEl = root.querySelector('[data-archived-list]');
+        var archiveBtn = root.querySelector('#btn-archive-admin');
+        var createForm = root.querySelector('#admin-account-create');
         if (!matrixBody || !titleEl || !saveBtn) return null;
 
         var selectedId = 'elena';
-        var activePill = root.querySelector('.role-selection-pill.active-role');
-        if (activePill) selectedId = activePill.getAttribute('data-admin-id') || selectedId;
+
+        function activeAccounts() {
+            return Object.keys(getAdminAccounts()).filter(function (id) {
+                return getAdminAccounts()[id].status !== 'archived';
+            });
+        }
+
+        function renderLists() {
+            if (!listEl) return;
+            var accounts = getAdminAccounts();
+            if (activeAccounts().indexOf(selectedId) === -1) selectedId = activeAccounts()[0] || '';
+            listEl.innerHTML = '';
+            activeAccounts().forEach(function (id) {
+                var account = accounts[id];
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'role-selection-pill' + (id === selectedId ? ' active-role' : '');
+                button.setAttribute('data-admin-id', id);
+                button.innerHTML = account.name + '<br><span class="staff-task-hint">' + account.username + ' · ' + account.role + '</span>';
+                button.onclick = function () {
+                    selectedId = id;
+                    renderLists();
+                    renderPanel();
+                };
+                listEl.appendChild(button);
+            });
+            if (archivedEl) {
+                var archived = Object.keys(accounts).filter(function (id) { return accounts[id].status === 'archived'; });
+                archivedEl.innerHTML = '';
+                if (!archived.length) {
+                    archivedEl.innerHTML = '<p class="archived-empty">No archived admins.</p>';
+                }
+                archived.forEach(function (id) {
+                    var account = accounts[id];
+                    var row = document.createElement('div');
+                    row.className = 'archived-account-row';
+                    row.innerHTML = '<span>' + account.name + '</span>';
+                    var restore = document.createElement('button');
+                    restore.type = 'button';
+                    restore.className = 'btn-restore-account';
+                    restore.textContent = 'Restore';
+                    restore.onclick = function () {
+                        setAdminAccountStatus(id, 'active');
+                        selectedId = id;
+                        renderLists();
+                        renderPanel();
+                    };
+                    row.appendChild(restore);
+                    archivedEl.appendChild(row);
+                });
+            }
+        }
 
         function renderPanel() {
+            if (!selectedId) {
+                titleEl.textContent = 'No active admin';
+                matrixBody.innerHTML = '';
+                return;
+            }
             var profile = getAdminProfile(selectedId);
             titleEl.textContent = 'Module access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedId);
         }
 
-        pills.forEach(function (pill) {
-            pill.onclick = function () {
-                pills.forEach(function (p) { p.classList.remove('active-role'); });
-                pill.classList.add('active-role');
-                selectedId = pill.getAttribute('data-admin-id');
-                renderPanel();
-            };
-        });
-
         saveBtn.onclick = function () {
+            if (!selectedId) return;
             var tasks = ['dashboard'];
             matrixBody.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
                 tasks.push(cb.getAttribute('data-task'));
@@ -290,20 +446,48 @@
             var all = getAllPermissions();
             all[selectedId] = tasks;
             saveAllPermissions(all);
-            if (typeof window.toast === 'function') {
-                window.toast('Permissions saved for ' + getAdminProfile(selectedId).name + '.', 'success');
-            } else {
-                alert('Permissions saved for ' + getAdminProfile(selectedId).name + '.');
-            }
+            var message = 'Permissions saved for ' + getAdminProfile(selectedId).name + '.';
+            if (typeof window.toast === 'function') window.toast(message, 'success');
+            else alert(message);
         };
 
+        if (archiveBtn) {
+            archiveBtn.onclick = function () {
+                if (!selectedId) return;
+                var name = getAdminProfile(selectedId).name;
+                setAdminAccountStatus(selectedId, 'archived');
+                renderLists();
+                renderPanel();
+                alert(name + ' was archived and can no longer sign in.');
+            };
+        }
+
+        if (createForm) {
+            createForm.onsubmit = function (event) {
+                event.preventDefault();
+                var result = createAdminAccount({
+                    name: createForm.elements.name.value,
+                    username: createForm.elements.username.value,
+                    role: createForm.elements.role.value
+                });
+                alert(result.message);
+                if (!result.ok) return;
+                createForm.reset();
+                selectedId = result.id;
+                renderLists();
+                renderPanel();
+            };
+        }
+
+        renderLists();
         renderPanel();
         return { getSelectedAdminId: function () { return selectedId; } };
     }
 
     function guardCurrentPage() {
-        if (location.pathname.indexOf('/admin/') === -1) return;
-        if (isHeadAdmin()) return;
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
+        if (isHeadAdmin() && path.indexOf('/admin_names/') === -1) return;
         var filename = getCurrentPageFilename();
         if (filename === 'report_issue-admin.html') return;
         var taskKey = getTaskForPage(filename);
@@ -348,7 +532,8 @@
 
     function boot() {
         var filename = getCurrentPageFilename();
-        var isAdminPage = location.pathname.indexOf('/admin/') !== -1;
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var isAdminPage = path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1;
         var session = readSession();
         if (session.accountType === 'Administrator') {
             setCurrentAdminId(inferAdminIdFromIdentity(session.identity || session.userName));
@@ -358,7 +543,7 @@
             refreshAdminChrome();
             showDeniedBanner();
         }
-        if (filename === 'admin-permissions.html' || document.getElementById('admin-permissions-root')) {
+        if (filename === 'admin-permissions.html' || filename === 'admin_permissions-headadmin.html' || document.getElementById('admin-permissions-root')) {
             initPermissionsEditor(document.getElementById('admin-permissions-root') || document);
         }
     }

@@ -35,12 +35,17 @@ function dashboardGrid(key, w) {
 function dashboardBody(w, key) {
     return ''
         + '        <div class="workspace-container">\n'
-        + '            <h2 class="page-title">' + w.name + ' — ' + w.area + '</h2>\n'
-        + '            <div class="sync-status-bar">\n'
-        + '                <span><strong>Wholesale Portal:</strong> Bulk orders and distribution tracking</span>\n'
-        + '                <span>Contact: ' + w.contact + ' · ' + w.email + '</span>\n'
-        + '            </div>\n'
-        + '            <div class="dashboard-grid">\n' + dashboardGrid(key, w) + '\n            </div>\n'
+        + '            <section class="kreezby-welcome" aria-label="Welcome">\n'
+        + '                <figure class="kreezby-welcome-photo">\n'
+        + '                    <img src="../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">\n'
+        + '                </figure>\n'
+        + '                <div class="kreezby-welcome-copy">\n'
+        + '                    <p class="kreezby-welcome-kicker">The Crinkle Factory</p>\n'
+        + '                    <h2>Welcome, ' + w.name + '</h2>\n'
+        + '                    <p class="kreezby-welcome-tagline">Making your life sweeter!</p>\n'
+        + '                    <p>Your home is ready. Use the menu to open purchase orders, deliveries, sales, and alerts whenever you need them.</p>\n'
+        + '                </div>\n'
+        + '            </section>\n'
         + '        </div>';
 }
 

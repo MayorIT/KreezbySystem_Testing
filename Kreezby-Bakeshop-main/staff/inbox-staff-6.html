@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/inbox-chat-layout.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
-    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
 </head>
 <body>
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -20,7 +20,6 @@
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
         <div class="top-nav-links-right">
             <a class="top-nav-item home-badge" href="staff-6.html">Home</a>
-            <a class="top-nav-item" data-staff-inbox="6" href="inbox-staff-6.html" data-turbo-frame="_top">Inbox</a>
             <button type="button" class="notification-pill" aria-label="Notifications"></button>
             <div class="user-dropdown">
                 <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
@@ -46,11 +45,11 @@
     </div>
 
     <script src="../js/inbox-chat.js"></script>
-    <script src="../js/staff-permissions.js"></script>
+    <script src="../js/staff-permissions.js?v=20260927nav"></script>
     <script>KreezbyStaffPermissions.setCurrentStaffId('staff-6');</script>
     <script src="../js/inbox-staff.js"></script>
-    <script src="../js/user-dropdown-nav.js"></script>
-    <script src="../js/staff-sidebar.js"></script>
-    <script src="../js/sidebar-toggle.js"></script>
+    <script src="../js/user-dropdown-nav.js?v=20260927sheet"></script>
+    <script src="../js/staff-sidebar.js?v=20260927sheet"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
 </body>
 </html>

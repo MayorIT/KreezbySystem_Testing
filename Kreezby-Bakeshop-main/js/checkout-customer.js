@@ -563,6 +563,18 @@ function placeOrder() {
     const deliveryFee = subtotal > 0 ? 50 : 0;
     const totalAmount = subtotal + deliveryFee;
 
+    let session = {};
+    try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
+    const accountType = session.accountType === 'Retailer'
+        ? 'Retailer'
+        : session.accountType === 'Wholesaler'
+            ? 'Wholesaler'
+            : 'Regular Customer';
+    const accountName = (session.userName || fullName || '').trim();
+    const accountArea = (accountType === 'Regular Customer')
+        ? address
+        : (session.accountArea || address);
+
     const order = {
         orderNumber: orderNumber,
         items: cartData,
@@ -571,8 +583,11 @@ function placeOrder() {
         total: formatCurrency(totalAmount),
         paymentMethod: selectedPaymentMethod,
         receiptNumber: '',
+        accountType: accountType,
+        accountName: accountName,
+        accountArea: accountArea,
         shippingInfo: {
-            fullName,
+            fullName: accountName || fullName,
             phone,
             address,
             notes: document.getElementById('notes').value

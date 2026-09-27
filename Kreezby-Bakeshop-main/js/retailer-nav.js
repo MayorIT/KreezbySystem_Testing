@@ -54,38 +54,12 @@
   function wireRetailerInboxNav() {
     var path = (location.pathname || '').toLowerCase();
     if (path.indexOf('/retailer/') === -1) return;
-    if (path.indexOf('inbox-retailer') !== -1) return;
 
-    var inboxHref = 'inbox-retailer.html';
-    if (window.KreezbyUserDropdown && typeof window.KreezbyUserDropdown.inboxHref === 'function') {
-      inboxHref = window.KreezbyUserDropdown.inboxHref();
-    } else {
-      var parts = path.split('/').filter(Boolean);
-      if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
-      var retailerIdx = parts.indexOf('retailer');
-      if (retailerIdx >= 0) {
-        var depth = parts.length - retailerIdx - 1;
-        var prefix = '';
-        for (var d = 0; d < depth; d++) prefix += '../';
-        inboxHref = prefix + 'inbox-retailer.html';
-      }
-    }
-
-    var right = document.querySelector('.top-nav-links-right');
-    if (!right || right.querySelector('a[href*="inbox-retailer"]')) return;
-
-    var home = right.querySelector('a.home-badge, a.top-nav-item');
-    var link = document.createElement('a');
-    link.className = 'top-nav-item';
-    link.href = inboxHref;
-    link.textContent = 'Inbox';
-    link.setAttribute('data-turbo-frame', '_top');
-
-    if (home && home.parentNode) {
-      home.insertAdjacentElement('afterend', link);
-    } else {
-      right.insertBefore(link, right.firstChild);
-    }
+    document.querySelectorAll('.top-nav-links-right a.top-nav-item').forEach(function (link) {
+      var label = (link.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      var href = (link.getAttribute('href') || '').toLowerCase();
+      if (label === 'inbox' || href.indexOf('inbox') !== -1) link.remove();
+    });
   }
 
   function removeRetailerDeliveryAndPulloutModules() {

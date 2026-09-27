@@ -196,7 +196,12 @@
         if (!modal) return;
         var host = document.querySelector('.system-dashboard-wrapper');
         var area = host ? (host.getAttribute('data-area') || '') : '';
-        var areaLabel = area ? area.charAt(0).toUpperCase() + area.slice(1) : 'Batangas City';
+        var areaNames = {
+            batangas: 'Batangas', bauan: 'Bauan', citimart: 'Citimart', lipa: 'Lipa',
+            lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas',
+            tagaytay: 'Tagaytay', quezoncity: 'Quezon City', iloilocity: 'Iloilo City'
+        };
+        var areaLabel = areaNames[area] || (area ? area.charAt(0).toUpperCase() + area.slice(1) : 'Batangas City');
         modal.innerHTML = '<div class="form-modal-box">' +
             '<div class="modal-form-header"><h2 id="po-modal-title">Create New Purchase Order Request</h2>' +
             '<button type="button" style="background:none;border:none;font-size:16px;cursor:pointer;" id="po-modal-close-btn">✕</button></div>' +
@@ -499,24 +504,24 @@
         if (PAGE_MODE === 'retailer') {
             tbody.innerHTML = rows.map(function (o, i) {
                 return '<tr data-po="' + o.code + '" class="po-data-row">' +
-                    '<td>' + (i + 1) + '</td>' +
-                    '<td>' + o.dateCreated + '</td>' +
-                    '<td><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
-                    '<td>' + buildActionMenu(o.code) + '</td>' +
-                    '<td>' + SUPPLIER_LABEL + '</td>' +
-                    '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                    '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td></tr>';
+                    '<td data-label="#">' + (i + 1) + '</td>' +
+                    '<td data-label="Date">' + o.dateCreated + '</td>' +
+                    '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
+                    '<td data-label="Action">' + buildActionMenu(o.code) + '</td>' +
+                    '<td data-label="Supplier">' + SUPPLIER_LABEL + '</td>' +
+                    '<td data-label="Items">' + (o.items ? o.items.length : 0) + '</td>' +
+                    '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td></tr>';
             }).join('');
             return;
         }
         tbody.innerHTML = rows.map(function (o, i) {
             return '<tr data-po="' + o.code + '" class="po-data-row">' +
-                '<td>' + (i + 1) + '</td>' +
-                '<td>' + o.dateCreated + '</td>' +
-                '<td><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
-                '<td>' + o.entity + '</td>' +
-                '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td>' +
-                '<td>' + buildActionMenu(o.code) + '</td></tr>';
+                '<td data-label="#">' + (i + 1) + '</td>' +
+                '<td data-label="Date">' + o.dateCreated + '</td>' +
+                '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
+                '<td data-label="Account">' + o.entity + '<br><small>' + (o.accountType || (o.entityType === 'wholesaler' ? 'Wholesaler' : o.entityType === 'customer' ? 'Regular Customer' : 'Retailer')) + (o.accountArea || o.area ? ' · ' + (o.accountArea || o.area) : '') + '</small></td>' +
+                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td>' +
+                '<td data-label="Action">' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
     }
@@ -533,12 +538,12 @@
         });
         tbody.innerHTML = rows.map(function (o, i) {
             return '<tr data-po="' + o.code + '" class="po-data-row">' +
-                '<td>' + (i + 1) + '</td>' +
-                '<td>' + o.dateCreated + '</td>' +
-                '<td><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
-                '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                '<td><span class="status-pill-badge ' + (o.statusClass || 'pending') + '">' + displayStatus(o) + '</span></td>' +
-                '<td>' + buildActionMenu(o.code) + '</td></tr>';
+                '<td data-label="#">' + (i + 1) + '</td>' +
+                '<td data-label="Date">' + o.dateCreated + '</td>' +
+                '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
+                '<td data-label="Items">' + (o.items ? o.items.length : 0) + '</td>' +
+                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + '">' + displayStatus(o) + '</span></td>' +
+                '<td data-label="Action">' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
     }
@@ -562,7 +567,9 @@
             '<div>' +
             '<div class="meta-data-line"><strong>P.O. Code:</strong> ' + order.code + '</div>' +
             '<div class="meta-data-line"><strong>Date Created:</strong> ' + order.dateCreated + '</div>' +
-            '<div class="meta-data-line"><strong>Area:</strong> ' + (order.area || '—') + '</div>' +
+            '<div class="meta-data-line"><strong>Customer type:</strong> ' + (order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer')) + '</div>' +
+            '<div class="meta-data-line"><strong>Account:</strong> ' + (order.accountName || order.entity) + '</div>' +
+            '<div class="meta-data-line"><strong>Area:</strong> ' + (order.accountArea || order.area || '—') + '</div>' +
             '<div class="meta-data-line"><strong>Remarks:</strong> ' + (order.remarks || '—') + '</div>' +
             tracking +
             courier +
@@ -669,7 +676,10 @@
             statusUpdatedAt: new Date().toISOString(),
             shippedAt: (statusText === 'Shipped' && order.trackingNumber) ? new Date().toISOString() : undefined,
             paymentVerified: true,
-            source: 'po-admin'
+            source: 'po-admin',
+            accountType: order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer'),
+            accountName: order.accountName || order.entity || '',
+            accountArea: order.accountArea || order.area || ''
         };
 
         (order.items || []).forEach(function (item, index) {
@@ -824,6 +834,18 @@
             courier: courierName.trim() || 'J&T Express Philippines',
             items: items
         };
+
+        if (PAGE_MODE === 'retailer') {
+            payload.entity = retailerStoreName || payload.entity;
+            payload.entityType = isWholesalerPortal() ? 'wholesaler' : 'retailer';
+            payload.accountType = isWholesalerPortal() ? 'Wholesaler' : 'Retailer';
+            payload.accountName = payload.entity;
+            payload.accountArea = payload.area;
+        } else if (type === 'customer') {
+            payload.accountType = 'Regular Customer';
+            payload.accountName = payload.entity;
+            payload.accountArea = payload.area;
+        }
 
         if (editingPoCode && editingPoCode !== code) delete PO_ORDERS[editingPoCode];
         PO_ORDERS[code] = payload;

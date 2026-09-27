@@ -1200,7 +1200,7 @@ main.workspace-canvas {
         /* Analytic Diagnostics Top Summary Board Layout */
         .maintenance-overview-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -1213,6 +1213,7 @@ main.workspace-canvas {
             display: flex;
             flex-direction: column;
             border-left: 4px solid var(--brand-brown);
+            cursor: pointer;
         }
 
         .overview-card-box.blue-theme { border-left-color: var(--accent-blue); }

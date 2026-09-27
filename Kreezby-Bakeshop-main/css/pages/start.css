@@ -1166,3 +1166,55 @@ main.workspace-canvas {
         .main-choice-container.hidden {
             display: none;
         }
+
+.splash-slide {
+    overflow: hidden;
+    width: 100%;
+    transition: height 0.32s ease;
+}
+
+.splash-slide__track {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    transition: transform 0.32s ease;
+}
+
+.splash-slide .main-choice-container,
+.splash-slide .guest-choice-container,
+.splash-slide .main-choice-container.hidden,
+.splash-slide .guest-choice-container.active {
+    display: block !important;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    min-width: 100%;
+    animation: none !important;
+    transform: none !important;
+}
+
+.splash-slide .brand-logo-large {
+    color: #f9a825;
+    background: none;
+    -webkit-text-fill-color: #f9a825;
+}
+
+.splash-slide.is-guest .splash-slide__track {
+    transform: translate3d(-100%, 0, 0);
+}
+
+@media (max-width: 900px) {
+    html body {
+        background-attachment: scroll;
+        overflow-x: hidden;
+        padding: 16px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    html body .splash-card {
+        max-width: calc(100vw - 32px);
+        padding: 28px 16px;
+        box-sizing: border-box;
+    }
+}

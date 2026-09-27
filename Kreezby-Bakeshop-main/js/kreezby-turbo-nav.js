@@ -15,7 +15,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -52,13 +52,13 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
             (document.head || document.documentElement).appendChild(mobile);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260925phone9';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260927sheet';
         s.defer = true;
         (document.head || document.documentElement).appendChild(s);
     }
@@ -98,9 +98,9 @@
     function isHeadAdminShellPage(href) {
         try {
             var pathName = new URL(href, window.location.href).pathname || '';
-            return /\/head_admin\/(index|inquiries|admin-permissions|staff-permissions)\.html$/i.test(pathName);
+            return /\/head_admin\/(index|inquiries|inquiries-headadmin|admin-permissions|admin_permissions-headadmin|staff-permissions)\.html$/i.test(pathName);
         } catch (e) {
-            return /head_admin\/(index|inquiries|admin-permissions|staff-permissions)\.html/i.test(href || '');
+            return /head_admin\/(index|inquiries|inquiries-headadmin|admin-permissions|admin_permissions-headadmin|staff-permissions)\.html/i.test(href || '');
         }
     }
 

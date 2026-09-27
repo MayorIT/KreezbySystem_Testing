@@ -36,6 +36,52 @@
     line-height: 1.6;
 }
 
+.permissions-switch {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: min(280px, 100%);
+    margin: 0 0 20px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #f3efe6;
+}
+
+.permissions-switch-thumb {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    border-radius: 999px;
+    background: #ffca28;
+    transition: transform 0.22s ease;
+}
+
+.permissions-switch.is-staff .permissions-switch-thumb {
+    transform: translateX(100%);
+}
+
+.permissions-switch button {
+    position: relative;
+    z-index: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #5c5346;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.permissions-switch button[aria-selected="true"] {
+    color: #1f1f1f;
+}
+
+.permissions-section.is-hidden {
+    display: none !important;
+}
+
 .settings-split-grid {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);

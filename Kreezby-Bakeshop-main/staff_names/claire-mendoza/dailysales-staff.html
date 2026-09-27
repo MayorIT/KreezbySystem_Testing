@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Record Daily Sales (Staff)</title>
+    <link rel="stylesheet" href="../../css/pages/staff/dailysales-staff.css">
+
+    <link rel="stylesheet" href="../../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="staff-1.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="sales-panel-header-banner">
+                <span>➕</span> Record Daily Sales
+            </div>
+
+            <div class="sales-form-card">
+                <form action="#" method="POST" id="daily-sales-form-root">
+                    
+                    <div class="form-section-title">Customer Information</div>
+                    
+                    <div class="customer-info-grid">
+                        <div class="form-field-block">
+                            <label>Customer Name</label>
+                            <input type="text" id="cust-name-field" placeholder="Enter target walk-in client name status (optional)...">
+                        </div>
+                        <div class="form-field-block">
+                            <label>Email</label>
+                            <input type="email" id="cust-email-field" placeholder="name@domain.com">
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">Sale Details</div>
+
+                    <div class="row-inputs-builder-bar">
+                        <div class="form-field-block">
+                            <label>Select Product Flavor</label>
+                            <select id="builder-flavor-select">
+                                <option value="">Please pick an available flavor batch</option>
+                                <option value="Chocolate Crinkles (Pouch)" data-price="120.00">Chocolate Crinkles - Pouch (₱120.00)</option>
+                                <option value="Choco-Almond Crinkles (Pouch)" data-price="125.00">Choco-Almond Crinkles - Pouch (₱125.00)</option>
+                                <option value="Lemon Crinkles (Pouch)" data-price="120.00">Lemon Crinkles - Pouch (₱120.00)</option>
+                                <option value="Choco Butternut Crinkles (Jar)" data-price="150.00">Choco Butternut Crinkles - Jar (₱150.00)</option>
+                                <option value="Mango Crinkles (Jar)" data-price="150.00">Mango Crinkles - Jar (₱150.00)</option>
+                            </select>
+                        </div>
+                        <div class="form-field-block">
+                            <label>Quantity</label>
+                            <input type="number" id="builder-qty-input" min="1" placeholder="e.g. 5">
+                        </div>
+                        <div></div> <button type="button" class="btn-inline-action" onclick="appendProductLineToCheckoutMatrix()">+ Add Item</button>
+                    </div>
+
+                    <table class="data-display-table" id="sales-matrix-table">
+                        <thead>
+                            <tr style="background-color: #f8f9fa; color: #333333;">
+                                <th style="width: 60px;">#</th>
+                                <th>Product Name</th>
+                                <th style="width: 120px; text-align: center;">Quantity</th>
+                                <th style="width: 140px; text-align: right;">Unit Price (₱)</th>
+                                <th style="width: 140px; text-align: right;">Total (₱)</th>
+                                <th style="width: 110px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-table-lines-injector">
+                            <tr>
+                                <td>1</td>
+                                <td><input type="text" class="matrix-input-text" value="Chocolate Crinkles (Pouch)" readonly></td>
+                                <td><input type="number" class="matrix-input-text" value="5" style="text-align: center;" oninput="recalculateRowLineTotal(this, 120.00)"></td>
+                                <td><input type="text" class="matrix-input-text" value="120.00" style="text-align: right;" readonly></td>
+                                <td><input type="text" class="matrix-input-text line-total-field" value="600.00" style="text-align: right;" readonly></td>
+                                <td style="text-align: center;"><button type="button" class="btn-row-delete" onclick="removeProductLineRow(this)">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><input type="text" class="matrix-input-text" value="Choco Butternut Crinkles (Jar)" readonly></td>
+                                <td><input type="number" class="matrix-input-text" value="1" style="text-align: center;" oninput="recalculateRowLineTotal(this, 150.00)"></td>
+                                <td><input type="text" class="matrix-input-text" value="150.00" style="text-align: right;" readonly></td>
+                                <td><input type="text" class="matrix-input-text line-total-field" value="150.00" style="text-align: right;" readonly></td>
+                                <td style="text-align: center;"><button type="button" class="btn-row-delete" onclick="removeProductLineRow(this)">Delete</button></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background-color: #fcfcfc; font-size: 15px;">
+                                <td colspan="4" style="text-align: right; padding: 12px;">Total Summary Bill:</td>
+                                <td style="text-align: right; padding: 12px; color: #1b5e20;" id="matrix-grand-total-label">₱750.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="checkout-actions-row">
+                        <button type="button" class="btn-submit-main" onclick="processCheckoutReceiptSubmission()">Save Transaction</button>
+                        <button type="button" class="btn-cancel-main" onclick="resetSalesPortalWorkspace()">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script>
+        function recalculateRowLineTotal(quantityInputNode, unitPriceValue) {
+            const enteredQty = parseInt(quantityInputNode.value) || 0;
+            const targetTableRow = quantityInputNode.closest('tr');
+            const targetLineTotalField = targetTableRow.querySelector('.line-total-field');
+            
+            const computedRowTotal = enteredQty * unitPriceValue;
+            targetLineTotalField.value = computedRowTotal.toFixed(2);
+            
+            updateMatrixGrandTotalSummaryValue();
+        }
+
+        function updateMatrixGrandTotalSummaryValue() {
+            const allLineTotalsFields = document.querySelectorAll('.line-total-field');
+            let accumulatedGrandTotal = 0;
+            
+            allLineTotalsFields.forEach(field => {
+                accumulatedGrandTotal += parseFloat(field.value) || 0;
+            });
+            
+            document.getElementById('matrix-grand-total-label').textContent = '₱' + accumulatedGrandTotal.toFixed(2);
+        }
+
+        function appendProductLineToCheckoutMatrix() {
+            const flavorSelector = document.getElementById('builder-flavor-select');
+            const targetedOption = flavorSelector.options[flavorSelector.selectedIndex];
+            const selectedFlavorName = flavorSelector.value;
+            const typedQuantityVal = parseInt(document.getElementById('builder-qty-input').value) || 0;
+
+            if (!selectedFlavorName || typedQuantityVal <= 0) {
+                alert('Please select a valid baked product flavor and input the target sales line item quantity volume.');
+                return;
+            }
+
+            const definedUnitPrice = parseFloat(targetedOption.getAttribute('data-price')) || 0;
+            const computedLineTotal = definedUnitPrice * typedQuantityVal;
+            const tableContainerBody = document.getElementById('sales-table-lines-injector');
+            const computedNextRowIndex = tableContainerBody.children.length + 1;
+
+            const createdTrNode = document.createElement('tr');
+            createdTrNode.innerHTML = `
+                <td>${computedNextRowIndex}</td>
+                <td><input type="text" class="matrix-input-text" value="${selectedFlavorName}" readonly></td>
+                <td><input type="number" class="matrix-input-text" value="${typedQuantityVal}" style="text-align: center;" oninput="recalculateRowLineTotal(this, ${definedUnitPrice})"></td>
+                <td><input type="text" class="matrix-input-text" value="${definedUnitPrice.toFixed(2)}" style="text-align: right;" readonly></td>
+                <td><input type="text" class="matrix-input-text line-total-field" value="${computedLineTotal.toFixed(2)}" style="text-align: right;" readonly></td>
+                <td style="text-align: center;"><button type="button" class="btn-row-delete" onclick="removeProductLineRow(this)">Delete</button></td>
+            `;
+
+            tableContainerBody.appendChild(createdTrNode);
+            
+            // Flush builder block input parameters values fields for processing comfort
+            document.getElementById('builder-qty-input').value = '';
+            flavorSelector.value = '';
+            
+            updateMatrixGrandTotalSummaryValue();
+        }
+
+        function removeProductLineRow(buttonNode) {
+            const rowTarget = buttonNode.closest('tr');
+            rowTarget.remove();
+            
+            // Re-index row line counts indicators parameters numbers
+            const remainingRows = document.querySelectorAll('#sales-table-lines-injector tr');
+            remainingRows.forEach((row, currentLoopIndex) => {
+                row.children[0].textContent = currentLoopIndex + 1;
+            });
+            
+            updateMatrixGrandTotalSummaryValue();
+        }
+
+        function processCheckoutReceiptSubmission() {
+            const tableLinesCount = document.getElementById('sales-table-lines-injector').children.length;
+            if (tableLinesCount === 0) {
+                alert('Cannot verify transaction entry. Please include at least one product flavor checkout row item line.');
+                return;
+            }
+            alert('Sales record transaction verified, logged, and database point matrix synced successfully!');
+            resetSalesPortalWorkspace();
+        }
+
+        function resetSalesPortalWorkspace() {
+            document.getElementById('daily-sales-form-root').reset();
+            document.getElementById('sales-table-lines-injector').innerHTML = '';
+            updateMatrixGrandTotalSummaryValue();
+        }
+    </script>
+    <script src="../../js/daily-sales-customer.js?v=20260927sale"></script>
+    <script src="../../js/staff-permissions.js?v=20260927names"></script>
+        <script src="../../js/user-dropdown-nav.js?v=20260927sheet"></script>
+        <script src="../../js/staff-sidebar.js?v=20260927sheet"></script>
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

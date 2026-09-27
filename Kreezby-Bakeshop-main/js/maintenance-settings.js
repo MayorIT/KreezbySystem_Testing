@@ -41,6 +41,11 @@
             { id: 'who-1', name: 'Metro Bulk Distributors', contact: 'James Lim', email: 'james@metrobulk.com', area: 'Quezon City' },
             { id: 'who-2', name: 'Visayas Wholesale Hub', contact: 'Carla Mendez', email: 'carla@visayaswholesale.com', area: 'Iloilo City' }
         ],
+        suppliers: [
+            { id: 'sup-1', name: 'Supplier Hub 101', contact: 'Juan Dela Cruz', email: 'juan@supplier101.com' },
+            { id: 'sup-2', name: 'Golden Harvest Milling', contact: 'Flour desk', email: 'orders@goldenharvest.com' },
+            { id: 'sup-3', name: 'Dairy Cooperative', contact: 'Butter desk', email: 'supply@dairycoop.com' }
+        ],
         customers: [
             { id: 'cust-1', name: 'Maria Santos', email: 'maria.santos@email.com', phone: '09171234567', joined: '2025-08-12' },
             { id: 'cust-2', name: 'Bryle Atienza', email: 'bryle.a@email.com', phone: '09189876543', joined: '2025-11-03' },
@@ -83,8 +88,33 @@
         localStorage.setItem(key, JSON.stringify(data));
     }
 
+    function dictionaryRole(bucket) {
+        if (bucket === 'admins') return 'Admin';
+        if (bucket === 'staff') return 'Staff';
+        if (bucket === 'customers') return 'Customer';
+        return 'Retailer/Wholesaler';
+    }
+
+    function withDictionaryFields(users) {
+        ['admins', 'staff', 'retailers', 'wholesalers', 'customers', 'suppliers'].forEach(function (bucket) {
+            (users[bucket] || []).forEach(function (user) {
+                if (!user.user_id) user.user_id = user.id || user.username || user.email || user.name;
+                if (!user.dictionaryRole) user.dictionaryRole = bucket === 'suppliers' ? 'Supplier' : dictionaryRole(bucket);
+                if (bucket !== 'suppliers' && !user.password_hash) user.password_hash = 'ph_' + user.user_id;
+                if (typeof user.active !== 'boolean') user.active = true;
+            });
+        });
+        return users;
+    }
+
     function getUsers() {
-        return loadJson(USERS_KEY, DEFAULT_USERS);
+        var users = loadJson(USERS_KEY, DEFAULT_USERS);
+        Object.keys(DEFAULT_USERS).forEach(function (bucket) {
+            if (!users[bucket] || !users[bucket].length) {
+                users[bucket] = JSON.parse(JSON.stringify(DEFAULT_USERS[bucket]));
+            }
+        });
+        return withDictionaryFields(users);
     }
 
     function saveUsers(users) {
@@ -189,14 +219,81 @@
         };
     }
 
+    function isActive(user) {
+        return !user || user.active !== false;
+    }
+
+    function isHeadAdminAccount(user) {
+        if (!user) return false;
+        var name = String(user.username || user.user_id || user.id || '').toLowerCase();
+        return name === 'brent_admin' || name === 'admin-1' || user.role === 'System Administrator';
+    }
+
+    function findRecord(identity) {
+        var q = String(identity || '').trim().toLowerCase();
+        if (!q) return null;
+        var users = getUsers();
+        var buckets = ['customers', 'retailers', 'wholesalers', 'staff', 'admins'];
+        for (var b = 0; b < buckets.length; b++) {
+            var list = users[buckets[b]] || [];
+            for (var i = 0; i < list.length; i++) {
+                var user = list[i];
+                var fields = [user.email, user.username, user.name, user.user_id, user.id, user.contact];
+                for (var f = 0; f < fields.length; f++) {
+                    if (fields[f] && String(fields[f]).trim().toLowerCase() === q) {
+                        return { bucket: buckets[b], user: user };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    function isLoginBlocked(identity, userName) {
+        var hit = findRecord(identity) || findRecord(userName);
+        return !!(hit && hit.user.active === false);
+    }
+
+    function setAccountStatus(bucket, id, active) {
+        var users = getUsers();
+        var list = users[bucket];
+        if (!list) return { ok: false, message: 'That account group was not found.' };
+        var user = null;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].id === id) {
+                user = list[i];
+                break;
+            }
+        }
+        if (!user) return { ok: false, message: 'Account not found.' };
+        if (bucket === 'admins' && isHeadAdminAccount(user) && !active) {
+            return { ok: false, message: 'The head admin account stays active.' };
+        }
+        user.active = !!active;
+        saveUsers(users);
+        return {
+            ok: true,
+            message: user.name + (active ? ' is active again.' : ' is deactivated and cannot log in.')
+        };
+    }
+
+    function countActive(list) {
+        var n = 0;
+        (list || []).forEach(function (user) {
+            if (user.active !== false) n += 1;
+        });
+        return n;
+    }
+
     function getAccountCounts() {
         var users = getUsers();
         return {
-            customers: users.customers.length,
-            retailers: users.retailers.length,
-            wholesalers: users.wholesalers.length,
-            admins: users.admins.length,
-            staff: users.staff.length
+            customers: countActive(users.customers),
+            retailers: countActive(users.retailers),
+            wholesalers: countActive(users.wholesalers),
+            admins: countActive(users.admins),
+            staff: countActive(users.staff),
+            suppliers: countActive(users.suppliers)
         };
     }
 
@@ -209,6 +306,9 @@
         upgradeCustomerToRole: upgradeCustomerToRole,
         getAccountCounts: getAccountCounts,
         findUserByIdentity: findUserByIdentity,
+        isLoginBlocked: isLoginBlocked,
+        setAccountStatus: setAccountStatus,
+        isHeadAdminAccount: isHeadAdminAccount,
         DEFAULT_USERS: DEFAULT_USERS
     };
 })();

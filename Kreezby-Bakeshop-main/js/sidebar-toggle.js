@@ -42,50 +42,39 @@
         document.head.appendChild(s);
     }
 
-    function isPhoneLayout() {
-        return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
-    }
-
     function toggleSidebar() {
-        if (isPhoneLayout()) {
-            if (window.KreezbyMobile) {
-                if (document.body.classList.contains('kreezby-nav-open')) window.KreezbyMobile.closeNav();
-                else window.KreezbyMobile.openNav();
-            } else {
-                document.body.classList.toggle('kreezby-nav-open');
-            }
-            return;
+        if (window.KreezbyMobile) {
+            if (document.body.classList.contains('kreezby-nav-open')) window.KreezbyMobile.closeNav();
+            else window.KreezbyMobile.openNav();
+        } else {
+            document.body.classList.toggle('kreezby-nav-open');
         }
-        const isCollapsed = body.classList.toggle(collapsedClass);
-        try {
-            localStorage.setItem('kreezbySidebarCollapsed', isCollapsed ? '1' : '0');
-        } catch (e) {}
         const btn = document.querySelector('.hamburger-toggle');
-        if (btn) btn.setAttribute('aria-pressed', !!isCollapsed);
+        const open = document.body.classList.contains('kreezby-nav-open');
+        if (btn) {
+            btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        }
     }
 
     window.KreezbyToggleSidebar = toggleSidebar;
 
     function addToggleButton() {
-        const topNav = document.querySelector('.top-navbar-node .top-nav-links-right');
+        const header = document.querySelector('.top-navbar-node');
+        const topNav = header && header.querySelector('.top-nav-links-right');
         const sidebar = document.querySelector('aside.sidebar-panel, aside.dark-sidebar-panel');
         if (!topNav || !sidebar) return;
 
-        if (topNav.querySelector('.hamburger-toggle')) return;
+        if (header.querySelector('.hamburger-toggle')) return;
 
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'hamburger-toggle';
-        button.setAttribute('aria-label', 'Toggle sidebar');
+        button.setAttribute('aria-label', 'Open menu');
+        button.setAttribute('aria-expanded', 'false');
         button.innerHTML = '☰';
-        // set pressed state from localStorage if applicable
-        try {
-            const stored = localStorage.getItem('kreezbySidebarCollapsed');
-            if (stored === '1') button.setAttribute('aria-pressed', 'true');
-            else button.setAttribute('aria-pressed', 'false');
-        } catch (e) {
-            button.setAttribute('aria-pressed', 'false');
-        }
+        button.setAttribute('aria-pressed', 'false');
         button.addEventListener('click', toggleSidebar);
 
         // place the toggle at the right end of the header controls
@@ -121,6 +110,7 @@
             src = ref.getAttribute('src').replace(/[^/]+$/, 'notification-popover.js');
             storeSrc = ref.getAttribute('src').replace(/[^/]+$/, 'notification-store.js');
         }
+        if (src.indexOf('?') < 0) src += '?v=20260927notif';
 
         function loadPopover() {
             if (window.KreezbyNotificationPopoverLoaded || document.getElementById('kreezby-notification-popover-script')) return;
@@ -154,7 +144,7 @@
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'kreezby-mobile.js');
         }
-        if (src.indexOf('?') < 0) src += '?v=20260925phone9';
+        if (src.indexOf('?') < 0) src += '?v=20260927hdr';
         const s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
         s.src = src;

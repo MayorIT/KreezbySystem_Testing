@@ -1,0 +1,242 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Inventory Report (Staff)</title>
+    <link rel="stylesheet" href="../../css/pages/staff/inventoryreport-staff.css">
+
+    <link rel="stylesheet" href="../../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="staff-1.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div class="report-panel-header-banner">
+                <span>➕</span> Inventory Report
+            </div>
+
+            <div class="report-form-card">
+                <form action="#" method="POST" id="inventory-report-form-root">
+                    
+                    <div class="form-section-title">Inventory Settings</div>
+                    
+                    <div class="report-settings-grid">
+                        <div class="form-field-block">
+                            <label>Report Date</label>
+                            <input type="date" value="2026-05-16">
+                        </div>
+                        <div class="form-field-block">
+                            <label>Generate by Category</label>
+                            <select id="category-filter-select">
+                                <option value="All Categories" selected>All Categories Combined</option>
+                                <option value="Pouches Only">Finished Pouches Variant (8 Pcs)</option>
+                                <option value="Jars Only">Finished Jars Variant (250g)</option>
+                                <option value="Raw Materials">Raw Baking Ingredients</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-field-block" style="max-width: 450px; margin-bottom: 30px;">
+                        <label>Filter by Status</label>
+                        <select id="status-filter-select">
+                            <option value="Active" selected>Active Stocks Only</option>
+                            <option value="Archived">Archived / Discontinued Disposals</option>
+                            <option value="All">Complete Comprehensive History</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section-title">Inventory Items</div>
+
+                    <div class="item-builder-dashed-bar">
+                        <div class="form-field-block">
+                            <label>Select Flavor / Product SKU</label>
+                            <select id="builder-flavor-sku">
+                                <option value="">Please select an active catalog menu SKU</option>
+                                <option value="Chocolate Crinkles (Pouch)" data-cost="120.00">CRK-CHO-P - Chocolate Crinkles (₱120.00)</option>
+                                <option value="Choco-Almond Crinkles (Pouch)" data-cost="125.00">CRK-ALM-P - Choco-Almond Crinkles (₱125.00)</option>
+                                <option value="Lemon Crinkles (Pouch)" data-cost="120.00">CRK-LEM-P - Lemon Crinkles (₱120.00)</option>
+                                <option value="Choco Butternut Crinkles (Jar)" data-cost="150.00">CRK-BUT-J - Choco Butternut (₱150.00)</option>
+                                <option value="Mango Crinkles (Jar)" data-cost="150.00">CRK-MNG-J - Mango Crinkles (₱150.00)</option>
+                            </select>
+                        </div>
+                        <div class="form-field-block">
+                            <label>In Stock Qty</label>
+                            <input type="number" id="builder-qty-stock" min="0" placeholder="e.g. 100">
+                        </div>
+                        <div></div> <button type="button" class="btn-inline-add" onclick="appendProductRowToReportLedgerMatrix()">+ Add Item</button>
+                    </div>
+
+                    <table class="data-display-table" id="report-ledger-table-root">
+                        <thead>
+                            <tr style="background-color: #f8f9fa; color: #333333;">
+                                <th style="width: 60px;">#</th>
+                                <th>Item Name</th>
+                                <th style="width: 140px; text-align: center;">In Stock Qty</th>
+                                <th style="width: 150px; text-align: right;">Cost per Unit (₱)</th>
+                                <th style="width: 150px; text-align: right;">Value (₱)</th>
+                                <th style="width: 120px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-rows-injector-target">
+                            <tr>
+                                <td>1</td>
+                                <td><input type="text" class="matrix-input-field" value="Chocolate Crinkles (Pouch)" readonly></td>
+                                <td><input type="number" class="matrix-input-field" value="250" style="text-align: center;" oninput="recalculateRowReportValue(this, 120.00)"></td>
+                                <td><input type="text" class="matrix-input-field" value="120.00" style="text-align: right;" readonly></td>
+                                <td><input type="text" class="matrix-input-field row-value-calc-field" value="30000.00" style="text-align: right;" readonly></td>
+                                <td style="text-align: center;"><button type="button" class="btn-row-action" onclick="removeReportLineRow(this)">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><input type="text" class="matrix-input-field" value="Choco Butternut Crinkles (Jar)" readonly></td>
+                                <td><input type="number" class="matrix-input-field" value="75" style="text-align: center;" oninput="recalculateRowReportValue(this, 150.00)"></td>
+                                <td><input type="text" class="matrix-input-field" value="150.00" style="text-align: right;" readonly></td>
+                                <td><input type="text" class="matrix-input-field row-value-calc-field" value="11250.00" style="text-align: right;" readonly></td>
+                                <td style="text-align: center;"><button type="button" class="btn-row-action">Action ▾</button></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background-color: #fafafa; font-size: 15px;">
+                                <td colspan="4" style="text-align: right; padding: 12px;">Total Evaluated Asset Capital Value:</td>
+                                <td style="text-align: right; padding: 12px; color: #0d47a1;" id="report-grand-total-label">₱41,250.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="report-actions-footer">
+                        <button type="button" class="btn-save-report" onclick="submitInventoryReportLogsDocument()">Save Report</button>
+                        <button type="button" class="btn-cancel-report" onclick="resetReportWorkspaceCanvas()">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script>
+        function recalculateRowReportValue(qtyInputNode, itemRateCost) {
+            const currentQty = parseInt(qtyInputNode.value) || 0;
+            const contextTrRow = qtyInputNode.closest('tr');
+            const targetValueField = contextTrRow.querySelector('.row-value-calc-field');
+
+            const computedRowValue = currentQty * itemRateCost;
+            targetValueField.value = computedRowValue.toFixed(2);
+
+            updateReportGrandTotalAssetSummary();
+        }
+
+        function updateReportGrandTotalAssetSummary() {
+            const allValueFields = document.querySelectorAll('.row-value-calc-field');
+            let totalAccumulatedAssets = 0;
+
+            allValueFields.forEach(field => {
+                totalAccumulatedAssets += parseFloat(field.value) || 0;
+            });
+
+            document.getElementById('report-grand-total-label').textContent = '₱' + totalAccumulatedAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function appendProductRowToReportLedgerMatrix() {
+            const flavorSkuSelector = document.getElementById('builder-flavor-sku');
+            const targetSelectedOption = flavorSkuSelector.options[flavorSkuSelector.selectedIndex];
+            const chosenFlavorLabel = flavorSkuSelector.value;
+            const stockQtyInputVal = parseInt(document.getElementById('builder-qty-stock').value) || 0;
+
+            if (!chosenFlavorLabel || stockQtyInputVal < 0) {
+                alert('Please pick a valid inventory product target line and define an explicit stock unit quantity field.');
+                return;
+            }
+
+            const parsedUnitCostVal = parseFloat(targetSelectedOption.getAttribute('data-cost')) || 0;
+            const calculatedTotalRowValue = parsedUnitCostVal * stockQtyInputVal;
+            const reportTableBodyTarget = document.getElementById('report-rows-injector-target');
+            const nextCalculatedRowIndex = reportTableBodyTarget.children.length + 1;
+
+            const newTrElementNode = document.createElement('tr');
+            newTrElementNode.innerHTML = `
+                <td>${nextCalculatedRowIndex}</td>
+                <td><input type="text" class="matrix-input-field" value="${chosenFlavorLabel}" readonly></td>
+                <td><input type="number" class="matrix-input-field" value="${stockQtyInputVal}" style="text-align: center;" oninput="recalculateRowReportValue(this, ${parsedUnitCostVal})"></td>
+                <td><input type="text" class="matrix-input-field" value="${parsedUnitCostVal.toFixed(2)}" style="text-align: right;" readonly></td>
+                <td><input type="text" class="matrix-input-field row-value-calc-field" value="${calculatedTotalRowValue.toFixed(2)}" style="text-align: right;" readonly></td>
+                <td style="text-align: center;"><button type="button" class="btn-row-action">Action ▾</button></td>
+            `;
+
+            reportTableBodyTarget.appendChild(newTrElementNode);
+            if (window.KreezbyActions) KreezbyActions.init();
+
+            // Flush inputs variables storage values buffers for next data sequence injection loops comfort
+            document.getElementById('builder-qty-stock').value = '';
+            flavorSkuSelector.value = '';
+
+            updateReportGrandTotalAssetSummary();
+        }
+
+        function removeReportLineRow(deleteButtonNode) {
+            const selectedTrRow = deleteButtonNode.closest('tr');
+            selectedTrRow.remove();
+
+            // Dynamic normalization row count line updates sequence indices numbers recalculator
+            const activeTrRows = document.querySelectorAll('#report-rows-injector-target tr');
+            activeTrRows.forEach((row, standardLoopIndex) => {
+                row.children[0].textContent = standardLoopIndex + 1;
+            });
+
+            updateReportGrandTotalAssetSummary();
+        }
+
+        function submitInventoryReportLogsDocument() {
+            const itemsMatrixLinesCount = document.getElementById('report-rows-injector-target').children.length;
+            if (itemsMatrixLinesCount === 0) {
+                alert('Verification blocked. Cannot create empty audit sheet statement logs. Please include at least one inventory entry check line.');
+                return;
+            }
+            alert('Inventory statement documentation successfully compiled, certified, and saved to file databases pipelines arrays!');
+            resetReportWorkspaceCanvas();
+        }
+
+        function resetReportWorkspaceCanvas() {
+            document.getElementById('inventory-report-form-root').reset();
+            document.getElementById('report-rows-injector-target').innerHTML = '';
+            updateReportGrandTotalAssetSummary();
+        }
+    </script>
+    <script src="../../js/staff-permissions.js?v=20260927names"></script>
+        <script src="../../js/user-dropdown-nav.js?v=20260927sheet"></script>
+        <script src="../../js/staff-sidebar.js?v=20260927sheet"></script>
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

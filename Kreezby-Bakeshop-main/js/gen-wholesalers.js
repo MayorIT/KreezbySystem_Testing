@@ -57,7 +57,7 @@ function pageHtml(w, key, slug, mod) {
     <title>Kreezby Bakeshop - ${mod.title} — ${w.name} (${w.area})</title>
     <link rel="stylesheet" href="../../css/pages/wholesaler/wholesaler-portal.css">
     <link rel="stylesheet" href="../../css/pages/wholesaler/wholesaler-modules.css">
-</head>
+${mod.file === 'wholesaler' ? '    <link rel="stylesheet" href="../../css/shared/kreezby-welcome-home.css">\n' : ''}</head>
 <body${templates.bodyPortalAttr(mod)}>
 
 <header class="top-navbar-node">

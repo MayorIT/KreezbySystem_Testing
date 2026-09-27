@@ -5,12 +5,76 @@
 (function () {
     'use strict';
 
+    var HOME_ICON_CSS = [
+        'a.home-badge:not(.expandable-nav-tab),a.top-nav-item.home-badge:not(.expandable-nav-tab){',
+        'font-size:0!important;line-height:0!important;color:transparent!important;',
+        'width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;',
+        'padding:0!important;overflow:hidden!important;display:inline-flex!important;',
+        'align-items:center!important;justify-content:center!important;',
+        'border-radius:999px!important;background-color:#ffca28!important;',
+        'background-repeat:no-repeat!important;background-position:center!important;background-size:18px 18px!important;',
+        'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%231f1f1f\' stroke-width=\'1.75\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'M3 10.5 12 3l9 7.5\'/%3E%3Cpath d=\'M5 9.5V20h14V9.5\'/%3E%3Cpath d=\'M9 20v-6h6v6\'/%3E%3C/svg%3E")!important;',
+        '}',
+        'a.expandable-nav-tab.is-icon-only,a.expandable-nav-tab.is-icon-only.is-expanded,a.expandable-nav-tab.is-icon-only.is-active{',
+        'gap:0!important;width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;',
+        'padding:0!important;justify-content:center!important;display:inline-flex!important;',
+        'background-image:none!important;',
+        '}',
+        'a.expandable-nav-tab.is-icon-only.is-active,a.expandable-nav-tab.is-icon-only.is-active.is-expanded{background-color:#ffca28!important;color:#1f1f1f!important;}',
+        'a.expandable-nav-tab.is-icon-only .expandable-nav-tab__label{display:none!important;max-width:0!important;opacity:0!important;}',
+        '@media (max-width:900px){',
+        '.top-navbar-node .expandable-nav-tabs{display:flex!important;}',
+        '.top-navbar-node .top-nav-links-right > a.home-badge,',
+        '.top-navbar-node .top-nav-links-right > a.is-icon-only,',
+        '.top-navbar-node .expandable-nav-tabs > a.home-badge,',
+        '.top-navbar-node .expandable-nav-tabs > a.is-icon-only{display:inline-flex!important;}',
+        '}'
+    ].join('');
+
+    function ensureHomeIconCss() {
+        var style = document.getElementById('kreezby-home-icon-style');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'kreezby-home-icon-style';
+            style.textContent = HOME_ICON_CSS;
+        }
+        (document.head || document.documentElement).appendChild(style);
+    }
+
+    function isHomeNavAnchor(link) {
+        if (!link) return false;
+        if (link.classList.contains('home-badge') || link.classList.contains('is-icon-only')) return true;
+        var label = (link.getAttribute('aria-label') || link.getAttribute('title') || link.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        return label === 'home';
+    }
+
+    function keepOnlyHomeNavTab() {
+        document.querySelectorAll('.top-nav-links-right').forEach(function (right) {
+            right.querySelectorAll('a.top-nav-item, a.expandable-nav-tab').forEach(function (link) {
+                if (link.closest('.user-dropdown, .user-dropdown-menu')) return;
+                if (isHomeNavAnchor(link)) return;
+                link.remove();
+            });
+        });
+    }
+
+    ensureHomeIconCss();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            keepOnlyHomeNavTab();
+            ensureHomeIconCss();
+        });
+    } else {
+        keepOnlyHomeNavTab();
+    }
+    window.addEventListener('load', ensureHomeIconCss);
+
     function moduleRoot() {
         var path = (window.location && window.location.pathname) ? window.location.pathname.replace(/\\/g, '/') : '';
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -40,7 +104,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -50,6 +114,9 @@
         }
         if (rootIdx < 0) return filename;
 
+        var rootName = parts[rootIdx].toLowerCase();
+        if (rootName === 'admin_names' || rootName === 'staff_names') return filename;
+
         var withinModule = parts.length - rootIdx - 1;
         var prefix = '';
         for (var d = 0; d < withinModule; d++) prefix += '../';
@@ -58,18 +125,19 @@
 
     function reportIssueHref() {
         var path = (window.location.pathname || '').toLowerCase();
-        if (path.indexOf('/staff/') !== -1) return moduleLocalHref('report_issue-staff.html');
+        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
         if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('report_issue-retailer.html');
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/wholesaler/') !== -1) return moduleRoot() + 'wholesaler/report_issue-wholesaler.html';
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
-        if (path.indexOf('/admin/') !== -1) return moduleLocalHref('report_issue-admin.html');
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('report_issue-admin.html');
         return moduleLocalHref('report_issue-admin.html');
     }
 
     function reportIssueMenuHtml() {
-        return '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' +
-            '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>';
+        var logout = '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>';
+        if (isHeadAdminPortalPage()) return logout;
+        return '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' + logout;
     }
 
     function inboxHref() {
@@ -86,6 +154,19 @@
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('inbox-admin.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('inbox-headadmin.html');
         return moduleLocalHref('inbox-admin.html');
+    }
+
+    function ensureDictionaryLoaded() {
+        if (window.KreezbyDictionary) {
+            try { window.KreezbyDictionary.apply(); } catch (e) { /* ignore */ }
+            return;
+        }
+        if (document.getElementById('kreezby-data-dictionary-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-data-dictionary-script';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20260927dict';
+        s.async = false;
+        document.head.appendChild(s);
     }
 
     function ensurePortalSeedLoaded() {
@@ -123,7 +204,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-navbar-slide-script';
-        s.src = jsBase() + 'navbar-slide.js?v=20260925sm';
+        s.src = jsBase() + 'navbar-slide.js?v=20260927sheet';
         s.defer = true;
         s.onload = function () {
             if (window.KreezbyNavbarSlide && typeof window.KreezbyNavbarSlide.init === 'function') {
@@ -176,7 +257,7 @@
             if (window.KreezbyNotificationPopoverLoaded || document.getElementById('kreezby-notification-popover-script')) return;
             var pop = document.createElement('script');
             pop.id = 'kreezby-notification-popover-script';
-            pop.src = base + 'notification-popover.js';
+            pop.src = base + 'notification-popover.js?v=20260927notif';
             pop.defer = true;
             document.head.appendChild(pop);
         }
@@ -208,7 +289,7 @@
 
     function ensureAdminPermissionsLoaded() {
         var path = window.location.pathname || '';
-        if (!/\/admin\//i.test(path) && !/\/head_admin\//i.test(path)) return;
+        if (!/\/admin\//i.test(path) && !/\/admin_names\//i.test(path) && !/\/head_admin\//i.test(path)) return;
         if (window.KreezbyAdminPermissions) {
             if (typeof window.KreezbyAdminPermissions.refreshAdminChrome === 'function') {
                 window.KreezbyAdminPermissions.refreshAdminChrome();
@@ -218,7 +299,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js';
+        s.src = jsBase() + 'admin-permissions.js?v=20260927recv';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -236,7 +317,8 @@
     }
 
     function isStaffPage() {
-        return /\/staff\//i.test(window.location.pathname || '');
+        var path = window.location.pathname || '';
+        return /\/staff\//i.test(path) || /\/staff_names\//i.test(path);
     }
 
     function isRetailerPage() {
@@ -244,7 +326,8 @@
     }
 
     function isAdminPage() {
-        return /\/admin\//i.test(window.location.pathname || '');
+        var path = window.location.pathname || '';
+        return /\/admin\//i.test(path) || /\/admin_names\//i.test(path);
     }
 
     function isHeadAdminPortalPage() {
@@ -267,7 +350,7 @@
         document.querySelectorAll('.top-navbar-node a, .kreezby-sidebar-nav-item, .dropdown-item').forEach(function (link) {
             var href = (link.getAttribute('href') || '').toLowerCase();
             var text = ((link.querySelector('.expandable-nav-tab__label') || link).textContent || '').toLowerCase();
-            if (href.indexOf('it_kreezby') >= 0 || text.indexOf('issue reports') >= 0) {
+            if (href.indexOf('it_kreezby') >= 0) {
                 link.remove();
             }
         });
@@ -281,14 +364,10 @@
 
         var desired = isHeadAdminPortalPage()
             ? [
-                { key: 'home', label: 'Home', href: moduleLocalHref('head_admin.html') },
-                { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-headadmin.html') },
-                { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-headadmin.html') }
+                { key: 'home', label: 'Home', href: moduleLocalHref('head_admin.html') }
             ]
             : [
-                { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') },
-                { key: 'maintenance', label: 'Maintenance', href: moduleLocalHref('maintenance-admin.html') },
-                { key: 'inbox', label: 'Inbox', href: moduleLocalHref('inbox-admin.html') }
+                { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') }
             ];
 
         function normalize(text) {
@@ -301,7 +380,7 @@
             var file = href.split('/').pop().split('?')[0];
 
             if (text.indexOf("what's new") >= 0 || text === 'control' || file === 'index.html') return 'whatsnew';
-            if (text.indexOf('inquiry') >= 0 || file === 'inquiries.html') return 'inquiry';
+            if (text.indexOf('inquiry') >= 0 || file === 'inquiries.html' || file === 'inquiries-headadmin.html') return 'inquiry';
             if (text === 'home' || file === 'admin.html' || file === 'head_admin.html') return 'home';
             if (text.indexOf('maintenance') >= 0 || file === 'maintenance-admin.html' || file === 'maintenance-headadmin.html') return 'maintenance';
             if (text.indexOf('issue report') >= 0 || href.indexOf('it_kreezby') >= 0) return 'issuereports';
@@ -318,7 +397,7 @@
         topLinks.forEach(function (link) {
             var key = keyForLink(link);
             var href = (link.getAttribute('href') || '').toLowerCase();
-            if (key === 'issuereports' || key === 'whatsnew' || key === 'inquiry' || href.indexOf('it_kreezby') >= 0) {
+            if (key === 'issuereports' || key === 'whatsnew' || key === 'inquiry' || key === 'maintenance' || key === 'inbox' || href.indexOf('it_kreezby') >= 0) {
                 link.remove();
                 return;
             }
@@ -364,11 +443,24 @@
         }
     }
 
+    function isWholesalerPage() {
+        return /\/wholesaler\//i.test(window.location.pathname || '');
+    }
+
+    function isPortalHeaderPage() {
+        return isAdminLikePage() || isStaffPage() || isRetailerPage() || isWholesalerPage();
+    }
+
     function ensureAdminNotificationPill() {
-        if (!isAdminLikePage()) return;
+        if (!isPortalHeaderPage()) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
-        if (!right) return;
+        if (!right || !right.querySelector('a.home-badge, a.is-icon-only, a.expandable-nav-tab')) return;
+
+        if (right.querySelector('.notification-popover-root')) {
+            right.querySelectorAll('.notification-pill').forEach(function (extra) { extra.remove(); });
+            return;
+        }
 
         var bell = right.querySelector('.notification-pill');
         if (!bell) {
@@ -377,12 +469,15 @@
             bell.className = 'notification-pill';
             bell.setAttribute('aria-label', 'Notifications');
             bell.textContent = '🔔';
-            right.appendChild(bell);
         }
+
+        var dropdown = right.querySelector('.user-dropdown');
+        if (dropdown) right.insertBefore(bell, dropdown);
+        else right.appendChild(bell);
     }
 
     function ensureAdminDropdownAfterNavTabs() {
-        if (!isAdminLikePage()) return;
+        if (!isPortalHeaderPage()) return;
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
@@ -617,6 +712,7 @@
 
     function bootSharedUi() {
         ensurePortalSeedLoaded();
+        ensureDictionaryLoaded();
         ensureActionButtonsLoaded();
         ensurePageTransitionLoaded();
         ensureNavbarSlideLoaded();
@@ -629,6 +725,8 @@
     }
 
     function init() {
+        ensureHomeIconCss();
+        keepOnlyHomeNavTab();
         ensureAdminTopNavLinks();
         stripIssueReportsChrome();
         ensureAdminNotificationPill();

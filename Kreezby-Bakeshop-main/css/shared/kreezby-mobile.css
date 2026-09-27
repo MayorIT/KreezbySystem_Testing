@@ -95,40 +95,76 @@ html {
     .top-navbar-node > .brand-logo-panel {
         flex: 1 1 auto;
         min-width: 0;
+        max-width: 34vw;
+        overflow: hidden;
         order: 1;
     }
 
     .top-navbar-node > .brand-logo-panel img {
         height: 32px;
         width: auto;
-        max-width: 88px;
+        max-width: 100%;
+        object-fit: contain;
+        object-position: left center;
         display: block;
     }
 
     .top-navbar-node > .top-nav-links-right {
-        flex: 0 0 auto;
+        flex: 0 1 auto;
         display: flex !important;
         align-items: center;
         justify-content: flex-end;
         flex-wrap: nowrap;
         gap: 6px;
-        min-width: 0;
+        margin-left: auto;
         order: 2;
+        position: relative;
+        z-index: 2;
     }
 
+    .top-navbar-node .notification-popover-root,
+    .top-navbar-node .notification-pill,
     .top-navbar-node .expandable-nav-tabs,
-    .top-navbar-node .top-nav-links-right > a.top-nav-item,
-    .top-navbar-node .top-nav-links-right > a.expandable-nav-tab {
+    .top-navbar-node .user-dropdown {
+        position: relative;
+        flex: 0 0 auto;
+    }
+
+    .top-navbar-node .top-nav-links-right > a.top-nav-item:not(.home-badge):not(.is-icon-only),
+    .top-navbar-node .top-nav-links-right > a.expandable-nav-tab:not(.home-badge):not(.is-icon-only) {
         display: none !important;
     }
 
-    .user-dropdown-pill {
-        max-width: 46vw;
-        padding-left: 10px;
-        padding-right: 10px;
+    .top-navbar-node .expandable-nav-tabs,
+    .top-navbar-node .top-nav-links-right > a.home-badge,
+    .top-navbar-node .top-nav-links-right > a.is-icon-only,
+    .top-navbar-node .expandable-nav-tabs > a.home-badge,
+    .top-navbar-node .expandable-nav-tabs > a.is-icon-only {
+        display: inline-flex !important;
+    }
+
+    .top-navbar-node .expandable-nav-tabs {
+        display: flex !important;
+    }
+
+    .user-dropdown-pill,
+    button.user-dropdown-pill {
+        min-width: 0 !important;
+        max-width: 28vw !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        font-size: 13px !important;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .top-navbar-node > .hamburger-toggle ~ .top-nav-links-right .hamburger-toggle {
+        display: none !important;
+    }
+
+    .top-nav-links-right:has(.notification-popover-root) > .notification-pill {
+        display: none !important;
     }
 
     .user-dropdown-menu {
@@ -476,16 +512,40 @@ html {
         min-height: 44px;
     }
 
-    .details-container-view {
-        padding: 14px !important;
-        overflow-x: auto !important;
+    .details-container-view,
+    .details-inspection-sheet {
+        padding: 16px 14px 18px !important;
+        overflow: visible !important;
         max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .details-header-meta-block > div {
+        border: 0 !important;
+        border-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .meta-data-line {
+        margin: 0 0 14px !important;
+        line-height: 1.45;
     }
 
     .meta-data-line strong {
         display: block !important;
         width: auto !important;
-        margin-bottom: 2px;
+        margin-bottom: 3px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #8d6e63;
+    }
+
+    .viewer-table-title {
+        margin: 18px 0 12px !important;
+    }
+
+    .details-dynamic-footer-status {
+        margin-top: 14px !important;
     }
 
     .notification-modal-box {
@@ -652,6 +712,270 @@ html {
     .cart-sidebar {
         width: min(100vw, 420px) !important;
         max-width: 100vw !important;
+    }
+
+    /* Food-chain phone shell: one row, stacked cards, no sideways page scroll */
+    .top-navbar-node > .hamburger-toggle {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.14) !important;
+    }
+
+    .kreezby-welcome,
+    .kreezby-welcome-copy {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .kreezby-welcome-photo,
+    .kreezby-welcome-photo img,
+    .kreezby-welcome img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 220px !important;
+        object-fit: cover;
+        border-radius: 18px;
+    }
+
+    .kreezby-welcome-copy h2 {
+        font-size: 28px !important;
+        line-height: 1.15 !important;
+    }
+
+    .permissions-switch {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 16px !important;
+    }
+
+    .permissions-switch button {
+        min-height: 44px;
+        font-size: 15px;
+    }
+
+    .settings-split-grid,
+    .roles-navigator-card,
+    .inbox-list-card,
+    .report-panel,
+    .report-body,
+    .report-header {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .role-selection-pill {
+        min-height: 44px;
+    }
+
+    .report-body,
+    .inbox-list-card,
+    .panel-data-card,
+    .card-body-padded,
+    .matrix-table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .matrix-table,
+    .data-display-table,
+    table.data-display-table {
+        width: max-content !important;
+        min-width: 100% !important;
+        max-width: none !important;
+    }
+
+    .panel-card-title-bar {
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+    }
+
+    .panel-card-title-bar h3 {
+        min-width: 0;
+        flex: 1 1 160px;
+    }
+
+    .po-order-tabs,
+    .bo-order-tabs {
+        flex-wrap: wrap !important;
+        overflow: visible !important;
+    }
+
+    .po-order-tabs .expanding-tab__label,
+    .bo-order-tabs .expanding-tab__label {
+        max-width: 11rem !important;
+        opacity: 1 !important;
+    }
+
+    .panel-data-card.po-tabbed-card,
+    .po-tabbed-card,
+    .po-tabbed-card .card-body-padded,
+    .po-table-scroll-wrap,
+    .po-tabbed-card .po-table-scroll-wrap {
+        overflow: visible !important;
+    }
+
+    .po-table-scroll-wrap table.data-display-table,
+    table.kreezby-phone-cards {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .po-table-scroll-wrap thead,
+    table.kreezby-phone-cards thead {
+        display: none !important;
+    }
+
+    .po-table-scroll-wrap tbody,
+    table.kreezby-phone-cards tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .po-table-scroll-wrap tr,
+    table.kreezby-phone-cards tr {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 10px;
+        padding: 10px 12px;
+        border: 1px solid #eadfce;
+        border-radius: 12px;
+        background: #fff;
+        box-sizing: border-box;
+    }
+
+    .po-table-scroll-wrap td,
+    table.kreezby-phone-cards td {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        width: auto !important;
+        max-width: 100% !important;
+        min-height: 0 !important;
+        padding: 4px 0 !important;
+        line-height: 1.4 !important;
+        border: 0 !important;
+        text-align: right !important;
+        white-space: normal !important;
+        box-sizing: border-box;
+    }
+
+    .po-table-scroll-wrap td::before,
+    table.kreezby-phone-cards td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        font-weight: 700;
+        color: #5d4037;
+        text-align: left;
+    }
+
+    .po-table-scroll-wrap td[data-label="Account"],
+    table.kreezby-phone-cards td[data-label="Account"],
+    table.kreezby-phone-cards td[data-label="Item Name"],
+    table.kreezby-phone-cards td[data-label*="Entity"],
+    table.kreezby-phone-cards td[data-label*="Customer"] {
+        display: block !important;
+        text-align: left !important;
+    }
+
+    .po-table-scroll-wrap td[data-label="Account"]::before,
+    table.kreezby-phone-cards td[data-label="Account"]::before,
+    table.kreezby-phone-cards td[data-label="Item Name"]::before,
+    table.kreezby-phone-cards td[data-label*="Entity"]::before,
+    table.kreezby-phone-cards td[data-label*="Customer"]::before {
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .po-table-scroll-wrap td[data-label="#"],
+    table.kreezby-phone-cards td[data-label="#"] {
+        display: none !important;
+    }
+
+    table.kreezby-phone-cards tfoot {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    table.kreezby-phone-cards tr.kreezby-phone-span,
+    table.kreezby-phone-cards tfoot tr {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        padding: 6px 2px !important;
+        margin: 0 !important;
+    }
+
+    table.kreezby-phone-cards tr.kreezby-phone-span td,
+    table.kreezby-phone-cards tfoot td {
+        display: block !important;
+        width: auto !important;
+        padding: 0 !important;
+        text-align: right !important;
+    }
+
+    table.kreezby-phone-cards tr.kreezby-phone-span td:first-child,
+    table.kreezby-phone-cards tfoot td:first-child {
+        text-align: left !important;
+    }
+
+    table.kreezby-phone-cards tr.kreezby-phone-span td::before,
+    table.kreezby-phone-cards tfoot td::before {
+        content: none !important;
+    }
+
+    .details-container-view,
+    .details-inspection-sheet,
+    .details-container-view .data-display-table,
+    .details-inspection-sheet .data-display-table,
+    .details-container-view table.kreezby-phone-cards,
+    .details-inspection-sheet table.kreezby-phone-cards,
+    .details-container-view table.kreezby-phone-cards tbody,
+    .details-inspection-sheet table.kreezby-phone-cards tbody,
+    .details-container-view table.kreezby-phone-cards tr,
+    .details-inspection-sheet table.kreezby-phone-cards tr {
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .details-container-view table.kreezby-phone-cards tbody tr:not(.kreezby-phone-span),
+    .details-inspection-sheet table.kreezby-phone-cards tbody tr:not(.kreezby-phone-span) {
+        padding: 12px 14px;
+        margin-bottom: 12px;
+    }
+
+    .details-container-view table.kreezby-phone-cards tbody td,
+    .details-inspection-sheet table.kreezby-phone-cards tbody td {
+        padding: 6px 0 !important;
+    }
+
+    .card-body-padded:has(table.kreezby-phone-cards),
+    .panel-data-card:has(table.kreezby-phone-cards),
+    .po-table-scroll-wrap:has(table.kreezby-phone-cards) {
+        overflow: visible !important;
+    }
+
+    .card-body-padded:has(table.kreezby-phone-cards) {
+        padding: 12px !important;
+    }
+
+    table.kreezby-phone-cards .dict-fields,
+    .po-table-scroll-wrap .dict-fields {
+        margin-top: 1px !important;
+        line-height: 1.2 !important;
     }
 }
 

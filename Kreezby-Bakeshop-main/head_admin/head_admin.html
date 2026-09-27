@@ -7,9 +7,10 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Head Admin Dashboard</title>
     <link rel="stylesheet" href="../css/pages/admin/admin.css">
-    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
 </head>
 <body>
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -18,8 +19,6 @@
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
         <div class="top-nav-links-right">
             <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
-            <a class="top-nav-item" href="maintenance-headadmin.html">Maintenance</a>
-            <a class="top-nav-item" href="inbox-headadmin.html">Inbox</a>
             <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
             <div class="user-dropdown">
                 <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
@@ -42,61 +41,17 @@
         <main class="workspace-view-canvas">
 
             <div id="admin-dashboard-root">
-                <div class="dashboard-split-layout">
-                    <div class="panel-data-card">
-                        <div class="panel-card-title-bar">
-                            <h3>Dashboard Overview</h3>
-                        </div>
-                        <div class="card-body-padded">
-                            <div class="dashboard-grid">
-                                <a class="stat-card" href="po-headadmin.html">
-                                    <div class="stat-title">PO Records</div>
-                                    <div class="stat-value">2</div>
-                                </a>
-                                <a class="stat-card blue-bar" href="receive-headadmin.html">
-                                    <div class="stat-title">Receiving Records</div>
-                                    <div class="stat-value">6</div>
-                                </a>
-                                <a class="stat-card" href="bo-headadmin.html">
-                                    <div class="stat-title">BO Records</div>
-                                    <div class="stat-value">4</div>
-                                </a>
-                                <a class="stat-card red-bar" href="return-headadmin.html">
-                                    <div class="stat-title">Return Records</div>
-                                    <div class="stat-value">3</div>
-                                </a>
-                                <a class="stat-card green-bar" href="saleslist-headadmin.html">
-                                    <div class="stat-title">Sales Records</div>
-                                    <div class="stat-value">4</div>
-                                </a>
-                                <a class="stat-card" href="order-tracking-headadmin.html">
-                                    <div class="stat-title">Order Tracking</div>
-                                    <div class="stat-value" data-order-tracking-count>0</div>
-                                </a>
-                                <a class="stat-card" href="stocks-headadmin.html">
-                                    <div class="stat-title">Stocks</div>
-                                    <div class="stat-value">13</div>
-                                </a>
-                                <a class="stat-card blue-bar" href="aiforecast-headadmin.html">
-                                    <div class="stat-title">AI Forecast</div>
-                                    <div class="stat-value">4</div>
-                                </a>
-                                <a class="stat-card" href="alert-headadmin.html">
-                                    <div class="stat-title">Alert</div>
-                                    <div class="stat-value">4</div>
-                                </a>
-                                <a class="stat-card red-bar" href="report_issue-headadmin.html">
-                                    <div class="stat-title">Report Issue</div>
-                                    <div class="stat-value">0</div>
-                                </a>
-                                <a class="stat-card has-stat-icon" data-stat-icon="inquiry" href="inquiries.html" data-turbo="false" data-turbo-frame="_top">
-                                    <div class="stat-title">Inquiry</div>
-                                    <div class="stat-value" data-inquiry-count>0</div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <section class="kreezby-welcome" aria-label="Welcome">
+            <figure class="kreezby-welcome-photo">
+                <img src="../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+            </figure>
+            <div class="kreezby-welcome-copy">
+                <p class="kreezby-welcome-kicker">The Crinkle Factory</p>
+                <h2>Welcome, Head Admin</h2>
+                <p class="kreezby-welcome-tagline">Making your life sweeter!</p>
+                <p>Your home is ready. Use the menu to open purchase orders, deliveries, sales, and alerts whenever you need them.</p>
+            </div>
+        </section>
             </div>
 
         </main>
@@ -108,10 +63,10 @@
     <script src="../js/kreezby-seed-portal-data.js?v=20260924c"></script>
     <script src="../js/kreezby-partner-inquiries.js"></script>
     <script src="../js/order-tracking.js"></script>
-    <script src="../js/user-dropdown-nav.js?v=20260925inquiry"></script>
+    <script src="../js/user-dropdown-nav.js?v=20260927sheet"></script>
     <script src="../js/admin-permissions.js"></script>
-    <script src="../js/admin-sidebar.js?v=20260925inquiry"></script>
-    <script src="../js/sidebar-toggle.js"></script>
+    <script src="../js/admin-sidebar.js?v=20260927sheet"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
     <script>
         (function () {
             var el = document.querySelector('[data-inquiry-count]');

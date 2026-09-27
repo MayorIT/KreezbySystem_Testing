@@ -353,7 +353,9 @@
                 '<tr data-order-id="' + escapeHtml(order.orderNumber) + '" class="' + selected.trim() + '">' +
                 '<td>' + escapeHtml(order.orderNumber) + '</td>' +
                 '<td>' + escapeHtml(order.poCode || '—') + '</td>' +
-                '<td>' + escapeHtml(customerName(order)) + '</td>' +
+                '<td>' + escapeHtml(customerName(order)) +
+                    (order.accountType ? '<br><small>' + escapeHtml(order.accountType) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + '</small>' : '') +
+                '</td>' +
                 '<td>' + formatDate(order.date) + '</td>' +
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
                     escapeHtml(order.status || 'Processing') + '</span></td>' +
@@ -385,7 +387,7 @@
 
         panel.innerHTML =
             '<h3 class="order-tracking-detail-title">' + escapeHtml(order.orderNumber) + '</h3>' +
-            '<p class="order-tracking-detail-sub">' + escapeHtml(customerName(order)) + ' · ' + formatDate(order.date) + '</p>' +
+            '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + '</p>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
                 : '') +

@@ -413,6 +413,25 @@
     return 'staff/staff-1.html';
   }
 
+  function areaForLogin(resolved) {
+    var href = String(resolved && resolved.redirectUrl || '').toLowerCase();
+    var name = String(resolved && resolved.userName || '').toLowerCase();
+    if (resolved && resolved.accountType === 'Wholesaler') {
+      if (href.indexOf('quezon') >= 0 || name.indexOf('metro') >= 0) return 'Quezon City';
+      if (href.indexOf('iloilo') >= 0 || name.indexOf('visayas') >= 0) return 'Iloilo City';
+    }
+    if (resolved && resolved.accountType === 'Retailer') {
+      var areaMatch = href.match(/retailer\/([a-z0-9]+)\//);
+      var labels = {
+        bauan: 'Bauan', batangas: 'Batangas', citimart: 'Citimart', lipa: 'Lipa',
+        lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas', tagaytay: 'Tagaytay'
+      };
+      if (areaMatch && labels[areaMatch[1]]) return labels[areaMatch[1]];
+      if (name.indexOf('batangas') >= 0) return 'Batangas';
+    }
+    return '';
+  }
+
   function loginRedirectForType(accountType, identity) {
     if (accountType === 'Head Administrator') return 'head_admin/head_admin.html';
     if (accountType === 'Administrator') return 'admin/admin.html';
@@ -533,6 +552,10 @@
             toast('Invalid password. Please try again.', 'warn');
             return;
           }
+          if (window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.isLoginBlocked(identity, resolved.userName)) {
+            toast('This account is deactivated. An admin or head admin can activate it.', 'warn');
+            return;
+          }
           if (window.KreezbyMaintenanceSettings) {
             KreezbyMaintenanceSettings.recordLogin(identity);
           }
@@ -540,7 +563,8 @@
             localStorage.setItem('kreezby_session', JSON.stringify({
               identity: resolved.identity,
               userName: resolved.userName,
-              accountType: resolved.accountType
+              accountType: resolved.accountType,
+              accountArea: areaForLogin(resolved)
             }));
             if (resolved.accountType === 'Administrator') {
               var nid = normalizeLoginKey(resolved.identity || resolved.userName);

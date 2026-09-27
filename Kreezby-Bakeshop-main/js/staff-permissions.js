@@ -285,7 +285,6 @@
         var staffId = getCurrentStaffId();
         var dashboardHref = getDashboardHref(staffId);
         var profile = getStaffProfile(staffId);
-        var allowed = getStaffTasks(staffId);
 
         document.querySelectorAll(
             'a.home-badge[href="staff.html"], a.home-badge[href*="staff-"], a[href="staff.html"].btn-secondary'
@@ -295,30 +294,13 @@
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (right) {
-            var inboxLink = right.querySelector('a[data-staff-inbox]');
-            if (allowed.indexOf('inbox') === -1) {
-                if (inboxLink) inboxLink.remove();
-            } else {
-                if (!inboxLink) {
-                    inboxLink = document.createElement('a');
-                    inboxLink.className = 'top-nav-item';
-                    inboxLink.setAttribute('data-staff-inbox', '1');
-                    inboxLink.setAttribute('data-turbo-frame', '_top');
-                    var home = right.querySelector('a.home-badge');
-                    if (home && home.nextSibling) {
-                        home.parentNode.insertBefore(inboxLink, home.nextSibling);
-                    } else {
-                        var anchor = right.querySelector('.notification-pill, .user-dropdown');
-                        right.insertBefore(inboxLink, anchor || null);
-                    }
+            right.querySelectorAll('a[data-staff-inbox], a.top-nav-item').forEach(function (link) {
+                var label = (link.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                var href = (link.getAttribute('href') || '').toLowerCase();
+                if (link.hasAttribute('data-staff-inbox') || label === 'inbox' || href.indexOf('inbox') !== -1) {
+                    link.remove();
                 }
-                inboxLink.href = getInboxHref(staffId);
-                inboxLink.textContent = 'Inbox';
-                var navWrap = right.querySelector('.expandable-nav-tabs');
-                if (navWrap && !navWrap.contains(inboxLink)) {
-                    navWrap.appendChild(inboxLink);
-                }
-            }
+            });
 
             if (!right.querySelector('.notification-pill') && !right.querySelector('.notification-popover-root')) {
                 var pill = document.createElement('button');
@@ -411,9 +393,9 @@
         if (!root) return null;
 
         var pills = root.querySelectorAll('.role-selection-pill');
-        var matrixBody = root.querySelector('#permissions-matrix-body');
-        var titleEl = root.querySelector('#permissions-panel-title');
-        var saveBtn = root.querySelector('#btn-save-permissions');
+        var matrixBody = root.querySelector('#staff-permissions-matrix-body, #permissions-matrix-body');
+        var titleEl = root.querySelector('#staff-permissions-panel-title, #permissions-panel-title');
+        var saveBtn = root.querySelector('#staff-btn-save-permissions, #btn-save-permissions');
         if (!matrixBody || !titleEl || !saveBtn) return null;
 
         var selectedStaffPermissionsId = 'staff-1';

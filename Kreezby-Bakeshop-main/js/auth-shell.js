@@ -122,6 +122,11 @@
             panels.forEach(function (panel) {
                 panel.classList.toggle('is-active', panel.getAttribute('data-auth-panel') === name);
             });
+            var slide = root.querySelector('[data-auth-slide]');
+            if (slide) {
+                slide.classList.toggle('is-signup', name === 'signup');
+                sizeAuthSlide(slide);
+            }
             if (updateHash !== false) {
                 try {
                     history.replaceState(null, '', name === 'signup' ? 'log_in.html?tab=signup' : 'log_in.html');
@@ -146,6 +151,22 @@
         var initial = params.get('tab') || hash || 'login';
         if (initial !== 'signup') initial = 'login';
         activate(initial, false);
+
+        var slide = root.querySelector('[data-auth-slide]');
+        if (slide && window.ResizeObserver) {
+            var observer = new ResizeObserver(function () { sizeAuthSlide(slide); });
+            slide.querySelectorAll('.auth-panel').forEach(function (panel) { observer.observe(panel); });
+        }
+        window.addEventListener('resize', function () { sizeAuthSlide(slide); });
+        window.addEventListener('load', function () { sizeAuthSlide(slide); });
+    }
+
+    function sizeAuthSlide(slide) {
+        if (!slide) return;
+        var active = slide.querySelector('.auth-panel.is-active');
+        if (!active) return;
+        var next = active.scrollHeight + 'px';
+        if (slide.style.height !== next) slide.style.height = next;
     }
 
     function wireSignupPasswordConfirm() {

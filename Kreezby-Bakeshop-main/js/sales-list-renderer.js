@@ -817,6 +817,11 @@
   function renderCustomerSales() {
     var tbody = document.getElementById('customer-sales-tbody');
     if (!tbody) return;
+    var note = tbody.closest('.card-body-padded');
+    if (note) {
+      var blurb = note.querySelector('p');
+      if (blurb) blurb.textContent = 'Orders from account logins. Each row shows the customer type, who ordered, and the area.';
+    }
     if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
       window.KreezbyPortalSeed.apply();
     }
@@ -842,7 +847,9 @@
         '<td>' + (i + 1) + '</td>' +
         '<td>' + esc(dateLabel) + '</td>' +
         '<td>' + esc(order.receiptNumber || order.orderNumber) + '</td>' +
-        '<td><strong>' + esc(ship.fullName || order.poEntity || 'Customer') + '</strong><br><small>' + esc(names) + '</small></td>' +
+        '<td><strong>' + esc(order.accountName || ship.fullName || order.poEntity || 'Customer') + '</strong>' +
+        '<br><small>' + esc(order.accountType || 'Regular Customer') + (order.accountArea ? ' · ' + order.accountArea : '') + '</small>' +
+        '<br><small>' + esc(names) + '</small></td>' +
         '<td>' + esc(order.total || '') + '</td>' +
         '<td><span class="status-pill-badge ' + statusClass + '">' + esc(order.status || 'Processing') + '</span></td>' +
         '</tr>';

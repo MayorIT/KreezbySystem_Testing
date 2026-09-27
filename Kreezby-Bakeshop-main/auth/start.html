@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Welcome</title>
-    <link rel="stylesheet" href="../css/pages/start.css?v=20260925restore">
+    <link rel="stylesheet" href="../css/pages/start.css?v=20260927text">
     <link rel="stylesheet" href="../css/shared/origin-button.css">
-    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260927row">
 </head>
 <body>
 
     <div class="splash-card">
 
+        <div class="splash-slide" id="splashSlide">
+        <div class="splash-slide__track">
         <div class="main-choice-container" id="mainChoiceScreen">
             <div class="brand-logo-large">Kreezby</div>
             <div class="screen-choice-prompt">How are you visiting us today?</div>
@@ -36,25 +38,44 @@
                 <button type="button" class="origin-btn origin-btn--ghost" onclick="backToMainChoice()">← Back</button>
             </div>
         </div>
+        </div>
+        </div>
 
     </div>
 
     <script>
+        function sizeSplash() {
+            const slide = document.getElementById('splashSlide');
+            const panel = slide.classList.contains('is-guest')
+                ? document.getElementById('guestChoiceScreen')
+                : document.getElementById('mainChoiceScreen');
+            slide.style.height = panel.scrollHeight + 'px';
+        }
+
         function showGuestOptions() {
             const mainChoice = document.getElementById('mainChoiceScreen');
             const guestChoice = document.getElementById('guestChoiceScreen');
+            const slide = document.getElementById('splashSlide');
 
+            slide.classList.add('is-guest');
             mainChoice.classList.add('hidden');
             guestChoice.classList.add('active');
+            sizeSplash();
         }
 
         function backToMainChoice() {
             const mainChoice = document.getElementById('mainChoiceScreen');
             const guestChoice = document.getElementById('guestChoiceScreen');
+            const slide = document.getElementById('splashSlide');
 
+            slide.classList.remove('is-guest');
             mainChoice.classList.remove('hidden');
             guestChoice.classList.remove('active');
+            sizeSplash();
         }
+
+        window.addEventListener('load', sizeSplash);
+        window.addEventListener('resize', sizeSplash);
     </script>
     <script src="../js/origin-button.js"></script>
 

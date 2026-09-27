@@ -119,7 +119,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
         var depth = 0;
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth'];
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i]) >= 0) {
                 depth = parts.length - i - 1;

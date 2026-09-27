@@ -9,7 +9,7 @@
     window.KreezbyExpandingTabsLoaded = true;
 
     var CSS_ID = 'kreezby-expanding-tabs-style';
-    var CSS_HREF = 'css/shared/expanding-tabs.css?v=20260925sm';
+    var CSS_HREF = 'css/shared/expanding-tabs.css?v=20260927text';
 
     var LIST_SELECTOR = [
         '.auth-tabs',
@@ -69,7 +69,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -99,13 +99,13 @@
             var css = document.createElement('link');
             css.id = 'kreezby-mobile-style';
             css.rel = 'stylesheet';
-            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
             document.head.appendChild(css);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260925phone9';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260927sheet';
         s.defer = true;
         document.head.appendChild(s);
     }

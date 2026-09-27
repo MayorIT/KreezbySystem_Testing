@@ -15,7 +15,7 @@
         var parts = path.split('/').filter(Boolean);
         if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
 
-        var roots = ['admin', 'staff', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
+        var roots = ['admin', 'staff', 'admin_names', 'staff_names', 'retailer', 'customer', 'wholesaler', 'auth', 'it_kreezby', 'head_admin'];
         var rootIdx = -1;
         for (var i = parts.length - 1; i >= 0; i--) {
             if (roots.indexOf(parts[i].toLowerCase()) >= 0) {
@@ -50,7 +50,7 @@
     }
 
     function ensureCss() {
-        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
         var link = document.getElementById('kreezby-mobile-style');
         if (!link) {
             link = document.createElement('link');
@@ -76,10 +76,13 @@
     }
 
     function placeHamburger() {
-        var btn = hamburger();
         var header = document.querySelector('.top-navbar-node');
-        var right = header && header.querySelector('.top-nav-links-right');
-        if (!btn || !header) return;
+        if (!header) return;
+        var buttons = header.querySelectorAll('.hamburger-toggle');
+        var btn = buttons[0];
+        for (var i = 1; i < buttons.length; i++) buttons[i].remove();
+        var right = header.querySelector('.top-nav-links-right');
+        if (!btn) return;
 
         if (isPhone()) {
             if (header.firstElementChild !== btn) header.insertBefore(btn, header.firstChild);
@@ -213,21 +216,76 @@
         });
     }
 
+    function labelWideTables() {
+        var tables = document.querySelectorAll('table.data-display-table, table.matrix-table');
+        Array.prototype.forEach.call(tables, function (table) {
+            if (!isPhone()) {
+                table.classList.remove('kreezby-phone-cards');
+                return;
+            }
+            var head = table.querySelector('thead');
+            if (!head) return;
+            if (head.querySelector('[colspan], [rowspan]')) return;
+            var headRow = head.querySelector('tr:last-child');
+            if (!headRow) return;
+            var labels = [];
+            Array.prototype.forEach.call(headRow.children, function (cell) {
+                labels.push((cell.textContent || '').replace(/\s+/g, ' ').trim());
+            });
+            if (labels.length < 4) return;
+            table.classList.add('kreezby-phone-cards');
+            Array.prototype.forEach.call(table.querySelectorAll('tbody tr, tfoot tr'), function (row) {
+                var cells = row.children;
+                if (!cells.length) return;
+                var spanned = false;
+                for (var c = 0; c < cells.length; c++) {
+                    if (cells[c].colSpan > 1) spanned = true;
+                }
+                if (spanned) {
+                    row.classList.add('kreezby-phone-span');
+                    return;
+                }
+                for (var i = 0; i < cells.length && i < labels.length; i++) {
+                    if (cells[i].tagName !== 'TD') continue;
+                    if (!cells[i].getAttribute('data-label')) cells[i].setAttribute('data-label', labels[i]);
+                }
+            });
+        });
+    }
+
+    function watchWideTables() {
+        if (document.documentElement.dataset.kreezbyPhoneTables === '1') return;
+        document.documentElement.dataset.kreezbyPhoneTables = '1';
+        var timer;
+        function schedule() {
+            clearTimeout(timer);
+            timer = setTimeout(labelWideTables, 40);
+        }
+        if (window.MutationObserver && document.body) {
+            new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+        }
+        document.addEventListener('kreezby:page-load', schedule);
+        window.addEventListener('resize', schedule);
+    }
+
     function applyMode() {
         placeHamburger();
         if (!isPhone()) {
             closeNav();
             syncChromeIntoSidebar();
+            labelWideTables();
             return;
         }
         ensureScrim();
         syncHamburgerPressed();
         syncChromeIntoSidebar();
+        labelWideTables();
     }
 
     function boot() {
         ensureViewport();
         ensureCss();
+        watchWideTables();
         applyMode();
     }
 

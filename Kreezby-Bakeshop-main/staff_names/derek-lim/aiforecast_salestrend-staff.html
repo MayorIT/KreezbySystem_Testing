@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - AI Sales Trend Analysis (Staff)</title>
+    <link rel="stylesheet" href="../../css/pages/staff/aiforecast_salestrend-staff.css">
+
+    <link rel="stylesheet" href="../../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="staff-1.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            <div class="panel-data-card">
+                <div class="panel-card-title-bar">
+                    <h3>AI Assisted Demand Analysis</h3>
+                </div>
+                <div class="card-body-padded">
+                    <div class="ai-filter-pills" id="ai-filter-pills">
+                        <a class="pill" href="aiforecast_salesanalysis-staff.html" data-key="sales-analysis">Sales Analysis</a>
+                        <a class="pill" href="aiforecast_salestrend-staff.html" data-key="sales-trend">Sales Trend</a>
+                        <a class="pill" href="aiforecast_inventoryreport-staff.html" data-key="inventory-report">Inventory Report</a>
+                        <a class="pill" href="aiforecast_deliveryoverview-staff.html" data-key="delivery-overview">Delivery Overview</a>
+                    </div>
+                    <div class="forecast-sub-tabs-row">
+                        <a href="aiforecast-staff.html" class="forecast-tab-link">AI Forecast Outlook</a>
+                        <a href="aiforecast_salestrend-staff.html" class="forecast-tab-link active-tab">Sales Trend Analysis Matrix</a>
+                    </div>
+
+                    <div class="analysis-filter-bar">
+                        <div class="filter-select-group">
+                            <span>Analysis Period Interval:</span>
+                            <select id="analysis-time-filter" onchange="triggerAnalysisFilterUpdate()">
+                                <option value="current">Current Month Analysis (May 2026)</option>
+                                <option value="quarter">Q2 2026 Comparative Summary</option>
+                                <option value="year">Full Year 2025 Audit Log</option>
+                            </select>
+                        </div>
+                        <div class="filter-select-group">
+                            <span>Fulfillment Stream:</span>
+                            <select>
+                                <option value="all">Combined (Retailer & Walk-in Customers)</option>
+                                <option value="retailer">Retailer Channels Only</option>
+                                <option value="customer">Direct Walk-In Orders Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 15px; font-weight: 700; margin-bottom: 15px; color: var(--brand-brown); text-transform: uppercase;">
+                        ■ Target Flavor Sales Metrics & Prediction Yield Variations
+                    </div>
+
+                    <div class="analysis-split-columns-layout">
+                        <!-- Table content adapted for staff -->
+                        <table class="data-display-table" style="margin-top: 0;">
+                            <thead>
+                                <tr style="background-color: var(--ai-indigo); color: white;">
+                                    <th>Flavor Description</th>
+                                    <th>Category Unit</th>
+                                    <th style="text-align: right;">Actual Volume Sold</th>
+                                    <th style="text-align: right;">AI Target Projected</th>
+                                    <th style="text-align: right;">Variance Drift</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Choco Butternut</strong></td>
+                                    <td>Jar (250g)</td>
+                                    <td style="text-align: right; font-weight: 600;">1,420</td>
+                                    <td style="text-align: right; color:#555;">1,350</td>
+                                    <td style="text-align: right; font-weight: 700; color: #2e7d32;">+5.1%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script src="../../js/aiforecast-pills.js"></script>
+    <script src="../../js/staff-permissions.js?v=20260927names"></script>
+        <script src="../../js/user-dropdown-nav.js?v=20260927sheet"></script>
+        <script src="../../js/staff-sidebar.js?v=20260927sheet"></script>
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

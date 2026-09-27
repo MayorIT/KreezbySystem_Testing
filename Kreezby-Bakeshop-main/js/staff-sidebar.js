@@ -57,22 +57,26 @@
 
     var CRITICAL_CSS = [
         'aside.dark-sidebar-panel{overflow:hidden!important;flex-shrink:0!important}',
-        'aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){width:256px!important;min-width:256px!important;max-width:256px!important;background:#424242!important}',
-        'body.sidebar-collapsed aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){width:64px!important;min-width:64px!important;max-width:64px!important}',
+        'aside.dark-sidebar-panel:not(.kreezby-sidebar-ready){position:fixed!important;transform:translateX(-110%)!important;width:256px!important;min-width:0!important;max-width:256px!important;background:#424242!important}',
+        'body aside.dark-sidebar-panel.kreezby-sidebar-ready,body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,60px)!important;height:calc(100vh - var(--kreezby-admin-header-height,60px))!important;width:256px!important;min-width:256px!important;max-width:256px!important;transform:translateX(-110%)!important;pointer-events:none!important;z-index:1400!important}',
+        'body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-sidebar-ready,body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}',
         'aside.dark-sidebar-panel svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important}',
         'turbo-frame#kreezby-main-content,.kreezby-turbo-main{display:flex!important;flex:1 1 0%!important;flex-grow:1!important;min-width:0!important;max-width:none!important;width:auto!important}',
         'turbo-frame#kreezby-main-content main.workspace-view-canvas,.kreezby-turbo-main main.workspace-view-canvas{flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important}',
-        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}'
+        '@media (max-width:900px){aside.dark-sidebar-panel{position:fixed!important;left:0!important;top:var(--kreezby-admin-header-height,56px)!important;height:calc(100dvh - var(--kreezby-admin-header-height,56px))!important;width:min(280px,86vw)!important;min-width:min(280px,86vw)!important;max-width:min(280px,86vw)!important;transform:translateX(-110%)!important;z-index:1400!important}body.kreezby-nav-open aside.dark-sidebar-panel{transform:translateX(0)!important;pointer-events:auto!important;visibility:visible!important}}',
+        '.kreezby-sidebar-nav-item.is-active,.kreezby-sidebar-nav-item.is-active:hover{background:#ffca28!important;color:#1f1f1f!important;box-shadow:inset 4px 0 0 #e6a800!important}.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-label{color:#1f1f1f!important;font-weight:800!important}.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg,.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg *{stroke:#1f1f1f!important}'
     ].join('');
 
     function isStaffDarkSidebarPage() {
         if (!document.querySelector('aside.dark-sidebar-panel')) return false;
         var path = (location.pathname || '').replace(/\\/g, '/');
         var file = currentFilename();
-        return /\/staff\//i.test(path) || /-staff\.html$/i.test(file) || /^staff-\d+\.html$/i.test(file);
+        return /\/staff\//i.test(path) || /\/staff_names\//i.test(path) || /-staff\.html$/i.test(file) || /^staff-\d+\.html$/i.test(file);
     }
 
     function moduleRoot() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (/\/staff_names\/[^/]+\//i.test(path)) return '../../';
         return '../';
     }
 
@@ -107,14 +111,14 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20260925phone9';
+            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
             document.head.appendChild(mobile);
         }
         if (document.getElementById('kreezby-staff-icon-sidebar-style')) return;
         var link = document.createElement('link');
         link.id = 'kreezby-staff-icon-sidebar-style';
         link.rel = 'stylesheet';
-        link.href = moduleRoot() + 'css/shared/admin-icon-sidebar.css';
+        link.href = moduleRoot() + 'css/shared/admin-icon-sidebar.css?v=20260927active';
         document.head.appendChild(link);
     }
 
@@ -155,7 +159,16 @@
 
         taskOrder.forEach(function (taskKey) {
             if (allowed.indexOf(taskKey) === -1) return;
-            if (taskKey === 'inbox' || taskKey === 'inbox_retailer') return;
+            if (taskKey === 'inbox_retailer') return;
+            if (taskKey === 'inbox') {
+                items.push({
+                    key: 'inbox',
+                    label: 'Inbox',
+                    href: api.getInboxHref(staffId),
+                    icon: 'mail'
+                });
+                return;
+            }
             var task = api.TASKS[taskKey];
             if (!task) return;
             if (taskKey !== 'dashboard' && !task.page) return;
@@ -175,8 +188,8 @@
 
     function activeKeyFor(filename) {
         if (!filename || /^staff-\d+\.html$/.test(filename)) return 'dashboard';
-        if (filename === 'inbox-staff.html') return '';
-        if (/^inbox-staff-\d+\.html$/.test(filename)) return '';
+        if (filename === 'inbox-staff.html') return 'inbox';
+        if (/^inbox-staff-\d+\.html$/.test(filename)) return 'inbox';
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
         if (filename.indexOf('aiforecast') === 0) return 'aiforecast';
         if (filename === 'po-staff.html') return 'po';
@@ -195,7 +208,7 @@
     function navItem(item, activeKey) {
         var active = item.key === activeKey;
         return (
-            '<a href="' + item.href + '"' + turboAttrs(item.href) +
+            '<a href="' + item.href + '"' + turboAttrs(item.href) + (active ? ' aria-current="page"' : '') +
             ' class="kreezby-sidebar-nav-item' + (active ? ' is-active' : '') + '">' +
                 '<span class="kreezby-sidebar-nav-icon" aria-hidden="true">' + (ICONS[item.icon] || ICONS.home) + '</span>' +
                 '<span class="kreezby-sidebar-nav-label">' + item.label + '</span>' +
