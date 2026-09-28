@@ -374,12 +374,34 @@
     ensureNotificationModal();
     var modal = document.getElementById('notification-modal-overlay');
     var body = document.getElementById('notification-modal-body');
-    body.innerHTML = STATIC_NOTIFICATIONS.map(function (n) {
+    var notices = STATIC_NOTIFICATIONS.slice();
+    var path = (location.pathname || '').toLowerCase();
+    var partner = path.indexOf('/retailer/') >= 0 || path.indexOf('/wholesaler/') >= 0 || path.indexOf('/customer/') >= 0;
+    if (partner && window.KreezbyDictionary && typeof KreezbyDictionary.alerts === 'function') {
+      KreezbyDictionary.alerts().forEach(function (alert) {
+        if (alert.alert_type !== 'price_change' && alert.alert_type !== 'new_product') return;
+        notices.unshift({
+          type: alert.alert_type,
+          title: alert.alert_type === 'new_product' ? 'New product' : 'Price change',
+          message: alert.message,
+          time: 'Today',
+          status: alert.status === 'pending' ? 'unread' : 'read'
+        });
+      });
+    }
+    body.innerHTML = notices.map(function (n) {
       var icon = n.type === 'order' ? 'Cart' : 'Box';
-      return '<div class="notification-item ' + (n.status === 'unread' ? 'unread' : '') + '">' +
+      var dest = n.type === 'order' ? moduleFile('order-tracking') : moduleFile('stocks');
+      if (n.type === 'price_change' || n.type === 'new_product') dest = moduleFile('alert');
+      return '<button type="button" class="notification-item ' + (n.status === 'unread' ? 'unread' : '') + '" data-open="' + dest + '" style="display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;">' +
         '<div class="notification-content"><div class="notification-title">' + icon + ' ' + n.title + '</div>' +
-        '<div class="notification-message">' + n.message + '</div><div class="notification-time">' + n.time + '</div></div></div>';
+        '<div class="notification-message">' + n.message + '</div><div class="notification-time">' + n.time + '</div></div></button>';
     }).join('');
+    body.querySelectorAll('[data-open]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        location.href = button.getAttribute('data-open');
+      });
+    });
     modal.classList.add('active');
   }
 
@@ -453,31 +475,107 @@
     return 'customer/customer_guest.html';
   }
 
-  function handleStockAction(actionType, itemName) {
+  function moduleFile(prefix) {
+    var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+    var suffix = '-admin.html';
+    if (path.indexOf('/head_admin/') >= 0) suffix = '-headadmin.html';
+    else if (path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) suffix = '-staff.html';
+    return prefix + suffix;
+  }
+
+  function archivedStock() {
+    try { return JSON.parse(localStorage.getItem('kreezby_archived_stock') || '[]'); } catch (e) { return []; }
+  }
+
+  function showStockHistory(name, rows) {
+    var host = document.getElementById('kreezby-fr-stock-tools') || document.querySelector('.workspace-view-canvas, .page-shell') || document.body;
+    var panel = document.getElementById('kreezby-stock-history');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'kreezby-stock-history';
+      panel.style.cssText = 'margin:0 0 14px;padding:12px 14px;border:1px solid #eadfce;border-radius:12px;background:#fff;';
+      host.insertBefore(panel, host.firstChild);
+    }
+    var lines = (rows || []).map(function (row) {
+      return '<li>' + row.type + ' · ' + row.quantity + ' · ' + row.note + '</li>';
+    }).join('');
+    panel.innerHTML = '<strong>History for ' + name + '</strong><ul style="margin:8px 0 0;padding-left:18px;">' + (lines || '<li>No movements yet.</li>') + '</ul>';
+    panel.tabIndex = -1;
+    panel.focus();
+  }
+
+  function handleStockAction(actionType, itemName, row) {
     var name = itemName || 'Item';
+    var dict = window.KreezbyDictionary;
     if (actionType === 'archive') {
       if (!confirm('Archive "' + name + '" from active tracking?')) return;
-      toast('"' + name + '" archived successfully.', 'success');
+      var archived = archivedStock();
+      if (archived.indexOf(name) < 0) archived.push(name);
+      try { localStorage.setItem('kreezby_archived_stock', JSON.stringify(archived)); } catch (e) { /* ignore */ }
+      var stockRow = row || (window.event && window.event.target && window.event.target.closest && window.event.target.closest('tr'));
+      if (stockRow) stockRow.hidden = true;
+      toast('"' + name + '" is archived and hidden from the active list.', 'success');
       return;
     }
     if (actionType === 'adjust') {
-      var qty = prompt('New stock quantity for "' + name + '":', '100');
+      if (dict && dict.materialByName && dict.materialByName(name)) {
+        var kind = prompt('Movement for "' + name + '": stock-in, stock-out, or usage', 'stock-in');
+        if (kind === null) return;
+        var moveQty = prompt('Quantity', '1');
+        if (moveQty === null) return;
+        var nextMaterial = dict.recordMaterialMovement(name, kind, moveQty);
+        if (nextMaterial == null) {
+          toast('Use stock-in, stock-out, or usage with a quantity above zero.', 'warn');
+          return;
+        }
+        toast(name + ' now has ' + nextMaterial + ' on hand.', 'success');
+        return;
+      }
+      var current = dict && dict.productStock ? dict.productStock(name) : 100;
+      var qty = prompt('New finished-goods quantity for "' + name + '":', String(current == null ? 0 : current));
       if (qty === null) return;
+      if (dict && dict.setProductStock) {
+        var next = dict.setProductStock(name, qty);
+        toast('Stock for "' + name + '" is now ' + next + '.', 'success');
+        return;
+      }
       toast('Stock for "' + name + '" updated to ' + qty + ' successfully.', 'success');
       return;
     }
-    toast('History loaded for "' + name + '" successfully.', 'info');
+    if (dict && dict.historyFor) {
+      showStockHistory(name, dict.historyFor(name));
+      return;
+    }
+    showStockHistory(name, []);
   }
   window.handleStockAction = handleStockAction;
 
-  function handleAlertTrigger(action, context) {
+  function handleAlertTrigger(action, context, row) {
+    var alertRow = row || (window.event && window.event.target && window.event.target.closest && window.event.target.closest('tr'));
     if (action === 'dismiss') {
-      toast('Alert dismissed.', 'info');
+      if (!confirm('Dismiss the alert for "' + (context || 'this item') + '"?')) return;
+      if (alertRow) alertRow.hidden = true;
+      toast('Alert for "' + (context || 'this item') + '" is dismissed.', 'success');
       return;
     }
-    postAction('Alert: ' + action, { context: context }, 'Action "' + action + '" completed for ' + context).then(function (res) {
-      toast(res.message || 'Done.', 'success');
-    });
+    if (action === 'restock') {
+      toast('Opening purchase orders so you can restock "' + (context || 'this item') + '".', 'success');
+      location.href = moduleFile('po');
+      return;
+    }
+    if (action === 'modify') {
+      var next = prompt('New reorder threshold for "' + (context || 'this item') + '":', '100');
+      if (next === null) return;
+      toast('Threshold for "' + (context || 'this item') + '" is now ' + next + '.', 'success');
+      return;
+    }
+    if (action === 'view') {
+      var text = String(context || '');
+      var dest = /return|ret-/i.test(text) ? 'return' : /back|bo-|po-000/i.test(text) ? 'bo' : 'alert';
+      location.href = moduleFile(dest);
+      return;
+    }
+    toast('Opened "' + (context || 'alert') + '".', 'info');
   }
   window.handleAlertTrigger = handleAlertTrigger;
 

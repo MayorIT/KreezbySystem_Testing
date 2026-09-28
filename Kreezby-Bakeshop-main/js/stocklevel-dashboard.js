@@ -854,15 +854,48 @@
 
         var reportHref = root.getAttribute('data-report-href');
         if (!reportHref) {
-            reportHref = /\/head_admin\//i.test(location.pathname || '')
+            var pathName = location.pathname || '';
+            reportHref = /\/head_admin\//i.test(pathName)
                 ? 'stocks-headadmin.html'
-                : 'stocks-admin.html';
+                : (/\/staff\//i.test(pathName) || /\/staff_names\//i.test(pathName) ? 'stocks-staff.html' : 'stocks-admin.html');
         }
 
         var fn = RENDERERS[view] || renderUnits;
 
         fn(root, reportHref);
+        linkStockRows(root, reportHref);
 
+    }
+
+    function linkStockRows(root, href) {
+        root.querySelectorAll('table.sl-compact-table').forEach(function (table) {
+            var head = table.querySelector('thead tr');
+            if (head && !head.querySelector('.sl-open-head')) {
+                var th = document.createElement('th');
+                th.className = 'sl-open-head';
+                th.textContent = 'Open';
+                head.appendChild(th);
+            }
+            table.querySelectorAll('tbody tr').forEach(function (tr) {
+                if (tr.querySelector('.sl-open-stock')) return;
+                var td = document.createElement('td');
+                var link = document.createElement('a');
+                link.className = 'sl-open-stock';
+                link.href = href;
+                link.textContent = 'Open stock';
+                td.appendChild(link);
+                tr.appendChild(td);
+                tr.tabIndex = 0;
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', function (event) {
+                    if (event.target.closest('a, button, input')) return;
+                    location.href = href;
+                });
+                tr.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') location.href = href;
+                });
+            });
+        });
     }
 
 

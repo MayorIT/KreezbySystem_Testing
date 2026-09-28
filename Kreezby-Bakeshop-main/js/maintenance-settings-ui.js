@@ -15,7 +15,13 @@
         + '<button type="button" class="settings-sub-tab" data-sub="retailers">Retailers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="wholesalers">Wholesalers</button>'
         + '</div>'
-        + '<div id="settings-sub-content"></div>';
+        + '<div id="settings-sub-content"></div>'
+        + '<div id="kreezby-backup-tools" style="margin-top:18px;">'
+        + '<h4 class="settings-section-title">Backup and restore</h4>'
+        + '<p class="settings-section-desc">Download inventory, sales, orders, accounts, and issue reports, or put a saved backup back.</p>'
+        + '<button type="button" id="kreezby-backup-download">Download backup</button> '
+        + '<label style="margin-left:8px;">Restore backup <input type="file" id="kreezby-backup-file" accept="application/json,.json"></label>'
+        + '<p id="kreezby-backup-note" style="margin-top:8px;"></p></div>';
 
     function badgeClass(type) {
         var t = (type || '').toLowerCase();
@@ -113,6 +119,38 @@
         });
 
         renderSettingsSub('login-history');
+        var download = document.getElementById('kreezby-backup-download');
+        var file = document.getElementById('kreezby-backup-file');
+        var note = document.getElementById('kreezby-backup-note');
+        if (download && window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.exportBackup) {
+            download.onclick = function () {
+                var blob = new Blob([JSON.stringify(KreezbyMaintenanceSettings.exportBackup(), null, 2)], { type: 'application/json' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'kreezby-backup.json';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                if (note) note.textContent = 'Backup downloaded. Keep the file somewhere safe.';
+            };
+        }
+        if (file && window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.restoreBackup) {
+            file.onchange = function () {
+                var chosen = file.files && file.files[0];
+                if (!chosen) return;
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var result;
+                    try {
+                        result = KreezbyMaintenanceSettings.restoreBackup(JSON.parse(String(reader.result || '{}')));
+                    } catch (e) {
+                        result = { ok: false, message: 'That file could not be read.' };
+                    }
+                    if (note) note.textContent = result.message;
+                    if (result.ok) window.location.reload();
+                };
+                reader.readAsText(chosen);
+            };
+        }
     }
 
     function refreshMetrics() {
@@ -282,8 +320,17 @@
         var note = manage
             ? 'Select a row or use Activate / Deactivate. A deactivated account stays on file and cannot log in.'
             : 'You can open every account. Only an admin or head admin can activate or deactivate it.';
+        var createForm = manage
+            ? '<form id="maint-create-account" data-kreezby-native="1" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 14px;">'
+                + '<label>Name<br><input name="name" required></label>'
+                + (spec.bucket === 'staff' || spec.bucket === 'admins'
+                    ? '<label>Username<br><input name="username" required></label><label>Role<br><input name="role" placeholder="Job title"></label>'
+                    : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>')
+                + '<button type="submit">Add account</button></form>'
+            : '';
         root.innerHTML = ''
             + '<div class="maint-account-detail" id="maint-account-detail"><p>Select an account to review it.</p></div>'
+            + createForm
             + '<div class="datatable-controls-bar"><div>' + esc(spec.title) + '</div></div>'
             + '<p class="settings-section-desc">' + note + '</p>'
             + '<table class="data-display-table"><thead><tr style="background-color:#5d4037;color:#fff;">'
@@ -353,6 +400,24 @@
         var root = document.getElementById('maintenance-grid-workspace-root');
         if (root && root.dataset.kreezbyAccountClicks !== '1') {
             root.dataset.kreezbyAccountClicks = '1';
+            root.addEventListener('submit', function (ev) {
+                var form = ev.target.closest('#maint-create-account');
+                if (!form || !window.KreezbyMaintenanceSettings || !KreezbyMaintenanceSettings.createAccount) return;
+                ev.preventDefault();
+                var result = KreezbyMaintenanceSettings.createAccount(currentDirectory && DIRECTORY[currentDirectory] ? DIRECTORY[currentDirectory].bucket : '', {
+                    name: form.elements.name && form.elements.name.value,
+                    username: form.elements.username && form.elements.username.value,
+                    role: form.elements.role && form.elements.role.value,
+                    email: form.elements.email && form.elements.email.value,
+                    contact: form.elements.contact && form.elements.contact.value
+                });
+                if (result.ok) {
+                    refreshMetrics();
+                    renderDirectory(currentDirectory);
+                }
+                var box = document.getElementById('maint-account-detail');
+                if (box) box.innerHTML = '<p>' + esc(result.message) + '</p>';
+            });
             root.addEventListener('click', function (ev) {
                 var toggle = ev.target.closest('[data-account-toggle]');
                 if (toggle) {

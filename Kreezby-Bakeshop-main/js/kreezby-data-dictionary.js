@@ -53,10 +53,65 @@
     }
 
     function productById(id) {
-        for (var i = 0; i < PRODUCTS.length; i++) {
-            if (PRODUCTS[i].product_id === id) return PRODUCTS[i];
+        var products = mergedProducts();
+        for (var i = 0; i < products.length; i++) {
+            if (products[i].product_id === id) return products[i];
         }
         return null;
+    }
+
+    function savedState() {
+        return readJson(STORE_KEY, {});
+    }
+
+    function writeState(saved) {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); } catch (e) { /* ignore */ }
+    }
+
+    function productStockMap() {
+        var saved = savedState().product_stock || {};
+        var map = {};
+        PROCUREMENT.forEach(function (row) {
+            map[row.product_id] = saved[row.product_id] != null ? Number(saved[row.product_id]) : row.current_stock;
+        });
+        return map;
+    }
+
+    function materialStockMap() {
+        var saved = savedState().material_stock || {};
+        var map = {};
+        RAW_MATERIALS.forEach(function (row) {
+            map[row.material_id] = saved[row.material_id] != null ? Number(saved[row.material_id]) : row.current_stock;
+        });
+        return map;
+    }
+
+    function mergedProducts() {
+        var edits = savedState().product_edits || {};
+        var extra = savedState().products_extra || [];
+        return PRODUCTS.map(function (product) {
+            return Object.assign({}, product, edits[product.product_id] || {});
+        }).concat(extra);
+    }
+
+    function materialByName(name) {
+        var text = String(name || '').toLowerCase();
+        for (var i = 0; i < RAW_MATERIALS.length; i++) {
+            if (RAW_MATERIALS[i].name.toLowerCase() === text) return RAW_MATERIALS[i];
+        }
+        return null;
+    }
+
+    function liveProcurement() {
+        var stock = productStockMap();
+        return PROCUREMENT.map(function (row) {
+            return {
+                product_id: row.product_id,
+                product_name: row.product_name,
+                current_stock: stock[row.product_id],
+                recommended_quantity: row.recommended_quantity
+            };
+        });
     }
 
     function readJson(key, fallback) {
@@ -167,11 +222,24 @@
         return rows;
     }
 
+    var BASE_MOVEMENTS = [
+        { type: 'stock-in', reference_id: 'RM-FLR-01', quantity: 25, note: 'Flour delivery received' },
+        { type: 'stock-out', reference_id: 'CRK-CHO-P', quantity: 160, note: 'Finished goods sold on 2026-09-26' },
+        { type: 'usage', reference_id: 'RM-COC-01', quantity: 4, note: 'Cocoa used in production' },
+        { type: 'adjustment', reference_id: 'RM-BUT-01', quantity: -2, note: 'Butter count corrected after inventory check' }
+    ];
+
+    function inventoryTransactions() {
+        return BASE_MOVEMENTS.concat(savedState().inventory_transactions_extra || []);
+    }
+
     function snapshot() {
         var sales = salesTransactions();
+        var previous = savedState();
+        var materialStock = materialStockMap();
         var data = {
             users: users(),
-            products: PRODUCTS.map(function (product) {
+            products: mergedProducts().map(function (product) {
                 return {
                     product_id: product.product_id,
                     product_name: product.product_name,
@@ -181,18 +249,21 @@
                     expiry_threshold_days: product.expiry_threshold_days
                 };
             }),
-            raw_materials: RAW_MATERIALS,
-            inventory_transactions: [
-                { type: 'stock-in', reference_id: 'RM-FLR-01', quantity: 25, note: 'Flour delivery received' },
-                { type: 'stock-out', reference_id: 'CRK-CHO-P', quantity: 160, note: 'Finished goods sold on 2026-09-26' },
-                { type: 'usage', reference_id: 'RM-COC-01', quantity: 4, note: 'Cocoa used in production' },
-                { type: 'adjustment', reference_id: 'RM-BUT-01', quantity: -2, note: 'Butter count corrected after inventory check' }
-            ],
+            raw_materials: RAW_MATERIALS.map(function (item) {
+                return {
+                    material_id: item.material_id,
+                    name: item.name,
+                    current_stock: materialStock[item.material_id],
+                    expiration_date: item.expiration_date,
+                    expiry_threshold_days: item.expiry_threshold_days
+                };
+            }),
+            inventory_transactions: inventoryTransactions(),
             sales_transactions: sales,
             orders: orders(),
             forecasts: forecasts(),
             alerts: alerts(),
-            procurement_recommendations: PROCUREMENT.map(function (row) {
+            procurement_recommendations: liveProcurement().map(function (row) {
                 var shortage = row.current_stock - row.recommended_quantity;
                 return {
                     product_id: row.product_id,
@@ -210,24 +281,122 @@
                 };
             })
         };
-        data.sales_transactions_extra = readJson(STORE_KEY, {}).sales_transactions_extra || [];
-        try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+        data.sales_transactions_extra = previous.sales_transactions_extra || [];
+        data.inventory_transactions_extra = previous.inventory_transactions_extra || [];
+        data.product_stock = productStockMap();
+        data.material_stock = materialStock;
+        data.product_edits = previous.product_edits || {};
+        data.products_extra = previous.products_extra || [];
+        writeState(data);
         return data;
     }
 
     function recordSale(productName, quantity, salesDate) {
         var id = productId(productName);
-        if (!id) return;
-        var saved = readJson(STORE_KEY, {});
+        if (!id) return null;
+        var qty = Number(quantity) || 0;
+        var saved = savedState();
         var extra = saved.sales_transactions_extra || [];
         extra.push({
             sales_date: salesDate || FORECAST_DATE,
             product_id: id,
-            quantity_sold: Number(quantity) || 0
+            quantity_sold: qty
         });
         saved.sales_transactions_extra = extra;
-        try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); } catch (e) { /* ignore */ }
+        var stock = productStockMap();
+        stock[id] = Math.max(0, (Number(stock[id]) || 0) - qty);
+        saved.product_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: 'stock-out',
+            reference_id: id,
+            quantity: qty,
+            note: 'Finished goods sold on ' + (salesDate || FORECAST_DATE)
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
         snapshot();
+        paintStockCells();
+        return stock[id];
+    }
+
+    function setProductStock(productName, quantity) {
+        var id = productId(productName);
+        if (!id) return null;
+        var saved = savedState();
+        var stock = productStockMap();
+        var next = Math.max(0, Number(quantity) || 0);
+        var previous = Number(stock[id]) || 0;
+        stock[id] = next;
+        saved.product_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: 'adjustment',
+            reference_id: id,
+            quantity: next - previous,
+            note: 'Finished goods count set to ' + next
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        snapshot();
+        paintStockCells();
+        return next;
+    }
+
+    function recordMaterialMovement(materialName, movementType, quantity) {
+        var material = materialByName(materialName);
+        if (!material) return null;
+        var kind = String(movementType || '').toLowerCase();
+        if (kind !== 'stock-in' && kind !== 'stock-out' && kind !== 'usage') return null;
+        var qty = Math.abs(Number(quantity) || 0);
+        if (!qty) return null;
+        var saved = savedState();
+        var stock = materialStockMap();
+        var current = Number(stock[material.material_id]) || 0;
+        stock[material.material_id] = kind === 'stock-in' ? current + qty : Math.max(0, current - qty);
+        saved.material_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: kind,
+            reference_id: material.material_id,
+            quantity: qty,
+            note: material.name + ' ' + kind.replace('-', ' ')
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        snapshot();
+        paintStockCells();
+        return stock[material.material_id];
+    }
+
+    function saveProductFields(productName, fields) {
+        var id = productId(productName);
+        if (!id) return null;
+        var saved = savedState();
+        var edits = saved.product_edits || {};
+        var current = edits[id] || {};
+        ['batch_number', 'production_date', 'expiration_date'].forEach(function (key) {
+            if (fields && fields[key]) current[key] = String(fields[key]);
+        });
+        edits[id] = current;
+        saved.product_edits = edits;
+        writeState(saved);
+        if (fields && fields.current_stock != null && fields.current_stock !== '') {
+            setProductStock(productName, fields.current_stock);
+        } else {
+            snapshot();
+        }
+        return productById(id);
+    }
+
+    function historyFor(name) {
+        var id = productId(name);
+        var material = materialByName(name);
+        var ref = id || (material && material.material_id) || '';
+        if (!ref) return [];
+        return inventoryTransactions().filter(function (row) {
+            return row.reference_id === ref;
+        });
     }
 
     function esc(value) {
@@ -244,8 +413,8 @@
             var nameCell = null;
             var name = '';
             for (var i = 0; i < cells.length; i++) {
-                var text = (cells[i].textContent || '').trim();
-                if (productId(text) || RAW_MATERIALS.some(function (item) { return item.name === text; })) {
+                var text = cellLabel(cells[i]);
+                if (productId(text) || materialByName(text)) {
                     nameCell = cells[i];
                     name = text;
                     break;
@@ -253,13 +422,10 @@
             }
             if (!nameCell) return;
             var product = null;
-            PRODUCTS.forEach(function (item) {
+            mergedProducts().forEach(function (item) {
                 if (item.product_name === name) product = item;
             });
-            var material = null;
-            RAW_MATERIALS.forEach(function (item) {
-                if (item.name === name) material = item;
-            });
+            var material = materialByName(name);
             var html = '';
             if (product) {
                 html = 'Batch ' + esc(product.batch_number) +
@@ -309,6 +475,21 @@
                 if (body.textContent.indexOf(alert.alert_type) >= 0 && body.textContent.indexOf(alert.reference_id) >= 0) return;
                 var row = document.createElement('tr');
                 row.innerHTML = '<td>' + (body.rows.length + 1) + '</td><td>' + esc(FORECAST_DATE) + '</td><td><strong>' + esc(alert.reference_id) + '</strong></td><td>' + esc(alert.message) + '<div class="dict-alert" style="font-size:12px;color:#5d4037;margin-top:4px;">' + esc(alert.alert_type) + ' · ' + esc(alert.target_role) + ' · ' + esc(alert.reference_id) + ' · ' + esc(alert.status) + '</div></td><td style="text-align:center;">' + esc(alert.status) + '</td><td></td>';
+                var actionCell = row.cells[row.cells.length - 1];
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = alert.status === 'resolved' ? 'Resolved' : 'Acknowledge';
+                button.style.cssText = 'border:0;border-radius:999px;padding:6px 10px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;';
+                button.addEventListener('click', function () {
+                    var saved = savedState();
+                    var statuses = saved.alert_status || {};
+                    statuses[alert.alert_type + ':' + alert.reference_id] = 'acknowledged';
+                    saved.alert_status = statuses;
+                    writeState(saved);
+                    if (row.cells[4]) row.cells[4].textContent = 'acknowledged';
+                    button.textContent = 'Acknowledged';
+                });
+                if (actionCell) actionCell.appendChild(button);
                 body.appendChild(row);
             });
         });
@@ -358,11 +539,11 @@
                     return row.product_id === forecast.product_id && SALES_DATES.indexOf(row.sales_date) >= 0;
                 }).map(function (row) { return row.quantity_sold; }).join(', ');
                 var rec = null;
-                PROCUREMENT.forEach(function (item) {
+                liveProcurement().forEach(function (item) {
                     if (item.product_id === forecast.product_id) rec = item;
                 });
                 var shortage = rec && rec.current_stock < rec.recommended_quantity
-                    ? ' Reorder ' + (rec.recommended_quantity - rec.current_stock) + ' (stock ' + rec.current_stock + ', recommended ' + rec.recommended_quantity + ').'
+                    ? ' <a href="' + stocksPageHref() + '">Reorder ' + (rec.recommended_quantity - rec.current_stock) + '</a> (stock ' + rec.current_stock + ', recommended ' + rec.recommended_quantity + ').'
                     : '';
                 return '<div><strong>' + esc(forecast.product_name) + '</strong> (' + esc(forecast.product_id) + '): sales ' + esc(qty) + ' → forecast_value ' + esc(forecast.forecast_value) + ' on ' + esc(forecast.forecast_date) + '.' + esc(shortage) + '</div>';
             }).join('');
@@ -389,12 +570,179 @@
         });
     }
 
+    function cellLabel(cell) {
+        var clone = cell.cloneNode(true);
+        clone.querySelectorAll('.dict-fields, .dict-alert, .dict-forecast, .dict-sale').forEach(function (node) {
+            node.remove();
+        });
+        return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function paintStockCells() {
+        var products = productStockMap();
+        var materials = materialStockMap();
+        document.querySelectorAll('tr.stock-row').forEach(function (row) {
+            var count = row.querySelector('.inventory-count-text');
+            if (!count) return;
+            var cells = row.querySelectorAll('td');
+            var name = '';
+            for (var i = 0; i < cells.length; i++) {
+                var text = cellLabel(cells[i]);
+                if (productId(text) || materialByName(text)) {
+                    name = text;
+                    break;
+                }
+            }
+            var id = productId(name);
+            if (id && products[id] != null) count.textContent = String(products[id]);
+            var material = materialByName(name);
+            if (material && materials[material.material_id] != null) count.textContent = String(materials[material.material_id]);
+        });
+    }
+
+    function stocksPageHref() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        if (path.indexOf('/head_admin/') >= 0) return 'stocks-headadmin.html';
+        if (path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) return 'stocks-staff.html';
+        return 'stocks-admin.html';
+    }
+
+    function hideArchivedStock() {
+        var archived = [];
+        try { archived = JSON.parse(localStorage.getItem('kreezby_archived_stock') || '[]'); } catch (e) { archived = []; }
+        if (!archived.length) return;
+        document.querySelectorAll('tr.stock-row').forEach(function (row) {
+            var cells = row.querySelectorAll('td');
+            for (var i = 0; i < cells.length; i++) {
+                if (archived.indexOf(cellLabel(cells[i])) >= 0) row.hidden = true;
+            }
+        });
+    }
+
+    function canEditInventory() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return path.indexOf('/admin/') >= 0 || path.indexOf('/admin_names/') >= 0
+            || path.indexOf('/head_admin/') >= 0 || path.indexOf('/staff/') >= 0
+            || path.indexOf('/staff_names/') >= 0;
+    }
+
+    function mountStockTools() {
+        if (!canEditInventory() || document.getElementById('kreezby-fr-stock-tools')) return;
+        var table = document.getElementById('stocks-table-body');
+        if (!table) return;
+        var host = table.closest('.card-body-padded, .card-body, .workspace-view-canvas') || table.parentNode;
+        var box = document.createElement('div');
+        box.id = 'kreezby-fr-stock-tools';
+        box.style.cssText = 'margin:0 0 16px;padding:14px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;';
+        var productOptions = mergedProducts().map(function (product) {
+            return '<option value="' + esc(product.product_name) + '">' + esc(product.product_name) + '</option>';
+        }).join('');
+        var materialOptions = RAW_MATERIALS.map(function (item) {
+            return '<option value="' + esc(item.name) + '">' + esc(item.name) + '</option>';
+        }).join('');
+        box.innerHTML = '<strong>Product and raw material records</strong>'
+            + '<p style="margin:6px 0 12px;color:#5d4037;">Edit a finished product, or record raw-material stock-in, stock-out, and usage. Sales deduct finished-goods stock automatically.</p>'
+            + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:10px;">'
+            + '<label>Product<br><select id="fr-product">' + productOptions + '</select></label>'
+            + '<label>Batch<br><input id="fr-batch" type="text"></label>'
+            + '<label>Produced<br><input id="fr-produced" type="date"></label>'
+            + '<label>Expires<br><input id="fr-expires" type="date"></label>'
+            + '<label>Stock<br><input id="fr-stock" type="number" min="0" style="width:90px;"></label>'
+            + '<button type="button" id="fr-save-product">Save product</button>'
+            + '</div>'
+            + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
+            + '<label>Raw material<br><select id="fr-material">' + materialOptions + '</select></label>'
+            + '<label>Movement<br><select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select></label>'
+            + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
+            + '<button type="button" id="fr-save-move">Record movement</button>'
+            + '</div>'
+            + '<p id="fr-stock-note" style="margin:10px 0 0;"></p>';
+        host.insertBefore(box, host.firstChild);
+
+        function fillProduct() {
+            var name = document.getElementById('fr-product').value;
+            var product = null;
+            mergedProducts().forEach(function (item) {
+                if (item.product_name === name) product = item;
+            });
+            if (!product) return;
+            document.getElementById('fr-batch').value = product.batch_number || '';
+            document.getElementById('fr-produced').value = product.production_date || '';
+            document.getElementById('fr-expires').value = product.expiration_date || '';
+            var stock = productStockMap()[product.product_id];
+            document.getElementById('fr-stock').value = stock == null ? '' : String(stock);
+        }
+        document.getElementById('fr-product').addEventListener('change', fillProduct);
+        document.getElementById('fr-save-product').addEventListener('click', function () {
+            var name = document.getElementById('fr-product').value;
+            saveProductFields(name, {
+                batch_number: document.getElementById('fr-batch').value,
+                production_date: document.getElementById('fr-produced').value,
+                expiration_date: document.getElementById('fr-expires').value,
+                current_stock: document.getElementById('fr-stock').value
+            });
+            document.querySelectorAll('.dict-fields').forEach(function (node) { node.remove(); });
+            decorateStocks();
+            document.getElementById('fr-stock-note').textContent = name + ' was saved. Stock on the table now matches this record.';
+        });
+        document.getElementById('fr-save-move').addEventListener('click', function () {
+            var name = document.getElementById('fr-material').value;
+            var next = recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value);
+            document.getElementById('fr-stock-note').textContent = next == null
+                ? 'Enter a quantity greater than zero.'
+                : name + ' now has ' + next + ' on hand.';
+        });
+        fillProduct();
+    }
+
+    function seedPartnerAlerts() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        var partner = path.indexOf('/customer/') >= 0 || path.indexOf('/retailer/') >= 0 || path.indexOf('/wholesaler/') >= 0;
+        if (!partner) return;
+        var notes = alerts().filter(function (alert) {
+            return alert.alert_type === 'price_change' || alert.alert_type === 'new_product';
+        });
+        if (window.KreezbyNotifications && typeof window.KreezbyNotifications.getAll === 'function') {
+            var existing = window.KreezbyNotifications.getAll();
+            notes.forEach(function (alert) {
+                var found = existing.some(function (item) { return item.id === 'dict-' + alert.alert_type; });
+                if (found || typeof window.KreezbyNotifications.push !== 'function') return;
+                window.KreezbyNotifications.push({
+                    id: 'dict-' + alert.alert_type,
+                    title: alert.alert_type === 'new_product' ? 'New product' : 'Price change',
+                    description: alert.message,
+                    source: alert.alert_type,
+                    read: alert.status !== 'pending'
+                });
+            });
+            return;
+        }
+        var list = readJson('kreezbyNotifications', []);
+        notes.forEach(function (alert) {
+            var id = 'dict-' + alert.alert_type;
+            if (list.some(function (item) { return item.id === id; })) return;
+            list.unshift({
+                id: id,
+                title: alert.alert_type === 'new_product' ? 'New product' : 'Price change',
+                description: alert.message,
+                timestamp: new Date().toISOString(),
+                read: alert.status !== 'pending',
+                source: alert.alert_type
+            });
+        });
+        try { localStorage.setItem('kreezbyNotifications', JSON.stringify(list)); } catch (e) { /* ignore */ }
+    }
+
     function apply() {
         snapshot();
         decorateStocks();
+        paintStockCells();
+        hideArchivedStock();
         decorateAlerts();
         decorateForecasts();
         decorateSaleCards();
+        mountStockTools();
+        seedPartnerAlerts();
     }
 
     window.KreezbyDictionary = {
@@ -402,6 +750,16 @@
         productId: productId,
         productById: productById,
         recordSale: recordSale,
+        setProductStock: setProductStock,
+        recordMaterialMovement: recordMaterialMovement,
+        saveProductFields: saveProductFields,
+        historyFor: historyFor,
+        productStock: function (name) {
+            var id = productId(name);
+            return id ? productStockMap()[id] : null;
+        },
+        materialByName: materialByName,
+        alerts: alerts,
         forecasts: forecasts,
         salesTransactions: salesTransactions
     };

@@ -361,47 +361,31 @@
     return false;
   }
 
-  function runStockAction(action, label) {
-    if (action === 'archive') {
-      if (!confirm('Archive "' + label + '" from active tracking?')) return;
-      toast('"' + label + '" archived successfully.', 'success');
+  function runStockAction(action, label, row) {
+    if (typeof window.handleStockAction === 'function') {
+      window.handleStockAction(action, label, row);
       return;
     }
-    if (action === 'adjust') {
-      var qty = prompt('New stock quantity for "' + label + '":', '100');
-      if (qty === null) return;
-      toast('Stock for "' + label + '" updated to ' + qty + ' successfully.', 'success');
-      return;
-    }
-    toast('History for "' + label + '" loaded successfully.', 'info');
+    toast('Opened "' + label + '".', 'info');
   }
 
-  function runAlertAction(action, label) {
-    if (action === 'dismiss') {
-      if (!confirm('Dismiss alert for "' + label + '"?')) return;
-      toast('Alert for "' + label + '" dismissed successfully.', 'success');
+  function runAlertAction(action, label, row) {
+    if (typeof window.handleAlertTrigger === 'function') {
+      window.handleAlertTrigger(action, label, row);
       return;
     }
-    if (action === 'restock') {
-      toast('Restock P.O. for "' + label + '" created successfully.', 'success');
-      var poLink = document.querySelector('a[href*="po-"]');
-      if (poLink && poLink.getAttribute('href')) {
-        setTimeout(function () { location.href = poLink.getAttribute('href'); }, 400);
-      }
-      return;
-    }
-    toast('"' + action + '" completed for "' + label + '" successfully.', 'success');
+    toast('Opened "' + label + '".', 'info');
   }
 
   function runRowAction(module, action, label, row) {
     closeAllMenus();
 
     if (module === 'stocks') {
-      runStockAction(action, label);
+      runStockAction(action, label, row);
       return;
     }
     if (module === 'alert') {
-      runAlertAction(action, label);
+      runAlertAction(action, label, row);
       return;
     }
 

@@ -101,9 +101,9 @@
                 (row.notes ? '<p>' + escapeHtml(row.notes) + '</p>' : '') +
                 '<p>Received ' + escapeHtml(KreezbyIssueReports.formatReceived(row.submittedAt)) + '</p>' +
                 '<div class="form-actions">' +
-                    '<button type="button" data-set-status="New">New</button>' +
-                    '<button type="button" data-set-status="In Progress">In Progress</button>' +
-                    '<button type="button" data-set-status="Resolved">Resolved</button>' +
+                    '<button type="button" data-set-status="New" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;">New</button>' +
+                    '<button type="button" data-set-status="In Progress" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#ef6c00;color:#fff;font-weight:700;cursor:pointer;">In Progress</button>' +
+                    '<button type="button" data-set-status="Resolved" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#2e7d32;color:#fff;font-weight:700;cursor:pointer;">Resolved</button>' +
                 '</div>';
             detail.querySelectorAll('[data-set-status]').forEach(function (button) {
                 button.addEventListener('click', function () {
@@ -120,7 +120,7 @@
                 return !statusFilter || row.status === statusFilter;
             });
             tbody.innerHTML = visible.map(function (row) {
-                return '<tr data-id="' + escapeHtml(row.id) + '"' + (row.id === selectedId ? ' class="is-selected"' : '') + '>' +
+                return '<tr tabindex="0" data-id="' + escapeHtml(row.id) + '"' + (row.id === selectedId ? ' class="is-selected"' : '') + ' style="cursor:pointer;">' +
                     '<td>' + escapeHtml(row.id) + '</td>' +
                     '<td>' + escapeHtml(row.issueType) + '</td>' +
                     '<td>' + escapeHtml(row.submittedBy) + '</td>' +
@@ -136,9 +136,13 @@
             if (selectedId && !selected) selectedId = '';
             renderDetail(selected);
             tbody.querySelectorAll('tr').forEach(function (tr) {
-                tr.addEventListener('click', function () {
+                function choose() {
                     selectedId = tr.getAttribute('data-id') || '';
                     render();
+                }
+                tr.addEventListener('click', choose);
+                tr.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') choose();
                 });
             });
         }

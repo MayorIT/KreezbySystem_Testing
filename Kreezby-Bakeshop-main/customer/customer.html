@@ -980,6 +980,12 @@
 
             initAccountSettings();
             initFavoritesPanel();
+
+            const openPanel = new URLSearchParams(window.location.search).get('open');
+            if (openPanel === 'favorites') openModal('favorites-modal');
+            else if (openPanel === 'orders') openModal('orders-tracker-modal');
+            else if (openPanel === 'profile') openModal('profile-settings-modal');
+            else if (openPanel === 'cart') toggleCartSidebar();
         });
 
         function switchModalSubTab(elementNode, displayPanelId) {

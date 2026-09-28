@@ -608,6 +608,14 @@ function placeOrder() {
 
     localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
 
+    if (window.KreezbyDictionary && typeof KreezbyDictionary.recordSale === 'function') {
+        Object.keys(cartData).forEach(function (key) {
+            var item = cartData[key];
+            if (!item || !item.name) return;
+            KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10));
+        });
+    }
+
     try {
         const note = {
             id: 'n-order-' + orderNumber,

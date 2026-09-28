@@ -285,6 +285,64 @@
         return n;
     }
 
+    function createAccount(bucket, fields) {
+        var users = getUsers();
+        if (!users[bucket]) return { ok: false, message: 'That account group is not available.' };
+        var name = String((fields && fields.name) || '').trim();
+        if (!name) return { ok: false, message: 'Name is required.' };
+        var record = {
+            id: bucket.slice(0, 4) + '-' + Date.now(),
+            name: name,
+            role: String((fields && fields.role) || dictionaryRole(bucket)),
+            active: true
+        };
+        if (bucket === 'staff' || bucket === 'admins') {
+            record.username = String((fields && fields.username) || '').trim().toLowerCase().replace(/\s+/g, '_');
+            if (!record.username) return { ok: false, message: 'Username is required.' };
+        } else {
+            record.email = String((fields && fields.email) || '').trim();
+            record.contact = String((fields && fields.contact) || '').trim();
+            record.phone = record.contact;
+            record.area = String((fields && fields.area) || '').trim();
+            if (!record.email) return { ok: false, message: 'Email is required.' };
+        }
+        users[bucket].push(record);
+        saveUsers(withDictionaryFields(users));
+        return { ok: true, message: name + ' was added and can be activated or deactivated from this list.', id: record.id };
+    }
+
+    var BACKUP_KEYS = [
+        'kreezby_data_dictionary_v1',
+        'kreezbyOrders',
+        'kreezby-po-orders-v1',
+        'kreezby-issue-reports-v1',
+        'kreezby_maintenance_users',
+        'kreezby_admin_permissions',
+        'kreezby_staff_permissions',
+        'kreezby_login_history',
+        'kreezbyNotifications'
+    ];
+
+    function exportBackup() {
+        var payload = { exportedAt: new Date().toISOString(), records: {} };
+        BACKUP_KEYS.forEach(function (key) {
+            var raw = localStorage.getItem(key);
+            if (raw != null) payload.records[key] = raw;
+        });
+        return payload;
+    }
+
+    function restoreBackup(payload) {
+        if (!payload || !payload.records || typeof payload.records !== 'object') {
+            return { ok: false, message: 'That file is not a Kreezby backup.' };
+        }
+        Object.keys(payload.records).forEach(function (key) {
+            if (BACKUP_KEYS.indexOf(key) === -1) return;
+            localStorage.setItem(key, payload.records[key]);
+        });
+        return { ok: true, message: 'Backup restored. Reload the page to see the saved records.' };
+    }
+
     function getAccountCounts() {
         var users = getUsers();
         return {
@@ -309,6 +367,9 @@
         isLoginBlocked: isLoginBlocked,
         setAccountStatus: setAccountStatus,
         isHeadAdminAccount: isHeadAdminAccount,
+        createAccount: createAccount,
+        exportBackup: exportBackup,
+        restoreBackup: restoreBackup,
         DEFAULT_USERS: DEFAULT_USERS
     };
 })();

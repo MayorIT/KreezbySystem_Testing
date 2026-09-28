@@ -164,7 +164,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20260927dict';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20260927req';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -700,7 +700,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20260924e';
+        s.src = jsBase() + 'action-buttons.js?v=20260927click';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {
