@@ -5,6 +5,10 @@
     flex-shrink: 0;
 }
 
+.top-nav-links-right:has(.notification-popover-root) > .notification-pill {
+    display: none !important;
+}
+
 .notification-popover-btn {
     position: relative;
     display: inline-flex;

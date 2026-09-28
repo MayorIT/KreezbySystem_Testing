@@ -1699,3 +1699,113 @@ main.workspace-canvas {
                 position: static;
             }
         }
+
+        /* Purchase order layout */
+        body.po-admin-page {
+            background:
+                radial-gradient(circle at 0 0, rgba(255, 202, 40, 0.16), transparent 28%),
+                #f6f1e8;
+        }
+
+        main.workspace-view-canvas {
+            padding: 22px 24px 32px;
+        }
+
+        #po-master-lists-container-block .po-tabbed-card {
+            border: 1px solid rgba(93, 64, 55, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 18px 40px rgba(63, 47, 20, 0.08);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .po-order-tabs.expanding-tabs {
+            margin: 14px 14px 0;
+            padding: 6px;
+            gap: 6px;
+            border-radius: 16px;
+            background: #fff8ea;
+            border: 1px solid #efe6d6;
+            box-shadow: none;
+        }
+
+        .po-order-tabs .expanding-tab,
+        .po-order-tabs .po-order-tab {
+            gap: 8px !important;
+            height: 40px !important;
+            padding: 0 16px !important;
+            width: auto !important;
+            color: #5d4037 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            transition: background-color 0.12s ease, color 0.12s ease !important;
+        }
+
+        .po-order-tabs .expanding-tab__label,
+        .po-order-tabs .expanding-tab.is-expanded .expanding-tab__label {
+            max-width: 14rem !important;
+            opacity: 1 !important;
+            pointer-events: none;
+        }
+
+        .po-order-tabs .expanding-tab.active,
+        .po-order-tabs .po-order-tab.active {
+            background: #ffca28 !important;
+            color: #1f1f1f !important;
+        }
+
+        .po-tab-panel,
+        .po-tab-panel.active {
+            transition: none !important;
+        }
+
+        .po-tabbed-card .panel-card-title-bar {
+            background: #fff;
+            padding: 16px 20px 8px;
+            border-bottom: none;
+        }
+
+        .po-tabbed-card .panel-card-title-bar h3 {
+            color: #3f2f14;
+            letter-spacing: 0.08em;
+        }
+
+        .po-tabbed-card .btn-call-to-action {
+            background: #5d4037;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .po-tabbed-card .btn-call-to-action:hover {
+            background: #3e2723;
+        }
+
+        .po-tabbed-card .datatable-filters-line {
+            align-items: center;
+            gap: 12px;
+        }
+
+        .po-tabbed-card .datatable-filters-line select,
+        .po-tabbed-card .search-field-wrap input {
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid #e4d8c4;
+            background: #fff;
+        }
+
+        .po-tabbed-card .data-display-table thead th {
+            background: #5d4037;
+        }
+
+        .po-tabbed-card .action-trigger-btn,
+        .po-tabbed-card .btn-row-action {
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid #e4d8c4;
+            padding: 6px 12px;
+            cursor: pointer;
+        }

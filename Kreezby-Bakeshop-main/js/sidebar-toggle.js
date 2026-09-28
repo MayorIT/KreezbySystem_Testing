@@ -60,13 +60,33 @@
 
     window.KreezbyToggleSidebar = toggleSidebar;
 
+    function isAdminHomePage() {
+        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
+        var file = path.split('/').pop().split('?')[0];
+        return file === 'admin.html';
+    }
+
     function addToggleButton() {
+        if (isAdminHomePage()) {
+            document.querySelectorAll('.top-navbar-node .hamburger-toggle').forEach(function (el) { el.remove(); });
+            return;
+        }
         const header = document.querySelector('.top-navbar-node');
         const topNav = header && header.querySelector('.top-nav-links-right');
         const sidebar = document.querySelector('aside.sidebar-panel, aside.dark-sidebar-panel');
         if (!topNav || !sidebar) return;
 
-        if (header.querySelector('.hamburger-toggle')) return;
+        const existing = header.querySelector('.hamburger-toggle');
+        if (existing) {
+            if (!existing._kreezbyHamburgerBound) {
+                existing._kreezbyHamburgerBound = true;
+                existing.type = 'button';
+                existing.addEventListener('click', toggleSidebar);
+            }
+            if (window.KreezbyOrderHeader) window.KreezbyOrderHeader();
+            return;
+        }
 
         const button = document.createElement('button');
         button.type = 'button';
@@ -75,10 +95,11 @@
         button.setAttribute('aria-expanded', 'false');
         button.innerHTML = '☰';
         button.setAttribute('aria-pressed', 'false');
+        button._kreezbyHamburgerBound = true;
         button.addEventListener('click', toggleSidebar);
 
-        // place the toggle at the right end of the header controls
         topNav.appendChild(button);
+        if (window.KreezbyOrderHeader) window.KreezbyOrderHeader();
     }
 
     function wireExistingRows() {
@@ -196,6 +217,11 @@
     document.addEventListener('kreezby:page-load', function () {
         ensureMobileLoaded();
         ensureUserDropdownNavLoaded();
+        addToggleButton();
+        wireExistingRows();
+    });
+
+    window.addEventListener('pageshow', function () {
         addToggleButton();
         wireExistingRows();
     });

@@ -43,7 +43,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-notification-popover-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css';
+        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css?v=20260927bell';
         document.head.appendChild(link);
     }
 
@@ -117,10 +117,8 @@
     };
 
     NotificationPopoverInstance.prototype.updateVisibility = function () {
-        var unread = window.KreezbyNotifications ? window.KreezbyNotifications.getUnreadCount() : 0;
-        if (this.btn) this.btn.hidden = unread <= 0;
-        if (this.root) this.root.style.display = unread <= 0 ? 'none' : '';
-        if (unread <= 0 && this.isOpen) this.close();
+        if (this.btn) this.btn.hidden = false;
+        if (this.root) this.root.style.display = '';
     };
 
     NotificationPopoverInstance.prototype.renderList = function () {
@@ -201,17 +199,10 @@
     };
 
     NotificationPopoverInstance.prototype.toggle = function () {
-        var unread = window.KreezbyNotifications ? window.KreezbyNotifications.getUnreadCount() : 0;
-        if (unread <= 0) {
-            this.close();
-            return;
-        }
         this.isOpen ? this.close() : this.open();
     };
 
     NotificationPopoverInstance.prototype.open = function () {
-        var unread = window.KreezbyNotifications ? window.KreezbyNotifications.getUnreadCount() : 0;
-        if (unread <= 0 || !this.notifications.length) return;
         this.isOpen = true;
         this.panel.classList.add('is-open');
         this.btn.setAttribute('aria-expanded', 'true');
@@ -284,6 +275,10 @@
             }
 
             document.querySelectorAll('.notification-pill').forEach(upgradePill);
+            document.querySelectorAll('.top-nav-links-right').forEach(function (right) {
+                if (!right.querySelector('.notification-popover-root')) return;
+                right.querySelectorAll('.notification-pill').forEach(function (extra) { extra.remove(); });
+            });
 
             if (instances.length) {
                 installGlobalShims();

@@ -92,6 +92,7 @@
             right.appendChild(btn);
             btn.setAttribute('aria-label', 'Toggle sidebar');
         }
+        if (!isPhone() && window.KreezbyOrderHeader) window.KreezbyOrderHeader();
     }
 
     function syncHamburgerPressed() {

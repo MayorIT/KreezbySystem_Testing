@@ -421,10 +421,39 @@
         loadAdminStaffData();
     }
 
+    function syncPurchaseOrderTheme() {
+        var page = currentPageName();
+        var onPo = page === 'po-admin.html' || page === 'po-staff.html';
+        document.body.classList.toggle('po-admin-page', onPo);
+        if (!onPo) {
+            document.querySelectorAll('link[data-po-owned="1"]').forEach(function (link) {
+                link.disabled = true;
+            });
+            return;
+        }
+        var root = moduleRelativeRoot();
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20260927slip';
+        var theme = document.getElementById('po-theme-sheet');
+        if (!theme) {
+            theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');
+        }
+        if (!theme) {
+            theme = document.createElement('link');
+            theme.id = 'po-theme-sheet';
+            theme.rel = 'stylesheet';
+            theme.setAttribute('data-po-owned', '1');
+        }
+        theme.id = 'po-theme-sheet';
+        theme.disabled = false;
+        theme.href = themeHref;
+        document.head.appendChild(theme);
+    }
+
     function onFrameLoad(event) {
         var frame = event.target;
         if (!frame || frame.id !== FRAME_ID) return;
 
+        syncPurchaseOrderTheme();
         markTurboLinks(frame);
         loadScript(moduleRelativeRoot() + 'js/kreezby-seed-portal-data.js?v=20260924c', 'kreezby-seed-portal-data-script', function () {
             if (window.KreezbyPortalSeed) window.KreezbyPortalSeed.apply();
@@ -459,18 +488,13 @@
         document.addEventListener('turbo:frame-load', onFrameLoad);
 
         document.addEventListener('turbo:before-frame-render', function (event) {
-            if (event.target.id !== FRAME_ID) return;
+            if (!event.target || event.target.id !== FRAME_ID) return;
+            event.target.classList.add('is-kreezby-leaving');
+        });
 
-            var defaultRender = event.detail.render;
-            if (!document.startViewTransition) return;
-
-            event.detail.render = function (current, next) {
-                return new Promise(function (resolve) {
-                    document.startViewTransition(function () {
-                        Promise.resolve(defaultRender(current, next)).then(resolve);
-                    });
-                });
-            };
+        document.addEventListener('turbo:frame-render', function (event) {
+            if (!event.target || event.target.id !== FRAME_ID) return;
+            event.target.classList.remove('is-kreezby-leaving');
         });
 
         markTurboLinks(document);

@@ -142,7 +142,7 @@
                 if (!document.getElementById('po-details-edit-btn')) {
                     var editBtn = document.createElement('button');
                     editBtn.type = 'button';
-                    editBtn.className = 'btn-viewer-tool blue';
+                    editBtn.className = 'btn-viewer-tool brown';
                     editBtn.id = 'po-details-edit-btn';
                     editBtn.textContent = 'Edit Record';
                     var backBtn = document.getElementById('po-details-back-btn');
@@ -161,9 +161,11 @@
     }
 
     function injectPrintStyles() {
-        if (document.getElementById('kreezby-po-portal-style')) return;
-        var s = document.createElement('style');
-        s.id = 'kreezby-po-portal-style';
+        var s = document.getElementById('kreezby-po-portal-style');
+        if (!s) {
+            s = document.createElement('style');
+            s.id = 'kreezby-po-portal-style';
+        }
         s.textContent =
             '.action-menu-relative-container{position:relative;display:inline-block}' +
             '.action-popup-menu{display:none;position:absolute;right:0;top:100%;margin-top:4px;background:#fff;min-width:180px;' +
@@ -174,9 +176,9 @@
             '.action-popup-item:hover{background:#f5f5f5}' +
             '.action-popup-divider{height:1px;background:#e0e0e0;margin:6px 0}' +
             '.action-popup-item-status{font-size:12px;color:#444}' +
-            '.action-popup-item-status.is-current{font-weight:700;color:#1565c0;background:#f3f8ff}' +
+            '.action-popup-item-status.is-current{font-weight:700;color:#5d4037;background:#fff6e0}' +
             '.action-popup-menu{max-height:min(70vh,360px);overflow-y:auto;-webkit-overflow-scrolling:touch}' +
-            '.action-popup-item.is-current{font-weight:700;color:#1565c0;background:#f3f8ff}' +
+            '.action-popup-item.is-current{font-weight:700;color:#5d4037;background:#fff6e0}' +
             '.po-status-link,.recv-status-link{cursor:pointer}' +
             'body[data-kreezby-portal] .retailer-module-host .panel-data-card,' +
             'body[data-kreezby-portal] .panel-data-card,body[data-kreezby-portal] .card-body-padded,' +
@@ -185,9 +187,14 @@
             '#po-retailer-directory-block,#receiving-retailer-directory-panel-view{overflow:visible!important}' +
             '.po-table-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}' +
             '.po-table-scroll-wrap table.data-display-table{min-width:720px}' +
-            '@media print{body.po-printing>*:not(#po-print-receipt-root){display:none!important}' +
-            '#po-print-receipt-root{display:block!important}body.po-printing #po-print-receipt-root{position:static;width:100%}}';
-        document.head.appendChild(s);
+            '@media print{' +
+            'body.po-printing header,body.po-printing .top-navbar-node,body.po-printing .core-viewport-wrapper,' +
+            'body.po-printing turbo-frame,body.po-printing #kreezby-main-content,body.po-printing main,' +
+            'body.po-printing aside,body.po-printing .dark-sidebar-panel,body.po-printing .system-modal-backdrop,' +
+            'body.po-printing .notification-modal-overlay,body.po-printing .kreezby-nav-scrim{display:none!important;visibility:hidden!important;height:0!important}' +
+            'body.po-printing #po-print-receipt-root{display:block!important;visibility:visible!important;position:static!important;width:100%}' +
+            'body.po-printing #po-print-receipt-root .po-receipt-logo{display:block!important;visibility:visible!important;height:74px!important}}';
+        if (!s.parentNode) document.head.appendChild(s);
     }
 
     function upgradeRetailerModal() {
@@ -224,7 +231,7 @@
             '<div class="form-field-unit"><label>Unit</label><input type="text" id="builder-unit-input" value="PCS"></div>' +
             '<div class="form-field-unit"><label>Qty</label><input type="number" id="builder-qty-input" min="1"></div>' +
             '<button type="button" class="btn-call-to-action" style="background:#00897b;" id="po-modal-add-item-btn">Add Item +</button></div>' +
-            '<table class="data-display-table" style="margin-bottom:20px;"><thead><tr style="background:#1a237e;color:#fff;">' +
+            '<table class="data-display-table" style="margin-bottom:20px;"><thead><tr style="background:#5d4037;color:#fff;">' +
             '<th>#</th><th>Item</th><th>Unit</th><th>Qty</th><th>Cost</th><th>Total</th><th>Action</th></tr></thead>' +
             '<tbody id="po-modal-items-injector"></tbody>' +
             '<tfoot><tr style="font-weight:bold;background:#f5f5f5;"><td colspan="5" style="text-align:right;">Grand Total</td>' +
@@ -261,6 +268,13 @@
 
     function formatMoney(n) {
         return Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatQty(n) {
+        var num = Number(n || 0);
+        if (!isFinite(num)) return '0';
+        if (Math.abs(num - Math.round(num)) < 0.001) return String(Math.round(num));
+        return formatMoney(num);
     }
 
     function orderTotal(order) {
@@ -578,7 +592,7 @@
             '<div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge ' + (order.statusClass || 'pending') + '" style="font-size:11px;">' + displayStatus(order) + '</span></div>' +
             '</div></div>' +
             '<div class="viewer-table-title">Orders Matrix Breakdown</div>' +
-            '<table class="data-display-table"><thead><tr style="background:#1a237e;color:#fff;">' +
+            '<table class="data-display-table"><thead><tr style="background:#5d4037;color:#fff;">' +
             '<th>Qty</th><th>Unit</th><th>Item</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Total</th>' +
             '</tr></thead><tbody>' + itemsHtml + '</tbody>' +
             '<tfoot>' +
@@ -698,13 +712,57 @@
     }
 
     /* ---- Modal ---- */
+    function poModalNode() {
+        return document.getElementById('purchase-order-modal-node');
+    }
+
     function openModal() {
-        document.getElementById('purchase-order-modal-node').classList.add('modal-triggered');
+        var modal = poModalNode();
+        if (!modal) return;
+        modal.classList.add('modal-triggered');
     }
 
     function closeModal() {
-        document.getElementById('purchase-order-modal-node').classList.remove('modal-triggered');
+        var modal = poModalNode();
+        if (modal) modal.classList.remove('modal-triggered');
         editingPoCode = null;
+    }
+
+    function ensureSelectValue(id, value) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var next = value || '';
+        if (next) {
+            var exists = false;
+            Array.prototype.forEach.call(el.options || [], function (opt) {
+                if (opt.value === next) exists = true;
+            });
+            if (!exists) {
+                var opt = document.createElement('option');
+                opt.value = next;
+                opt.textContent = next;
+                el.appendChild(opt);
+            }
+        }
+        el.value = next;
+    }
+
+    function mountPoModal() {
+        var nodes = Array.prototype.slice.call(document.querySelectorAll('[id="purchase-order-modal-node"]'));
+        if (!isAdminPoDocument()) {
+            nodes.forEach(function (node) { node.remove(); });
+            return null;
+        }
+        var fresh = null;
+        nodes.forEach(function (node) {
+            if (node.closest && node.closest('#kreezby-main-content')) fresh = node;
+        });
+        if (!fresh) fresh = nodes[0] || null;
+        nodes.forEach(function (node) {
+            if (node !== fresh) node.remove();
+        });
+        if (fresh && fresh.parentNode !== document.body) document.body.appendChild(fresh);
+        return fresh;
     }
 
     function recalcModalTotals() {
@@ -738,15 +796,28 @@
         recalcModalTotals();
     }
 
+    function setField(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.value = value;
+    }
+
     function populateModal(order) {
-        document.getElementById('po-modal-title').textContent = order ? 'Edit Purchase Order' : 'Create New Purchase Order';
+        if (!poModalNode()) return;
+        var editing = !!order;
+        document.getElementById('po-modal-title').textContent = editing ? 'Edit Purchase Order' : 'Create New Purchase Order';
+        var kicker = document.getElementById('po-modal-kicker');
+        if (kicker) kicker.textContent = editing ? 'Update this order' : 'New order';
+        var saveBtn = document.getElementById('po-modal-save-btn');
+        if (saveBtn) saveBtn.textContent = editing ? 'Update Purchase Order' : 'Save Purchase Order';
+        var modal = document.getElementById('purchase-order-modal-node');
+        if (modal) modal.setAttribute('data-po-mode', editing ? 'edit' : 'create');
         var type = order ? order.entityType : (PAGE_MODE === 'retailer'
             ? (isWholesalerPortal() ? 'wholesaler' : 'retailer')
             : (activeTab === 'customer' ? 'customer' : 'retailer'));
         var code = order ? order.code : generateNextCode(type);
         document.getElementById('po-modal-code').value = code;
         document.getElementById('po-modal-date').value = order ? toDatetimeLocal(order.dateCreated) : nowDatetimeLocal();
-        document.getElementById('po-modal-area').value = order ? (order.area || '') : '';
+        ensureSelectValue('po-modal-area', order ? (order.area || '') : '');
         document.getElementById('po-modal-entity').value = order ? order.entity : (PAGE_MODE === 'retailer' ? retailerStoreName : '');
         var typeSelect = document.getElementById('po-modal-type');
         if (typeSelect) {
@@ -758,10 +829,27 @@
             }
             typeSelect.value = type === 'customer' ? 'customer' : (type === 'wholesaler' ? 'wholesaler' : 'retailer');
         }
-        document.getElementById('po-modal-status').value = order ? (order.statusClass || 'pending') : 'pending';
-        document.getElementById('po-modal-remarks').value = order ? (order.remarks || '') : '';
-        document.getElementById('po-modal-tracking').value = order ? (order.trackingNumber || '') : '';
-        document.getElementById('po-modal-courier').value = order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines';
+        setField('po-modal-status', order ? (order.statusClass || 'pending') : 'pending');
+        setField('po-modal-remarks', order ? (order.remarks || '') : '');
+        setField('po-modal-tracking', order ? (order.trackingNumber || '') : '');
+        setField('po-modal-courier', order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines');
+        var paySelect = document.getElementById('po-modal-payment');
+        if (paySelect) {
+            var storedPay = order ? (lookupOrderPayment(order) || '') : '';
+            if (!storedPay) storedPay = type === 'customer' ? 'cash' : 'on_account';
+            var payKey = String(storedPay).toLowerCase().replace(/[\s_-]+/g, '');
+            var payValue = 'on_account';
+            if (payKey === 'cash' || payKey === 'cashondelivery' || payKey === 'cod') payValue = 'cash';
+            else if (payKey === 'creditcard' || payKey === 'credit' || payKey === 'card' || payKey === 'debit' || payKey === 'debitcard') payValue = 'credit_card';
+            else if (payKey === 'check' || payKey === 'cheque') payValue = 'check';
+            else if (payKey === 'gcash') payValue = 'gcash';
+            else if (payKey === 'maya' || payKey === 'mayabank') payValue = 'maya';
+            else if (payKey === 'metrobank') payValue = 'metrobank';
+            else if (payKey === 'onaccount' || payKey === 'account') payValue = 'on_account';
+            if (!paySelect.querySelector('option[value="' + payValue + '"]')) payValue = 'on_account';
+            paySelect.value = payValue;
+        }
+        setField('po-modal-check-no', order ? (order.checkNumber || order.chequeNumber || '') : '');
         var tbody = document.getElementById('po-modal-items-injector');
         tbody.innerHTML = '';
         if (order && order.items && order.items.length) {
@@ -774,11 +862,13 @@
 
     function openCreateModal(tab) {
         activeTab = tab || activeTab;
+        mountPoModal();
         populateModal(null);
         openModal();
     }
 
     function openEditModal(poCode) {
+        mountPoModal();
         var order = poCode ? PO_ORDERS[poCode] : (currentPoCode ? PO_ORDERS[currentPoCode] : null);
         if (!order) { openCreateModal(); return; }
         populateModal(order);
@@ -803,7 +893,8 @@
     function saveModal() {
         var code = document.getElementById('po-modal-code').value.trim();
         var type = (document.getElementById('po-modal-type') || {}).value || (isWholesalerPortal() ? 'wholesaler' : 'retailer');
-        var statusClass = document.getElementById('po-modal-status').value;
+        var statusEl = document.getElementById('po-modal-status');
+        var statusClass = (statusEl && statusEl.value) || 'pending';
         var trackingNumber = (document.getElementById('po-modal-tracking') || {}).value || '';
         var courierName = (document.getElementById('po-modal-courier') || {}).value || 'J&T Express Philippines';
         var items = [];
@@ -832,6 +923,8 @@
             remarks: document.getElementById('po-modal-remarks').value.trim(),
             trackingNumber: trackingNumber.trim(),
             courier: courierName.trim() || 'J&T Express Philippines',
+            paymentMethod: (document.getElementById('po-modal-payment') || {}).value || 'on_account',
+            checkNumber: ((document.getElementById('po-modal-check-no') || {}).value || '').trim(),
             items: items
         };
 
@@ -864,34 +957,255 @@
         }));
     }
 
+    function escHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function intToWords(n) {
+        var ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+        var tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+        function under100(x) {
+            if (x < 20) return ones[x];
+            return tens[Math.floor(x / 10)] + (x % 10 ? '-' + ones[x % 10] : '');
+        }
+        function under1000(x) {
+            if (x < 100) return under100(x);
+            var rest = x % 100;
+            return ones[Math.floor(x / 100)] + ' hundred' + (rest ? ' ' + under100(rest) : '');
+        }
+        if (!n) return 'zero';
+        var parts = [];
+        var millions = Math.floor(n / 1000000);
+        var thousands = Math.floor((n % 1000000) / 1000);
+        var rest = n % 1000;
+        if (millions) parts.push(under1000(millions) + ' million');
+        if (thousands) parts.push(under1000(thousands) + ' thousand');
+        if (rest) parts.push(under1000(rest));
+        return parts.join(' ');
+    }
+
+    function amountInWords(amount) {
+        var n = Math.round(Number(amount || 0) * 100) / 100;
+        if (!isFinite(n) || n < 0) n = 0;
+        var pesos = Math.floor(n);
+        var cents = Math.round((n - pesos) * 100);
+        if (cents === 100) { pesos += 1; cents = 0; }
+        var phrase = intToWords(pesos) + (pesos === 1 ? ' peso' : ' pesos');
+        if (cents) phrase += ' and ' + intToWords(cents) + (cents === 1 ? ' centavo' : ' centavos');
+        else phrase += ' only';
+        return phrase.charAt(0).toUpperCase() + phrase.slice(1);
+    }
+
+    function orderKindLabel(order) {
+        if (!order) return 'Retailer order';
+        if (order.entityType === 'customer') return 'Customer order';
+        if (order.entityType === 'wholesaler') return 'Wholesaler order';
+        return 'Retailer order';
+    }
+
+    function formatReceiptWhen(str) {
+        if (!str) return '';
+        var d = new Date(String(str).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(str);
+        return d.toLocaleString('en-PH', {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: 'numeric', minute: '2-digit', hour12: true
+        });
+    }
+
+    function kreezbyLogoSrc() {
+        var img = document.querySelector('.brand-logo-panel img, .top-navbar-node img');
+        if (img && img.src) return img.src;
+        return poAssetRoot() + 'assets/logo/kreezby-logo.png';
+    }
+
+    function lookupOrderPayment(order) {
+        if (!order) return '';
+        if (order.paymentMethod) return order.paymentMethod;
+        if (order.payment) return order.payment;
+        var code = String(order.code || '');
+        var found = '';
+        ['kreezbyOrders', 'kreezbyCustomerReceipts'].forEach(function (key) {
+            if (found) return;
+            var list = [];
+            try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
+            if (!Array.isArray(list)) return;
+            list.forEach(function (entry) {
+                if (found || !entry) return;
+                if (entry.poCode === code || entry.orderNumber === code || entry.receiptNumber === code) {
+                    found = entry.paymentMethod || '';
+                }
+            });
+        });
+        return found;
+    }
+
+    function paymentMethodLabel(raw) {
+        var key = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
+        var labels = {
+            gcash: 'GCash',
+            maya: 'Maya',
+            mayabank: 'Maya',
+            metrobank: 'Metrobank',
+            cash: 'Cash',
+            cashondelivery: 'Cash on delivery',
+            cod: 'Cash on delivery',
+            creditcard: 'Credit card',
+            card: 'Credit card',
+            check: 'Check',
+            cheque: 'Check'
+        };
+        return labels[key] || String(raw || '').trim();
+    }
+
+    function receiptPayMarks(order) {
+        var raw = lookupOrderPayment(order);
+        var method = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
+        var marks = { cash: false, card: false, check: false, other: false, otherText: '', checkNo: '' };
+        if (!method && order && order.entityType !== 'customer') {
+            method = 'onaccount';
+            raw = 'on_account';
+        }
+        if (!method) return marks;
+        if (method === 'cash' || method === 'cashondelivery' || method === 'cod') {
+            marks.cash = true;
+        } else if (method === 'creditcard' || method === 'credit' || method === 'card' || method === 'debit' || method === 'debitcard') {
+            marks.card = true;
+        } else if (method === 'check' || method === 'cheque') {
+            marks.check = true;
+            marks.checkNo = String((order && (order.checkNumber || order.chequeNumber)) || '');
+        } else if (method === 'onaccount' || method === 'account' || method === 'charge') {
+            marks.other = true;
+            marks.otherText = 'On account';
+        } else {
+            marks.other = true;
+            marks.otherText = paymentMethodLabel(raw);
+        }
+        return marks;
+    }
+
+    function receiptBox(on) {
+        return '<span class="po-receipt-box' + (on ? ' is-on' : '') + '">' + (on ? 'X' : '') + '</span>';
+    }
+
     function buildPrintReceiptHtml(order) {
-        var total = orderTotal(order);
-        var rows = (order.items || []).map(function (it) {
-            return '<tr><td>' + formatMoney(it.qty) + '</td><td>' + it.unit + '</td>' +
-                '<td>' + it.name + (it.note ? ' (' + it.note + ')' : '') + '</td>' +
-                '<td style="text-align:right;">' + formatMoney(it.cost) + '</td>' +
-                '<td style="text-align:right;">' + formatMoney(it.total) + '</td></tr>';
-        }).join('');
-        return '<div class="po-receipt-sheet"><div class="po-receipt-header"><h1>Kreezby Bakeshop</h1><p>Purchase Order Receipt</p></div>' +
-            '<div class="po-receipt-meta"><p><strong>P.O. Code:</strong> ' + order.code + '</p>' +
-            '<p><strong>Date Created:</strong> ' + order.dateCreated + '</p>' +
-            '<p><strong>Entity:</strong> ' + order.entity + '</p>' +
-            '<p><strong>Status:</strong> ' + order.status + '</p>' +
-            '<p><strong>Remarks:</strong> ' + (order.remarks || '') + '</p></div>' +
-            '<table class="po-receipt-table"><thead><tr><th>Qty</th><th>Unit</th><th>Item</th><th>Cost</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody>' +
-            '<tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">Grand Total</td>' +
-            '<td style="text-align:right;font-weight:bold;">' + formatMoney(total) + '</td></tr></tfoot></table>' +
-            '<p class="po-receipt-verify">Verification: ' + order.status + ' — Printed ' + new Date().toLocaleString() + '</p></div>';
+        var subtotal = orderTotal(order);
+        var tax = Number(order.tax) || 0;
+        var total = subtotal + tax;
+        var filled = (order.items || []).map(function (it) {
+            var note = it.note ? ' — ' + escHtml(it.note) : '';
+            return '<tr><td class="qty">' + escHtml(formatQty(it.qty)) + '</td>' +
+                '<td>' + escHtml(it.name || '') + note + '</td>' +
+                '<td class="money">' + escHtml(formatMoney(it.cost)) + '</td>' +
+                '<td class="money">' + escHtml(formatMoney(it.total)) + '</td></tr>';
+        });
+        var blank = '<tr><td></td><td></td><td></td><td></td></tr>';
+        while (filled.length < 5) filled.push(blank);
+        var pay = receiptPayMarks(order);
+        return '<article class="po-receipt-sheet">' +
+            '<img class="po-receipt-logo" src="' + escHtml(kreezbyLogoSrc()) + '" alt="Kreezby Bakeshop">' +
+            '<hr class="po-receipt-rule">' +
+            '<h1 class="po-receipt-title">Sales Receipt</h1>' +
+            '<hr class="po-receipt-rule">' +
+            '<p class="po-receipt-date">Date: <span>' + escHtml(formatReceiptWhen(order.dateCreated)) + '</span></p>' +
+            '<p class="po-receipt-sold">Sold to: <span>' + escHtml(order.entity || '') + '</span>' +
+            '<span class="po-receipt-no">No. ' + escHtml(order.code || '') + '</span></p>' +
+            '<table class="po-receipt-table"><thead><tr>' +
+            '<th>Qty.</th><th>Description</th><th>Price</th><th>Amount</th>' +
+            '</tr></thead><tbody>' + filled.join('') + '</tbody></table>' +
+            '<table class="po-receipt-sum"><tbody>' +
+            '<tr><th>Subtotal:</th><td>' + escHtml(formatMoney(subtotal)) + '</td></tr>' +
+            '<tr><th>Tax:</th><td>' + escHtml(formatMoney(tax)) + '</td></tr>' +
+            '<tr><th>Total:</th><td>' + escHtml(formatMoney(total)) + '</td></tr>' +
+            '</tbody></table>' +
+            '<div class="po-receipt-pay"><p>Sale Made with:</p>' +
+            '<p>' + receiptBox(pay.cash) + ' Cash</p>' +
+            '<p>' + receiptBox(pay.card) + ' Credit Card</p>' +
+            '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>' +
+            '<p>' + receiptBox(pay.other) + ' Other <span class="po-receipt-line">' + escHtml(pay.otherText) + '</span></p></div>' +
+            '<p class="po-receipt-foot">Owner\'s copy</p>' +
+            '</article>';
+    }
+
+    function ensurePrintRoot() {
+        var root = document.getElementById('po-print-receipt-root');
+        if (!root) {
+            root = document.createElement('div');
+            root.id = 'po-print-receipt-root';
+            root.className = 'po-print-receipt-root';
+            root.setAttribute('aria-hidden', 'true');
+        }
+        if (root.parentNode !== document.body) document.body.appendChild(root);
+        return root;
+    }
+
+    function finishPrint(root) {
+        document.body.classList.remove('po-printing');
+        if (root) root.innerHTML = '';
+        window.removeEventListener('afterprint', window.__kreezbyPoAfterPrint);
+        window.__kreezbyPoAfterPrint = null;
+    }
+
+    function receiptPrintCss() {
+        return '@page{size:A4 portrait;margin:12mm}' +
+            'html,body{margin:0;padding:0;background:#fff;color:#111}' +
+            'body{font-family:"Times New Roman",Times,serif}' +
+            '.po-receipt-sheet{width:auto;margin:0;padding:0;background:#fff;color:#111;border:none}' +
+            '.po-receipt-logo{display:block;visibility:visible;height:74px;width:auto;max-width:260px;margin:0 auto 6px;object-fit:contain}' +
+            '.po-receipt-rule{border:none;border-top:1px solid #111;margin:0}' +
+            '.po-receipt-title{margin:4px 0;color:#111;font-size:16px;font-weight:700;letter-spacing:.22em;text-align:center;text-transform:uppercase}' +
+            '.po-receipt-date,.po-receipt-sold{margin:8px 0 0;font-size:13px}' +
+            '.po-receipt-date span,.po-receipt-sold span{display:inline-block;min-width:180px;margin-left:8px;border-bottom:1px solid #111;font-weight:700}' +
+            '.po-receipt-sold{display:flex;justify-content:space-between;align-items:baseline;gap:16px}' +
+            '.po-receipt-no{min-width:140px;margin-left:auto;text-align:right}' +
+            '.po-receipt-table,.po-receipt-sum{width:100%;border-collapse:collapse}' +
+            '.po-receipt-table{margin-top:10px}' +
+            '.po-receipt-table th,.po-receipt-table td,.po-receipt-sum th,.po-receipt-sum td{border:1px solid #111;background:#fff;color:#111;font-size:12px;font-weight:400;text-align:left}' +
+            '.po-receipt-table th{padding:6px 8px;font-weight:700;text-align:center}' +
+            '.po-receipt-table td{height:18px;padding:2px 6px}' +
+            '.po-receipt-table .qty{width:64px;text-align:center}' +
+            '.po-receipt-table .money,.po-receipt-table th:nth-child(3),.po-receipt-table th:nth-child(4){width:90px;text-align:right}' +
+            '.po-receipt-sum{width:240px;margin:0 0 0 auto}' +
+            '.po-receipt-sum th,.po-receipt-sum td{padding:6px 8px;font-weight:700;text-align:right}' +
+            '.po-receipt-pay{clear:both;margin-top:10px;font-size:13px}' +
+            '.po-receipt-pay p{margin:3px 0}' +
+            '.po-receipt-box{display:inline-block;width:16px;height:16px;margin-right:8px;border:1.5px solid #111;vertical-align:-2px;text-align:center;line-height:14px;font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#111;background:#fff}' +
+            '.po-receipt-line{display:inline-block;min-width:140px;border-bottom:1px solid #111}' +
+            '.po-receipt-foot{margin:18px 0 0;font-size:12px;text-align:center}';
     }
 
     function printReceipt(poCode) {
         var order = PO_ORDERS[poCode];
         if (!order) return;
-        var root = document.getElementById('po-print-receipt-root');
-        root.innerHTML = buildPrintReceiptHtml(order);
-        document.body.classList.add('po-printing');
-        window.print();
-        setTimeout(function () { document.body.classList.remove('po-printing'); root.innerHTML = ''; }, 500);
+        var frame = document.getElementById('po-print-frame');
+        if (!frame) {
+            frame = document.createElement('iframe');
+            frame.id = 'po-print-frame';
+            frame.setAttribute('aria-hidden', 'true');
+            frame.style.cssText = 'position:fixed;left:0;top:-10000px;width:210mm;height:297mm;border:0;';
+            document.body.appendChild(frame);
+        }
+        var doc = frame.contentWindow.document;
+        doc.open();
+        doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales Receipt</title><style>' +
+            receiptPrintCss() + '</style></head><body>' + buildPrintReceiptHtml(order) + '</body></html>');
+        doc.close();
+        var win = frame.contentWindow;
+        var logo = doc.querySelector('.po-receipt-logo');
+        var go = function () {
+            win.focus();
+            win.print();
+        };
+        if (logo && !logo.complete) {
+            logo.addEventListener('load', function () { setTimeout(go, 40); }, { once: true });
+            logo.addEventListener('error', function () { setTimeout(go, 40); }, { once: true });
+        } else {
+            setTimeout(go, 80);
+        }
     }
 
     function switchTab(tabName) {
@@ -939,6 +1253,7 @@
     }
 
     function bindEvents() {
+        mountPoModal();
         document.querySelectorAll('.po-order-tab').forEach(function (btn) {
             btn.addEventListener('click', function () { switchTab(btn.getAttribute('data-tab')); });
         });
@@ -1006,9 +1321,16 @@
         };
         document.addEventListener('click', window.__kreezbyPoDocClick, true);
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeAllMenus();
-        });
+        if (window.__kreezbyPoKeydown) {
+            document.removeEventListener('keydown', window.__kreezbyPoKeydown);
+        }
+        window.__kreezbyPoKeydown = function (e) {
+            if (e.key === 'Escape') {
+                closeAllMenus();
+                closeModal();
+            }
+        };
+        document.addEventListener('keydown', window.__kreezbyPoKeydown);
     }
 
     function stripRetiredInboundLegendPills() {
@@ -1018,7 +1340,83 @@
         });
     }
 
+    function poAssetRoot() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var match = path.match(/\/(admin|staff|staff_names|admin_names)\//i);
+        if (!match) return '../';
+        var after = path.slice(path.indexOf(match[0]) + match[0].length);
+        var depth = after.split('/').filter(Boolean).length || 1;
+        var prefix = '';
+        for (var i = 0; i < depth; i++) prefix += '../';
+        return prefix;
+    }
+
+    function isAdminPoDocument() {
+        var page = (location.pathname.split('/').pop() || '').toLowerCase();
+        return page === 'po-admin.html' || page === 'po-staff.html';
+    }
+
+    function poStylesheet(id, href) {
+        var file = href.split('/').pop().split('?')[0];
+        var link = document.getElementById(id);
+        if (!link) {
+            link = document.querySelector('link[rel="stylesheet"][href*="' + file + '"]');
+            if (link) link.id = id;
+        }
+        if (!link) {
+            link = document.createElement('link');
+            link.id = id;
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.setAttribute('data-po-owned', '1');
+            document.head.appendChild(link);
+            return link;
+        }
+        link.disabled = false;
+        return link;
+    }
+
+    function releaseOwnedPoSheets() {
+        document.querySelectorAll('link[data-po-owned="1"]').forEach(function (link) {
+            link.disabled = true;
+        });
+    }
+
+    function applyAdminPoTheme() {
+        if (!isAdminPoDocument()) {
+            document.body.classList.remove('po-admin-page');
+            releaseOwnedPoSheets();
+            return;
+        }
+        document.body.classList.add('po-admin-page');
+        var root = poAssetRoot();
+        poStylesheet('kreezby-po-admin-css', root + 'css/pages/admin/po-admin.css');
+        poStylesheet('kreezby-po-tabs-css', root + 'css/shared/order-tabbed-layout.css');
+        poStylesheet('kreezby-po-expand-css', root + 'css/shared/expandable-nav-tabs.css');
+        var theme = poStylesheet('po-theme-sheet', root + 'css/pages/admin/po-theme.css?v=20260927slip');
+        if (theme) {
+            theme.href = root + 'css/pages/admin/po-theme.css?v=20260927slip';
+            document.head.appendChild(theme);
+        }
+    }
+
+    function bindPoThemeLock() {
+        if (window.__kreezbyPoThemeBound) return;
+        window.__kreezbyPoThemeBound = true;
+        document.addEventListener('turbo:frame-load', function (event) {
+            if (!event.target || event.target.id !== 'kreezby-main-content') return;
+            applyAdminPoTheme();
+            if (!isAdminPoDocument()) {
+                document.querySelectorAll('[id="purchase-order-modal-node"]').forEach(function (node) {
+                    node.remove();
+                });
+            }
+        });
+    }
+
     function init() {
+        bindPoThemeLock();
+        applyAdminPoTheme();
         PAGE_MODE = detectPageMode();
         if (!PAGE_MODE) return;
         if (PAGE_MODE === 'admin' && /\/staff\//i.test(window.location.pathname)) {
