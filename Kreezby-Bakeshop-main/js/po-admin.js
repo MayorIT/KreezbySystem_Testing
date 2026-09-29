@@ -236,12 +236,24 @@
             '<tbody id="po-modal-items-injector"></tbody>' +
             '<tfoot><tr style="font-weight:bold;background:#f5f5f5;"><td colspan="5" style="text-align:right;">Grand Total</td>' +
             '<td id="po-modal-grand-total" colspan="2">0.00</td></tr></tfoot></table>' +
+            '<div class="form-field-unit"><label for="po-modal-payment">Mode of payment</label><select id="po-modal-payment">' +
+            '<option value="gcash">GCash</option><option value="check">Check</option><option value="cash">Cash</option></select></div>' +
+            '<div class="form-field-unit" id="po-modal-gcash-wrap"><p style="margin:0 0 8px;color:#374151;">Send the total to the bakeshop GCash <strong>0917 800 1650</strong>. Paste the reference below so we can verify the payment.</p>' +
+            '<label for="po-modal-gcash-ref">GCash reference number</label>' +
+            '<input type="text" id="po-modal-gcash-ref" inputmode="numeric" maxlength="20" placeholder="From the GCash receipt"></div>' +
+            '<div class="form-field-unit" id="po-modal-check-wrap" style="display:none;"><label for="po-modal-check-no">Check number</label>' +
+            '<input type="text" id="po-modal-check-no" placeholder="Check number"></div>' +
             '<div class="form-field-unit"><label>Remarks</label><textarea id="po-modal-remarks" style="width:100%;height:60px;"></textarea></div>' +
             '</form></div>' +
             '<div class="modal-action-footer-panel">' +
             '<button type="button" class="btn-modal-cancel" id="po-modal-cancel-btn">Cancel</button>' +
             '<button type="button" class="btn-modal-save" id="po-modal-save-btn">Submit P.O Request</button></div></div>';
         document.getElementById('po-modal-entity').value = retailerStoreName;
+        var typeSelect = document.getElementById('po-modal-type');
+        if (typeSelect && isWholesalerPortal()) typeSelect.value = 'wholesaler';
+        var paySelect = document.getElementById('po-modal-payment');
+        if (paySelect) paySelect.addEventListener('change', togglePaymentExtras);
+        togglePaymentExtras();
     }
 
     function loadData() {
@@ -501,6 +513,7 @@
             '<div class="action-popup-item" data-action="view" data-po="' + poCode + '">View Details</div>' +
             '<div class="action-popup-item" data-action="edit" data-po="' + poCode + '">Edit Order</div>' +
             '<div class="action-popup-item" data-action="print" data-po="' + poCode + '">Print Receipt</div>' +
+            verifyPaymentActionItem(poCode, order) +
             '<div class="action-popup-divider" aria-hidden="true"></div>' +
             buildStatusActionItems(poCode, order) + '</div></div>';
     }
@@ -513,7 +526,7 @@
         var all = ordersByType('retailer');
         var rows = all.filter(function (o) {
             if (!q) return true;
-            return [o.code, o.dateCreated, o.entity, o.status, o.remarks, SUPPLIER_LABEL].join(' ').toLowerCase().indexOf(q) >= 0;
+            return [o.code, o.dateCreated, o.entity, o.status, o.remarks, o.paymentMethod, o.gcashReference, o.checkNumber, SUPPLIER_LABEL].join(' ').toLowerCase().indexOf(q) >= 0;
         });
         if (PAGE_MODE === 'retailer') {
             tbody.innerHTML = rows.map(function (o, i) {
@@ -524,7 +537,7 @@
                     '<td data-label="Action">' + buildActionMenu(o.code) + '</td>' +
                     '<td data-label="Supplier">' + SUPPLIER_LABEL + '</td>' +
                     '<td data-label="Items">' + (o.items ? o.items.length : 0) + '</td>' +
-                    '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td></tr>';
+                    '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span>' + paymentListNote(o) + '</td></tr>';
             }).join('');
             return;
         }
@@ -534,7 +547,7 @@
                 '<td data-label="Date">' + o.dateCreated + '</td>' +
                 '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                 '<td data-label="Account">' + o.entity + '<br><small>' + (o.accountType || (o.entityType === 'wholesaler' ? 'Wholesaler' : o.entityType === 'customer' ? 'Regular Customer' : 'Retailer')) + (o.accountArea || o.area ? ' · ' + (o.accountArea || o.area) : '') + '</small></td>' +
-                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span></td>' +
+                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span>' + paymentListNote(o) + '</td>' +
                 '<td data-label="Action">' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -548,15 +561,16 @@
         var all = ordersByType('customer');
         var rows = all.filter(function (o) {
             if (!q) return true;
-            return [o.code, o.dateCreated, o.entity, o.status].join(' ').toLowerCase().indexOf(q) >= 0;
+            return [o.code, o.dateCreated, o.entity, o.status, o.gcashReference, o.shopOrderNumber].join(' ').toLowerCase().indexOf(q) >= 0;
         });
         tbody.innerHTML = rows.map(function (o, i) {
+            var payLine = paymentListNote(o);
             return '<tr data-po="' + o.code + '" class="po-data-row">' +
                 '<td data-label="#">' + (i + 1) + '</td>' +
                 '<td data-label="Date">' + o.dateCreated + '</td>' +
                 '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                 '<td data-label="Items">' + (o.items ? o.items.length : 0) + '</td>' +
-                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + '">' + displayStatus(o) + '</span></td>' +
+                '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + '">' + displayStatus(o) + '</span>' + payLine + '</td>' +
                 '<td data-label="Action">' + buildActionMenu(o.code) + '</td></tr>';
         }).join('');
         if (footer) footer.textContent = 'Showing ' + rows.length + ' of ' + all.length + ' entries — sorted newest first (by date & PO code)';
@@ -599,7 +613,210 @@
             '<tr style="font-weight:bold;background:#f5f5f5;"><td colspan="4" style="text-align:right;">Sub Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '<tr style="font-weight:bold;background:#eee;"><td colspan="4" style="text-align:right;">Grand Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '</tfoot></table>' +
-            '<div class="details-dynamic-footer-status">Verification: ' + displayStatus(order) + '</div></div>';
+            '<div class="details-dynamic-footer-status">Verification: ' + displayStatus(order) + '</div>' +
+            gcashVerificationBlock(order) + '</div>';
+    }
+
+    function formatGcashNumber(raw) {
+        var digits = String(raw || '09178001650').replace(/\D/g, '');
+        if (digits.length === 11) return digits.slice(0, 4) + ' ' + digits.slice(4, 7) + ' ' + digits.slice(7);
+        return digits || '0917 800 1650';
+    }
+
+    function linkedShopOrder(order) {
+        if (!order) return null;
+        var code = String(order.code || '');
+        var shopNumber = String(order.shopOrderNumber || '');
+        var found = null;
+        try {
+            var list = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]');
+            if (!Array.isArray(list)) return null;
+            list.forEach(function (entry) {
+                if (found || !entry) return;
+                if (entry.poCode === code || entry.orderNumber === code || entry.orderNumber === shopNumber) found = entry;
+            });
+        } catch (e) { /* ignore */ }
+        return found;
+    }
+
+    function normalizePayMethod(raw) {
+        var key = String(raw || '').toLowerCase().replace(/[\s-]+/g, '_');
+        if (key === 'cod' || key === 'cashondelivery' || key === 'cash_on_delivery') return 'cash_on_delivery';
+        if (key === 'cheque') return 'check';
+        return key;
+    }
+
+    function payMethodTitle(method) {
+        if (method === 'gcash') return 'GCash';
+        if (method === 'cash_on_delivery') return 'Cash on delivery';
+        if (method === 'check') return 'Check';
+        if (method === 'cash') return 'Cash';
+        return method ? paymentMethodLabel(method) : '';
+    }
+
+    function customerPaymentSnapshot(order) {
+        var shop = linkedShopOrder(order);
+        var method = normalizePayMethod((order && order.paymentMethod) || (shop && shop.paymentMethod) || '');
+        var reference = String((order && order.gcashReference) || (shop && shop.gcashReference) || '');
+        var checkNumber = String((order && (order.checkNumber || order.chequeNumber)) || (shop && shop.checkNumber) || '');
+        var paidTo = String((order && order.gcashPaidTo) || (shop && shop.gcashPaidTo) || '09178001650');
+        var failed = (order && (order.paymentStatus === 'failed' || order.paymentFailed === true))
+            || (shop && (shop.paymentStatus === 'failed' || shop.paymentFailed === true));
+        var verified = false;
+        if (failed) verified = false;
+        else if (order && order.paymentVerified === true) verified = true;
+        else if (order && order.paymentVerified === false) verified = false;
+        else verified = !!(shop && shop.paymentVerified === true);
+        var known = method === 'gcash' || method === 'cash_on_delivery' || method === 'check' || method === 'cash';
+        return {
+            method: known ? method : '',
+            reference: reference,
+            checkNumber: checkNumber,
+            paidTo: paidTo,
+            verified: verified,
+            failed: !!failed,
+            label: payMethodTitle(known ? method : ''),
+            isGcash: method === 'gcash'
+        };
+    }
+
+    function isTradeOrder(order) {
+        return !!(order && order.entityType && order.entityType !== 'customer');
+    }
+
+    function paymentListNote(order) {
+        var pay = customerPaymentSnapshot(order);
+        var trade = isTradeOrder(order);
+        if (!pay.method && !trade) return '';
+        var detail = pay.method ? pay.label : 'Payment';
+        if (pay.method === 'gcash' && pay.reference) detail += ' ' + pay.reference;
+        if (pay.method === 'check' && pay.checkNumber) detail += ' ' + pay.checkNumber;
+        var state = pay.failed ? ' · failed transaction' : (pay.verified ? ' · verified' : ' · to verify');
+        return '<br><small>' + escHtml(detail) + state + '</small>';
+    }
+
+    function verifyPaymentActionItem(poCode, order) {
+        if (PAGE_MODE === 'retailer') return '';
+        var pay = customerPaymentSnapshot(order);
+        var trade = isTradeOrder(order);
+        if (pay.verified || pay.failed) return '';
+        if (!pay.method && !trade) return '';
+        var label = trade ? 'To verify' : 'Verify payment';
+        return '<div class="action-popup-item" data-action="verify-payment" data-po="' + poCode + '">' + label + '</div>' +
+            (pay.method === 'gcash'
+                ? '<div class="action-popup-item" data-action="fail-payment" data-po="' + poCode + '">Payment not received</div>'
+                : '');
+    }
+
+    function gcashVerificationBlock(order) {
+        var pay = customerPaymentSnapshot(order);
+        var trade = isTradeOrder(order);
+        if (!pay.method && !trade) return '';
+        var statusLabel = pay.failed ? 'Failed transaction' : (pay.verified ? 'Verified' : (trade ? 'To verify' : 'Awaiting verification'));
+        var lines = '<div class="meta-data-line"><strong>Method:</strong> ' + escHtml(pay.label || 'Not recorded yet') + '</div>';
+        if (pay.method === 'gcash') {
+            lines += '<div class="meta-data-line"><strong>Paid to:</strong> ' + escHtml(formatGcashNumber(pay.paidTo)) + ' (Kreezby Bakeshop)</div>' +
+                '<div class="meta-data-line"><strong>Reference number:</strong> ' + escHtml(pay.reference || 'Not submitted') + '</div>';
+        } else if (pay.method === 'check') {
+            lines += '<div class="meta-data-line"><strong>Check number:</strong> ' + escHtml(pay.checkNumber || 'Not submitted') + '</div>';
+        } else if (pay.method === 'cash_on_delivery') {
+            lines += '<div class="meta-data-line"><strong>Collect:</strong> Cash when the order is delivered</div>';
+        } else if (pay.method === 'cash') {
+            lines += '<div class="meta-data-line"><strong>Collect:</strong> Cash at the shop</div>';
+        }
+        var action = '';
+        if (!pay.verified && !pay.failed && PAGE_MODE !== 'retailer') {
+            action = '<button type="button" class="btn-call-to-action" id="payment-verify-btn" style="margin-top:12px;">' + (trade ? 'To verify' : 'Verify payment') + '</button>';
+            if (pay.method === 'gcash') {
+                action += '<button type="button" class="btn-call-to-action" id="payment-fail-btn" style="margin-top:12px;margin-left:8px;background:#b42318;">Payment not received</button>';
+            }
+        }
+        return '<div class="gcash-verify-card" style="margin-top:18px;padding:16px;border:1px solid #dbe7f5;border-radius:12px;background:#f7fbff;">' +
+            '<div class="viewer-table-title" style="margin-top:0;">Payment</div>' +
+            lines +
+            '<div class="meta-data-line"><strong>Payment check:</strong> ' + statusLabel + '</div>' +
+            action + '</div>';
+    }
+
+    function markGcashVerified(poCode) {
+        var order = PO_ORDERS[poCode];
+        if (!order) return;
+        var pay = customerPaymentSnapshot(order);
+        if (pay.method) order.paymentMethod = pay.method;
+        order.paymentVerified = true;
+        order.paymentStatus = 'verified';
+        saveData();
+        var existing = [];
+        try { existing = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]'); } catch (e) { existing = []; }
+        if (!Array.isArray(existing)) existing = [];
+        existing.forEach(function (entry) {
+            if (!entry) return;
+            if (entry.poCode === order.code || entry.orderNumber === order.code || entry.orderNumber === order.shopOrderNumber) {
+                entry.paymentVerified = true;
+                entry.paymentStatus = 'verified';
+                if (order.gcashReference) entry.gcashReference = order.gcashReference;
+                if (order.paymentMethod) entry.paymentMethod = order.paymentMethod;
+            }
+        });
+        try { localStorage.setItem('kreezbyOrders', JSON.stringify(existing)); } catch (e) {}
+        if (currentPoCode === poCode) openDetails(poCode);
+        refreshTables();
+        showToast((pay.label || 'Payment') + ' verified for ' + poCode + '.');
+    }
+
+    function notifyPaymentFailed(order) {
+        var name = order.accountName || order.entity || 'Customer';
+        var code = order.shopOrderNumber || order.code || 'this order';
+        var ref = order.gcashReference ? ' Reference ' + order.gcashReference + ' was not found.' : '';
+        var description = 'Hi ' + name + ', we did not receive the GCash payment for ' + code + '.' + ref +
+            ' This is a failed transaction. Please send the payment again to 0917 800 1650 and submit the new reference number.';
+        var note = {
+            id: 'n-pay-fail-' + code + '-' + Date.now(),
+            title: 'GCash payment not received',
+            description: description,
+            timestamp: new Date().toISOString(),
+            read: false,
+            source: 'payment'
+        };
+        if (window.KreezbyNotifications && typeof window.KreezbyNotifications.push === 'function') {
+            window.KreezbyNotifications.push(note);
+            return;
+        }
+        var list = [];
+        try { list = JSON.parse(localStorage.getItem('kreezbyNotifications') || '[]'); } catch (e) { list = []; }
+        if (!Array.isArray(list)) list = [];
+        list.unshift(note);
+        try { localStorage.setItem('kreezbyNotifications', JSON.stringify(list)); } catch (e) {}
+    }
+
+    function markGcashFailed(poCode) {
+        var order = PO_ORDERS[poCode];
+        if (!order) return;
+        var pay = customerPaymentSnapshot(order);
+        if (pay.method !== 'gcash' || pay.failed) return;
+        order.paymentMethod = 'gcash';
+        order.paymentVerified = false;
+        order.paymentFailed = true;
+        order.paymentStatus = 'failed';
+        if (!order.gcashReference && pay.reference) order.gcashReference = pay.reference;
+        saveData();
+        var existing = [];
+        try { existing = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]'); } catch (e) { existing = []; }
+        if (!Array.isArray(existing)) existing = [];
+        existing.forEach(function (entry) {
+            if (!entry) return;
+            if (entry.poCode === order.code || entry.orderNumber === order.code || entry.orderNumber === order.shopOrderNumber) {
+                entry.paymentVerified = false;
+                entry.paymentFailed = true;
+                entry.paymentStatus = 'failed';
+                entry.paymentMethod = 'gcash';
+            }
+        });
+        try { localStorage.setItem('kreezbyOrders', JSON.stringify(existing)); } catch (e) {}
+        notifyPaymentFailed(order);
+        if (currentPoCode === poCode) openDetails(poCode);
+        refreshTables();
+        showToast('GCash payment marked as a failed transaction. ' + (order.entity || 'The customer') + ' has been notified.');
     }
 
     function openDetails(poCode) {
@@ -664,18 +881,29 @@
         } catch (e) {
             existing = [];
         }
+        var prior = null;
+        existing.forEach(function (entry) {
+            if (!entry || prior) return;
+            if (entry.poCode === order.code || entry.orderNumber === order.code || entry.orderNumber === order.shopOrderNumber) prior = entry;
+        });
         var statusText = statusMeta(order.statusClass, 'customer').label;
         if (order.statusClass === 'picked-up' || order.statusClass === 'out-for-delivery') statusText = 'Shipped';
-        var orderNumber = order.code || 'PO-CUSTOMER';
+        var orderNumber = (prior && prior.orderNumber) || order.shopOrderNumber || order.code || 'PO-CUSTOMER';
+        var paymentFailed = order.paymentStatus === 'failed' || order.paymentFailed === true;
+        var paymentVerified = !paymentFailed && (order.paymentVerified === true || (order.paymentVerified !== false && prior && prior.paymentVerified === true));
         var mapped = {
             orderNumber: orderNumber,
             poCode: order.code,
             poEntity: order.entity,
             items: {},
             subtotal: orderTotal(order),
-            deliveryFee: 0,
-            total: '₱' + Number(orderTotal(order)).toFixed(2),
-            paymentMethod: 'cash_on_delivery',
+            deliveryFee: prior && prior.deliveryFee ? prior.deliveryFee : 0,
+            total: prior && prior.total ? prior.total : ('₱' + Number(orderTotal(order)).toFixed(2)),
+            paymentMethod: order.paymentMethod || (prior && prior.paymentMethod) || 'cash_on_delivery',
+            gcashReference: order.gcashReference || (prior && prior.gcashReference) || '',
+            gcashPaidTo: order.gcashPaidTo || (prior && prior.gcashPaidTo) || '',
+            paymentStatus: paymentFailed ? 'failed' : (order.paymentStatus || (paymentVerified ? 'verified' : (prior && prior.paymentStatus) || '')),
+            paymentFailed: paymentFailed,
             shippingInfo: {
                 fullName: order.entity,
                 phone: '',
@@ -689,7 +917,7 @@
             date: new Date().toISOString(),
             statusUpdatedAt: new Date().toISOString(),
             shippedAt: (statusText === 'Shipped' && order.trackingNumber) ? new Date().toISOString() : undefined,
-            paymentVerified: true,
+            paymentVerified: paymentVerified,
             source: 'po-admin',
             accountType: order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer'),
             accountName: order.accountName || order.entity || '',
@@ -705,7 +933,8 @@
         });
 
         var filtered = existing.filter(function (entry) {
-            return !(entry.poCode === order.code || entry.orderNumber === order.code);
+            if (!entry) return false;
+            return !(entry.poCode === order.code || entry.orderNumber === order.code || entry.orderNumber === order.shopOrderNumber || entry.orderNumber === orderNumber);
         });
         filtered.push(mapped);
         localStorage.setItem('kreezbyOrders', JSON.stringify(filtered));
@@ -749,7 +978,7 @@
 
     function mountPoModal() {
         var nodes = Array.prototype.slice.call(document.querySelectorAll('[id="purchase-order-modal-node"]'));
-        if (!isAdminPoDocument()) {
+        if (!isAdminPoDocument() && PAGE_MODE !== 'retailer') {
             nodes.forEach(function (node) { node.remove(); });
             return null;
         }
@@ -801,6 +1030,104 @@
         if (el) el.value = value;
     }
 
+    function paymentChoicesFor(type) {
+        if (type === 'customer') {
+            return [
+                { value: 'gcash', label: 'GCash' },
+                { value: 'cash_on_delivery', label: 'Cash on delivery' }
+            ];
+        }
+        return [
+            { value: 'gcash', label: 'GCash' },
+            { value: 'check', label: 'Check' },
+            { value: 'cash', label: 'Cash' }
+        ];
+    }
+
+    function storedPayValue(order, type) {
+        var raw = order ? (order.paymentMethod || lookupOrderPayment(order) || '') : '';
+        var key = normalizePayMethod(raw);
+        if (type === 'customer') {
+            if (key === 'cash_on_delivery' || key === 'cash') return 'cash_on_delivery';
+            return 'gcash';
+        }
+        if (key === 'gcash' || key === 'check' || key === 'cash') return key;
+        return 'cash';
+    }
+
+    function ensureGcashReferenceField() {
+        if (document.getElementById('po-modal-gcash-ref')) return;
+        var pay = document.getElementById('po-modal-payment');
+        if (!pay || !pay.parentNode) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'form-field-unit';
+        wrap.id = 'po-modal-gcash-wrap';
+        wrap.innerHTML = '<p style="margin:0 0 8px;color:#374151;">Send the total to the bakeshop GCash <strong>0917 800 1650</strong>. Paste the reference below so we can verify the payment.</p>' +
+            '<label for="po-modal-gcash-ref">GCash reference number</label>' +
+            '<input type="text" id="po-modal-gcash-ref" inputmode="numeric" maxlength="20" placeholder="From the GCash receipt">';
+        var checkInput = document.getElementById('po-modal-check-no');
+        var checkWrap = checkInput ? checkInput.parentNode : null;
+        if (checkWrap && checkWrap.parentNode) {
+            if (!checkWrap.id) checkWrap.id = 'po-modal-check-wrap';
+            checkWrap.parentNode.insertBefore(wrap, checkWrap);
+        } else if (pay.parentNode.parentNode) {
+            pay.parentNode.parentNode.appendChild(wrap);
+        }
+    }
+
+    function fillPaymentOptions(type, selected) {
+        var paySelect = document.getElementById('po-modal-payment');
+        if (!paySelect) return;
+        var choices = paymentChoicesFor(type);
+        paySelect.innerHTML = choices.map(function (choice) {
+            return '<option value="' + choice.value + '">' + choice.label + '</option>';
+        }).join('');
+        var allowed = choices.some(function (choice) { return choice.value === selected; });
+        paySelect.value = allowed ? selected : choices[0].value;
+        togglePaymentExtras();
+    }
+
+    function togglePaymentExtras() {
+        var method = (document.getElementById('po-modal-payment') || {}).value || '';
+        var gcashWrap = document.getElementById('po-modal-gcash-wrap');
+        var checkInput = document.getElementById('po-modal-check-no');
+        var checkWrap = document.getElementById('po-modal-check-wrap') || (checkInput ? checkInput.parentNode : null);
+        if (checkWrap && !checkWrap.id) checkWrap.id = 'po-modal-check-wrap';
+        if (gcashWrap) gcashWrap.style.display = method === 'gcash' ? '' : 'none';
+        if (checkWrap) checkWrap.style.display = method === 'check' ? '' : 'none';
+    }
+
+    function readModalPaymentMethod(type) {
+        var value = (document.getElementById('po-modal-payment') || {}).value || '';
+        if (paymentChoicesFor(type).some(function (choice) { return choice.value === value; })) return value;
+        return type === 'customer' ? 'gcash' : 'cash';
+    }
+
+    function applyModalPaymentProof(payload, type) {
+        var method = readModalPaymentMethod(type);
+        var gcashRef = String((document.getElementById('po-modal-gcash-ref') || {}).value || '').replace(/\s+/g, '');
+        var checkNo = String((document.getElementById('po-modal-check-no') || {}).value || '').trim();
+        if (method === 'gcash' && !/^\d{8,20}$/.test(gcashRef)) {
+            showToast('Enter the 8 to 20 digit GCash reference number.');
+            return false;
+        }
+        if (method === 'check' && !checkNo) {
+            showToast('Enter the check number.');
+            return false;
+        }
+        var previous = editingPoCode ? PO_ORDERS[editingPoCode] : null;
+        var sameProof = previous && previous.paymentMethod === method &&
+            (method !== 'gcash' || String(previous.gcashReference || '') === gcashRef) &&
+            (method !== 'check' || String(previous.checkNumber || '') === checkNo);
+        payload.paymentMethod = method;
+        payload.gcashReference = method === 'gcash' ? gcashRef : '';
+        payload.gcashPaidTo = method === 'gcash' ? '09178001650' : '';
+        payload.checkNumber = method === 'check' ? checkNo : '';
+        payload.paymentVerified = !!(sameProof && previous.paymentVerified === true);
+        payload.paymentStatus = payload.paymentVerified ? 'verified' : 'pending';
+        return true;
+    }
+
     function populateModal(order) {
         if (!poModalNode()) return;
         var editing = !!order;
@@ -833,23 +1160,11 @@
         setField('po-modal-remarks', order ? (order.remarks || '') : '');
         setField('po-modal-tracking', order ? (order.trackingNumber || '') : '');
         setField('po-modal-courier', order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines');
-        var paySelect = document.getElementById('po-modal-payment');
-        if (paySelect) {
-            var storedPay = order ? (lookupOrderPayment(order) || '') : '';
-            if (!storedPay) storedPay = type === 'customer' ? 'cash' : 'on_account';
-            var payKey = String(storedPay).toLowerCase().replace(/[\s_-]+/g, '');
-            var payValue = 'on_account';
-            if (payKey === 'cash' || payKey === 'cashondelivery' || payKey === 'cod') payValue = 'cash';
-            else if (payKey === 'creditcard' || payKey === 'credit' || payKey === 'card' || payKey === 'debit' || payKey === 'debitcard') payValue = 'credit_card';
-            else if (payKey === 'check' || payKey === 'cheque') payValue = 'check';
-            else if (payKey === 'gcash') payValue = 'gcash';
-            else if (payKey === 'maya' || payKey === 'mayabank') payValue = 'maya';
-            else if (payKey === 'metrobank') payValue = 'metrobank';
-            else if (payKey === 'onaccount' || payKey === 'account') payValue = 'on_account';
-            if (!paySelect.querySelector('option[value="' + payValue + '"]')) payValue = 'on_account';
-            paySelect.value = payValue;
-        }
+        ensureGcashReferenceField();
+        fillPaymentOptions(type, storedPayValue(order, type));
+        setField('po-modal-gcash-ref', order ? (order.gcashReference || '') : '');
         setField('po-modal-check-no', order ? (order.checkNumber || order.chequeNumber || '') : '');
+        togglePaymentExtras();
         var tbody = document.getElementById('po-modal-items-injector');
         tbody.innerHTML = '';
         if (order && order.items && order.items.length) {
@@ -923,10 +1238,15 @@
             remarks: document.getElementById('po-modal-remarks').value.trim(),
             trackingNumber: trackingNumber.trim(),
             courier: courierName.trim() || 'J&T Express Philippines',
-            paymentMethod: (document.getElementById('po-modal-payment') || {}).value || 'on_account',
-            checkNumber: ((document.getElementById('po-modal-check-no') || {}).value || '').trim(),
+            paymentMethod: readModalPaymentMethod(type),
+            gcashReference: '',
+            gcashPaidTo: '',
+            checkNumber: '',
+            paymentVerified: false,
+            paymentStatus: 'pending',
             items: items
         };
+        if (!applyModalPaymentProof(payload, type)) return;
 
         if (PAGE_MODE === 'retailer') {
             payload.entity = retailerStoreName || payload.entity;
@@ -1048,6 +1368,8 @@
         var key = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
         var labels = {
             gcash: 'GCash',
+            cashondelivery: 'Cash on delivery',
+            cod: 'Cash on delivery',
             maya: 'Maya',
             mayabank: 'Maya',
             metrobank: 'Metrobank',
@@ -1127,6 +1449,7 @@
             '<p>' + receiptBox(pay.card) + ' Credit Card</p>' +
             '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>' +
             '<p>' + receiptBox(pay.other) + ' Other <span class="po-receipt-line">' + escHtml(pay.otherText) + '</span></p></div>' +
+            (customerPaymentSnapshot(order).reference ? '<p class="po-receipt-date">GCash ref: <span>' + escHtml(customerPaymentSnapshot(order).reference) + '</span></p>' : '') +
             '<p class="po-receipt-foot">Owner\'s copy</p>' +
             '</article>';
     }
@@ -1237,6 +1560,8 @@
         if (action === 'view') { openDetails(poCode); return; }
         if (action === 'edit') { openEditModal(poCode); return; }
         if (action === 'print') { printReceipt(poCode); return; }
+        if (action === 'verify-payment') { markGcashVerified(poCode); return; }
+        if (action === 'fail-payment') { markGcashFailed(poCode); return; }
         var mapped = {
             'mark-packed': 'packed',
             'mark-ready-for-dispatch': 'ready-for-dispatch',
@@ -1262,6 +1587,14 @@
         var cs = document.getElementById('customer-search');
         if (cs) cs.addEventListener('input', function () { renderCustomerTable(cs.value); });
 
+        var typeSelect = document.getElementById('po-modal-type');
+        if (typeSelect) {
+            typeSelect.addEventListener('change', function () {
+                fillPaymentOptions(typeSelect.value, (document.getElementById('po-modal-payment') || {}).value);
+            });
+        }
+        var paySelect = document.getElementById('po-modal-payment');
+        if (paySelect) paySelect.addEventListener('change', togglePaymentExtras);
         var createRetailer = document.getElementById('po-create-retailer-btn');
         if (createRetailer) createRetailer.addEventListener('click', function () { openCreateModal('retailer'); });
         var createCustomer = document.getElementById('po-create-customer-btn');
@@ -1280,6 +1613,17 @@
         if (backBtn) backBtn.addEventListener('click', backToList);
         var printBtn = document.getElementById('po-details-print-btn');
         if (printBtn) printBtn.addEventListener('click', function () { if (currentPoCode) printReceipt(currentPoCode); });
+        var detailsContent = document.getElementById('po-details-content');
+        if (detailsContent) {
+            detailsContent.addEventListener('click', function (event) {
+                var verify = event.target && event.target.closest ? event.target.closest('#payment-verify-btn, #gcash-verify-btn') : null;
+                var fail = event.target && event.target.closest ? event.target.closest('#payment-fail-btn') : null;
+                if (!currentPoCode) return;
+                if (fail) { markGcashFailed(currentPoCode); return; }
+                if (!verify) return;
+                markGcashVerified(currentPoCode);
+            });
+        }
 
         var masterSelector = PAGE_MODE === 'retailer' ? '#po-retailer-directory-block' : '#po-master-lists-container-block';
 
@@ -1353,7 +1697,7 @@
 
     function isAdminPoDocument() {
         var page = (location.pathname.split('/').pop() || '').toLowerCase();
-        return page === 'po-admin.html' || page === 'po-staff.html';
+        return page === 'po-admin.html' || page === 'po-headadmin.html' || page === 'po-staff.html';
     }
 
     function poStylesheet(id, href) {

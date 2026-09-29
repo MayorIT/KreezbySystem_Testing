@@ -72,7 +72,7 @@
             remarks: 'Partial fulfillment.',
             items: [
                 { name: 'Choco Almond', unit: 'PCS', note: '', ordered: 10, received: 6, backOrder: 4, cost: 55, total: 220 },
-                { name: 'Cheesecake', unit: 'PCS', note: '', ordered: 5, received: 3, backOrder: 2, cost: 45, total: 90 }
+                { name: 'Ube', unit: 'PCS', note: '', ordered: 5, received: 3, backOrder: 2, cost: 45, total: 90 }
             ]
         },
         'BO-C009': {

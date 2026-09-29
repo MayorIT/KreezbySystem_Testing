@@ -19,8 +19,6 @@
         '.forecast-sub-tabs-row',
         '.maintenance-directory-tabs-row',
         '.report-highlights',
-        '.ai-filter-pills',
-        '#ai-filter-pills',
         '#stocklevel-filter-pills',
         '.notifications-filter-group'
     ].join(',');

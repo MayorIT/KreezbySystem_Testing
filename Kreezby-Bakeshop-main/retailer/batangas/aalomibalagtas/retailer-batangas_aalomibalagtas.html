@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="../../../css/pages/retailer/aalomibalagtas/retailer-batangas_aalomibalagtas.css">
 
     <link rel="stylesheet" href="../../../css/pages/retailer/batangas-retailer-brand.css">
-    <link rel="stylesheet" href="../../../css/shared/kreezby-welcome-home.css">
+    <link rel="stylesheet" href="../../../css/shared/kreezby-welcome-home.css?v=20260929home">
 </head>
-<body>
+<body class="kreezby-admin-home">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
 
 
@@ -51,19 +51,25 @@
     </aside>
 
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
-        <main class="workspace-canvas">
-        <div class="workspace-container">
-            <section class="kreezby-welcome" aria-label="Welcome">
-            <figure class="kreezby-welcome-photo">
-                <img src="../../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
-            </figure>
-            <div class="kreezby-welcome-copy">
-                <p class="kreezby-welcome-kicker">The Crinkle Factory</p>
-                <h2>Welcome, AA Lomi Balagtas</h2>
-                <p class="kreezby-welcome-tagline">Making your life sweeter!</p>
-                <p>Your home is ready. Use the menu to open purchase orders, deliveries, sales, and alerts whenever you need them.</p>
-            </div>
-        </section>
+        <main class="workspace-canvas workspace-view-canvas">
+        <div class="workspace-container" id="admin-dashboard-root">
+            <section class="admin-home" aria-label="Welcome">
+                    <div class="admin-home-stage">
+                        <div class="admin-home-copy">
+                            <p class="admin-home-kicker">The Crinkle Factory</p>
+                            <h2>Welcome, AA Lomi Balagtas</h2>
+                            <p class="admin-home-tagline">Making your life sweeter!</p>
+                            <p class="admin-home-lead">Your home is ready. Purchase orders, deliveries, sales, and alerts open from the menu.</p>
+                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
+                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
+                                <span class="admin-home-menu-btn__label">Open menu</span>
+                            </button>
+                        </div>
+                        <figure class="admin-home-photo">
+                            <img src="../../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+                        </figure>
+                    </div>
+                </section>
         </div>
 </main>
         </turbo-frame>
@@ -82,7 +88,7 @@
     </div>
 
     <script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
-    <script src="../../../js/retailer-nav.js?v=20260927nav"></script>
+    <script src="../../../js/retailer-nav.js?v=20260929dash"></script>
 <script>
         // Retailer-specific notifications data
         const notificationsData = [
@@ -175,6 +181,6 @@
         });
     </script>
     <script src="../../../js/notification-popover.js"></script>
-    <script src="../../../js/user-dropdown-nav.js?v=20260927req"></script>
+    <script src="../../../js/user-dropdown-nav.js?v=20260929dash"></script>
     </body>
 </html>

@@ -43,7 +43,6 @@
   }
 
   function adminTestPayload() {
-    if (!isAdminContext()) return null;
     if (window.KREEZBY_ADMIN_TEST_SALES && window.KREEZBY_ADMIN_TEST_SALES.dailyReports) {
       return clonePayload(window.KREEZBY_ADMIN_TEST_SALES);
     }
@@ -85,7 +84,7 @@
   }
 
   function load() {
-    if (CACHE && isAdminContext()) {
+    if (CACHE && adminTestPayload()) {
       var waiting = adminTestPayload();
       if (waiting && waiting.dailyReports && waiting.dailyReports.length) {
         var cacheRange = CACHE.dateRange || {};
@@ -102,16 +101,16 @@
       sessionStorage.removeItem(SESSION_CACHE_KEY);
     } catch (e) { /* ignore */ }
 
+    var embedded = adminTestPayload();
+    if (embedded) {
+      loadPromise = Promise.resolve(applyBasePayload(embedded));
+      return loadPromise;
+    }
+
     if (!isAdminContext()) {
       BASE_CACHE = zeroPayload();
       CACHE = applyCache(mergeOverrides(BASE_CACHE));
       loadPromise = Promise.resolve(CACHE);
-      return loadPromise;
-    }
-
-    var embedded = adminTestPayload();
-    if (embedded) {
-      loadPromise = Promise.resolve(applyBasePayload(embedded));
       return loadPromise;
     }
 
@@ -459,8 +458,10 @@
       var ym = r.reportDate.slice(0, 7);
       monthSet[ym] = true;
       areaMap[r.source] = areaLabel(r.source);
-      if (!byMonth[ym]) byMonth[ym] = { dateSet: {} };
+      if (!byMonth[ym]) byMonth[ym] = { dateSet: {}, byArea: {} };
       byMonth[ym].dateSet[r.reportDate] = true;
+      if (!byMonth[ym].byArea[r.source]) byMonth[ym].byArea[r.source] = {};
+      byMonth[ym].byArea[r.source][r.reportDate] = true;
     });
 
     Object.keys(AREA_LABELS).forEach(function (src) {
@@ -472,6 +473,12 @@
       var dateKeys = Object.keys(byMonth[ym].dateSet).sort().reverse();
       byMonth[ym].dateList = dateKeys.map(function (d) {
         return { value: d, label: formatDateLabel(d) };
+      });
+      Object.keys(byMonth[ym].byArea).forEach(function (src) {
+        var areaDates = Object.keys(byMonth[ym].byArea[src]).sort().reverse();
+        byMonth[ym].byArea[src] = areaDates.map(function (d) {
+          return { value: d, label: formatDateLabel(d) };
+        });
       });
     });
 
@@ -488,6 +495,15 @@
   }
 
   function getDefaultRouteFilters() {
+    var reports = getDailyReports();
+    if (reports.length) {
+      var latest = reports[reports.length - 1];
+      return {
+        month: latest.reportDate.slice(0, 7),
+        source: latest.source,
+        reportDate: latest.reportDate
+      };
+    }
     var opt = getRouteFilterOptions();
     if (!opt.months.length) return { month: '', source: '', reportDate: '' };
     var month = opt.months[0].value;
@@ -605,7 +621,7 @@
     getReportById: getReportById,
     getSalesForReport: getSalesForReport,
     isTestData: function () {
-      return !!(CACHE && CACHE.isTestData && isAdminContext());
+      return !!(CACHE && CACHE.isTestData);
     },
     reload: function () {
       resetLoadState();

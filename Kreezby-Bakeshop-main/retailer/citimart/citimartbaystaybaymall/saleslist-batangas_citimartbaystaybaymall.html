@@ -51,55 +51,110 @@
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-canvas">
         <div id="saleslist-master-directory-panel-view">
-            <h2 class="page-title">Citimart Baystay/Baymall — Batangas</h2>
-            <p class="page-subtitle">Your Kreezby delivery &amp; collection logs from imported route sheets (2026). Newest visits first.</p>
-
-            <div class="panel-data-card" style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
-                <div class="retailer-saleslist-toolbar">
-                    <div class="filter-field">
-                        <label for="retailer-sales-filter-month">Month</label>
-                        <select id="retailer-sales-filter-month" aria-label="Filter by month">
-                            <option value="">All months</option>
-                        </select>
-                    </div>
-                    <p id="retailer-sales-import-badge" style="margin:0;font-size:13px;color:#5d4037;font-weight:600;flex:1;">Loading…</p>
-                </div>
-                <section id="retailer-sales-panel">
-                    <p style="text-align:center;padding:24px;color:#888;margin:0;">Loading delivery logs…</p>
-                </section>
-            </div>
-        </div>
-
-        <div id="saleslist-detailed-inspector-panel-view" style="display: none;">
-            <div class="panel-data-card" style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:0;overflow:hidden;">
-                <div style="padding:14px 20px;border-bottom:1px solid #e0e0e0;">
-                    <h3 style="margin:0;font-size:16px;color:#5d4037;">Delivery log detail</h3>
-                </div>
-                <div style="padding:20px;">
-                    <div class="details-inspection-sheet">
-                        <div class="details-header-meta-block">
-                            <div>
-                                <div class="meta-data-line" id="bauan-detail-invoice"><strong>Log ref:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-route"><strong>Route / Date:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-client"><strong>Location:</strong> —</div>
-                            </div>
-                            <div>
-                                <div class="meta-data-line" id="bauan-detail-cons"><strong>Cons / COD / Staff:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-po"><strong>P.O / Replaced:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-ar"><strong>Account Receivable:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-total"><strong>Collected:</strong> —</div>
-                                <div class="meta-data-line" id="bauan-detail-date" style="display:none;"><strong>Source:</strong> —</div>
+                <div class="sales-ledger-stack">
+                    
+                    <div class="panel-data-card sales-section-retailer">
+                        <div class="panel-card-title-bar route-sheet-title-bar">
+                            <h3>Retailer Route Sheets (Daily Collection Logs)</h3>
+                            <div class="route-sheet-title-actions">
+                                <button type="button" class="btn-call-to-action btn-sheet-secondary" id="btn-edit-route-sheet">Edit current sheet</button>
+                                <button type="button" class="btn-call-to-action" onclick="toggleCreateSaleModalOverlay(true)">+ New Route Sheet</button>
                             </div>
                         </div>
-                        <div id="bauan-detail-sheet-host"></div>
+                        <div class="card-body-padded">
+                            <p id="bauan-import-badge" style="font-size:13px;color:#5d4037;margin-bottom:12px;font-weight:600;">Loading route sheets…</p>
+                            <p style="font-size:12px;color:#666;margin:0 0 14px;">Admin testing ledger: Kaggle bakery sales (shreyashdodekar/synthetic-bakery-sales-dataset). Live client daily workbooks are not loaded. Click a row for line detail.</p>
+                            <div class="route-sheet-filters">
+                                <div class="filter-field">
+                                    <label for="route-filter-month">Month</label>
+                                    <select id="route-filter-month" aria-label="Filter by month"></select>
+                                </div>
+                                <div class="filter-field">
+                                    <label for="route-filter-area">Area</label>
+                                    <select id="route-filter-area" aria-label="Filter by area"></select>
+                                </div>
+                                <div class="filter-field">
+                                    <label for="route-filter-date">Date</label>
+                                    <select id="route-filter-date" aria-label="Filter by date"></select>
+                                </div>
+                            </div>
+
+                            <div id="bauan-route-sheets-wrap" class="manual-route-sheets-wrap">
+                                <p style="text-align:center;padding:20px;color:#888;">Loading imported route sheets…</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="details-action-footer-row">
-                        <button type="button" class="btn-viewer-tool green" onclick="window.print()">Print</button>
-                        <button type="button" class="btn-viewer-tool black" onclick="switchToSalesMasterDirectoryListingView()">Back to sales list</button>
+
+                    <div class="panel-data-card sales-section-customer">
+                        <div class="panel-card-title-bar">
+                            <h3>Customer Sales Records</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <p style="font-size:12px;color:#666;margin:0 0 14px;">Walk-in and direct customer sales (separate from route retailer logs).</p>
+                            <div class="datatable-filters-line">
+                                <div>Search Customers: <input type="text" placeholder="Filter code or name…" disabled></div>
+                            </div>
+
+                            <table class="data-display-table manual-sheet-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Invoice</th>
+                                        <th>Customer / Items</th>
+                                        <th>Total Paid</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-sales-tbody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center;padding:24px;color:#888;">No walk-in customer entries imported yet. Use <strong>+ Create Sale</strong> for new customer transactions.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="saleslist-detailed-inspector-panel-view" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3>Sales Invoice Breakdown - SALE-0002</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        
+                        <div class="details-inspection-sheet">
+                            <div class="details-header-meta-block" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
+                                <div>
+                                    <div class="meta-data-line" id="bauan-detail-invoice"><strong>Invoice:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-route"><strong>Area / Date:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-client"><strong>Location:</strong> —</div>
+                                </div>
+                                <div>
+                                    <div class="meta-data-line" id="bauan-detail-cons"><strong>Cons / COD / Staff:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-po"><strong>P.O / Replaced:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-ar"><strong>Account Receivable:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-total"><strong>Row Collected:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-date" style="display:none;"><strong>Source:</strong> —</div>
+                                </div>
+                            </div>
+                            <div id="bauan-detail-sheet-host"></div>
+                            <div id="bauan-sale-detail-tbody" style="display:none;"></div>
+                            <span id="bauan-detail-grand-total" style="display:none;"></span>
+                        </div>
+
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" onclick="window.print()">Print Official Receipt</button>
+                            <button class="btn-viewer-tool black" onclick="switchToSalesMasterDirectoryListingView()">Back To Sales Ledger</button>
+                        </div>
+
                     </div>
                 </div>
             </div>
-        </div>
+
     </main>
         </turbo-frame>
 </div>
@@ -115,9 +170,13 @@
     }
 </script>
 <script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
-<script src="../../../js/retailer-nav.js?v=20260927nav"></script>
-<script src="../../../js/kreezby-sales-retailer.js"></script>
-<script src="../../../js/sales-list-renderer.js"></script>
-    <script src="../../../js/user-dropdown-nav.js?v=20260927req"></script>
-    </body>
+<script src="../../../js/retailer-nav.js?v=20260929dash"></script>
+    <script src="../../../js/user-dropdown-nav.js?v=20260929dash"></script>
+        <div class="system-modal-backdrop" id="create-saleslist-modal-overlay"></div>
+    <script src="../../../js/kreezby-seed-portal-data.js?v=20260929trade"></script>
+    <script src="../../../js/kreezby-sales-fake-admin.js?v=20260929areas"></script>
+    <script src="../../../js/kreezby-sales-data.js?v=20260929areas"></script>
+    <script src="../../../js/sales-sheet-editor.js"></script>
+    <script src="../../../js/sales-list-renderer.js?v=20260929areas"></script>
+</body>
 </html>

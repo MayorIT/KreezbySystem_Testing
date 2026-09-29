@@ -1,7 +1,10 @@
 let selectedPaymentMethod = 'gcash';
 let cartData = {};
 let isPaymentVerified = false;
+let submittedGcashReference = '';
 let orderNumber = '';
+const GCASH_SHOP_NUMBER = '09178001650';
+const GCASH_SHOP_NUMBER_LABEL = '0917 800 1650';
 const CUSTOMER_RECEIPTS_KEY = 'kreezbyCustomerReceipts';
 const OWNER_RECEIPTS_KEY = 'kreezbyOwnerReceipts';
 const CUSTOMER_PROFILE_KEY = 'kreezbyCustomerProfile';
@@ -94,10 +97,14 @@ function formatCurrency(value) {
 function paymentMethodLabel(methodId) {
     const labels = {
         gcash: 'GCash',
-        mayabank: 'MayaBank',
-        metrobank: 'Metrobank',
+        cash_on_delivery: 'Cash on delivery',
+        cod: 'Cash on delivery'
     };
-    return labels[methodId] || String(methodId || 'Unknown').toUpperCase();
+    return labels[methodId] || String(methodId || 'Unknown');
+}
+
+function isGcashCheckout() {
+    return selectedPaymentMethod === 'gcash';
 }
 
 function generateReceiptNumber() {
@@ -124,6 +131,9 @@ function buildReceipt(order) {
         customerPhone: shipping.phone || '',
         customerAddress: shipping.address || '',
         paymentMethod: paymentMethodLabel(order.paymentMethod),
+        gcashReference: order.gcashReference || '',
+        gcashPaidTo: order.gcashPaidTo || GCASH_SHOP_NUMBER,
+        paymentStatus: order.paymentVerified ? 'Verified' : 'Awaiting verification',
         subtotal: Number(order.subtotal) || 0,
         deliveryFee: Number(order.deliveryFee) || 0,
         total: Number(order.subtotal || 0) + Number(order.deliveryFee || 0),
@@ -188,8 +198,9 @@ function openReceiptWindow(receipt, heading) {
         <div><span>OR No:</span> <strong>${escapeHtml(receipt.receiptNumber)}</strong></div>
         <div><span>Order:</span> <strong>${escapeHtml(receipt.orderNumber)}</strong></div>
         <div><span>Date:</span> <strong>${issuedAt}</strong></div>
-        <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}</strong></div>
-        <div><span>Status:</span> <strong>PAID</strong></div>
+        <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}${receipt.gcashReference ? ' ' + escapeHtml(GCASH_SHOP_NUMBER_LABEL) : ''}</strong></div>
+        ${receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''}
+        <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
         <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
         <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
         <div><span>Address:</span> <strong>${escapeHtml(receipt.customerAddress || '-')}</strong></div>
@@ -337,20 +348,73 @@ function hasCartItems() {
 function updateActionButtons() {
     const verifyBtn = document.getElementById('verify-payment-btn');
     const placeOrderBtn = document.getElementById('place-order-btn');
-    const canVerify = Boolean(selectedPaymentMethod) && hasCartItems();
+    const canPay = Boolean(selectedPaymentMethod) && hasCartItems();
+    const codReady = selectedPaymentMethod === 'cash_on_delivery';
 
-    verifyBtn.disabled = !canVerify;
-    placeOrderBtn.disabled = !canVerify || !isPaymentVerified;
+    if (verifyBtn) {
+        verifyBtn.disabled = !canPay || !isGcashCheckout();
+        verifyBtn.style.display = isGcashCheckout() ? '' : 'none';
+    }
+    if (placeOrderBtn) placeOrderBtn.disabled = !canPay || (!codReady && !isPaymentVerified);
 }
 
-function setQrVisible(isVisible) {
-    document.getElementById('qr-section').classList.toggle('active', isVisible);
+function syncPaymentPanels() {
+    const gcashPanel = document.getElementById('qr-section');
+    const codPanel = document.getElementById('cod-section');
+    if (gcashPanel) gcashPanel.classList.toggle('active', isGcashCheckout());
+    if (codPanel) codPanel.classList.toggle('active', selectedPaymentMethod === 'cash_on_delivery');
 }
 
 function resetVerification() {
     isPaymentVerified = false;
+    submittedGcashReference = '';
     clearVerificationMessage();
     updateActionButtons();
+}
+
+function readGcashReference() {
+    const input = document.getElementById('gcash-reference');
+    return String(input && input.value || '').replace(/\s+/g, '');
+}
+
+function saveCustomerPurchaseOrder(order) {
+    const shipping = order.shippingInfo || {};
+    const items = Object.keys(order.items || {}).map(function (key) {
+        const item = order.items[key] || {};
+        const qty = Number(item.qty) || 0;
+        const cost = Number(item.cost) || 0;
+        return { qty: qty, unit: 'pcs', name: item.name || 'Crinkles', note: '', cost: cost, total: qty * cost };
+    });
+    const now = new Date();
+    const pad = function (n) { return String(n).padStart(2, '0'); };
+    const stamp = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+    const map = parseStoredJson('kreezby-po-orders-v1', {});
+    const store = map && typeof map === 'object' && !Array.isArray(map) ? map : {};
+    store[order.orderNumber] = {
+        code: order.orderNumber,
+        dateCreated: stamp,
+        entity: shipping.fullName || order.accountName || 'Customer',
+        entityType: 'customer',
+        area: shipping.address || order.accountArea || '',
+        status: 'PROCESSING',
+        statusClass: 'pending',
+        remarks: order.paymentMethod === 'gcash'
+            ? ('GCash reference ' + order.gcashReference + ' is waiting for verification.')
+            : 'Cash on delivery is waiting for verification.',
+        trackingNumber: '',
+        courier: 'J&T Express Philippines',
+        paymentMethod: order.paymentMethod || 'gcash',
+        gcashReference: order.gcashReference || '',
+        gcashPaidTo: order.gcashPaidTo || '',
+        paymentVerified: false,
+        paymentStatus: 'pending',
+        shopOrderNumber: order.orderNumber,
+        accountType: order.accountType || 'Regular Customer',
+        accountName: order.accountName || shipping.fullName || '',
+        accountArea: order.accountArea || shipping.address || '',
+        items: items
+    };
+    localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(store));
 }
 
 function prefillShippingFromProfile() {
@@ -413,8 +477,37 @@ function initCheckout() {
 
     cartData = normalizeCartData(parseStoredJson('kreezbyCart', {}));
     renderOrderSummary();
-    setQrVisible(Boolean(selectedPaymentMethod));
+    syncPaymentPanels();
     updateActionButtons();
+
+    const copyBtn = document.getElementById('gcash-copy-btn');
+    const numberEl = document.getElementById('gcash-shop-number');
+    if (numberEl) numberEl.textContent = GCASH_SHOP_NUMBER_LABEL;
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+            const done = function () {
+                copyBtn.textContent = 'Copied';
+                setTimeout(function () { copyBtn.textContent = 'Copy number'; }, 1200);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(GCASH_SHOP_NUMBER).then(done).catch(done);
+            } else {
+                done();
+            }
+        });
+    }
+    const referenceInput = document.getElementById('gcash-reference');
+    if (referenceInput) {
+        referenceInput.addEventListener('input', function () {
+            if (readGcashReference() !== submittedGcashReference) {
+                isPaymentVerified = false;
+                const verifyBtn = document.getElementById('verify-payment-btn');
+                if (verifyBtn) verifyBtn.textContent = 'Submit reference number';
+                clearVerificationMessage();
+                updateActionButtons();
+            }
+        });
+    }
 
     if (paymentSelector) {
         paymentSelector.addEventListener('paymentchange', (e) => {
@@ -478,7 +571,9 @@ function renderOrderSummary() {
     }
 
     document.getElementById('qr-amount').textContent = formatCurrency(total);
-    clearVerificationMessage();
+    const codAmount = document.getElementById('cod-amount');
+    if (codAmount) codAmount.textContent = formatCurrency(total);
+    if (!(isPaymentVerified && isGcashCheckout())) clearVerificationMessage();
     updateActionButtons();
 }
 
@@ -496,36 +591,38 @@ function selectPayment(method, options) {
     }
 
     if (options.userInitiated || methodChanged) {
-        setQrVisible(true);
         resetVerification();
+        if (selectedPaymentMethod === 'cash_on_delivery') {
+            isPaymentVerified = true;
+            setVerificationMessage('pending', 'Cash is collected on delivery. Kreezby verifies that payment after the cash is received.');
+        }
     }
 
+    syncPaymentPanels();
     updateActionButtons();
 }
 
 function verifyPayment() {
-    if (!selectedPaymentMethod) {
-        showCheckoutDialog('Please select a payment method first.', { type: 'warning', title: 'Payment Required' });
-        return;
-    }
-
     if (!hasCartItems()) {
-        showCheckoutDialog('Your cart is empty. Add items before verifying payment.', { type: 'warning', title: 'Cart Empty' });
+        showCheckoutDialog('Your cart is empty. Add items before submitting a GCash reference.', { type: 'warning', title: 'Cart Empty' });
         return;
     }
 
+    const reference = readGcashReference();
+    if (!/^\d{8,20}$/.test(reference)) {
+        showCheckoutDialog('Enter the reference number from your GCash receipt. Use the 8 to 20 digit number shown after you send the payment.', {
+            type: 'warning',
+            title: 'Reference Number Needed'
+        });
+        return;
+    }
+
+    submittedGcashReference = reference;
+    isPaymentVerified = true;
+    setVerificationMessage('verified', 'Reference ' + reference + ' saved. Kreezby will check it against the bakeshop GCash before packing. You can place the order now.');
     const verifyBtn = document.getElementById('verify-payment-btn');
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = 'Verifying...';
-
-    setVerificationMessage('pending', 'Verifying payment... Please wait.');
-
-    setTimeout(() => {
-        isPaymentVerified = true;
-        setVerificationMessage('verified', 'Payment verified successfully. You can now place your order.');
-        verifyBtn.textContent = '✓ Verify Payment';
-        updateActionButtons();
-    }, 2000);
+    if (verifyBtn) verifyBtn.textContent = 'Reference submitted';
+    updateActionButtons();
 }
 
 function placeOrder() {
@@ -534,8 +631,13 @@ function placeOrder() {
         return;
     }
 
-    if (!isPaymentVerified) {
-        showCheckoutDialog('Please verify your payment first.', { type: 'warning', title: 'Verification Needed' });
+    const payingWithGcash = isGcashCheckout();
+    const reference = payingWithGcash ? readGcashReference() : '';
+    if (payingWithGcash && (!isPaymentVerified || reference !== submittedGcashReference || !/^\d{8,20}$/.test(reference))) {
+        showCheckoutDialog('Send the payment to the bakeshop GCash number, then submit the reference number before placing the order.', {
+            type: 'warning',
+            title: 'Reference Number Needed'
+        });
         return;
     }
 
@@ -581,7 +683,10 @@ function placeOrder() {
         subtotal: subtotal,
         deliveryFee: deliveryFee,
         total: formatCurrency(totalAmount),
-        paymentMethod: selectedPaymentMethod,
+        paymentMethod: payingWithGcash ? 'gcash' : 'cash_on_delivery',
+        gcashReference: payingWithGcash ? reference : '',
+        gcashPaidTo: payingWithGcash ? GCASH_SHOP_NUMBER : '',
+        paymentStatus: 'pending',
         receiptNumber: '',
         accountType: accountType,
         accountName: accountName,
@@ -594,8 +699,11 @@ function placeOrder() {
         },
         status: 'Processing',
         date: new Date().toISOString(),
-        paymentVerified: true
+        paymentVerified: false
     };
+
+    order.poCode = order.orderNumber;
+    saveCustomerPurchaseOrder(order);
 
     syncProfileShippingInfo(fullName, phone, address);
 
@@ -620,7 +728,9 @@ function placeOrder() {
         const note = {
             id: 'n-order-' + orderNumber,
             title: 'Customer Order Placed',
-            description: 'New order ' + orderNumber + ' from ' + fullName,
+            description: payingWithGcash
+                ? ('New GCash order ' + orderNumber + ' from ' + fullName + '. Reference ' + reference + ' is waiting for verification.')
+                : ('New cash on delivery order ' + orderNumber + ' from ' + fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
             read: false,
             source: 'order'
@@ -641,7 +751,9 @@ function placeOrder() {
     openReceiptWindow(receipt, 'Customer Copy');
 
     showCheckoutDialog(
-        `Order placed successfully! Order Number: ${orderNumber}. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`,
+        payingWithGcash
+            ? `Order placed. Order Number: ${orderNumber}. GCash reference ${reference} is waiting for Kreezby to verify. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`
+            : `Order placed. Order Number: ${orderNumber}. Cash on delivery is waiting for Kreezby to verify after the cash is collected. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`,
         { type: 'success', title: 'Order Confirmed', buttonText: 'Go To Shop' }
     ).then(function () {
         localStorage.setItem('kreezbyOpenOrdersAfterCheckout', '1');

@@ -496,60 +496,35 @@
     }
 
     function decorateForecasts() {
-        var tables = document.querySelectorAll('table');
-        tables.forEach(function (table) {
-            var headText = (table.querySelector('thead') || {}).textContent || '';
-            if (headText.indexOf('Forecast') < 0 && headText.indexOf('Flavor') < 0) return;
-            if (table.getAttribute('data-dict-forecast') === '1') return;
-            var body = table.querySelector('tbody');
-            if (!body) return;
-            var matched = false;
-            Array.prototype.forEach.call(body.rows, function (row) {
-                var cells = row.cells;
-                if (!cells) return;
-                var flavor = null;
-                for (var c = 0; c < cells.length; c++) {
-                    if (productId(cells[c].textContent || '')) {
-                        flavor = cells[c];
-                        break;
-                    }
-                }
-                if (!flavor || flavor.querySelector('.dict-forecast')) return;
-                var id = productId(flavor.textContent || '');
-                var forecast = null;
-                forecasts().forEach(function (item) {
-                    if (item.product_id === id) forecast = item;
-                });
-                if (!forecast) return;
-                matched = true;
-                var note = document.createElement('div');
-                note.className = 'dict-forecast';
-                note.style.cssText = 'font-size:12px;color:#5d4037;margin-top:4px;line-height:1.45;font-weight:500;';
-                note.textContent = 'forecast_date ' + forecast.forecast_date + ' · forecast_value ' + forecast.forecast_value;
-                flavor.appendChild(note);
+        var host = document.getElementById('reorder-recommendation');
+        if (!host || host.getAttribute('data-dict-forecast') === '1') return;
+        ensureForecastStyles();
+        host.setAttribute('data-dict-forecast', '1');
+        var box = document.createElement('div');
+        box.className = 'dict-sales-window';
+        var lines = forecasts().map(function (forecast) {
+            var qty = salesTransactions().filter(function (row) {
+                return row.product_id === forecast.product_id && SALES_DATES.indexOf(row.sales_date) >= 0;
+            }).map(function (row) { return row.quantity_sold; }).join(', ');
+            var rec = null;
+            liveProcurement().forEach(function (item) {
+                if (item.product_id === forecast.product_id) rec = item;
             });
-            if (!matched) return;
-            table.setAttribute('data-dict-forecast', '1');
-            if (document.querySelector('.dict-sales-window')) return;
-            var box = document.createElement('div');
-            box.className = 'dict-sales-window';
-            box.style.cssText = 'margin:0 0 14px;font-size:13px;color:#333;line-height:1.5;';
-            var lines = forecasts().map(function (forecast) {
-                var qty = salesTransactions().filter(function (row) {
-                    return row.product_id === forecast.product_id && SALES_DATES.indexOf(row.sales_date) >= 0;
-                }).map(function (row) { return row.quantity_sold; }).join(', ');
-                var rec = null;
-                liveProcurement().forEach(function (item) {
-                    if (item.product_id === forecast.product_id) rec = item;
-                });
-                var shortage = rec && rec.current_stock < rec.recommended_quantity
-                    ? ' <a href="' + stocksPageHref() + '">Reorder ' + (rec.recommended_quantity - rec.current_stock) + '</a> (stock ' + rec.current_stock + ', recommended ' + rec.recommended_quantity + ').'
-                    : '';
-                return '<div><strong>' + esc(forecast.product_name) + '</strong> (' + esc(forecast.product_id) + '): sales ' + esc(qty) + ' → forecast_value ' + esc(forecast.forecast_value) + ' on ' + esc(forecast.forecast_date) + '.' + esc(shortage) + '</div>';
-            }).join('');
-            box.innerHTML = '<strong>Seven-day sales</strong> used for the next-day forecast. Each figure is quantity_sold on sales_date ' + esc(SALES_DATES[0]) + ' through ' + esc(SALES_DATES[SALES_DATES.length - 1]) + '.' + lines;
-            table.parentNode.insertBefore(box, table);
-        });
+            var reorder = '';
+            if (rec && rec.current_stock < rec.recommended_quantity) {
+                var need = rec.recommended_quantity - rec.current_stock;
+                reorder = '<a class="dict-reorder" href="' + esc(stocksPageHref()) + '">Reorder ' + esc(need) + '</a>'
+                    + '<span class="dict-sales-stock">Stock ' + esc(rec.current_stock) + ' · recommended ' + esc(rec.recommended_quantity) + '</span>';
+            }
+            return '<div class="dict-sales-row">'
+                + '<div><strong>' + esc(forecast.product_name) + '</strong><span class="dict-sales-id">' + esc(forecast.product_id) + '</span></div>'
+                + '<div><span class="dict-sales-k">Sales</span> ' + esc(qty) + '</div>'
+                + '<div><span class="dict-sales-k">Forecast</span> ' + esc(forecast.forecast_value) + ' on ' + esc(forecast.forecast_date) + '</div>'
+                + '<div class="dict-sales-action">' + reorder + '</div>'
+                + '</div>';
+        }).join('');
+        box.innerHTML = lines;
+        host.appendChild(box);
     }
 
     function decorateSaleCards() {
@@ -598,6 +573,30 @@
             var material = materialByName(name);
             if (material && materials[material.material_id] != null) count.textContent = String(materials[material.material_id]);
         });
+    }
+
+    function ensureForecastStyles() {
+        if (document.getElementById('dict-forecast-layout')) return;
+        var style = document.createElement('style');
+        style.id = 'dict-forecast-layout';
+        style.textContent = ''
+            + '#ai-filter-pills,.ai-filter-pills{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 18px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;}'
+            + '#ai-filter-pills .pill,.ai-filter-pills .pill{height:auto!important;min-height:36px;min-width:0;padding:8px 14px!important;border:1px solid #e6e7eb!important;border-radius:6px!important;background:#f3f4f6!important;color:#111827!important;font-size:13px;font-weight:700;box-shadow:none!important;gap:0!important;}'
+            + '#ai-filter-pills .pill.active,.ai-filter-pills .pill.active{background:#1e88e5!important;color:#fff!important;border-color:#1e88e5!important;}'
+            + '#ai-filter-pills .expanding-tab__icon,.ai-filter-pills .expanding-tab__icon{display:none!important;}'
+            + '#ai-filter-pills .expanding-tab__label,.ai-filter-pills .expanding-tab__label{display:inline!important;max-width:none!important;opacity:1!important;}'
+            + '.dict-sales-window{margin:0 0 16px;padding:14px 16px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;}'
+            + '.dict-sales-window__lead{margin:0 0 4px;font-size:13px;color:#5d4037;line-height:1.45;}'
+            + '.dict-sales-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.35fr) minmax(0,1fr) 210px;gap:8px 16px;align-items:center;padding:10px 0;border-top:1px solid #f0e6d8;font-size:13px;color:#333;line-height:1.4;}'
+            + '.dict-sales-row:first-child{border-top:0;padding-top:0;}'
+            + '.dict-sales-row strong{display:block;color:#1f1f1f;}'
+            + '.dict-sales-id,.dict-sales-stock{display:block;color:#7a6558;font-size:12px;}'
+            + '.dict-sales-k{font-weight:700;color:#5d4037;}'
+            + '.dict-sales-action{display:flex;flex-direction:column;align-items:flex-end;gap:4px;width:210px;max-width:100%;}'
+            + '.dict-reorder{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;font-size:12px;text-decoration:none;white-space:nowrap;}'
+            + '.dict-reorder:hover{background:#3e2723;}'
+            + '@media (max-width:860px){.dict-sales-row{grid-template-columns:1fr;}.dict-sales-action{align-items:flex-start;}}';
+        document.head.appendChild(style);
     }
 
     function stocksPageHref() {
@@ -771,4 +770,5 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('kreezby:page-load', apply);
+    document.addEventListener('content:replaced', decorateForecasts);
 })();

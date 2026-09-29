@@ -286,7 +286,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-expanding-tabs-script';
-        s.src = moduleRelativeRoot() + 'js/expanding-tabs.js?v=20260925sm';
+        s.src = moduleRelativeRoot() + 'js/expanding-tabs.js?v=20260929forecast';
         s.defer = true;
         document.head.appendChild(s);
     }

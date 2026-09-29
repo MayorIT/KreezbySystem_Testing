@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
-    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css">
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20260929pay">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
@@ -99,67 +99,56 @@
                             </div>
                             <div class="payment-method-selector__body">
                                 <p class="payment-method-selector__label">GCash</p>
-                                <p class="payment-method-selector__desc">Pay via GCash mobile wallet</p>
+                                <p class="payment-method-selector__desc">Send payment to the bakeshop GCash number</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
-
-                        <div class="payment-method-selector__item" data-payment-id="mayabank" tabindex="-1" aria-checked="false">
+                        <div class="payment-method-selector__item" data-payment-id="cash_on_delivery" tabindex="-1" aria-checked="false">
                             <div class="payment-method-selector__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00b14f"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#5d4037"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
                             </div>
                             <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">MayaBank</p>
-                                <p class="payment-method-selector__desc">Bank transfer via MayaBank</p>
+                                <p class="payment-method-selector__label">Cash on delivery</p>
+                                <p class="payment-method-selector__desc">Pay cash when the order arrives</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
-
-                        <div class="payment-method-selector__item" data-payment-id="maribank" tabindex="-1" aria-checked="false">
-                            <div class="payment-method-selector__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#f4b000"/><path d="M7 15l3-4 2 2 4-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                            </div>
-                            <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">MariBank</p>
-                                <p class="payment-method-selector__desc">Bank transfer via MariBank</p>
-                            </div>
-                            <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
-                        </div>
-
-                        <div class="payment-method-selector__item" data-payment-id="metrobank" tabindex="-1" aria-checked="false">
-                            <div class="payment-method-selector__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#004c97"/><path d="M7 15V9h10v6" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
-                            </div>
-                            <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">Metrobank</p>
-                                <p class="payment-method-selector__desc">Bank transfer via Metrobank</p>
-                            </div>
-                            <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
-                        </div>
-
                     </div>
                 </div>
 
-                <div class="qr-section" id="qr-section">
-                    <h3 class="qr-title">Scan QR Code to Pay</h3>
-                    <div class="qr-placeholder">
-                        <div>
-                            <div style="font-size: 48px; margin-bottom: 8px;">??</div>
-                            <div>QR Code Placeholder</div>
-                            <div style="font-size: 12px; margin-top: 4px;">(Scan with your e-wallet app)</div>
-                        </div>
+                <div class="qr-section gcash-pay-panel active" id="qr-section">
+                    <h3 class="qr-title">Pay with GCash</h3>
+                    <p class="gcash-pay-lead">Send the order total to the Kreezby Bakeshop GCash number, then enter the reference number from your GCash receipt.</p>
+                    <div class="gcash-number-card">
+                        <span class="gcash-number-label">Bakeshop GCash</span>
+                        <strong class="gcash-number-value" id="gcash-shop-number">0917 800 1650</strong>
+                        <button type="button" class="gcash-copy-btn" id="gcash-copy-btn">Copy number</button>
                     </div>
                     <p class="qr-instructions">
-                        1. Open your selected e-wallet app<br>
-                        2. Scan the QR code above<br>
-                        3. Enter the exact amount: <strong id="qr-amount">?0.00</strong><br>
-                        4. Complete the payment<br>
-                        5. Click "Verify Payment" below after payment
+                        1. Open GCash and send money to <strong>0917 800 1650</strong><br>
+                        2. Send the exact amount: <strong id="qr-amount">₱0.00</strong><br>
+                        3. Copy the reference number from the GCash receipt<br>
+                        4. Paste it below so we can verify the payment
                     </p>
+                    <div class="gcash-ref-field">
+                        <label for="gcash-reference">GCash reference number</label>
+                        <input type="text" id="gcash-reference" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Example: 1234567890123">
+                    </div>
                     <button type="button" class="checkout-btn checkout-btn--verify" id="verify-payment-btn" onclick="verifyPayment()">
-                        ? Verify Payment
+                        Submit reference number
                     </button>
                     <div class="verification-status" id="verification-status" aria-live="polite"></div>
+                </div>
+
+                <div class="qr-section gcash-pay-panel" id="cod-section">
+                    <h3 class="qr-title">Cash on delivery</h3>
+                    <p class="gcash-pay-lead">Pay the order total in cash when the parcel arrives. Kreezby verifies the payment after the cash is collected.</p>
+                    <p class="qr-instructions">
+                        1. Place the order with cash on delivery selected<br>
+                        2. Prepare the exact amount: <strong id="cod-amount">₱0.00</strong><br>
+                        3. Hand the cash to the courier or the shop on delivery<br>
+                        4. Admin, head admin, or staff mark the payment verified
+                    </p>
                 </div>
             </div>
         </div>
@@ -201,18 +190,10 @@
         </div>
     </div>
 
-    <script src="../js/payment-summary.js"></script>
-    <script>
-        if (window.KreezbyPaymentSummary && window.KreezbyPaymentSummary.registerPaymentMethod) {
-            window.KreezbyPaymentSummary.registerPaymentMethod('maribank', {
-                name: 'MariBank',
-                icon: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#f4b000"/><path d="M7 15l3-4 2 2 4-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
-            });
-        }
-    </script>
+    <script src="../js/payment-summary.js?v=20260929pay"></script>
     <script src="../js/payment-method-selector.js"></script>
-    <script src="../js/checkout-customer.js"></script>
-    <script src="../js/customer-orders.js"></script>
+    <script src="../js/checkout-customer.js?v=20260929pay"></script>
+    <script src="../js/customer-orders.js?v=20260929proc"></script>
     <script src="../js/customer-site-header.js?v=20260928hdr"></script>
     <script src="../js/user-dropdown-nav.js?v=20260927req"></script>
     <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>

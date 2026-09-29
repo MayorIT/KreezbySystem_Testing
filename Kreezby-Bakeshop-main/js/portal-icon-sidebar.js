@@ -55,7 +55,9 @@
 
     function isPortalPage() {
         var path = (location.pathname || '').toLowerCase();
-        return path.indexOf('/staff/') !== -1 || /\/retailer\/[^/]+\//i.test(path);
+        return path.indexOf('/staff/') !== -1
+            || /\/retailer\/[^/]+\//i.test(path)
+            || /\/wholesaler\/[^/]+\//i.test(path);
     }
 
     function currentFilename() {
@@ -68,7 +70,7 @@
 
     function iconForFile(file) {
         if (!file) return 'home';
-        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file)) return 'home';
+        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || /^wholesaler-/.test(file)) return 'home';
         if (file === 'po-staff.html' || file.indexOf('po-') === 0) return 'cart';
         if (file === 'receive-staff.html' || file.indexOf('receive-') === 0) return 'package';
         if (file === 'bo-staff.html' || file.indexOf('bo-') === 0) return 'layers';
@@ -155,10 +157,14 @@
         return prefix + 'inbox-retailer.html';
     }
 
+    function retailerDashboardHref(key) {
+        return 'retailer-' + String(key || '') + '.html';
+    }
+
     function retailerNavItems(key) {
         if (!key) return [];
         return [
-            { href: 'retailer-' + key + '.html', label: 'Dashboard', icon: 'home' },
+            { href: retailerDashboardHref(key), label: 'Dashboard', icon: 'home' },
             { href: 'po-' + key + '.html', label: 'Purchase Order', icon: 'cart' },
             { href: 'bo-' + key + '.html', label: 'Back Order', icon: 'layers' },
             { href: 'return-' + key + '.html', label: 'Return/P.O List', icon: 'return' },

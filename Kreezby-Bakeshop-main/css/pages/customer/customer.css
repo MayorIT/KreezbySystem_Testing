@@ -1750,9 +1750,42 @@
             padding: 16px 22px;
         }
 
+        .modal-box.orders-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-box.orders-modal .modal-header {
+            flex: 0 0 auto;
+        }
+
         .modal-box.orders-modal .modal-body {
             padding: 16px 22px 22px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        #orders-detail-view {
+            max-height: calc(88vh - 120px);
             overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+        }
+
+        #orders-detail-view::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #orders-detail-view::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            background: #c7d5e5;
+        }
+
+        html:has(#global-modal-overlay-context.active),
+        body:has(#global-modal-overlay-context.active) {
+            overflow: hidden;
         }
 
         .modal-box.orders-modal .modal-tabs {
@@ -1798,6 +1831,7 @@
             max-height: 54vh;
             overflow-y: auto;
             overflow-x: hidden;
+            overscroll-behavior: contain;
             padding: 2px 6px 2px 0;
             scrollbar-gutter: stable;
         }
@@ -1890,6 +1924,11 @@
 
             .modal-box.orders-modal {
                 width: 96vw;
+                max-height: calc(100dvh - 16px);
+            }
+
+            #orders-detail-view {
+                max-height: calc(100dvh - 140px);
             }
 
             .modal-box.notifications-modal {

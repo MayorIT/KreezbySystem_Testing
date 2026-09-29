@@ -139,7 +139,8 @@
                     '<div><span>Order:</span> <strong>' + escapeHtml(receipt.orderNumber) + '</strong></div>' +
                     '<div><span>Date:</span> <strong>' + issuedAt + '</strong></div>' +
                     '<div><span>Pay:</span> <strong>' + escapeHtml(receipt.paymentMethod) + '</strong></div>' +
-                    '<div><span>Status:</span> <strong>PAID</strong></div>' +
+                    (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : '') +
+                    '<div><span>Status:</span> <strong>' + escapeHtml(receipt.paymentStatus || 'PAID') + '</strong></div>' +
                     '<div><span>Customer Name:</span> <strong>' + escapeHtml(receipt.customerName) + '</strong></div>' +
                     '<div><span>Phone:</span> <strong>' + escapeHtml(receipt.customerPhone || '-') + '</strong></div>' +
                     '<div><span>Address:</span> <strong>' + escapeHtml(receipt.customerAddress || '-') + '</strong></div>' +

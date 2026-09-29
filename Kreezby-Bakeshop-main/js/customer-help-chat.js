@@ -13,7 +13,6 @@
         { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['chocolate crinkles', 'plain chocolate'] },
         { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['almond', 'choco-almond', 'choco almond'] },
         { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['cashew', 'choco-cashew', 'choco cashew'] },
-        { id: 'flavor-mint', name: 'Choco-Mint Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['mint', 'choco-mint', 'choco mint'] },
         { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['strawberry', 'straw'] },
         { id: 'flavor-velvet', name: 'Red Velvet Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['red velvet', 'velvet'] },
         { id: 'flavor-lemon', name: 'Lemon Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['lemon'] },
@@ -245,7 +244,16 @@
             'Total ' + orderTotal(order) + '.',
             ship.address ? 'Deliver to: ' + ship.address + '.' : '',
             ship.notes ? 'Delivery note: ' + ship.notes + '.' : '',
-            'Payment: ' + paymentLabel(order.paymentMethod) + (order.receiptNumber ? ' · Receipt ' + order.receiptNumber : '') + '.'
+            'Payment: ' + paymentLabel(order.paymentMethod) +
+            (order.gcashReference ? ' · GCash ref ' + order.gcashReference : '') +
+            (order.paymentMethod === 'gcash'
+                ? ((order.paymentStatus === 'failed' || order.paymentFailed)
+                    ? ' · failed transaction'
+                    : (order.status === 'Processing'
+                        ? (order.paymentVerified ? ' · transaction verified' : ' · awaiting verification')
+                        : (order.status === 'Completed' ? ' · delivered' : '')))
+                : '') +
+            (order.receiptNumber ? ' · Receipt ' + order.receiptNumber : '') + '.'
         ];
         if (order.trackingNumber) {
             bits.push('Courier: ' + (order.carrier || 'J&T Express Philippines') + '. Tracking number ' + order.trackingNumber + '.');
@@ -289,7 +297,7 @@
 
     function paymentReply() {
         return {
-            text: 'Checkout accepts GCash, MayaBank, MariBank, and Metrobank.\n\n1. Choose a payment method.\n2. Scan the QR and pay the order total.\n3. Tap Verify Payment.\n4. Tap Place Order.\n\nYou then get an order number (ORD-2026-1042) and a receipt number (RCP-2026-00012). Keep both if you need to track the order or report an issue.',
+            text: 'Customers can pay with GCash or cash on delivery.\n\nGCash:\n1. Send the exact total to the bakeshop number 0917 800 1650.\n2. Paste the reference number from the GCash receipt.\n3. Tap Submit reference number, then Place Order.\n\nCash on delivery:\n1. Choose Cash on delivery.\n2. Place the order and pay cash when it arrives.\n\nAdmin, head admin, or staff verify the payment from the order Action menu. If the GCash payment is not received, they mark it as a failed transaction and you are notified in Order Notification.',
             chips: [
                 { label: 'Track my order', prompt: 'Track my order' },
                 { label: 'How do I place an order?', prompt: 'How do I place an order?' },
@@ -359,7 +367,7 @@
 
     function orderHowReply() {
         return {
-            text: 'To place an order:\n1. Open the shop and pick a crinkle flavor.\n2. Set the quantity and tap Add To Cart.\n3. Check out with your name, phone, and full delivery address.\n4. Pay with GCash, MayaBank, MariBank, or Metrobank.\n5. Pay the order total, then tap Verify Payment and Place Order.\n\nYour receipt shows the order number to use for tracking.',
+            text: 'To place an order:\n1. Open the shop and pick a crinkle flavor.\n2. Set the quantity and tap Add To Cart.\n3. Check out with your name, phone, and full delivery address.\n4. Choose GCash or cash on delivery.\n5. For GCash, send the total to 0917 800 1650 and submit the reference number. For cash on delivery, pay when the order arrives.\n6. Tap Place Order.\n\nKreezby verifies the payment before the order is treated as paid.',
             blocks: [{ type: 'links', links: [{ href: 'customer.html', label: 'Back to the shop' }] }],
             chips: [
                 { label: 'What crinkles do you have?', prompt: 'What crinkles do you have?' },

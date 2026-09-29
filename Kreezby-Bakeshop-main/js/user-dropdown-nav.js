@@ -216,7 +216,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20260927dict';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20260929reorder';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -229,7 +229,7 @@
         if (document.getElementById('kreezby-seed-portal-data-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-seed-portal-data-script';
-        s.src = jsBase() + 'kreezby-seed-portal-data.js?v=20260924c';
+        s.src = jsBase() + 'kreezby-seed-portal-data.js?v=20260929trade';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -277,7 +277,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-expanding-tabs-script';
-        s.src = jsBase() + 'expanding-tabs.js?v=20260925sm';
+        s.src = jsBase() + 'expanding-tabs.js?v=20260929forecast';
         s.defer = true;
         s.onload = function () {
             if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
@@ -328,13 +328,13 @@
 
     function ensurePortalIconSidebarLoaded() {
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
-        if (!/\/staff\//i.test(path) && !/\/retailer\/[^/]+\//i.test(path)) return;
+        if (!/\/staff\//i.test(path) && !/\/retailer\/[^/]+\//i.test(path) && !/\/wholesaler\/[^/]+\//i.test(path)) return;
         if (!document.querySelector('aside.sidebar-panel')) return;
         if (document.getElementById('kreezby-portal-icon-sidebar-script')) return;
 
         var s = document.createElement('script');
         s.id = 'kreezby-portal-icon-sidebar-script';
-        s.src = jsBase() + 'portal-icon-sidebar.js';
+        s.src = jsBase() + 'portal-icon-sidebar.js?v=20260929ws';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -510,8 +510,9 @@
 
     function isAdminHomePage() {
         var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
         var file = path.split('/').pop().split('?')[0];
+        if (file === 'head_admin.html' && path.indexOf('/head_admin/') !== -1) return true;
+        if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
         return file === 'admin.html';
     }
 

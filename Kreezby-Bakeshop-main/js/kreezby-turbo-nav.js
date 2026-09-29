@@ -370,6 +370,7 @@
         var path = (window.location.pathname || '').replace(/\\/g, '/');
         var isAdmin = /\/admin\//i.test(path) || /\/head_admin\//i.test(path);
         var isRetailer = /\/retailer\//i.test(path);
+        var wantsRouteSheet = !!scope.querySelector('#bauan-route-sheets-wrap');
 
         function bootSalesUi() {
             if (!window.KreezbySalesListRenderer) return;
@@ -387,7 +388,7 @@
 
         function afterDataReady() {
             var api = window.KreezbySales;
-            if (api && typeof api.reload === 'function' && isAdmin && window.KREEZBY_ADMIN_TEST_SALES) {
+            if (api && typeof api.reload === 'function' && window.KREEZBY_ADMIN_TEST_SALES) {
                 api.reload().then(bootSalesUi);
                 return;
             }
@@ -399,22 +400,22 @@
         }
 
         function loadRenderer() {
-            loadScript(root + 'js/sales-sheet-editor.js?v=20260920d', 'kreezby-sales-sheet-editor-script', function () {
-                loadScript(root + 'js/sales-list-renderer.js?v=20260920d', 'kreezby-sales-list-renderer-script-d', afterDataReady);
+            loadScript(root + 'js/sales-sheet-editor.js?v=20260929k', 'kreezby-sales-sheet-editor-script', function () {
+                loadScript(root + 'js/sales-list-renderer.js?v=20260929areas', 'kreezby-sales-list-renderer-script-d', afterDataReady);
             });
         }
 
-        if (isRetailer) {
+        if (isRetailer && !wantsRouteSheet) {
             loadScript(root + 'js/kreezby-sales-retailer.js', 'kreezby-sales-retailer-script', loadRenderer);
             return;
         }
 
         function loadAdminStaffData() {
-            loadScript(root + 'js/kreezby-sales-data.js?v=20260920d', 'kreezby-sales-data-script-d', loadRenderer);
+            loadScript(root + 'js/kreezby-sales-data.js?v=20260929areas', 'kreezby-sales-data-script-d', loadRenderer);
         }
 
-        if (isAdmin) {
-            loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260920d', 'kreezby-sales-fake-admin-script-d', loadAdminStaffData);
+        if (isAdmin || wantsRouteSheet) {
+            loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260929areas', 'kreezby-sales-fake-admin-script-d', loadAdminStaffData);
             return;
         }
 
@@ -455,7 +456,7 @@
 
         syncPurchaseOrderTheme();
         markTurboLinks(frame);
-        loadScript(moduleRelativeRoot() + 'js/kreezby-seed-portal-data.js?v=20260924c', 'kreezby-seed-portal-data-script', function () {
+        loadScript(moduleRelativeRoot() + 'js/kreezby-seed-portal-data.js?v=20260929trade', 'kreezby-seed-portal-data-script', function () {
             if (window.KreezbyPortalSeed) window.KreezbyPortalSeed.apply();
             activatePageScripts();
             ensurePageStyles();

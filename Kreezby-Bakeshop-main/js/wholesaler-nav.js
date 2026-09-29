@@ -50,6 +50,8 @@
             }
         });
         document.querySelectorAll('a.home-badge').forEach(function (a) {
+            var href = (a.getAttribute('href') || '').split('/').pop();
+            if (/_dashboard\.html$/i.test(href)) return;
             a.setAttribute('href', home);
         });
     }

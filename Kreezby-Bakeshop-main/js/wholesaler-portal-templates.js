@@ -564,25 +564,25 @@ function notificationModalAndScript(w) {
 }
 
 function pageScripts(mod) {
-    var scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+    var scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260929trade"></script>\n'
         + '    <script src="../../js/sidebar-toggle.js"></script>\n'
         + '    <script src="../../js/wholesaler-nav.js"></script>\n'
         + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
 
     if (mod.file === 'po') {
-        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
-            + '    <script src="../../js/po-admin.js?v=3"></script>\n'
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260929trade"></script>\n'
+            + '    <script src="../../js/po-admin.js?v=20260929trade"></script>\n'
             + '    <script src="../../js/sidebar-toggle.js"></script>\n'
             + '    <script src="../../js/wholesaler-nav.js"></script>\n'
             + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
     } else if (mod.file === 'receive') {
-        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260929trade"></script>\n'
             + '    <script src="../../js/receive-admin.js?v=3"></script>\n'
             + '    <script src="../../js/sidebar-toggle.js"></script>\n'
             + '    <script src="../../js/wholesaler-nav.js"></script>\n'
             + '    <script src="../../js/user-dropdown-nav.js"></script>\n';
     } else if (mod.file === 'bo') {
-        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260924c"></script>\n'
+        scripts = '    <script src="../../js/kreezby-seed-portal-data.js?v=20260929trade"></script>\n'
             + '    <script src="../../js/bo-admin.js?v=1"></script>\n'
             + '    <script src="../../js/sidebar-toggle.js"></script>\n'
             + '    <script src="../../js/wholesaler-nav.js"></script>\n'

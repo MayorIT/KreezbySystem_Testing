@@ -158,8 +158,6 @@
 
             { item: 'Melon Crinkles', category: 'Finished Products', sold: '280', lastSold: '02/18/2024', stock: '520', weeks: '12', status: 'slow' },
 
-            { item: 'Choco-Mint Pouch', category: 'Finished Products', sold: '195', lastSold: '03/01/2024', stock: '410', weeks: '11', status: 'slow' },
-
             { item: 'Strawberry Jar', category: 'Finished Products', sold: '160', lastSold: '03/10/2024', stock: '380', weeks: '10', status: 'slow' }
 
         ],

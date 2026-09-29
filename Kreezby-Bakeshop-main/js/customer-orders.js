@@ -134,7 +134,6 @@
         'flavor-choc': 'flavors/chocolate.jpg',
         'flavor-almond': 'flavors/choco-almond.jpg',
         'flavor-cashew': 'flavors/choco-cashew.jpg',
-        'flavor-mint': 'flavors/choco-mint.jpg',
         'flavor-straw': 'flavors/strawberry.jpg',
         'flavor-velvet': 'flavors/redvelvet.jpg',
         'flavor-lemon': 'flavors/lemon.jpg',
@@ -149,7 +148,6 @@
         'Chocolate Crinkles': 'flavors/chocolate.jpg',
         'Choco-Almond Crinkles': 'flavors/choco-almond.jpg',
         'Choco-Cashew Crinkles': 'flavors/choco-cashew.jpg',
-        'Choco-Mint Crinkles': 'flavors/choco-mint.jpg',
         'Strawberry Crinkles': 'flavors/strawberry.jpg',
         'Red Velvet Crinkles': 'flavors/redvelvet.jpg',
         'Lemon Crinkles': 'flavors/lemon.jpg',
@@ -178,18 +176,30 @@
         return { id: entries[0][0], item: entries[0][1] || {} };
     }
 
+    function isPaymentFailed(order) {
+        return !!(order && (order.paymentStatus === 'failed' || order.paymentFailed));
+    }
+
+    function showTransactionVerified(order) {
+        return !!(order && order.status === 'Processing' && order.paymentVerified && !isPaymentFailed(order));
+    }
+
     function updateOrdersTriggerState() {
         var badge = document.getElementById('orders-trigger-badge');
         var trigger = document.querySelector('.orders-trigger-btn');
-        var count = loadOrders().length;
+        var orders = loadOrders();
+        var count = orders.length;
+        var failed = orders.filter(isPaymentFailed).length;
         if (badge) {
             badge.hidden = count <= 0;
-            badge.textContent = String(count);
+            badge.textContent = String(failed || count);
         }
         if (trigger) {
-            trigger.setAttribute('aria-label', count > 0
+            var label = count > 0
                 ? 'Order Notification, ' + count + ' order' + (count === 1 ? '' : 's')
-                : 'Order Notification');
+                : 'Order Notification';
+            if (failed) label += ', ' + failed + ' GCash payment not received';
+            trigger.setAttribute('aria-label', label);
         }
     }
 
@@ -212,7 +222,9 @@
         return 'pending';
     }
 
-    function stepStatusLabel(state) {
+    function stepStatusLabel(state, stepKey, order) {
+        if (stepKey === 'Processing' && showTransactionVerified(order)) return 'Transaction verified';
+        if (stepKey === 'Completed' && state === 'active') return 'Delivered';
         if (state === 'completed') return 'Complete';
         if (state === 'active') return 'In Progress';
         return 'Pending';
@@ -261,7 +273,7 @@
                 '<div class="stepper-line"></div>' +
                 '<div class="stepper-content">' +
                 '<div class="stepper-title">' + meta.title + '</div>' +
-                '<span class="stepper-status">' + stepStatusLabel(state) + '</span>' +
+                '<span class="stepper-status">' + stepStatusLabel(state, stepKey, order) + '</span>' +
                 (time ? '<div class="stepper-time">' + time + '</div>' : '') +
                 '</div>' +
                 '</div>'
@@ -299,6 +311,9 @@
             '<div class="order-list-preview">' +
             '<div class="order-list-items">' + firstItemName(order) + '</div>' +
             '<div class="order-list-total">' + totals.total + '</div>' +
+            (isPaymentFailed(order)
+                ? '<div class="order-list-total" style="color:#b42318;font-size:13px;">GCash payment not received</div>'
+                : (showTransactionVerified(order) ? '<div class="order-list-total" style="color:#15803d;font-size:13px;">Transaction verified</div>' : '')) +
             '</div>' +
             '<span class="order-list-chevron" aria-hidden="true">›</span>' +
             '</div>' +
@@ -325,7 +340,13 @@
             return;
         }
 
-        container.innerHTML = filtered.slice().reverse().map(renderOrderCard).join('');
+        var failedOrders = filtered.filter(isPaymentFailed);
+        var banner = failedOrders.length
+            ? '<div class="orders-empty-state" style="margin-bottom:12px;"><p style="color:#b42318;">We did not receive your GCash payment for ' +
+                failedOrders.map(function (order) { return order.orderNumber; }).join(', ') +
+                '. This is a failed transaction. Send the payment again to 0917 800 1650 and submit the new reference number.</p></div>'
+            : '';
+        container.innerHTML = banner + filtered.slice().reverse().map(renderOrderCard).join('');
         updateOrdersTriggerState();
     }
 
@@ -359,7 +380,10 @@
 
         var totals = orderTotals(order);
         var shipping = order.shippingInfo || {};
-        var paymentLabel = (order.paymentMethod || '—').toUpperCase();
+        var paymentKey = String(order.paymentMethod || '').toLowerCase();
+        var paymentLabel = paymentKey === 'gcash' ? 'GCash'
+            : (paymentKey === 'cash_on_delivery' || paymentKey === 'cod' ? 'Cash on delivery'
+                : (paymentKey === 'check' ? 'Check' : (paymentKey === 'cash' ? 'Cash' : (order.paymentMethod || '—'))));
 
         var itemsHtml = Object.entries(order.items || {}).map(function (entry) {
             var itemId = entry[0];
@@ -383,7 +407,7 @@
         detailView.innerHTML =
             '<div class="order-detail-status-banner">' +
             statusBadge(order.status) +
-            '<p class="order-detail-status-msg">' + statusMessage(order.status) + '</p>' +
+            '<p class="order-detail-status-msg">' + statusMessage(order) + '</p>' +
             renderStepper(order) +
             renderTrackingBlock(order) +
             '</div>' +
@@ -410,9 +434,18 @@
             '<div class="order-detail-summary-row"><span>Delivery Fee</span><span>' + formatMoney(totals.deliveryFee) + '</span></div>' +
             '<div class="order-detail-summary-row order-detail-summary-total"><span>Order Total</span><span>' + totals.total + '</span></div>' +
             '<div class="order-detail-summary-row"><span>Payment Method</span><span>' + paymentLabel + '</span></div>' +
-            '<div class="order-detail-summary-row"><span>Payment Status</span><span>' +
-            (order.paymentVerified ? '<span class="payment-verified">✓ Verified</span>' : '<span class="payment-pending">⏳ Pending</span>') +
-            '</span></div>' +
+            (order.gcashReference ? '<div class="order-detail-summary-row"><span>GCash reference</span><span>' + order.gcashReference + '</span></div>' : '') +
+            (String(order.paymentMethod || '').toLowerCase() === 'gcash' ? '<div class="order-detail-summary-row"><span>Paid to</span><span>0917 800 1650</span></div>' : '') +
+            (isPaymentFailed(order)
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Failed transaction</span></span></div>'
+                : (showTransactionVerified(order)
+                    ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Transaction verified</span></span></div>'
+                    : (order.status === 'Processing'
+                        ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">⏳ Awaiting verification</span></span></div>'
+                        : ''))) +
+            ((order.paymentStatus === 'failed' || order.paymentFailed)
+                ? '<div class="order-detail-summary-row"><span>Notice</span><span>We did not receive this GCash payment. Send it again to 0917 800 1650 and submit the new reference number.</span></div>'
+                : '') +
             '</div>' +
             '</section>' +
 
@@ -423,11 +456,16 @@
             '</section>';
     }
 
-    function statusMessage(status) {
-        if (status === 'Processing') return 'Your order is being prepared at Kreezby.';
+    function statusMessage(order) {
+        var status = order && order.status;
+        if (status === 'Processing') {
+            return showTransactionVerified(order)
+                ? 'Transaction verified. Your order is being prepared at Kreezby.'
+                : 'Your order is being prepared at Kreezby.';
+        }
         if (status === 'Shipped') return 'Your order is on the way!';
         if (status === 'Completed') return 'Order delivered. Enjoy your crinkles!';
-        return 'Order status: ' + status;
+        return 'Order status: ' + (status || '');
     }
 
     function filterOrders(filter, element) {

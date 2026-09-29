@@ -570,7 +570,9 @@
     function refreshDateOptions() {
       if (!dateEl || !filterMeta) return;
       var month = monthEl ? monthEl.value : '';
-      var dates = (filterMeta.byMonth[month] && filterMeta.byMonth[month].dateList) || [];
+      var area = areaEl ? areaEl.value : '';
+      var bucket = filterMeta.byMonth[month];
+      var dates = (bucket && area && bucket.byArea && bucket.byArea[area]) || (bucket && bucket.dateList) || [];
       var prev = dateEl.value;
       fillSelect(dateEl, dates, dates.length ? null : 'No dates this month');
       if (prev && dates.some(function (d) { return d.value === prev; })) {
@@ -636,6 +638,7 @@
     }
 
     function onAreaChange() {
+      refreshDateOptions();
       rerender();
     }
 
@@ -700,7 +703,7 @@
           s.total + ' location entries · ' + filterMeta.months.length + ' months · ' +
           api.getDailyReports().length + ' route sheets (use filters to view one at a time)';
         badge.textContent = s.isTestData
-          ? base + ' · synthetic test data (admin only)'
+          ? base + ' · Kaggle bakery sales (admin test data)'
           : base;
       }
     }

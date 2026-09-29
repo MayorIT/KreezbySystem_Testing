@@ -1228,6 +1228,78 @@ main.workspace-canvas {
             font-size: 18px;
         }
 
+        .gcash-pay-panel {
+            text-align: left;
+        }
+
+        .gcash-pay-lead {
+            margin: 0 0 16px;
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .gcash-number-card {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin: 0 0 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 125, 254, 0.25);
+        }
+
+        .gcash-number-label {
+            width: 100%;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #007dfe;
+        }
+
+        .gcash-number-value {
+            font-size: 28px;
+            letter-spacing: 0.04em;
+            color: #1f2937;
+        }
+
+        .gcash-copy-btn {
+            border: none;
+            border-radius: 999px;
+            background: #007dfe;
+            color: #ffffff;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        .gcash-ref-field {
+            margin: 0 0 14px;
+        }
+
+        .gcash-ref-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #374151;
+        }
+
+        .gcash-ref-field input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font: inherit;
+            font-size: 16px;
+        }
+
         .qr-instructions {
             font-size: 13px;
             color: var(--text-muted);

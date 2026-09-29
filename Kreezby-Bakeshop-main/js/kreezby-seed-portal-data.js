@@ -5,7 +5,7 @@
 (function (root) {
     'use strict';
 
-    var VERSION = '20260924c';
+    var VERSION = '20260929trade';
     var VERSION_KEY = 'kreezbyPortalSeedVersion';
 
     function clone(value) {
@@ -44,7 +44,9 @@
         'PO-SIDC-001': {
             code: 'PO-SIDC-001', dateCreated: '2026-09-12 09:40', entity: 'SIDC Batangas Hub',
             entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Weekly crinkle replenishment for Batangas hub.',
+            remarks: 'Weekly crinkle replenishment. GCash reference waiting for verification.',
+            paymentMethod: 'gcash', gcashReference: '9182736455012', gcashPaidTo: '09178001650',
+            paymentVerified: false, paymentStatus: 'pending',
             items: [
                 line(80, 'Boxes', 'Chocolate Crinkles', 'Standard batch', 165),
                 line(40, 'Boxes', 'Ube Crinkles', 'Weekend demand', 165)
@@ -71,8 +73,10 @@
         'PO-C-MS-001': {
             code: 'PO-C-MS-001', dateCreated: '2026-09-22 08:20', entity: 'Maria Santos',
             entityType: 'customer', area: 'Batangas City', status: 'PROCESSING', statusClass: 'pending',
-            remarks: 'Shop order ORD-2026-1042 — packing at main facility.',
+            remarks: 'Shop order ORD-2026-1042 — GCash reference waiting for verification.',
             trackingNumber: '', courier: 'J&T Express Philippines',
+            paymentMethod: 'gcash', gcashReference: '8291042165831', gcashPaidTo: '09178001650',
+            paymentVerified: false, paymentStatus: 'pending', shopOrderNumber: 'ORD-2026-1042',
             items: [
                 line(3, 'Jars', 'Chocolate Crinkles', '', 165),
                 line(2, 'Jars', 'Ube Crinkles', '', 165)
@@ -98,15 +102,17 @@
         'PO-C-KR-001': {
             code: 'PO-C-KR-001', dateCreated: '2026-09-05 13:45', entity: 'Kyla Ramos',
             entityType: 'customer', area: 'Lipa City', status: 'COMPLETED', statusClass: 'completed',
-            remarks: 'Shop order ORD-2026-1015 delivered.',
+            remarks: 'Shop order ORD-2026-1015 delivered. GCash reference verified.',
             trackingNumber: 'JT6049281734500', courier: 'J&T Express Philippines',
+            paymentMethod: 'gcash', gcashReference: '7049182635501', gcashPaidTo: '09178001650',
+            paymentVerified: true, paymentStatus: 'verified', shopOrderNumber: 'ORD-2026-1015',
             items: [line(6, 'Jars', 'Choco Almond Crinkles', '', 175)]
         },
         'PO-C-BA-001': {
             code: 'PO-C-BA-001', dateCreated: '2026-09-20 19:05', entity: 'Bryle Atienza',
             entityType: 'customer', area: 'Lipa City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Shop order ORD-2026-1008 awaiting pack.',
-            items: [line(2, 'Jars', 'Cheesecake Crinkles', '', 165)]
+            items: [line(2, 'Jars', 'Mango Crinkles', '', 165)]
         },
         'WPO-M-0088': {
             code: 'WPO-M-0088', dateCreated: '2026-09-08 07:50', entity: 'Metro Bulk Distributors',
@@ -120,7 +126,9 @@
         'WPO-M-0091': {
             code: 'WPO-M-0091', dateCreated: '2026-09-21 09:10', entity: 'Metro Bulk Distributors',
             entityType: 'wholesaler', area: 'Quezon City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Next bulk wave — awaiting truck assignment.',
+            remarks: 'Next bulk wave. GCash reference waiting for verification.',
+            paymentMethod: 'gcash', gcashReference: '5647382910645', gcashPaidTo: '09178001650',
+            paymentVerified: false, paymentStatus: 'pending',
             items: [line(18, 'Pallets', 'Lemon Crinkles Bulk', '', 12000)]
         },
         'WPO-M-0094': {
@@ -297,14 +305,15 @@
                 'ms-ube': { name: 'Ube Crinkles', cost: 165, qty: 2 }
             },
             subtotal: 825, deliveryFee: 50, total: '₱875.00',
-            paymentMethod: 'gcash', receiptNumber: 'RCP-2026-00012',
+            paymentMethod: 'gcash', gcashReference: '8291042165831', gcashPaidTo: '09178001650',
+            paymentStatus: 'pending', receiptNumber: 'RCP-2026-00012',
             shippingInfo: {
                 fullName: 'Maria Santos', phone: '09171234567',
                 address: '18 Dolorosa St., Poblacion, Batangas City',
                 notes: 'Please call at the gate'
             },
             status: 'Processing', date: '2026-09-22T08:20:00.000Z',
-            paymentVerified: true, source: 'customer-shop'
+            paymentVerified: false, source: 'customer-shop'
         },
         {
             orderNumber: 'ORD-2026-1038', poCode: 'PO-C-MS-002', poEntity: 'Maria Santos',
@@ -343,7 +352,8 @@
             orderNumber: 'ORD-2026-1015', poCode: 'PO-C-KR-001', poEntity: 'Kyla Ramos',
             items: { 'kr-almond': { name: 'Choco Almond Crinkles', cost: 175, qty: 6 } },
             subtotal: 1050, deliveryFee: 50, total: '₱1,100.00',
-            paymentMethod: 'gcash', receiptNumber: 'RCP-2026-00007',
+            paymentMethod: 'gcash', gcashReference: '7049182635501', gcashPaidTo: '09178001650',
+            paymentStatus: 'verified', receiptNumber: 'RCP-2026-00007',
             shippingInfo: {
                 fullName: 'Kyla Ramos', phone: '09181112202',
                 address: '42 Marawoy Ave., Lipa City', notes: 'Office drop-off'
@@ -356,7 +366,7 @@
         },
         {
             orderNumber: 'ORD-2026-1008', poCode: 'PO-C-BA-001', poEntity: 'Bryle Atienza',
-            items: { 'ba-cheese': { name: 'Cheesecake Crinkles', cost: 165, qty: 2 } },
+            items: { 'ba-mango': { name: 'Mango Crinkles', cost: 165, qty: 2 } },
             subtotal: 330, deliveryFee: 50, total: '₱380.00',
             paymentMethod: 'cash_on_delivery', receiptNumber: 'RCP-2026-00006',
             shippingInfo: {
