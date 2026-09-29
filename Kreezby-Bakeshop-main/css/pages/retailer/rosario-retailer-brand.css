@@ -1,44 +1,10 @@
-/* Rosario retailer nav — store logo | Kreezby logo */
-.top-navbar-node {
-    align-items: center;
-    padding: 10px 24px;
-    min-height: 64px;
-}
-
-.brand-logo-panel {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-right: auto;
-    height: 44px;
-    max-width: min(440px, 58vw);
-    flex-shrink: 1;
-    font-size: 0;
-}
-
-.brand-logo-panel img.brand-store-logo {
-    height: 44px;
-    width: auto;
-    max-width: 170px;
-    object-fit: contain;
-    flex-shrink: 1;
-}
-
+/* Retailer nav — Kreezby logo only, same size as the other portals. */
 .brand-logo-panel img.brand-kreezby-logo {
+    display: block;
     height: 38px;
     width: auto;
     max-width: 104px;
-    flex-shrink: 0;
-}
-
-.brand-logo-divider {
-    width: 1px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.5);
-    flex-shrink: 0;
-}
-
-.top-nav-links-right {
-    margin-left: auto;
+    object-fit: contain;
+    object-position: center;
     flex-shrink: 0;
 }

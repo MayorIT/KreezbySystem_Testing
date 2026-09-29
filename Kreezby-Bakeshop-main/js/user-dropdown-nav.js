@@ -241,7 +241,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20260927static';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20260929sched5';
         document.head.appendChild(s);
     }
 
@@ -351,7 +351,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20260927recv';
+        s.src = jsBase() + 'admin-permissions.js?v=20260929title';
         s.async = false;
         document.head.appendChild(s);
     }

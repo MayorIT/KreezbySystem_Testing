@@ -474,6 +474,9 @@
             if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
                 try { window.KreezbyActionMenu.scan(frame); } catch (e2) {}
             }
+            if (window.KreezbyDeliverySchedule && frame.querySelector('#delivery-schedule')) {
+                try { window.KreezbyDeliverySchedule.boot(); } catch (e3) {}
+            }
             if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.fillDashboardCounts === 'function') {
                 window.KreezbyPortalSeed.fillDashboardCounts();
             }

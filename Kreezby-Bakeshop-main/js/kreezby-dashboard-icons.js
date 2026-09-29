@@ -70,7 +70,7 @@
         if (file === 'stocks-staff.html' || file === 'stocks-admin.html' || file.indexOf('stocks-') === 0) return 'boxes';
         if (file.indexOf('saleslist') >= 0) return 'sales';
         if (file.indexOf('dailysales') >= 0) return 'calendar';
-        if (file.indexOf('aiforecast') >= 0) return 'chart';
+        if (file.indexOf('forecast-') === 0 || file.indexOf('deliveryschedule') === 0) return 'chart';
         if (file.indexOf('inventoryreport') >= 0) return 'report';
         if (file.indexOf('stocklevel') >= 0) return 'activity';
         if (file.indexOf('alert') >= 0) return 'bell';

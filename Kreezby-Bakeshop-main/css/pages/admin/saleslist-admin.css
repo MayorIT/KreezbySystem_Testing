@@ -1069,15 +1069,27 @@ main.workspace-canvas {
 /* Daily collection sheet layout — matches handwritten Kreezby route forms */
 
 .sales-ledger-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
   max-width: 100%;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .sales-ledger-stack {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sales-ledger-stack .panel-data-card {
   width: 100%;
+  min-width: 0;
   margin-bottom: 0;
+}
+
+.sales-ledger-stack .card-body-padded {
+  overflow-x: auto;
 }
 
 .sales-section-retailer {
@@ -1633,9 +1645,10 @@ table.manual-sheet-table tfoot td {
 
         .dashboard-split-layout,
         .sales-ledger-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            align-items: start;
         }
 
         .panel-data-card {

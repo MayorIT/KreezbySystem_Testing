@@ -225,7 +225,7 @@
             '<div class="item-entry-builder-bar">' +
             '<div class="form-field-unit"><label>Flavor</label><select id="builder-flavor-picker">' +
             '<option value="">Please select a flavor</option>' +
-            '<option value="Chocolate" data-rate="50.00">Chocolate</option>' +
+            '<option value="Chocolate Crinkles" data-rate="165.00">Chocolate Crinkles</option>' +
             '<option value="Lemon" data-rate="45.00">Lemon</option>' +
             '<option value="Choco Almond" data-rate="55.00">Choco Almond</option></select></div>' +
             '<div class="form-field-unit"><label>Unit</label><input type="text" id="builder-unit-input" value="PCS"></div>' +
@@ -236,9 +236,9 @@
             '<tbody id="po-modal-items-injector"></tbody>' +
             '<tfoot><tr style="font-weight:bold;background:#f5f5f5;"><td colspan="5" style="text-align:right;">Grand Total</td>' +
             '<td id="po-modal-grand-total" colspan="2">0.00</td></tr></tfoot></table>' +
-            '<div class="form-field-unit"><label for="po-modal-payment">Mode of payment</label><select id="po-modal-payment">' +
+            '<div class="form-field-unit"><label for="po-modal-payment">Payment they made</label><select id="po-modal-payment">' +
             '<option value="gcash">GCash</option><option value="check">Check</option><option value="cash">Cash</option></select></div>' +
-            '<div class="form-field-unit" id="po-modal-gcash-wrap"><p style="margin:0 0 8px;color:#374151;">Send the total to the bakeshop GCash <strong>0917 800 1650</strong>. Paste the reference below so we can verify the payment.</p>' +
+            '<div class="form-field-unit" id="po-modal-gcash-wrap"><p style="margin:0 0 8px;color:#374151;">GCash webpay confirms payment to the bakeshop wallet <strong>0917 800 1650</strong>. Paste the webpay reference number.</p>' +
             '<label for="po-modal-gcash-ref">GCash reference number</label>' +
             '<input type="text" id="po-modal-gcash-ref" inputmode="numeric" maxlength="20" placeholder="From the GCash receipt"></div>' +
             '<div class="form-field-unit" id="po-modal-check-wrap" style="display:none;"><label for="po-modal-check-no">Check number</label>' +
@@ -254,6 +254,7 @@
         var paySelect = document.getElementById('po-modal-payment');
         if (paySelect) paySelect.addEventListener('change', togglePaymentExtras);
         togglePaymentExtras();
+        applyRetailerOrderForm();
     }
 
     function loadData() {
@@ -346,6 +347,56 @@
     function displayStatus(order) {
         if (!order) return 'Pending';
         return statusMeta(order.statusClass, order.entityType).label;
+    }
+
+    function displayWhen(order) {
+        var raw = String((order && order.dateCreated) || '');
+        if (order && order.entityType === 'retailer') return raw.replace('T', ' ').slice(0, 10);
+        return raw;
+    }
+
+    function retailerOrderSelected() {
+        if (PAGE_MODE === 'retailer' && !isWholesalerPortal()) return true;
+        var typeSelect = document.getElementById('po-modal-type');
+        return !!(typeSelect && typeSelect.value === 'retailer');
+    }
+
+    function applyRetailerOrderForm() {
+        var flavor = document.getElementById('builder-flavor-picker');
+        var unit = document.getElementById('builder-unit-input');
+        var date = document.getElementById('po-modal-date');
+        if (flavor && !flavor.getAttribute('data-original-html')) {
+            flavor.setAttribute('data-original-html', flavor.innerHTML);
+        }
+        var retailer = retailerOrderSelected();
+        if (flavor) {
+            flavor.innerHTML = retailer
+                ? '<option value="Chocolate Crinkles" data-rate="165.00" selected>Chocolate Crinkles</option>'
+                : flavor.getAttribute('data-original-html');
+        }
+        if (unit) {
+            unit.readOnly = retailer;
+            if (retailer) unit.value = 'Pouches';
+            else if (unit.value === 'Pouches') unit.value = unit.getAttribute('data-open-unit') || 'PCS';
+        }
+        if (date) {
+            if (retailer) {
+                var day = String(date.value || '').slice(0, 10);
+                date.type = 'date';
+                if (day) date.value = day;
+            } else if (date.type === 'date') {
+                date.type = 'datetime-local';
+            }
+        }
+        document.querySelectorAll('#po-modal-items-injector .mod-name, #po-modal-items-injector .mod-unit').forEach(function (input) {
+            if (!retailer) {
+                input.readOnly = false;
+                return;
+            }
+            input.readOnly = true;
+            if (input.classList.contains('mod-name')) input.value = 'Chocolate Crinkles';
+            if (input.classList.contains('mod-unit')) input.value = 'Pouches';
+        });
     }
 
     function toDatetimeLocal(str) {
@@ -532,7 +583,7 @@
             tbody.innerHTML = rows.map(function (o, i) {
                 return '<tr data-po="' + o.code + '" class="po-data-row">' +
                     '<td data-label="#">' + (i + 1) + '</td>' +
-                    '<td data-label="Date">' + o.dateCreated + '</td>' +
+                    '<td data-label="Date">' + displayWhen(o) + '</td>' +
                     '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                     '<td data-label="Action">' + buildActionMenu(o.code) + '</td>' +
                     '<td data-label="Supplier">' + SUPPLIER_LABEL + '</td>' +
@@ -544,7 +595,7 @@
         tbody.innerHTML = rows.map(function (o, i) {
             return '<tr data-po="' + o.code + '" class="po-data-row">' +
                 '<td data-label="#">' + (i + 1) + '</td>' +
-                '<td data-label="Date">' + o.dateCreated + '</td>' +
+                '<td data-label="Date">' + displayWhen(o) + '</td>' +
                 '<td data-label="PO Code"><a href="#" class="po-code-link" data-po="' + o.code + '">' + o.code + '</a></td>' +
                 '<td data-label="Account">' + o.entity + '<br><small>' + (o.accountType || (o.entityType === 'wholesaler' ? 'Wholesaler' : o.entityType === 'customer' ? 'Regular Customer' : 'Retailer')) + (o.accountArea || o.area ? ' · ' + (o.accountArea || o.area) : '') + '</small></td>' +
                 '<td data-label="Status"><span class="status-pill-badge ' + (o.statusClass || 'pending') + ' po-status-link" data-po="' + o.code + '">' + displayStatus(o) + '</span>' + paymentListNote(o) + '</td>' +
@@ -594,7 +645,7 @@
             '<div class="details-header-meta-block">' +
             '<div>' +
             '<div class="meta-data-line"><strong>P.O. Code:</strong> ' + order.code + '</div>' +
-            '<div class="meta-data-line"><strong>Date Created:</strong> ' + order.dateCreated + '</div>' +
+            '<div class="meta-data-line"><strong>Date Created:</strong> ' + displayWhen(order) + '</div>' +
             '<div class="meta-data-line"><strong>Customer type:</strong> ' + (order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer')) + '</div>' +
             '<div class="meta-data-line"><strong>Account:</strong> ' + (order.accountName || order.entity) + '</div>' +
             '<div class="meta-data-line"><strong>Area:</strong> ' + (order.accountArea || order.area || '—') + '</div>' +
@@ -613,7 +664,7 @@
             '<tr style="font-weight:bold;background:#f5f5f5;"><td colspan="4" style="text-align:right;">Sub Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '<tr style="font-weight:bold;background:#eee;"><td colspan="4" style="text-align:right;">Grand Total</td><td style="text-align:right;">' + formatMoney(total) + '</td></tr>' +
             '</tfoot></table>' +
-            '<div class="details-dynamic-footer-status">Verification: ' + displayStatus(order) + '</div>' +
+            '<div class="details-dynamic-footer-status">' + (paymentIsPaid(order) ? 'Payment: Paid' : ('Verification: ' + displayStatus(order))) + '</div>' +
             gcashVerificationBlock(order) + '</div>';
     }
 
@@ -684,14 +735,27 @@
         return !!(order && order.entityType && order.entityType !== 'customer');
     }
 
+    function webpayDetails(order) {
+        return (order && order.gcashWebpay) || null;
+    }
+
+    function paymentIsPaid(order) {
+        var webpay = webpayDetails(order);
+        var status = String((order && order.paymentStatus) || '').toLowerCase();
+        var api = String((webpay && webpay.apiStatus) || '').toLowerCase();
+        return status === 'paid' || api === 'paid';
+    }
+
     function paymentListNote(order) {
         var pay = customerPaymentSnapshot(order);
         var trade = isTradeOrder(order);
         if (!pay.method && !trade) return '';
-        var detail = pay.method ? pay.label : 'Payment';
-        if (pay.method === 'gcash' && pay.reference) detail += ' ' + pay.reference;
+        var detail = pay.method ? ('Paid by ' + pay.label) : 'Payment type not recorded';
+        var webpay = webpayDetails(order);
+        var reference = (webpay && webpay.webpayReferenceNumber) || (pay.method === 'gcash' ? pay.reference : '');
+        if (reference) detail += ' ' + reference;
         if (pay.method === 'check' && pay.checkNumber) detail += ' ' + pay.checkNumber;
-        var state = pay.failed ? ' · failed transaction' : (pay.verified ? ' · verified' : ' · to verify');
+        var state = pay.failed ? ' · failed transaction' : (paymentIsPaid(order) ? ' · paid' : (pay.method === 'gcash' ? ' · GCash webpay' : (pay.verified ? ' · verified' : ' · to verify')));
         return '<br><small>' + escHtml(detail) + state + '</small>';
     }
 
@@ -699,7 +763,7 @@
         if (PAGE_MODE === 'retailer') return '';
         var pay = customerPaymentSnapshot(order);
         var trade = isTradeOrder(order);
-        if (pay.verified || pay.failed) return '';
+        if (pay.method === 'gcash' || pay.verified || pay.failed || paymentIsPaid(order)) return '';
         if (!pay.method && !trade) return '';
         var label = trade ? 'To verify' : 'Verify payment';
         return '<div class="action-popup-item" data-action="verify-payment" data-po="' + poCode + '">' + label + '</div>' +
@@ -712,11 +776,19 @@
         var pay = customerPaymentSnapshot(order);
         var trade = isTradeOrder(order);
         if (!pay.method && !trade) return '';
-        var statusLabel = pay.failed ? 'Failed transaction' : (pay.verified ? 'Verified' : (trade ? 'To verify' : 'Awaiting verification'));
+        var webpay = webpayDetails(order);
+        var paid = paymentIsPaid(order);
+        var statusLabel = pay.failed ? 'Failed transaction' : (paid ? 'Paid' : (pay.method === 'gcash' ? 'GCash webpay' : (pay.verified ? 'Verified' : (trade ? 'To verify' : 'Awaiting verification'))));
         var lines = '<div class="meta-data-line"><strong>Method:</strong> ' + escHtml(pay.label || 'Not recorded yet') + '</div>';
         if (pay.method === 'gcash') {
-            lines += '<div class="meta-data-line"><strong>Paid to:</strong> ' + escHtml(formatGcashNumber(pay.paidTo)) + ' (Kreezby Bakeshop)</div>' +
-                '<div class="meta-data-line"><strong>Reference number:</strong> ' + escHtml(pay.reference || 'Not submitted') + '</div>';
+            lines += '<div class="meta-data-line"><strong>Paid to:</strong> ' + escHtml(formatGcashNumber(pay.paidTo)) + ' (Kreezby Bakeshop)</div>';
+            if (webpay) {
+                lines += '<div class="meta-data-line"><strong>Webpay reference:</strong> ' + escHtml(webpay.webpayReferenceNumber || pay.reference || 'Not submitted') + '</div>' +
+                    '<div class="meta-data-line"><strong>Checkout session:</strong> ' + escHtml(webpay.checkoutSessionId || '') + '</div>' +
+                    '<div class="meta-data-line"><strong>Paid at:</strong> ' + escHtml(String(webpay.paidAt || '').replace('T', ' ').replace('Z', ' UTC')) + '</div>';
+            } else {
+                lines += '<div class="meta-data-line"><strong>Reference number:</strong> ' + escHtml(pay.reference || 'Not submitted') + '</div>';
+            }
         } else if (pay.method === 'check') {
             lines += '<div class="meta-data-line"><strong>Check number:</strong> ' + escHtml(pay.checkNumber || 'Not submitted') + '</div>';
         } else if (pay.method === 'cash_on_delivery') {
@@ -724,12 +796,12 @@
         } else if (pay.method === 'cash') {
             lines += '<div class="meta-data-line"><strong>Collect:</strong> Cash at the shop</div>';
         }
+        if (order && order.inventoryDeducted) {
+            lines += '<div class="meta-data-line"><strong>Inventory:</strong> Already deducted</div>';
+        }
         var action = '';
-        if (!pay.verified && !pay.failed && PAGE_MODE !== 'retailer') {
+        if (pay.method !== 'gcash' && !pay.verified && !pay.failed && !paid && PAGE_MODE !== 'retailer') {
             action = '<button type="button" class="btn-call-to-action" id="payment-verify-btn" style="margin-top:12px;">' + (trade ? 'To verify' : 'Verify payment') + '</button>';
-            if (pay.method === 'gcash') {
-                action += '<button type="button" class="btn-call-to-action" id="payment-fail-btn" style="margin-top:12px;margin-left:8px;background:#b42318;">Payment not received</button>';
-            }
         }
         return '<div class="gcash-verify-card" style="margin-top:18px;padding:16px;border:1px solid #dbe7f5;border-radius:12px;background:#f7fbff;">' +
             '<div class="viewer-table-title" style="margin-top:0;">Payment</div>' +
@@ -1169,10 +1241,13 @@
         tbody.innerHTML = '';
         if (order && order.items && order.items.length) {
             order.items.forEach(function (it) { addModalItemRow(it); });
+        } else if (type === 'retailer') {
+            addModalItemRow({ name: 'Chocolate Crinkles', unit: 'Pouches', qty: 24, cost: 165 });
         } else {
             addModalItemRow({ name: 'Chocolate', unit: 'PCS', qty: 10, cost: 50 });
         }
         editingPoCode = order ? order.code : null;
+        applyRetailerOrderForm();
     }
 
     function openCreateModal(tab) {
@@ -1195,14 +1270,18 @@
         var opt = sel.options[sel.selectedIndex];
         var name = sel.value;
         if (!name) { showToast('Pick a flavor first.'); return; }
+        if (retailerOrderSelected()) {
+            name = 'Chocolate Crinkles';
+        }
         addModalItemRow({
             name: name,
-            unit: document.getElementById('builder-unit-input').value || 'PCS',
+            unit: retailerOrderSelected() ? 'Pouches' : (document.getElementById('builder-unit-input').value || 'PCS'),
             qty: parseFloat(document.getElementById('builder-qty-input').value) || 1,
-            cost: parseFloat(opt.getAttribute('data-rate')) || 0
+            cost: retailerOrderSelected() ? 165 : (parseFloat(opt.getAttribute('data-rate')) || 0)
         });
         document.getElementById('builder-qty-input').value = '';
-        sel.value = '';
+        if (!retailerOrderSelected()) sel.value = '';
+        applyRetailerOrderForm();
     }
 
     function saveModal() {
@@ -1376,8 +1455,9 @@
             cash: 'Cash',
             cashondelivery: 'Cash on delivery',
             cod: 'Cash on delivery',
-            creditcard: 'Credit card',
-            card: 'Credit card',
+            creditcard: 'GCash',
+            debitcard: 'Cash',
+            card: 'GCash',
             check: 'Check',
             cheque: 'Check'
         };
@@ -1387,16 +1467,16 @@
     function receiptPayMarks(order) {
         var raw = lookupOrderPayment(order);
         var method = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
-        var marks = { cash: false, card: false, check: false, other: false, otherText: '', checkNo: '' };
+        var marks = { cash: false, gcash: false, check: false, other: false, otherText: '', checkNo: '' };
         if (!method && order && order.entityType !== 'customer') {
             method = 'onaccount';
             raw = 'on_account';
         }
         if (!method) return marks;
-        if (method === 'cash' || method === 'cashondelivery' || method === 'cod') {
+        if (method === 'cash' || method === 'cashondelivery' || method === 'cod' || method === 'debit' || method === 'debitcard') {
             marks.cash = true;
-        } else if (method === 'creditcard' || method === 'credit' || method === 'card' || method === 'debit' || method === 'debitcard') {
-            marks.card = true;
+        } else if (method === 'gcash' || method === 'creditcard' || method === 'credit' || method === 'card') {
+            marks.gcash = true;
         } else if (method === 'check' || method === 'cheque') {
             marks.check = true;
             marks.checkNo = String((order && (order.checkNumber || order.chequeNumber)) || '');
@@ -1446,7 +1526,7 @@
             '</tbody></table>' +
             '<div class="po-receipt-pay"><p>Sale Made with:</p>' +
             '<p>' + receiptBox(pay.cash) + ' Cash</p>' +
-            '<p>' + receiptBox(pay.card) + ' Credit Card</p>' +
+            '<p>' + receiptBox(pay.gcash) + ' GCash</p>' +
             '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>' +
             '<p>' + receiptBox(pay.other) + ' Other <span class="po-receipt-line">' + escHtml(pay.otherText) + '</span></p></div>' +
             (customerPaymentSnapshot(order).reference ? '<p class="po-receipt-date">GCash ref: <span>' + escHtml(customerPaymentSnapshot(order).reference) + '</span></p>' : '') +
@@ -1591,6 +1671,7 @@
         if (typeSelect) {
             typeSelect.addEventListener('change', function () {
                 fillPaymentOptions(typeSelect.value, (document.getElementById('po-modal-payment') || {}).value);
+                applyRetailerOrderForm();
             });
         }
         var paySelect = document.getElementById('po-modal-payment');

@@ -180,6 +180,12 @@
         return !!(order && (order.paymentStatus === 'failed' || order.paymentFailed));
     }
 
+    function webpayPaid(order) {
+        var webpay = order && order.gcashWebpay;
+        var api = String(webpay && webpay.apiStatus || '').toLowerCase();
+        return String(order && order.paymentStatus || '').toLowerCase() === 'paid' || api === 'paid';
+    }
+
     function showTransactionVerified(order) {
         return !!(order && order.status === 'Processing' && order.paymentVerified && !isPaymentFailed(order));
     }
@@ -434,15 +440,19 @@
             '<div class="order-detail-summary-row"><span>Delivery Fee</span><span>' + formatMoney(totals.deliveryFee) + '</span></div>' +
             '<div class="order-detail-summary-row order-detail-summary-total"><span>Order Total</span><span>' + totals.total + '</span></div>' +
             '<div class="order-detail-summary-row"><span>Payment Method</span><span>' + paymentLabel + '</span></div>' +
-            (order.gcashReference ? '<div class="order-detail-summary-row"><span>GCash reference</span><span>' + order.gcashReference + '</span></div>' : '') +
+            (order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber ? '<div class="order-detail-summary-row"><span>Webpay reference</span><span>' + order.gcashWebpay.webpayReferenceNumber + '</span></div>' : (order.gcashReference ? '<div class="order-detail-summary-row"><span>GCash reference</span><span>' + order.gcashReference + '</span></div>' : '')) +
             (String(order.paymentMethod || '').toLowerCase() === 'gcash' ? '<div class="order-detail-summary-row"><span>Paid to</span><span>0917 800 1650</span></div>' : '') +
             (isPaymentFailed(order)
                 ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Failed transaction</span></span></div>'
-                : (showTransactionVerified(order)
-                    ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Transaction verified</span></span></div>'
-                    : (order.status === 'Processing'
-                        ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">⏳ Awaiting verification</span></span></div>'
-                        : ''))) +
+                : (webpayPaid(order)
+                    ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Paid</span></span></div>'
+                    : (showTransactionVerified(order)
+                        ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Transaction verified</span></span></div>'
+                        : (order.status === 'Processing' && String(order.paymentMethod || '').toLowerCase() !== 'gcash'
+                            ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">⏳ Awaiting verification</span></span></div>'
+                            : (String(order.paymentMethod || '').toLowerCase() === 'gcash'
+                                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span>GCash webpay</span></div>'
+                                : ''))))) +
             ((order.paymentStatus === 'failed' || order.paymentFailed)
                 ? '<div class="order-detail-summary-row"><span>Notice</span><span>We did not receive this GCash payment. Send it again to 0917 800 1650 and submit the new reference number.</span></div>'
                 : '') +

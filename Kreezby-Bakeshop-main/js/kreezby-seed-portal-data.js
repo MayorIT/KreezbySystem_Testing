@@ -5,7 +5,7 @@
 (function (root) {
     'use strict';
 
-    var VERSION = '20260929trade';
+    var VERSION = '20260929webpay';
     var VERSION_KEY = 'kreezbyPortalSeedVersion';
 
     function clone(value) {
@@ -42,32 +42,48 @@
 
     var SEED_POS = {
         'PO-SIDC-001': {
-            code: 'PO-SIDC-001', dateCreated: '2026-09-12 09:40', entity: 'SIDC Batangas Hub',
+            code: 'PO-SIDC-001',             dateCreated: '2026-09-12', entity: 'SIDC Batangas Hub',
             entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Weekly crinkle replenishment. GCash reference waiting for verification.',
+            remarks: 'Weekly replenishment. Paid by GCash. Reference waiting for verification.',
             paymentMethod: 'gcash', gcashReference: '9182736455012', gcashPaidTo: '09178001650',
             paymentVerified: false, paymentStatus: 'pending',
             items: [
-                line(80, 'Boxes', 'Chocolate Crinkles', 'Standard batch', 165),
-                line(40, 'Boxes', 'Ube Crinkles', 'Weekend demand', 165)
+                line(80, 'Pouches', 'Chocolate Crinkles', '', 165)
             ]
         },
         'PO-MCC-001': {
-            code: 'PO-MCC-001', dateCreated: '2026-09-20 11:15', entity: 'Makati Crinkle Corner',
+            code: 'PO-MCC-001',             dateCreated: '2026-09-20', entity: 'Makati Crinkle Corner',
             entityType: 'retailer', area: 'Makati', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Festival weekend stock-up — awaiting dispatch.',
+            remarks: 'Festival weekend stock-up. Paid by check.',
+            paymentMethod: 'check', checkNumber: '104482',
+            paymentVerified: false, paymentStatus: 'pending',
             items: [
-                line(50, 'Boxes', 'Lemon Crinkles', '', 165),
-                line(30, 'Boxes', 'Choco Butternut', '', 180)
+                line(50, 'Pouches', 'Chocolate Crinkles', '', 165)
             ]
         },
         'PO-QCM-001': {
-            code: 'PO-QCM-001', dateCreated: '2026-09-16 14:05', entity: 'Quezon Crinkle Mart',
+            code: 'PO-QCM-001',             dateCreated: '2026-09-16', entity: 'Quezon Crinkle Mart',
             entityType: 'retailer', area: 'Lucena City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Partial delivery; lemon cases still in production.',
+            remarks: 'Partial delivery of Chocolate Crinkles pouches. Paid in cash.',
+            paymentMethod: 'cash', paymentVerified: true, paymentStatus: 'verified',
             items: [
-                line(36, 'Boxes', 'Chocolate Crinkles', 'Received 24', 165),
-                line(24, 'Boxes', 'Lemon Crinkles', 'Back-ordered', 165)
+                line(36, 'Pouches', 'Chocolate Crinkles', 'Received 24', 165)
+            ]
+        },
+        'ORD-2026-0102': {
+            code: 'ORD-2026-0102', dateCreated: '2026-09-29', entity: 'Retailer',
+            entityType: 'retailer', area: '', status: 'PENDING', statusClass: 'pending',
+            remarks: 'GCash webpay paid. Chocolate Crinkles pouches. Inventory already deducted.',
+            paymentMethod: 'gcash', gcashReference: '202609291810450012', gcashPaidTo: '09178001650',
+            paymentVerified: true, paymentStatus: 'paid', inventoryDeducted: true,
+            gcashWebpay: {
+                checkoutSessionId: 'cs_gcash_9982314',
+                webpayReferenceNumber: '202609291810450012',
+                apiStatus: 'PAID',
+                paidAt: '2026-09-29T18:10:45Z'
+            },
+            items: [
+                line(17, 'Pouches', 'Chocolate Crinkles', 'GCash webpay', 200)
             ]
         },
         'PO-C-MS-001': {
@@ -170,20 +186,19 @@
         },
         'recv-sidc-001': {
             id: 'recv-sidc-001', supplier: 'Kreezby Bakeshop', sourceType: 'Retailer',
-            entity: 'SIDC Batangas Hub', dateReceived: '2026-09-12 16:20',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Hub received weekly replenishment.',
-            poOrigin: 'PO-SIDC-001', reference: 'SIDC-IN-0912', subTotal: 19800,
+            entity: 'SIDC Batangas Hub', dateReceived: '2026-09-12',
+            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Hub received Chocolate Crinkles pouches. Paid by GCash.',
+            poOrigin: 'PO-SIDC-001', reference: 'SIDC-IN-0912', subTotal: 13200,
             lineItems: [
-                line(80, 'Boxes', 'Chocolate Crinkles', '', 165),
-                line(40, 'Boxes', 'Ube Crinkles', '', 165)
+                line(80, 'Pouches', 'Chocolate Crinkles', '', 165)
             ]
         },
         'recv-qcm-001': {
             id: 'recv-qcm-001', supplier: 'Kreezby Bakeshop', sourceType: 'Retailer',
-            entity: 'Quezon Crinkle Mart', dateReceived: '2026-09-17 10:05',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Lemon cases still outstanding.',
+            entity: 'Quezon Crinkle Mart', dateReceived: '2026-09-17',
+            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Partial Chocolate Crinkles pouches. Paid in cash.',
             poOrigin: 'PO-QCM-001', reference: 'QCM-IN-0917', subTotal: 3960,
-            lineItems: [line(24, 'Boxes', 'Chocolate Crinkles', 'Partial', 165)]
+            lineItems: [line(24, 'Pouches', 'Chocolate Crinkles', 'Partial', 165)]
         },
         'recv-maria-001': {
             id: 'recv-maria-001', supplier: 'Maria Santos', sourceType: 'Customer',
@@ -225,20 +240,19 @@
 
     var SEED_BOS = {
         'BO-SIDC-001': {
-            code: 'BO-SIDC-001', poCode: 'PO-QCM-001', dateCreated: '2026-09-16 14:20',
+            code: 'BO-SIDC-001', poCode: 'PO-QCM-001', dateCreated: '2026-09-16',
             entity: 'Quezon Crinkle Mart', entityType: 'retailer', supplier: 'Kreezby Bakeshop',
             expectedDelivery: 'Sep 26, 2026', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Balance lemon cases still in bake cycle.',
-            items: [boLine('Lemon Crinkles', 'Boxes', 'Outstanding', 24, 0, 165)]
+            remarks: 'Remaining Chocolate Crinkles pouches. Paid in cash.',
+            items: [boLine('Chocolate Crinkles', 'Pouches', 'Outstanding', 12, 0, 165)]
         },
         'BO-MCC-001': {
-            code: 'BO-MCC-001', poCode: 'PO-MCC-001', dateCreated: '2026-09-20 11:20',
+            code: 'BO-MCC-001', poCode: 'PO-MCC-001', dateCreated: '2026-09-20',
             entity: 'Makati Crinkle Corner', entityType: 'retailer', supplier: 'Kreezby Bakeshop',
             expectedDelivery: 'Sep 25, 2026', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Festival stock not yet dispatched.',
+            remarks: 'Chocolate Crinkles pouches not yet dispatched. Paid by check.',
             items: [
-                boLine('Lemon Crinkles', 'Boxes', '', 50, 0, 165),
-                boLine('Choco Butternut', 'Boxes', '', 30, 0, 180)
+                boLine('Chocolate Crinkles', 'Pouches', '', 50, 0, 165)
             ]
         },
         'BO-C-MS-001': {
@@ -269,10 +283,10 @@
 
     var SEED_RETURNS = {
         'RET-SIDC-001': {
-            code: 'RET-SIDC-001', poOrigin: 'PO-SIDC-001', dateCreated: '2026-09-13 10:12',
+            code: 'RET-SIDC-001', poOrigin: 'PO-SIDC-001', dateCreated: '2026-09-13',
             entity: 'SIDC Batangas Hub', entityType: 'retailer', status: 'RETURNED', statusClass: 'rejected',
-            reason: 'Crushed box corners on 6 chocolate cases identified during hub receiving.',
-            items: [line(6, 'Boxes', 'Chocolate Crinkles', 'Crushed corners', 165)]
+            reason: 'Crushed corners on 6 Chocolate Crinkles pouches. Paid by GCash.',
+            items: [line(6, 'Pouches', 'Chocolate Crinkles', 'Crushed corners', 165)]
         },
         'RET-MS-001': {
             code: 'RET-MS-001', poOrigin: 'PO-C-MS-003', dateCreated: '2026-09-12 09:18',

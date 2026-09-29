@@ -72,7 +72,8 @@
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
         inventoryreport: { label: 'Report', page: 'inventoryreport-staff.html' },
-        aiforecast: { label: 'AI Forecast', page: 'aiforecast-staff.html' },
+        aiforecast: { label: 'Forecast', page: 'forecast-staff.html' },
+        deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-staff.html' },
         ordertracking: {
             label: 'Order Tracking',
             page: 'order-tracking-staff.html',
@@ -91,18 +92,18 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox'],
-        'staff-2': ['dashboard', 'po', 'receive', 'bo', 'return', 'alert'],
-        'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert'],
-        'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert'],
-        'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert'],
-        'staff-6': ['dashboard', 'receive', 'bo', 'return', 'alert', 'ordertracking'],
-        'staff-7': ['dashboard', 'inbox', 'inbox_retailer', 'saleslist', 'alert', 'ordertracking']
+        'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox', 'deliveryschedule'],
+        'staff-2': ['dashboard', 'po', 'receive', 'bo', 'return', 'alert', 'deliveryschedule'],
+        'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert', 'deliveryschedule'],
+        'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'],
+        'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'],
+        'staff-6': ['dashboard', 'receive', 'bo', 'return', 'alert', 'ordertracking', 'deliveryschedule'],
+        'staff-7': ['dashboard', 'inbox', 'inbox_retailer', 'saleslist', 'alert', 'ordertracking', 'deliveryschedule']
     };
 
     var TASK_ORDER = [
         'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
-        'saleslist', 'dailysales', 'aiforecast', 'alert', 'ordertracking',
+        'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
 
@@ -125,11 +126,7 @@
     PAGE_TO_TASK['staff-7.html'] = 'dashboard';
     PAGE_TO_TASK['report_issue-staff.html'] = null;
     PAGE_TO_TASK['report_issue-received-students.html'] = null;
-    PAGE_TO_TASK['aiforecast_salestrend-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['aiforecast_salesanalysis-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['aiforecast_inventoryreport-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['aiforecast_deliveryoverview-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['aiforecast_bestselling-staff.html'] = 'aiforecast';
+    PAGE_TO_TASK['deliveryschedule-staff.html'] = 'deliveryschedule';
     PAGE_TO_TASK['stocklevel-value-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-capacity-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-weeks-staff.html'] = 'stocklevel';
@@ -154,8 +151,25 @@
         return null;
     }
 
+    function grantDeliverySchedule(stored) {
+        if (!stored) return stored;
+        try {
+            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return stored;
+        } catch (e) { return stored; }
+        Object.keys(stored).forEach(function (id) {
+            if (Array.isArray(stored[id]) && stored[id].indexOf('deliveryschedule') === -1) {
+                stored[id].push('deliveryschedule');
+            }
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            localStorage.setItem('kreezby_staff_delivery_nav_v1', '1');
+        } catch (e) { /* ignore */ }
+        return stored;
+    }
+
     function getAllPermissions() {
-        var stored = getStoredPermissions();
+        var stored = grantDeliverySchedule(getStoredPermissions());
         var merged = {};
         Object.keys(STAFF_PROFILES).forEach(function (staffId) {
             merged[staffId] = (stored && stored[staffId])

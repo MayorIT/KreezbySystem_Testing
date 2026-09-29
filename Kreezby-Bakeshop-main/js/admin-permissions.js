@@ -57,7 +57,8 @@
         stocks: { label: 'Stocks', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
-        aiforecast: { label: 'AI Forecast', page: 'aiforecast-admin.html' },
+        aiforecast: { label: 'Forecast', page: 'forecast-admin.html' },
+        deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-admin.html' },
         alert: { label: 'Alert', page: 'alert-admin.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-admin.html' },
         maintenance: { label: 'Maintenance', page: 'maintenance-admin.html' },
@@ -66,15 +67,15 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        elena: ['dashboard', 'po', 'receive', 'saleslist', 'ordertracking', 'alert', 'inbox'],
-        marco: ['dashboard', 'stocks', 'stocklevel', 'receive', 'alert'],
-        patricia: ['dashboard', 'saleslist', 'aiforecast', 'ordertracking', 'alert'],
-        jonas: ['dashboard', 'po', 'receive', 'bo', 'return', 'saleslist', 'alert']
+        elena: ['dashboard', 'po', 'receive', 'saleslist', 'ordertracking', 'alert', 'inbox', 'deliveryschedule'],
+        marco: ['dashboard', 'stocks', 'stocklevel', 'receive', 'alert', 'deliveryschedule'],
+        patricia: ['dashboard', 'saleslist', 'aiforecast', 'ordertracking', 'alert', 'deliveryschedule'],
+        jonas: ['dashboard', 'po', 'receive', 'bo', 'return', 'saleslist', 'alert', 'deliveryschedule']
     };
 
     var TASK_ORDER = [
         'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
-        'saleslist', 'ordertracking', 'aiforecast', 'alert', 'stocklevel',
+        'saleslist', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
         'maintenance', 'inbox', 'issuereports'
     ];
 
@@ -198,6 +199,19 @@
             Object.keys(DEFAULT_PERMISSIONS).forEach(function (id) {
                 if (!parsed[id]) parsed[id] = DEFAULT_PERMISSIONS[id].slice();
             });
+            var migrated = false;
+            try { migrated = localStorage.getItem('kreezby_admin_delivery_nav_v1') === '1'; } catch (e) { migrated = true; }
+            if (!migrated) {
+                Object.keys(parsed).forEach(function (id) {
+                    if (Array.isArray(parsed[id]) && parsed[id].indexOf('deliveryschedule') === -1) {
+                        parsed[id].push('deliveryschedule');
+                    }
+                });
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                    localStorage.setItem('kreezby_admin_delivery_nav_v1', '1');
+                } catch (e) { /* ignore */ }
+            }
             return parsed;
         } catch (e) {
             return JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
@@ -238,7 +252,8 @@
         if (raw.indexOf('it_kreezby') >= 0) return null;
         var base = raw.split('/').pop().split('?')[0];
         if (PAGE_TO_TASK[base]) return PAGE_TO_TASK[base];
-        if (base.indexOf('aiforecast') === 0) return 'aiforecast';
+        if (base.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
+        if (base.indexOf('forecast-') === 0) return 'aiforecast';
         if (base.indexOf('stocklevel') === 0) return 'stocklevel';
         return null;
     }

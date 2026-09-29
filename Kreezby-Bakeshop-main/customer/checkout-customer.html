@@ -99,7 +99,6 @@
                             </div>
                             <div class="payment-method-selector__body">
                                 <p class="payment-method-selector__label">GCash</p>
-                                <p class="payment-method-selector__desc">Send payment to the bakeshop GCash number</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
@@ -108,36 +107,11 @@
                                 <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#5d4037"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
                             </div>
                             <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">Cash on delivery</p>
-                                <p class="payment-method-selector__desc">Pay cash when the order arrives</p>
+                                <p class="payment-method-selector__label">Cash On Delivery</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
                     </div>
-                </div>
-
-                <div class="qr-section gcash-pay-panel active" id="qr-section">
-                    <h3 class="qr-title">Pay with GCash</h3>
-                    <p class="gcash-pay-lead">Send the order total to the Kreezby Bakeshop GCash number, then enter the reference number from your GCash receipt.</p>
-                    <div class="gcash-number-card">
-                        <span class="gcash-number-label">Bakeshop GCash</span>
-                        <strong class="gcash-number-value" id="gcash-shop-number">0917 800 1650</strong>
-                        <button type="button" class="gcash-copy-btn" id="gcash-copy-btn">Copy number</button>
-                    </div>
-                    <p class="qr-instructions">
-                        1. Open GCash and send money to <strong>0917 800 1650</strong><br>
-                        2. Send the exact amount: <strong id="qr-amount">₱0.00</strong><br>
-                        3. Copy the reference number from the GCash receipt<br>
-                        4. Paste it below so we can verify the payment
-                    </p>
-                    <div class="gcash-ref-field">
-                        <label for="gcash-reference">GCash reference number</label>
-                        <input type="text" id="gcash-reference" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Example: 1234567890123">
-                    </div>
-                    <button type="button" class="checkout-btn checkout-btn--verify" id="verify-payment-btn" onclick="verifyPayment()">
-                        Submit reference number
-                    </button>
-                    <div class="verification-status" id="verification-status" aria-live="polite"></div>
                 </div>
 
                 <div class="qr-section gcash-pay-panel" id="cod-section">
@@ -192,10 +166,10 @@
 
     <script src="../js/payment-summary.js?v=20260929pay"></script>
     <script src="../js/payment-method-selector.js"></script>
-    <script src="../js/checkout-customer.js?v=20260929pay"></script>
-    <script src="../js/customer-orders.js?v=20260929proc"></script>
+    <script src="../js/checkout-customer.js?v=20260929plain"></script>
+    <script src="../js/customer-orders.js?v=20260929webpay"></script>
     <script src="../js/customer-site-header.js?v=20260928hdr"></script>
-    <script src="../js/user-dropdown-nav.js?v=20260927req"></script>
+    <script src="../js/user-dropdown-nav.js?v=20260929title"></script>
     <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>
 </body>
 </html>

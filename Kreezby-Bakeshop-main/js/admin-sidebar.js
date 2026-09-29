@@ -65,7 +65,9 @@
 
         { key: 'ordertracking', label: 'Order Tracking', href: 'order-tracking-admin.html', icon: 'truck' },
 
-        { key: 'aiforecast', label: 'AI Forecast', href: 'aiforecast-admin.html', icon: 'chart' },
+        { key: 'aiforecast', label: 'Forecast', href: 'forecast-admin.html', icon: 'chart' },
+
+        { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-admin.html', icon: 'truck' },
 
         { key: 'alert', label: 'Alert', href: 'alert-admin.html', icon: 'bell' },
 
@@ -235,7 +237,9 @@
 
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
 
-        if (filename.indexOf('aiforecast') === 0) return 'aiforecast';
+        if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
+
+        if (filename.indexOf('forecast-') === 0) return 'aiforecast';
 
         if (filename.indexOf('po-') === 0) return 'po';
 
@@ -315,7 +319,7 @@
             var unlockAll = window.KreezbyAdminPermissions.isHeadAdmin() && !insideNamedAdmin;
             if (!unlockAll) {
                 items = items.filter(function (item) {
-                    return window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
+                    return item.key === 'deliveryschedule' || window.KreezbyAdminPermissions.adminCanAccessTask(item.key);
                 });
             }
         }
@@ -428,6 +432,24 @@
     bootSidebar();
 
 
+
+    function ensureDeliverySchedule() {
+        if (window.KreezbyDeliverySchedule) {
+            window.KreezbyDeliverySchedule.boot();
+            return;
+        }
+        if (document.getElementById('kreezby-delivery-schedule-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-delivery-schedule-script';
+        s.src = assetPrefix() + 'js/delivery-schedule.js?v=20260929pouch';
+        s.onload = function () {
+            if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
+        };
+        document.body.appendChild(s);
+    }
+
+    ensureDeliverySchedule();
+    document.addEventListener('kreezby:page-load', ensureDeliverySchedule);
 
     window.KreezbyAdminSidebar = { render: renderAdminSidebar, NAV: NAV };
 

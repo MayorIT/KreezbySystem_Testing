@@ -249,9 +249,9 @@
             (order.paymentMethod === 'gcash'
                 ? ((order.paymentStatus === 'failed' || order.paymentFailed)
                     ? ' · failed transaction'
-                    : (order.status === 'Processing'
-                        ? (order.paymentVerified ? ' · transaction verified' : ' · awaiting verification')
-                        : (order.status === 'Completed' ? ' · delivered' : '')))
+                    : (String(order.paymentStatus || '').toLowerCase() === 'paid' || (order.gcashWebpay && String(order.gcashWebpay.apiStatus || '').toLowerCase() === 'paid')
+                        ? ' · paid by GCash webpay'
+                        : (order.status === 'Completed' ? ' · delivered' : ' · GCash webpay')))
                 : '') +
             (order.receiptNumber ? ' · Receipt ' + order.receiptNumber : '') + '.'
         ];

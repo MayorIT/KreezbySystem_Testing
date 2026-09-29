@@ -5,8 +5,8 @@
         <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreezby Bakeshop - Reorder Recommendation (Staff)</title>
-    <link rel="stylesheet" href="../css/pages/staff/aiforecast_salesanalysis-staff.css">
+    <title>Kreezby Bakeshop - AI Assisted Forecast (Staff)</title>
+    <link rel="stylesheet" href="../css/pages/staff/aiforecast-staff.css">
 
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
@@ -40,20 +40,13 @@
 
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
+            
             <div class="panel-data-card">
                 <div class="panel-card-title-bar">
                     <h3>AI Assisted Forecast</h3>
                 </div>
                 <div class="card-body-padded">
-                    <div class="ai-filter-pills" id="ai-filter-pills">
-                        <a class="pill" href="aiforecast_salesanalysis-staff.html" data-key="sales-analysis">Sales Analysis</a>
-                        <a class="pill" href="aiforecast_salestrend-staff.html" data-key="sales-trend">Sales Trend</a>
-                        <a class="pill" href="aiforecast_inventoryreport-staff.html" data-key="inventory-report">Inventory Report</a>
-                        <a class="pill" href="aiforecast_deliveryoverview-staff.html" data-key="delivery-overview">Delivery Overview</a>
-                        <a class="pill" href="aiforecast_reorder-staff.html" data-key="reorder-recommendation">Reorder Recommendation</a>
-                    </div>
-
-                    <div id="reorder-recommendation"></div>
+                                        <div id="reorder-recommendation"></div>
                 </div>
             </div>
 
@@ -62,9 +55,10 @@
     </div>
 
     <script src="../js/aiforecast-pills.js"></script>
-    <script src="../js/staff-permissions.js?v=20260927nav"></script>
-        <script src="../js/user-dropdown-nav.js?v=20260929reorder"></script>
-        <script src="../js/staff-sidebar.js?v=20260927sheet"></script>
+    <script src="../js/delivery-schedule.js?v=20260929pouch"></script>
+    <script src="../js/staff-permissions.js?v=20260929title"></script>
+        <script src="../js/user-dropdown-nav.js?v=20260929title"></script>
+        <script src="../js/staff-sidebar.js?v=20260929title"></script>
 <script src="../js/sidebar-toggle.js?v=20260927row"></script>
 </body>
 </html>

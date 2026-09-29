@@ -1064,17 +1064,30 @@ main.workspace-canvas {
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            min-height: 100dvh;
+            background-color: #1a120c;
+            background-image:
+                linear-gradient(180deg, rgba(9, 9, 11, 0.38) 0%, rgba(9, 9, 11, 0.62) 100%),
+                url("../../assets/auth/kreezby-auth-flavors-bg.jpg?v=20260929bg");
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: #1a120c;
             background-image:
                 linear-gradient(180deg, rgba(9, 9, 11, 0.38) 0%, rgba(9, 9, 11, 0.62) 100%),
-                url("../../assets/auth/kreezby-auth-flavors-bg.png?v=20260925b");
+                url("../../assets/auth/kreezby-auth-flavors-bg.jpg?v=20260929bg");
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1093,14 +1106,10 @@ main.workspace-canvas {
         }
 
         .brand-logo-large {
-            font-size: 42px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fbc02d 0%, #f9a825 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 28px;
-            letter-spacing: 1px;
+            display: block;
+            width: min(280px, 100%);
+            height: auto;
+            margin: 0 auto 28px;
         }
 
         .screen-choice-prompt {
@@ -1194,9 +1203,10 @@ main.workspace-canvas {
 }
 
 .splash-slide .brand-logo-large {
-    color: #f9a825;
-    background: none;
-    -webkit-text-fill-color: #f9a825;
+    display: block;
+    width: min(280px, 100%);
+    height: auto;
+    margin: 0 auto 28px;
 }
 
 .splash-slide.is-guest .splash-slide__track {

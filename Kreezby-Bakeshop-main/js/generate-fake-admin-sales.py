@@ -11,6 +11,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kreezby_catalog import match_product
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT_JSON = ROOT / "data" / "kreezby-sales-fake-admin.json"
 OUT_JS = ROOT / "js" / "kreezby-sales-fake-admin.js"
@@ -142,7 +145,7 @@ def build():
     for row, idx in load_rows():
         raw_date = row[idx["Date"]]
         report_date = raw_date.strftime("%Y-%m-%d") if hasattr(raw_date, "strftime") else str(raw_date)[:10]
-        product = str(row[idx["Product"]] or "Item")
+        product = match_product("", str(row[idx["Product"]] or "Item"))["item"]
         key = (report_date, product)
         bucket = grouped.get(key)
         if bucket is None:

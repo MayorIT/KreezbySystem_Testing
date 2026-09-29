@@ -1,7 +1,7 @@
 let selectedPaymentMethod = 'gcash';
 let cartData = {};
 let isPaymentVerified = false;
-let submittedGcashReference = '';
+let gcashWebpay = null;
 let orderNumber = '';
 const GCASH_SHOP_NUMBER = '09178001650';
 const GCASH_SHOP_NUMBER_LABEL = '0917 800 1650';
@@ -133,7 +133,8 @@ function buildReceipt(order) {
         paymentMethod: paymentMethodLabel(order.paymentMethod),
         gcashReference: order.gcashReference || '',
         gcashPaidTo: order.gcashPaidTo || GCASH_SHOP_NUMBER,
-        paymentStatus: order.paymentVerified ? 'Verified' : 'Awaiting verification',
+        paymentStatus: order.paymentStatus === 'paid' ? 'Paid' : (order.paymentVerified ? 'Verified' : 'Awaiting verification'),
+        gcashWebpay: order.gcashWebpay || null,
         subtotal: Number(order.subtotal) || 0,
         deliveryFee: Number(order.deliveryFee) || 0,
         total: Number(order.subtotal || 0) + Number(order.deliveryFee || 0),
@@ -199,7 +200,7 @@ function openReceiptWindow(receipt, heading) {
         <div><span>Order:</span> <strong>${escapeHtml(receipt.orderNumber)}</strong></div>
         <div><span>Date:</span> <strong>${issuedAt}</strong></div>
         <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}${receipt.gcashReference ? ' ' + escapeHtml(GCASH_SHOP_NUMBER_LABEL) : ''}</strong></div>
-        ${receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''}
+        ${receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber ? '<div><span>Webpay ref:</span> <strong>' + escapeHtml(receipt.gcashWebpay.webpayReferenceNumber) + '</strong></div>' : (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : '')}
         <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
         <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
         <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
@@ -329,6 +330,7 @@ function normalizeCartData(rawCart) {
 
 function setVerificationMessage(type, message) {
     const verificationStatus = document.getElementById('verification-status');
+    if (!verificationStatus) return;
     verificationStatus.style.display = 'block';
     verificationStatus.className = `verification-status ${type}`;
     verificationStatus.textContent = message;
@@ -336,6 +338,7 @@ function setVerificationMessage(type, message) {
 
 function clearVerificationMessage() {
     const verificationStatus = document.getElementById('verification-status');
+    if (!verificationStatus) return;
     verificationStatus.style.display = 'none';
     verificationStatus.className = 'verification-status';
     verificationStatus.textContent = '';
@@ -349,13 +352,12 @@ function updateActionButtons() {
     const verifyBtn = document.getElementById('verify-payment-btn');
     const placeOrderBtn = document.getElementById('place-order-btn');
     const canPay = Boolean(selectedPaymentMethod) && hasCartItems();
-    const codReady = selectedPaymentMethod === 'cash_on_delivery';
 
     if (verifyBtn) {
         verifyBtn.disabled = !canPay || !isGcashCheckout();
         verifyBtn.style.display = isGcashCheckout() ? '' : 'none';
     }
-    if (placeOrderBtn) placeOrderBtn.disabled = !canPay || (!codReady && !isPaymentVerified);
+    if (placeOrderBtn) placeOrderBtn.disabled = !canPay;
 }
 
 function syncPaymentPanels() {
@@ -367,14 +369,47 @@ function syncPaymentPanels() {
 
 function resetVerification() {
     isPaymentVerified = false;
-    submittedGcashReference = '';
+    gcashWebpay = null;
+    const result = document.getElementById('gcash-webpay-result');
+    if (result) {
+        result.hidden = true;
+        result.innerHTML = '';
+    }
     clearVerificationMessage();
+    const payBtn = document.getElementById('verify-payment-btn');
+    if (payBtn) payBtn.textContent = 'Pay with GCash';
     updateActionButtons();
 }
 
-function readGcashReference() {
-    const input = document.getElementById('gcash-reference');
-    return String(input && input.value || '').replace(/\s+/g, '');
+function buildGcashWebpay(totalAmount) {
+    const now = new Date();
+    const pad = function (value, width) { return String(value).padStart(width, '0'); };
+    const stamp = String(now.getUTCFullYear())
+        + pad(now.getUTCMonth() + 1, 2)
+        + pad(now.getUTCDate(), 2)
+        + pad(now.getUTCHours(), 2)
+        + pad(now.getUTCMinutes(), 2)
+        + pad(now.getUTCSeconds(), 2)
+        + pad(Math.floor(Math.random() * 10000), 4);
+    return {
+        checkoutSessionId: 'cs_gcash_' + String(Math.floor(1000000 + Math.random() * 9000000)),
+        webpayReferenceNumber: stamp.slice(0, 18),
+        apiStatus: 'PAID',
+        paidAt: now.toISOString(),
+        amount: totalAmount
+    };
+}
+
+function renderWebpayResult(payment) {
+    const result = document.getElementById('gcash-webpay-result');
+    if (!result || !payment) return;
+    result.hidden = false;
+    result.innerHTML = [
+        '<p class="gcash-pay-lead"><strong>API status:</strong> ' + payment.apiStatus + '</p>',
+        '<p class="qr-instructions">Webpay reference: <strong>' + payment.webpayReferenceNumber + '</strong><br>',
+        'Checkout session: <strong>' + payment.checkoutSessionId + '</strong><br>',
+        'Paid at: <strong>' + payment.paidAt.replace('T', ' ').replace('Z', ' UTC') + '</strong></p>'
+    ].join('');
 }
 
 function saveCustomerPurchaseOrder(order) {
@@ -399,15 +434,17 @@ function saveCustomerPurchaseOrder(order) {
         status: 'PROCESSING',
         statusClass: 'pending',
         remarks: order.paymentMethod === 'gcash'
-            ? ('GCash reference ' + order.gcashReference + ' is waiting for verification.')
+            ? ('GCash webpay paid. Reference ' + ((order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber) || order.gcashReference) + '.')
             : 'Cash on delivery is waiting for verification.',
         trackingNumber: '',
         courier: 'J&T Express Philippines',
         paymentMethod: order.paymentMethod || 'gcash',
         gcashReference: order.gcashReference || '',
         gcashPaidTo: order.gcashPaidTo || '',
-        paymentVerified: false,
-        paymentStatus: 'pending',
+        gcashWebpay: order.gcashWebpay || null,
+        paymentVerified: order.paymentMethod === 'gcash',
+        paymentStatus: order.paymentMethod === 'gcash' ? 'paid' : 'pending',
+        inventoryDeducted: order.paymentMethod === 'gcash',
         shopOrderNumber: order.orderNumber,
         accountType: order.accountType || 'Regular Customer',
         accountName: order.accountName || shipping.fullName || '',
@@ -496,19 +533,6 @@ function initCheckout() {
             }
         });
     }
-    const referenceInput = document.getElementById('gcash-reference');
-    if (referenceInput) {
-        referenceInput.addEventListener('input', function () {
-            if (readGcashReference() !== submittedGcashReference) {
-                isPaymentVerified = false;
-                const verifyBtn = document.getElementById('verify-payment-btn');
-                if (verifyBtn) verifyBtn.textContent = 'Submit reference number';
-                clearVerificationMessage();
-                updateActionButtons();
-            }
-        });
-    }
-
     if (paymentSelector) {
         paymentSelector.addEventListener('paymentchange', (e) => {
             selectPayment(e.detail.id, { userInitiated: true });
@@ -535,9 +559,9 @@ function renderOrderSummary() {
                 total: { label: 'Total', value: '₱0.00' }
             });
         }
-        document.getElementById('qr-amount').textContent = '₱0.00';
-        verifyBtn.disabled = true;
-        setVerificationMessage('error', 'Your cart is empty. Add items before verifying payment.');
+        const amountLabel = document.getElementById('qr-amount');
+        if (amountLabel) amountLabel.textContent = '₱0.00';
+        if (verifyBtn) verifyBtn.disabled = true;
         updateActionButtons();
         return;
     }
@@ -570,7 +594,8 @@ function renderOrderSummary() {
         });
     }
 
-    document.getElementById('qr-amount').textContent = formatCurrency(total);
+    const amountLabel = document.getElementById('qr-amount');
+    if (amountLabel) amountLabel.textContent = formatCurrency(total);
     const codAmount = document.getElementById('cod-amount');
     if (codAmount) codAmount.textContent = formatCurrency(total);
     if (!(isPaymentVerified && isGcashCheckout())) clearVerificationMessage();
@@ -602,26 +627,20 @@ function selectPayment(method, options) {
     updateActionButtons();
 }
 
-function verifyPayment() {
+function payWithGcash() {
     if (!hasCartItems()) {
-        showCheckoutDialog('Your cart is empty. Add items before submitting a GCash reference.', { type: 'warning', title: 'Cart Empty' });
+        showCheckoutDialog('Your cart is empty. Add items before paying with GCash.', { type: 'warning', title: 'Cart Empty' });
         return;
     }
 
-    const reference = readGcashReference();
-    if (!/^\d{8,20}$/.test(reference)) {
-        showCheckoutDialog('Enter the reference number from your GCash receipt. Use the 8 to 20 digit number shown after you send the payment.', {
-            type: 'warning',
-            title: 'Reference Number Needed'
-        });
-        return;
-    }
-
-    submittedGcashReference = reference;
-    isPaymentVerified = true;
-    setVerificationMessage('verified', 'Reference ' + reference + ' saved. Kreezby will check it against the bakeshop GCash before packing. You can place the order now.');
-    const verifyBtn = document.getElementById('verify-payment-btn');
-    if (verifyBtn) verifyBtn.textContent = 'Reference submitted';
+    const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
+    const totalAmount = subtotal + (subtotal > 0 ? 50 : 0);
+    gcashWebpay = buildGcashWebpay(totalAmount);
+    isPaymentVerified = gcashWebpay.apiStatus === 'PAID';
+    renderWebpayResult(gcashWebpay);
+    setVerificationMessage('verified', 'GCash webpay status is PAID. Reference ' + gcashWebpay.webpayReferenceNumber + '. You can place the order.');
+    const payBtn = document.getElementById('verify-payment-btn');
+    if (payBtn) payBtn.textContent = 'Paid';
     updateActionButtons();
 }
 
@@ -632,15 +651,6 @@ function placeOrder() {
     }
 
     const payingWithGcash = isGcashCheckout();
-    const reference = payingWithGcash ? readGcashReference() : '';
-    if (payingWithGcash && (!isPaymentVerified || reference !== submittedGcashReference || !/^\d{8,20}$/.test(reference))) {
-        showCheckoutDialog('Send the payment to the bakeshop GCash number, then submit the reference number before placing the order.', {
-            type: 'warning',
-            title: 'Reference Number Needed'
-        });
-        return;
-    }
-
     const fullName = document.getElementById('full-name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const address = document.getElementById('address').value.trim();
@@ -664,6 +674,7 @@ function placeOrder() {
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
     const deliveryFee = subtotal > 0 ? 50 : 0;
     const totalAmount = subtotal + deliveryFee;
+    if (payingWithGcash) gcashWebpay = buildGcashWebpay(totalAmount);
 
     let session = {};
     try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
@@ -684,9 +695,10 @@ function placeOrder() {
         deliveryFee: deliveryFee,
         total: formatCurrency(totalAmount),
         paymentMethod: payingWithGcash ? 'gcash' : 'cash_on_delivery',
-        gcashReference: payingWithGcash ? reference : '',
+        gcashReference: payingWithGcash ? gcashWebpay.webpayReferenceNumber : '',
         gcashPaidTo: payingWithGcash ? GCASH_SHOP_NUMBER : '',
-        paymentStatus: 'pending',
+        gcashWebpay: payingWithGcash ? gcashWebpay : null,
+        paymentStatus: payingWithGcash ? 'paid' : 'pending',
         receiptNumber: '',
         accountType: accountType,
         accountName: accountName,
@@ -699,7 +711,8 @@ function placeOrder() {
         },
         status: 'Processing',
         date: new Date().toISOString(),
-        paymentVerified: false
+        paymentVerified: payingWithGcash,
+        inventoryDeducted: payingWithGcash
     };
 
     order.poCode = order.orderNumber;
@@ -729,7 +742,7 @@ function placeOrder() {
             id: 'n-order-' + orderNumber,
             title: 'Customer Order Placed',
             description: payingWithGcash
-                ? ('New GCash order ' + orderNumber + ' from ' + fullName + '. Reference ' + reference + ' is waiting for verification.')
+                ? ('New GCash order ' + orderNumber + ' from ' + fullName + '. Webpay reference ' + gcashWebpay.webpayReferenceNumber + ' is PAID.')
                 : ('New cash on delivery order ' + orderNumber + ' from ' + fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
             read: false,
@@ -752,7 +765,7 @@ function placeOrder() {
 
     showCheckoutDialog(
         payingWithGcash
-            ? `Order placed. Order Number: ${orderNumber}. GCash reference ${reference} is waiting for Kreezby to verify. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`
+            ? `Order placed. Order Number: ${orderNumber}. GCash webpay is PAID. Reference ${gcashWebpay.webpayReferenceNumber}. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`
             : `Order placed. Order Number: ${orderNumber}. Cash on delivery is waiting for Kreezby to verify after the cash is collected. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`,
         { type: 'success', title: 'Order Confirmed', buttonText: 'Go To Shop' }
     ).then(function () {

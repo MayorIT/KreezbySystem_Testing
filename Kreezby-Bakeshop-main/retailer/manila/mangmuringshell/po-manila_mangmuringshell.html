@@ -8,7 +8,7 @@
     <title>Kreezby Bakeshop - Purchase Order — Mang Muring Shell (Manila)</title>
     <link rel="stylesheet" href="../../../css/pages/retailer/mangmuringshell/po-manila_mangmuringshell.css">
 
-    <link rel="stylesheet" href="../../../css/pages/retailer/manila-retailer-brand.css">
+    <link rel="stylesheet" href="../../../css/pages/retailer/manila-retailer-brand.css?v=20260929logo">
 </head>
 <body data-kreezby-portal="retailer-po">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -16,11 +16,7 @@
 
 
 <header class="top-navbar-node">
-    <div class="brand-logo-panel">
-        <img class="brand-store-logo" src="../../../assets/logo/manila/mangmuringshell.png" alt="Mang Muring Shell logo">
-        <span class="brand-logo-divider" aria-hidden="true"></span>
-        <img class="brand-kreezby-logo" src="../../../assets/logo/kreezby-logo.png" alt="Kreezby logo">
-    </div>
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
     <div class="top-nav-links-right">
         <a class="top-nav-item home-badge" href="retailer-manila_mangmuringshell.html">Home</a>
         <div class="user-dropdown">
@@ -239,10 +235,10 @@ function switchToMasterListsPane(){if(window.PoAdmin&&PoAdmin.backToList)PoAdmin
 function togglePurchaseOrderFormModal(shouldDisplay,poCode){if(window.PoAdmin){shouldDisplay?PoAdmin.openEditModal(poCode||null):PoAdmin.closeModal();}}
 </script>
 <div id="po-print-receipt-root" class="po-print-receipt-root" aria-hidden="true"></div>
-<script src="../../../js/po-admin.js?v=20260929tov"></script>
+<script src="../../../js/po-admin.js?v=20260929webpay"></script>
 <script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
 <script src="../../../js/retailer-nav.js?v=20260929dash"></script>
-<script src="../../../js/user-dropdown-nav.js?v=20260929dash"></script>
+<script src="../../../js/user-dropdown-nav.js?v=20260929title"></script>
 <!-- kreezby-po-portal-patched-v3 -->
 </body>
 </html>

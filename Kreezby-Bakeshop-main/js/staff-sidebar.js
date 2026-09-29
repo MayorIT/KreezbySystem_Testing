@@ -35,6 +35,7 @@
         saleslist: 'sales',
         dailysales: 'calendar',
         aiforecast: 'chart',
+        deliveryschedule: 'truck',
         alert: 'bell',
         stocklevel: 'activity',
         inventoryreport: 'report',
@@ -50,7 +51,8 @@
         { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
-        { key: 'aiforecast', label: 'AI Forecast', href: 'aiforecast-staff.html', icon: 'chart' },
+        { key: 'aiforecast', label: 'Forecast', href: 'forecast-staff.html', icon: 'chart' },
+        { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
         { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' }
     ];
@@ -153,7 +155,7 @@
 
         var taskOrder = api.TASK_ORDER || [
             'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
-            'saleslist', 'dailysales', 'aiforecast', 'alert', 'ordertracking',
+            'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
         ];
 
@@ -183,6 +185,16 @@
             });
         });
 
+        if (!items.some(function (item) { return item.key === 'deliveryschedule'; })) {
+            var forecastAt = items.findIndex(function (item) { return item.key === 'aiforecast'; });
+            items.splice(forecastAt + 1, 0, {
+                key: 'deliveryschedule',
+                label: 'Delivery Schedule',
+                href: 'deliveryschedule-staff.html',
+                icon: 'truck'
+            });
+        }
+
         return items.length ? items : FALLBACK_NAV.slice();
     }
 
@@ -191,7 +203,8 @@
         if (filename === 'inbox-staff.html') return 'inbox';
         if (/^inbox-staff-\d+\.html$/.test(filename)) return 'inbox';
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
-        if (filename.indexOf('aiforecast') === 0) return 'aiforecast';
+        if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
+        if (filename.indexOf('forecast-') === 0) return 'aiforecast';
         if (filename === 'po-staff.html') return 'po';
         if (filename === 'receive-staff.html') return 'receive';
         if (filename === 'bo-staff.html') return 'bo';
@@ -266,6 +279,25 @@
     }
 
     bootSidebar();
+
+    function ensureDeliverySchedule() {
+        if (!isStaffDarkSidebarPage() && !document.querySelector('aside.dark-sidebar-panel')) return;
+        if (window.KreezbyDeliverySchedule) {
+            window.KreezbyDeliverySchedule.boot();
+            return;
+        }
+        if (document.getElementById('kreezby-delivery-schedule-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-delivery-schedule-script';
+        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20260929pouch';
+        s.onload = function () {
+            if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
+        };
+        document.body.appendChild(s);
+    }
+
+    ensureDeliverySchedule();
+    document.addEventListener('kreezby:page-load', ensureDeliverySchedule);
 
     window.KreezbyStaffSidebar = { render: renderStaffSidebar, buildNavItems: buildNavItems };
 })();
