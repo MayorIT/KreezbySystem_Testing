@@ -10,45 +10,33 @@
         return;
     }
 
-    var STORE_KEY = 'kreezby_delivery_schedule_v4';
+    var STORE_KEY = 'kreezby_delivery_schedule_v5';
     var PRODUCT = 'Chocolate Crinkles';
     var PAYMENTS = ['GCash', 'Check', 'Cash'];
     var AREAS = [
+        {
+            name: 'Lucena',
+            stores: ['Chick\'N J Ibaan', 'SIDC IBAAN', 'Balkonahe', 'Citimart Rosario', 'Chick\'N J Namunga', 'SIDC Tiaong', 'Mr.Fields Coffe+', 'Bangihan', 'Girasoles', 'Shell Select Sariaya', 'Kope Right Sariaya', 'Kope Right Lucena', 'Shell Select Domoit', 'SIDC San Juan', 'Chick\'N J Baybayin', 'Matteos Liquiwan', 'Yummies', 'Hang Out']
+        },
         {
             name: 'Batangas',
             stores: ['SIDC Main', 'SIDC Soro-Soro Ilaya', '3M', 'Jhorjhanes Balagtas', 'Wanam sa Bukid Balagtas', 'AA Lomi Balagtas', 'Butch Alangilan', 'Gracias Pasalubong', 'Shell Select Kumintang Ibaba', 'SIDC Tulo', 'SIDC Libjo', 'SIDC Pallocan', 'Wanam sa Bukid Gulod', 'Wanam sa Bukid Palengke']
         },
         {
-            name: 'Bauan',
-            stores: ['Dyan\'s', 'Ofels', 'Jorjhanes Sta. Rita', 'HMM Muzon', 'SIDC Bauan', 'SIDC Sta. Teresita', 'AA Lomi Taal', 'Bulabog']
-        },
-        {
-            name: 'Citimart',
-            stores: ['Citimart Caedo', 'Citimart Nuciti', 'Citimart Baystay/Baymall', 'Citimart Shop on/ Rizal Ave', 'Citimart Tanauan', 'Citimart Bauan', 'Citimart Lemery', 'Citimart Rosario']
+            name: 'Sto. Tomas',
+            stores: ['Kubo sa Halamanan Malarayat', 'LBN Marawoy', 'Kubo sa Halamanan Marawoy', 'Lucias Cafe Lipa', 'Citimart Tanauan', 'Lucias Cafe Sto Tomas', 'JMA', 'Rose & Grace', 'D\'Vinias', 'Tita Chu', 'Laong Laan', 'Avilles']
         },
         {
             name: 'Lipa',
-            stores: ['SIDC Mahabang Parang', 'SIDC San Jose', 'Banay-banay Eatery', 'AA Lomi Lipa', 'Butch Lipa', 'Shell Select Tambo', 'Shell Select Balintawak', 'Chicha', 'Lipa Grill Lipa', 'Kubo sa Halamanan Malarayat', 'LBN Marawoy', 'Lucias Cafe Lipa', 'Kubo sa Halamanan Marawoy']
-        },
-        {
-            name: 'Lucena',
-            stores: ['SIDC Tiaong', 'Mr.Fields Coffe+', 'Bangihan', 'Girasoles', 'Dagat Cusina Gubat', 'Shell Select Sariaya', 'Kope Right Sariaya', 'Kope Right Lucena', 'Shell Select Domoit', 'SIDC San Juan', 'Matteos Pinagsibaan']
-        },
-        {
-            name: 'Manila',
-            stores: ['Mang Muring Total', 'Mang Muring Shell']
-        },
-        {
-            name: 'Rosario',
-            stores: ['Ben & Cha', 'SIDC IBAAN', 'Balkonahe', 'Chick\'N J Rosario', 'Chick\'N J Padre Garcia', 'Chick\'N J Ibaan', 'Matteos Liquiwan', 'AA Lomi Padre Garcia', 'Lipa Grill San Felipe', 'Yummies', 'Hang Out']
-        },
-        {
-            name: 'Sto. Tomas',
-            stores: ['Lucias Cafe Sto Tomas', 'JMA', 'Rose & Grace', 'D\'Vinias', 'Tita Chu', 'Laong Laan', 'RSM Bacnotan', 'Avilles']
+            stores: ['SIDC Mahabang Parang', 'SIDC San Jose', 'Banay-banay Eatery', 'AA Lomi Lipa', 'Butch Lipa', 'Shell Select Tambo', 'Shell Select Balintawak', 'Lipa Grill Lipa', 'Lipa Grill San Felipe', 'AA Lomi Padre Garcia', 'Chick\'N J Padre Garcia', 'Ben & Cha']
         },
         {
             name: 'Tagaytay',
-            stores: ['Sinangag Express Tagaytay', 'Balinsasayaw Silang', 'Jaytees Acienda', 'RSM Silvinas', 'Pamana', 'Jaytees Main', 'Balinsasayaw Tagaytay', 'Green Ats', 'Jaytees 9th']
+            stores: ['HMM Muzon', 'SIDC Bauan', 'SIDC Sta. Teresita', 'AA Lomi Taal', 'Citimart Lemery', 'Jaytees Acienda', 'RSM Silvinas', 'Pamana', 'Jaytees Main', 'Balinsasayaw Tagaytay', 'Green Ats', 'Jaytees 9th']
+        },
+        {
+            name: 'Citimart',
+            stores: ['Citimart Caedo', 'Citimart Nuciti', 'Citimart Baystar/Baymall', 'Citimart Shop on/ Rizal Ave', 'Citimart Bauan', 'Dyan\'s', 'Ofels', 'Jorjhanes Sta. Rita']
         }
     ];
 
@@ -57,17 +45,14 @@
         { id: 'po-btg-003', area: 'Batangas', day: 1, po: 'PO-BTG-003', stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
         { id: 'po-btg-014', area: 'Batangas', day: 1, po: 'PO-BTG-014', stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
         { id: 'po-0012', area: 'Lipa', day: 1, po: 'PO-0012', stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lpa-021', area: 'Lipa', day: 1, po: 'PO-LPA-021', stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-bau-008', area: 'Bauan', day: 2, po: 'PO-BAU-008', stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-bau-011', area: 'Bauan', day: 2, po: 'PO-BAU-011', stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-ctm-002', area: 'Citimart', day: 2, po: 'PO-CTM-002', stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-lpa-021', area: 'Sto. Tomas', day: 1, po: 'PO-LPA-021', stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-bau-008', area: 'Tagaytay', day: 2, po: 'PO-BAU-008', stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-bau-011', area: 'Citimart', day: 2, po: 'PO-BAU-011', stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-ctm-002', area: 'Lucena', day: 2, po: 'PO-CTM-002', stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
         { id: 'po-ctm-006', area: 'Citimart', day: 2, po: 'PO-CTM-006', stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
         { id: 'po-lcn-004', area: 'Lucena', day: 2, po: 'PO-LCN-004', stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
         { id: 'po-lcn-009', area: 'Lucena', day: 2, po: 'PO-LCN-009', stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-mnl-001', area: 'Manila', day: 3, po: 'PO-MNL-001', stop: 'Mang Muring Total', detail: '90 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-mnl-002', area: 'Manila', day: 3, po: 'PO-MNL-002', stop: 'Mang Muring Shell', detail: '40 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-rsr-005', area: 'Rosario', day: 3, po: 'PO-RSR-005', stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-rsr-012', area: 'Rosario', day: 3, po: 'PO-RSR-012', stop: 'Chick\'N J Rosario', detail: '22 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-rsr-005', area: 'Lucena', day: 3, po: 'PO-RSR-005', stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
         { id: 'po-sto-003', area: 'Sto. Tomas', day: 4, po: 'PO-STO-003', stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
         { id: 'po-sto-007', area: 'Sto. Tomas', day: 4, po: 'PO-STO-007', stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
         { id: 'po-tgy-002', area: 'Tagaytay', day: 4, po: 'PO-TGY-002', stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
@@ -201,7 +186,7 @@
             + '<div class="delivery-schedule">'
             + '<form class="delivery-schedule__form">'
             + '<label>Area<select name="area" required>' + areaOptions + '</select></label>'
-            + '<label>Store<select name="stop" required>' + storeOptions('Batangas') + '</select></label>'
+            + '<label>Store<select name="stop" required>' + storeOptions(AREAS[0].name) + '</select></label>'
             + '<label>Date<input name="date" type="date" required value="' + esc(todayStamp()) + '"></label>'
             + '<label>Pouches<input name="qty" type="number" min="1" required value="24"></label>'
             + '<label>Product<input name="product" readonly value="' + esc(PRODUCT) + ' pouches"></label>'

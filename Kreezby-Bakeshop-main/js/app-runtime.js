@@ -175,7 +175,7 @@
     retailer: {
       userName: 'SIDC Batangas Hub',
       accountType: 'Retailer',
-      redirectUrl: 'retailer/retailer-directory.html'
+      redirectUrl: 'retailer/batangas/sidcmain/retailer-batangas_sidcmain.html'
     },
     customer: {
       userName: 'Maria Santos',
@@ -470,7 +470,7 @@
       }
       return 'wholesaler/wholesaler-directory.html';
     }
-    if (accountType === 'Retailer') return 'retailer/retailer-directory.html';
+    if (accountType === 'Retailer') return 'retailer/batangas/sidcmain/retailer-batangas_sidcmain.html';
     if (accountType === 'Customer') return 'customer/customer.html';
     return 'customer/customer_guest.html';
   }

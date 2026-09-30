@@ -6,7 +6,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kreezby_retailer_home';
-  var DIRECTORY = 'retailer/retailer-directory.html';
+  var DIRECTORY = 'retailer/batangas/sidcmain/retailer-batangas_sidcmain.html';
   var DEFAULT_HOME = 'retailer-batangas_sidcmain.html';
   var PORTAL_PATTERN = /^retailer-[a-z0-9]+_[a-z0-9]+\.html$/i;
   var HIDE_MODULES_PATTERN = /(^receive-|receiving-retailer\.html$|^return-retailer\.html$|pullout|pull-out|delivery)/i;

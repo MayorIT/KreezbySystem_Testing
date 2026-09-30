@@ -175,10 +175,33 @@
         return prefix + filename;
     }
 
+    function isRetailerStoreFolder() {
+        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return /\/retailer\/[^/]+\/[^/]+\/[^/]+\.html?$/.test(path);
+    }
+
+    function retailerModuleKey() {
+        var file = ((window.location.pathname || '').split('/').pop() || '');
+        var self = file.match(/^(?:retailer|po|receive|bo|return|saleslist|alert|inbox|report_issue)-(.+)\.html$/i);
+        if (self) return self[1];
+        var home = document.querySelector('a[href^="retailer-"]');
+        if (home) {
+            var match = (home.getAttribute('href') || '').match(/^retailer-(.+)\.html$/i);
+            if (match) return match[1];
+        }
+        var wrapper = document.querySelector('.system-dashboard-wrapper[data-area][data-slug]');
+        if (wrapper) return wrapper.getAttribute('data-area') + '_' + wrapper.getAttribute('data-slug');
+        return '';
+    }
+
     function reportIssueHref() {
         var path = (window.location.pathname || '').toLowerCase();
         if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
-        if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('report_issue-retailer.html');
+        if (isRetailerStoreFolder()) {
+            var reportKey = retailerModuleKey();
+            return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-batangas_sidcmain.html';
+        }
+        if (path.indexOf('/retailer/') !== -1) return 'batangas/sidcmain/report_issue-batangas_sidcmain.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/wholesaler/') !== -1) return moduleRoot() + 'wholesaler/report_issue-wholesaler.html';
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
@@ -201,7 +224,11 @@
             }
             return moduleLocalHref('inbox-staff.html');
         }
-        if (path.indexOf('/retailer/') !== -1) return moduleLocalHref('inbox-retailer.html');
+        if (isRetailerStoreFolder()) {
+            var inboxKey = retailerModuleKey();
+            return inboxKey ? 'inbox-' + inboxKey + '.html' : 'inbox-batangas_sidcmain.html';
+        }
+        if (path.indexOf('/retailer/') !== -1) return 'batangas/sidcmain/inbox-batangas_sidcmain.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('inbox-customer.html');
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('inbox-admin.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('inbox-headadmin.html');
@@ -334,7 +361,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-portal-icon-sidebar-script';
-        s.src = jsBase() + 'portal-icon-sidebar.js?v=20260929ws';
+        s.src = jsBase() + 'portal-icon-sidebar.js?v=20260930name';
         s.async = false;
         document.head.appendChild(s);
     }

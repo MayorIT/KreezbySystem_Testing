@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Lipa Grill San Felipe (Lipa)</title>
+    <link rel="stylesheet" href="../../../css/pages/retailer/lipagrillsanfelipe/retailer-rosario_lipagrillsanfelipe.css">
+
+    <link rel="stylesheet" href="../../../css/pages/retailer/rosario-retailer-brand.css?v=20260929logo">
+    <link rel="stylesheet" href="../../../css/shared/kreezby-welcome-home.css?v=20260929home">
+</head>
+<body class="kreezby-admin-home">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="retailer-rosario_lipagrillsanfelipe.html">Home</a>
+        <button class="notification-pill" aria-label="Notifications">🔔</button>
+        <div class="user-dropdown">
+            <button class="user-dropdown-pill" type="button" id="user-dropdown-trigger">Lipa Grill San Felipe ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-rosario_lipagrillsanfelipe.html" class="dropdown-item">Report Issue</a>
+                <a href="../../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="system-dashboard-wrapper">
+    <aside class="sidebar-panel">
+        <div class="hamburger-row">☰</div>
+        <div class="panel-brand">Lipa Grill San Felipe</div>
+                <ul class="navigation-tree">
+            <li class="tree-node active"><a href="retailer-rosario_lipagrillsanfelipe.html">Dashboard</a></li>
+            <li class="tree-node"><a href="po-rosario_lipagrillsanfelipe.html">Purchase Order</a></li>
+            <li class="tree-node"><a href="receive-rosario_lipagrillsanfelipe.html">Receiving</a></li>
+            <li class="tree-node"><a href="bo-rosario_lipagrillsanfelipe.html">Back Order</a></li>
+            <li class="tree-node"><a href="return-rosario_lipagrillsanfelipe.html">Return/P.O List</a></li>
+            <li class="tree-node"><a href="saleslist-rosario_lipagrillsanfelipe.html">Sales List</a></li>
+            <li class="tree-node"><a href="alert-rosario_lipagrillsanfelipe.html">Alert</a></li>
+        </ul>
+    </aside>
+
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-canvas workspace-view-canvas">
+        <div class="workspace-container" id="admin-dashboard-root">
+            <section class="admin-home" aria-label="Welcome">
+                    <div class="admin-home-stage">
+                        <div class="admin-home-copy">
+                            <p class="admin-home-kicker">The Crinkle Factory</p>
+                            <h2>Welcome, Lipa Grill San Felipe</h2>
+                            <p class="admin-home-tagline">Making your life sweeter!</p>
+                            <p class="admin-home-lead">Your home is ready. Purchase orders, deliveries, sales, and alerts open from the menu.</p>
+                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
+                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
+                                <span class="admin-home-menu-btn__label">Open menu</span>
+                            </button>
+                        </div>
+                        <figure class="admin-home-photo">
+                            <img src="../../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+                        </figure>
+                    </div>
+                </section>
+        </div>
+</main>
+        </turbo-frame>
+
+    <!-- Notification Modal Overlay -->
+    <div class="notification-modal-overlay" id="notification-modal-overlay">
+        <div class="notification-modal-box">
+            <div class="notification-modal-header">
+                <h2>📢 Notifications</h2>
+                <button class="notification-modal-close-btn" onclick="closeNotificationModal()">✕</button>
+            </div>
+            <div class="notification-modal-body" id="notification-modal-body">
+                <!-- Notifications will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../../../js/retailer-nav.js?v=20260929dash"></script>
+<script>
+        // Retailer-specific notifications data
+        const notificationsData = [
+            {
+                id: 1,
+                type: 'delivery',
+                title: '🚚 Delivery Arriving Today',
+                message: 'Your shipment of Chocolate Crinkles pouches is out for delivery.',
+                time: '30 minutes ago',
+                status: 'unread'
+            },
+            {
+                id: 2,
+                type: 'payment',
+                title: '💰 Payment Due',
+                message: 'Invoice #INV-2026-156 for ₱12,500 was paid by GCash.',
+                time: '2 hours ago',
+                status: 'unread'
+            },
+            {
+                id: 3,
+                type: 'stock',
+                title: '⚠️ Low Stock Warning',
+                message: 'Chocolate Crinkles pouches are below the reorder point (15 pouches remaining)',
+                time: '5 hours ago',
+                status: 'read'
+            },
+            {
+                id: 4,
+                type: 'order',
+                title: '✅ Order Delivered',
+                message: 'Your order #PO-2026-0042 (40 pouches of Chocolate Crinkles) has been successfully delivered',
+                time: '1 day ago',
+                status: 'read'
+            },
+            {
+                id: 5,
+                type: 'promo',
+                title: '🎉 Special Offer',
+                message: 'Buy 50+ units and get 10% discount on bulk orders this month',
+                time: '2 days ago',
+                status: 'read'
+            }
+        ];
+
+        function openNotificationModal() {
+            const modal = document.getElementById('notification-modal-overlay');
+            const body = document.getElementById('notification-modal-body');
+            
+            body.innerHTML = notificationsData.map(notif => {
+                let icon = '📦';
+                if (notif.type === 'delivery') icon = '🚚';
+                if (notif.type === 'payment') icon = '💰';
+                if (notif.type === 'stock') icon = '⚠️';
+                if (notif.type === 'order') icon = '✅';
+                if (notif.type === 'promo') icon = '🎉';
+                
+                return `
+                <div class="notification-item ${notif.status === 'unread' ? 'unread' : ''}">
+                    <div class="notification-icon">${icon}</div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notif.title}</div>
+                        <div class="notification-message">${notif.message}</div>
+
+                    </div>
+                </div>
+            `;
+            }).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal-overlay').classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handler to notification bell
+            const notificationBell = document.querySelector('.notification-pill');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', openNotificationModal);
+            }
+
+            // Close modal when clicking outside
+            document.getElementById('notification-modal-overlay').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeNotificationModal();
+                }
+            });
+        });
+    </script>
+    <script src="../../../js/notification-popover.js"></script>
+    <script src="../../../js/user-dropdown-nav.js?v=20260930name"></script>
+    </body>
+</html>

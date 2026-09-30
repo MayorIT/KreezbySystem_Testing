@@ -5,15 +5,12 @@
   'use strict';
 
   var AREAS = [
-    { value: 'bauan', label: 'Bauan' },
-    { value: 'citimart', label: 'Citimart' },
     { value: 'lucena', label: 'Lucena' },
-    { value: 'rosario', label: 'Rosario' },
-    { value: 'tagaytay', label: 'Tagaytay' },
-    { value: 'manila', label: 'Manila' },
-    { value: 'lipa', label: 'Lipa' },
+    { value: 'batangas', label: 'Batangas' },
     { value: 'stotomas', label: 'Sto. Tomas' },
-    { value: 'batangas', label: 'Batangas' }
+    { value: 'lipa', label: 'Lipa' },
+    { value: 'tagaytay', label: 'Tagaytay' },
+    { value: 'citimart', label: 'Citimart' }
   ];
 
   var editingReportId = null;

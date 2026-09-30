@@ -367,13 +367,13 @@
     "lastDate": null,
     "json": "data/retailers/lucena_koperightsariaya.json"
   },
-  "lucena_matteospinagsibaan": {
+  "lucena_matteosliquiwan": {
     "area": "lucena",
-    "slug": "matteospinagsibaan",
-    "storeName": "Matteos Pinagsibaan",
+    "slug": "matteosliquiwan",
+    "storeName": "Matteos Liquiwan",
     "count": 0,
     "lastDate": null,
-    "json": "data/retailers/lucena_matteospinagsibaan.json"
+    "json": "data/retailers/lucena_matteosliquiwan.json"
   },
   "lucena_mrfieldscoffe": {
     "area": "lucena",
@@ -471,14 +471,6 @@
     "lastDate": null,
     "json": "data/retailers/rosario_chicknjpadregarcia.json"
   },
-  "rosario_chicknjrosario": {
-    "area": "rosario",
-    "slug": "chicknjrosario",
-    "storeName": "Chick'N J Rosario",
-    "count": 0,
-    "lastDate": null,
-    "json": "data/retailers/rosario_chicknjrosario.json"
-  },
   "rosario_citimartrosario": {
     "area": "rosario",
     "slug": "citimartrosario",
@@ -503,14 +495,6 @@
     "lastDate": null,
     "json": "data/retailers/rosario_lipagrillsanfelipe.json"
   },
-  "rosario_matteosliquiwan": {
-    "area": "rosario",
-    "slug": "matteosliquiwan",
-    "storeName": "Matteos Liquiwan",
-    "count": 0,
-    "lastDate": null,
-    "json": "data/retailers/rosario_matteosliquiwan.json"
-  },
   "rosario_sidcibaan": {
     "area": "rosario",
     "slug": "sidcibaan",
@@ -519,13 +503,13 @@
     "lastDate": null,
     "json": "data/retailers/rosario_sidcibaan.json"
   },
-  "rosario_yummies": {
-    "area": "rosario",
+  "lucena_yummies": {
+    "area": "lucena",
     "slug": "yummies",
     "storeName": "Yummies",
     "count": 0,
     "lastDate": null,
-    "json": "data/retailers/rosario_yummies.json"
+    "json": "data/retailers/lucena_yummies.json"
   },
   "stotomas_avilles": {
     "area": "stotomas",
@@ -567,14 +551,6 @@
     "lastDate": null,
     "json": "data/retailers/stotomas_luciascafestotomas.json"
   },
-  "stotomas_rsmbacnotan": {
-    "area": "stotomas",
-    "slug": "rsmbacnotan",
-    "storeName": "RSM Bacnotan",
-    "count": 0,
-    "lastDate": null,
-    "json": "data/retailers/stotomas_rsmbacnotan.json"
-  },
   "stotomas_titachu": {
     "area": "stotomas",
     "slug": "titachu",
@@ -582,14 +558,6 @@
     "count": 0,
     "lastDate": null,
     "json": "data/retailers/stotomas_titachu.json"
-  },
-  "tagaytay_balinsasayawsilang": {
-    "area": "tagaytay",
-    "slug": "balinsasayawsilang",
-    "storeName": "Balinsasayaw Silang",
-    "count": 0,
-    "lastDate": null,
-    "json": "data/retailers/tagaytay_balinsasayawsilang.json"
   },
   "tagaytay_balinsasayawtagaytay": {
     "area": "tagaytay",
@@ -646,14 +614,6 @@
     "count": 0,
     "lastDate": null,
     "json": "data/retailers/tagaytay_rsmsilvinas.json"
-  },
-  "tagaytay_sinangagexpresstagaytay": {
-    "area": "tagaytay",
-    "slug": "sinangagexpresstagaytay",
-    "storeName": "Sinangag Express Tagaytay",
-    "count": 0,
-    "lastDate": null,
-    "json": "data/retailers/tagaytay_sinangagexpresstagaytay.json"
   },
   "stotomas_jma": {
     "area": "stotomas",

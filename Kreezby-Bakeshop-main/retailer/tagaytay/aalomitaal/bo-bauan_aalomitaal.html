@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Back Order — AA Lomi Taal (Tagaytay)</title>
+    <link rel="stylesheet" href="../../../css/pages/retailer/aalomitaal/bo-bauan_aalomitaal.css">
+
+    <link rel="stylesheet" href="../../../css/pages/retailer/bauan-retailer-brand.css?v=20260929logo">
+</head>
+<body data-kreezby-portal="retailer-bo">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="retailer-bauan_aalomitaal.html">Home</a>
+        <div class="user-dropdown">
+            <button class="user-dropdown-pill" type="button" id="user-dropdown-trigger">AA Lomi Taal ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-bauan_aalomitaal.html" class="dropdown-item">Report Issue</a>
+                <a href="../../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="system-dashboard-wrapper" data-area="tagaytay" data-slug="aalomitaal">
+    <aside class="sidebar-panel">
+        <div class="hamburger-row">☰</div>
+        <div class="panel-brand">AA Lomi Taal</div>
+        <ul class="navigation-tree">
+            <li class="tree-node"><a href="retailer-bauan_aalomitaal.html">Dashboard</a></li>
+            <li class="tree-node"><a href="po-bauan_aalomitaal.html">Purchase Order</a></li>
+            <li class="tree-node"><a href="receive-bauan_aalomitaal.html">Receiving</a></li>
+            <li class="tree-node active"><a href="bo-bauan_aalomitaal.html">Back Order</a></li>
+            <li class="tree-node"><a href="return-bauan_aalomitaal.html">Return/P.O List</a></li>
+            <li class="tree-node"><a href="saleslist-bauan_aalomitaal.html">Sales List</a></li>
+            <li class="tree-node"><a href="alert-bauan_aalomitaal.html">Alert</a></li>
+        </ul>
+    </aside>
+
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-canvas">
+        <h2 class="page-title">AA Lomi Taal — Back Order</h2>
+        <p class="page-subtitle">Tagaytay · Kreezby retailer portal</p>
+        <div class="retailer-module-host">
+            <div id="bo-retailer-dashboard-view">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3>List of Back Orders</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        <div class="datatable-filters-line">
+                            <div>Show <select><option>10</option></select> entries</div>
+                            <div>Search: <input type="text" placeholder="Search..."></div>
+                        </div>
+                        <div class="po-table-scroll-wrap">
+                        <table class="data-display-table">
+                            <thead>
+                                <tr data-kreezby-portal-head="1">
+                                    <th>#</th><th>Date Created</th><th>BO Code</th><th>Action</th><th>Supplier</th><th>Items</th><th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                        <div style="font-size: 13px; margin-top: 15px; color: #555;">Showing 1 to 5 of 5 entries</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="bo-details-inspection-panel-view" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3>Back Order Details - BO-0004</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        
+                        <div class="details-inspection-sheet">
+                            
+                            <div class="details-header-meta-block">
+                                <div>
+                                    <div class="meta-data-line"><strong>Back Order No:</strong> BO-0004</div>
+                                    <div class="meta-data-line"><strong>From P.O. Code:</strong> PO-0002</div>
+                                    <div class="meta-data-line"><strong>Date Created:</strong> May 20, 2024 10:30 AM</div>
+                                </div>
+                                <div>
+                                    <div class="meta-data-line"><strong>Supplier:</strong> Kreezby Bakeshop</div>
+                                    <div class="meta-data-line"><strong>Expected Delivery:</strong> May 25, 2024</div>
+                                    <div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge partial">PARTIALLY RECEIVED</span></div>
+                                </div>
+                                <div style="border-left: 1px dashed #ccc; padding-left: 20px;">
+                                    <div class="meta-data-line"><strong>Remarks:</strong> Partial delivery received. Some items are back ordered.</div>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #1a237e; text-transform: uppercase;">
+                                ■ Back Ordered Items Audit breakdown
+                            </div>
+
+                            <table class="data-display-table">
+                                <thead>
+                                    <tr style="background-color: #1a237e; color: white;">
+                                        <th>Item</th>
+                                        <th>Unit</th>
+                                        <th style="text-align: center;">Ordered Qty</th>
+                                        <th style="text-align: center;">Received Qty</th>
+                                        <th style="text-align: center; color: #ffb74d;">Back Ordered Qty</th>
+                                        <th style="text-align: right;">Unit Cost</th>
+                                        <th style="text-align: right;">Total (Back Order)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Item 102</strong><br><small style="color:#666;">Sample only</small></td>
+                                        <td>Boxes</td>
+                                        <td style="text-align: center;">50</td>
+                                        <td style="text-align: center;">30</td>
+                                        <td style="text-align: center; font-weight:700; color:#d32f2f;">20</td>
+                                        <td style="text-align: right;">200.00</td>
+                                        <td style="text-align: right; font-weight: 700;">4,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Item 104</strong><br><small style="color:#666;">Sample only</small></td>
+                                        <td>pcs</td>
+                                        <td style="text-align: center;">20</td>
+                                        <td style="text-align: center;">15</td>
+                                        <td style="text-align: center; font-weight:700; color:#d32f2f;">5</td>
+                                        <td style="text-align: right;">205.00</td>
+                                        <td style="text-align: right; font-weight: 700;">1,025.00</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="font-weight: bold; background-color: #f5f5f5; font-size: 15px;">
+                                        <td colspan="6" style="text-align: right;">Total (Back Order Value Balance):</td>
+                                        <td style="text-align: right; color:#b71c1c;">₱5,025.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <div class="proof-gallery-header">Proof of Partial Delivery Attachments</div>
+                            <div class="proof-images-grid">
+                                <div class="image-attachment-card" style="border-style: solid; background: #e8f0fe;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zm-4.44-6.23l-2.6 3.14-1.71-2.06c-.2-.24-.56-.24-.76 0L5.3 16.63c-.25.3.04.72.43.72h12.55c.39 0 .68-.42.43-.72l-3.46-4.61c-.19-.26-.57-.26-.76-.02z"/></svg>
+                                    Delivery_Receipt.jpg
+                                </div>
+                                <div class="image-attachment-card" style="border-style: solid; background: #e8f0fe;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zm-4.44-6.23l-2.6 3.14-1.71-2.06c-.2-.24-.56-.24-.76 0L5.3 16.63c-.25.3.04.72.43.72h12.55c.39 0 .68-.42.43-.72l-3.46-4.61c-.19-.26-.57-.26-.76-.02z"/></svg>
+                                    Items_Boxes_Proof.jpg
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" onclick="window.print()">Print Report</button>
+                            <button class="btn-viewer-tool black" onclick="switchToBackOrderMasterDashboardView()">Back To Lists Summary</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+        </turbo-frame>
+</div>
+
+</div>
+
+    <script>
+function switchToBackOrderDetailsInspector(code){if(window.BoAdmin)BoAdmin.openDetails(code);}
+function switchToBackOrderMasterDashboardView(){if(window.BoAdmin)BoAdmin.backToList();}
+</script>
+<div id="bo-print-root" class="bo-print-root" aria-hidden="true"></div>
+<script src="../../../js/bo-admin.js?v=1"></script>
+<script src="../../../js/sidebar-toggle.js?v=20260927row"></script>
+<script src="../../../js/retailer-nav.js?v=20260929dash"></script>
+<script src="../../../js/user-dropdown-nav.js?v=20260930name"></script>
+<!-- kreezby-bo-portal-patched-v1 -->
+</body>
+</html>

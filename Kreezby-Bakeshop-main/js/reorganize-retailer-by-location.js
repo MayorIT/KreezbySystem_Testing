@@ -29,9 +29,7 @@ function parentFolderForSlug(slug, dataArea) {
 }
 
 const ROOT_HTML_FILES = new Set([
-  'retailer-directory.html',
-  'report_issue-retailer.html',
-  'inbox-retailer.html'
+  'retailer-directory.html'
 ]);
 
 /** Retailer order per Kreezby's Retailer List.pdf */
@@ -151,8 +149,8 @@ function patchHtmlPaths(html) {
   return html
     .replace(/href="\.\.\/\.\.\/(css|assets|auth|js|data)\//g, 'href="../../../$1/')
     .replace(/src="\.\.\/\.\.\/(css|assets|auth|js|data)\//g, 'src="../../../$1/')
-    .replace(/href="\.\.\/report_issue-retailer\.html"/g, 'href="../../report_issue-retailer.html"')
-    .replace(/href="\.\.\/inbox-retailer\.html"/g, 'href="../../inbox-retailer.html"')
+    .replace(/href="\.\.\/report_issue-retailer\.html"/g, 'href="report_issue.html"')
+    .replace(/href="\.\.\/inbox-retailer\.html"/g, 'href="inbox.html"')
     .replace(/href="\.\.\/retailer-directory\.html"/g, 'href="../../retailer-directory.html"');
 }
 
