@@ -11,10 +11,10 @@
     var ACCOUNT_STORAGE_KEY = 'kreezby_admin_accounts';
 
     var SEED_ADMIN_ACCOUNTS = {
-        elena: { id: 'elena', name: 'Elena Morales', username: 'elena_admin', role: 'Operations', folder: 'elena-morales', dashboard: 'admin.html', home: 'admin_names/elena-morales/admin.html', status: 'active', aliases: ['elenaadmin', 'kreezbyadmin', 'admin1'] },
-        marco: { id: 'marco', name: 'Marco Del Rosario', username: 'marco_admin', role: 'Inventory', folder: 'marco-del-rosario', dashboard: 'admin.html', home: 'admin_names/marco-del-rosario/admin.html', status: 'active', aliases: ['marcoadmin'] },
-        patricia: { id: 'patricia', name: 'Patricia Go', username: 'patricia_admin', role: 'Sales', folder: 'patricia-go', dashboard: 'admin.html', home: 'admin_names/patricia-go/admin.html', status: 'active', aliases: ['patriciaadmin'] },
-        jonas: { id: 'jonas', name: 'Jonas Villanueva', username: 'jonas_admin', role: 'Branch', folder: 'jonas-villanueva', dashboard: 'admin.html', home: 'admin_names/jonas-villanueva/admin.html', status: 'active', aliases: ['jonasadmin'] }
+        elena: { id: 'elena', name: 'Elena Morales', username: 'elena_admin', role: 'Operations', folder: 'elena-morales', dashboard: 'admin.html', home: 'admin/admin.html', status: 'active', aliases: ['elenaadmin', 'kreezbyadmin', 'admin1'] },
+        marco: { id: 'marco', name: 'Marco Del Rosario', username: 'marco_admin', role: 'Inventory', folder: 'marco-del-rosario', dashboard: 'admin.html', home: 'admin/admin.html', status: 'active', aliases: ['marcoadmin'] },
+        patricia: { id: 'patricia', name: 'Patricia Go', username: 'patricia_admin', role: 'Sales', folder: 'patricia-go', dashboard: 'admin.html', home: 'admin/admin.html', status: 'active', aliases: ['patriciaadmin'] },
+        jonas: { id: 'jonas', name: 'Jonas Villanueva', username: 'jonas_admin', role: 'Branch', folder: 'jonas-villanueva', dashboard: 'admin.html', home: 'admin/admin.html', status: 'active', aliases: ['jonasadmin'] }
     };
 
     var ADMIN_PROFILES = {
@@ -356,7 +356,7 @@
             role: role,
             folder: folder,
             dashboard: 'admin.html',
-            home: 'admin_names/' + folder + '/admin.html',
+            home: 'admin/admin.html',
             status: 'active',
             aliases: [],
             portalReady: false
@@ -365,7 +365,7 @@
         var perms = getAllPermissions();
         perms[id] = ['dashboard'];
         saveAllPermissions(perms);
-        return { ok: true, id: id, message: name + ' was created with Dashboard only. The current roster already has a portal folder. New accounts are saved and listed immediately.' };
+        return { ok: true, id: id, message: name + ' was created with Dashboard only. New accounts are saved and listed immediately.' };
     }
 
     function setAdminAccountStatus(adminId, status) {
