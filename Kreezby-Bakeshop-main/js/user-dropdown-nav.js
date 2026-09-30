@@ -177,7 +177,7 @@
 
     function isRetailerStoreFolder() {
         var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        return /\/retailer\/[^/]+\/[^/]+\/[^/]+\.html?$/.test(path);
+        return /\/retailer\/[^/]+\.html?$/.test(path);
     }
 
     function retailerModuleKey() {
@@ -199,9 +199,9 @@
         if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
         if (isRetailerStoreFolder()) {
             var reportKey = retailerModuleKey();
-            return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-batangas_sidcmain.html';
+            return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-portal.html';
         }
-        if (path.indexOf('/retailer/') !== -1) return 'batangas/sidcmain/report_issue-batangas_sidcmain.html';
+        if (path.indexOf('/retailer/') !== -1) return 'report_issue-portal.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/wholesaler/') !== -1) return moduleRoot() + 'wholesaler/report_issue-wholesaler.html';
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
@@ -226,9 +226,9 @@
         }
         if (isRetailerStoreFolder()) {
             var inboxKey = retailerModuleKey();
-            return inboxKey ? 'inbox-' + inboxKey + '.html' : 'inbox-batangas_sidcmain.html';
+            return inboxKey ? 'inbox-' + inboxKey + '.html' : 'inbox-portal.html';
         }
-        if (path.indexOf('/retailer/') !== -1) return 'batangas/sidcmain/inbox-batangas_sidcmain.html';
+        if (path.indexOf('/retailer/') !== -1) return 'inbox-portal.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('inbox-customer.html');
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('inbox-admin.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('inbox-headadmin.html');

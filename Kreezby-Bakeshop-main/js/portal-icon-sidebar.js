@@ -123,7 +123,7 @@
     }
 
     function isRetailerStorePage() {
-        return /\/retailer\/[^/]+\//i.test(location.pathname || '');
+        return /\/retailer\/[^/]+\.html?$/i.test(location.pathname || '');
     }
 
     function retailerStoreKey() {
@@ -154,15 +154,15 @@
                 break;
             }
         }
-        if (retailerIdx < 0) return 'inbox-batangas_sidcmain.html';
+        if (retailerIdx < 0) return 'inbox-portal.html';
         var depth = parts.length - retailerIdx - 1;
         if (depth >= 2) {
             var key = retailerStoreKey();
-            return key ? 'inbox-' + key + '.html' : 'inbox-batangas_sidcmain.html';
+            return key ? 'inbox-' + key + '.html' : 'inbox-portal.html';
         }
         var prefix = '';
         for (var d = 0; d < depth; d++) prefix += '../';
-        return prefix + 'batangas/sidcmain/inbox-batangas_sidcmain.html';
+        return prefix + 'inbox-portal.html';
     }
 
     function retailerDashboardHref(key) {

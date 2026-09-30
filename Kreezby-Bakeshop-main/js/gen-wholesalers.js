@@ -98,14 +98,14 @@ ${templates.pageScripts(mod)}
 }
 
 // Shared CSS from retailer template
-const cssSrc = path.join(ROOT, 'css', 'pages', 'retailer', 'sidcmain', 'retailer-batangas_sidcmain.css');
+const cssSrc = path.join(ROOT, 'css', 'pages', 'retailer', 'retailer-portal.css');
 const cssDstDir = path.join(ROOT, 'css', 'pages', 'wholesaler');
 const cssDst = path.join(cssDstDir, 'wholesaler-portal.css');
 if (!fs.existsSync(cssDstDir)) fs.mkdirSync(cssDstDir, { recursive: true });
 if (fs.existsSync(cssSrc)) {
     fs.copyFileSync(cssSrc, cssDst);
     fs.writeFileSync(cssDst, fs.readFileSync(cssDst, 'utf8').replace(
-        '/* Styles for retailer-batangas_sidcmain.html */',
+        '/* Styles for retailer-portal.html */',
         '/* Shared wholesaler portal styles */'
     ), 'utf8');
 }
