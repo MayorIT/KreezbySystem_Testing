@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="../js/kreezby-db-sync.js"></script>
     <meta charset="UTF-8">
         <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
@@ -235,7 +236,8 @@ function switchToMasterListsPane(){if(window.PoAdmin&&PoAdmin.backToList)PoAdmin
 function togglePurchaseOrderFormModal(shouldDisplay,poCode){if(window.PoAdmin){shouldDisplay?PoAdmin.openEditModal(poCode||null):PoAdmin.closeModal();}}
 </script>
 <div id="po-print-receipt-root" class="po-print-receipt-root" aria-hidden="true"></div>
-<script src="../js/po-admin.js?v=20260929webpay"></script>
+<script src="../js/kreezby-seed-portal-data.js?v=20261001retailerpay"></script>
+<script src="../js/po-admin.js?v=20261001nodesc"></script>
 <script src="../js/sidebar-toggle.js?v=20260927row"></script>
 <script src="../js/retailer-nav.js?v=20260929dash"></script>
 <script src="../js/user-dropdown-nav.js?v=20260930name"></script>

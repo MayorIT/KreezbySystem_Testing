@@ -106,7 +106,15 @@
             theadRow.innerHTML = '<th>#</th><th>Date Created</th><th>PO Code</th><th>Action</th><th>Supplier</th><th>Items</th><th>Status</th>';
         }
         var brand = document.querySelector('.panel-brand');
-        retailerStoreName = brand ? brand.textContent.trim() : 'Retailer';
+        var brandName = brand ? brand.textContent.trim() : '';
+        var sessionName = '';
+        try {
+            var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
+            sessionName = session && session.userName ? String(session.userName) : '';
+        } catch (e) { sessionName = ''; }
+        retailerStoreName = (brandName && brandName.toLowerCase() !== 'retailer')
+            ? brandName
+            : (sessionName || brandName || 'Retailer');
         var tbody = retailerPortalTbody();
         if (tbody) tbody.id = 'retailer-orders-tbody';
         var search = document.querySelector('#po-retailer-directory-block input[type="text"]');
@@ -236,11 +244,14 @@
             '<tbody id="po-modal-items-injector"></tbody>' +
             '<tfoot><tr style="font-weight:bold;background:#f5f5f5;"><td colspan="5" style="text-align:right;">Grand Total</td>' +
             '<td id="po-modal-grand-total" colspan="2">0.00</td></tr></tfoot></table>' +
-            '<div class="form-field-unit"><label for="po-modal-payment">Payment they made</label><select id="po-modal-payment">' +
-            '<option value="gcash">GCash</option><option value="check">Check</option><option value="cash">Cash</option></select></div>' +
-            '<div class="form-field-unit" id="po-modal-gcash-wrap"><p style="margin:0 0 8px;color:#374151;">GCash webpay confirms payment to the bakeshop wallet <strong>0917 800 1650</strong>. Paste the webpay reference number.</p>' +
-            '<label for="po-modal-gcash-ref">GCash reference number</label>' +
-            '<input type="text" id="po-modal-gcash-ref" inputmode="numeric" maxlength="20" placeholder="From the GCash receipt"></div>' +
+            (isWholesalerPortal()
+                ? '<div class="form-field-unit"><label for="po-modal-payment">Payment they made</label><select id="po-modal-payment">' +
+                    '<option value="gcash">GCash</option><option value="check">Check</option><option value="cash">Cash</option></select></div>' +
+                    '<div class="form-field-unit" id="po-modal-gcash-wrap"><p style="margin:0 0 8px;color:#374151;">GCash webpay confirms payment to the bakeshop wallet <strong>0917 800 1650</strong>. Paste the webpay reference number.</p>' +
+                    '<label for="po-modal-gcash-ref">GCash reference number</label>' +
+                    '<input type="text" id="po-modal-gcash-ref" inputmode="numeric" maxlength="20" placeholder="From the GCash receipt"></div>'
+                : '<div class="form-field-unit"><label for="po-modal-payment">Payment</label><select id="po-modal-payment">' +
+                    '<option value="consignment">Consignment</option><option value="cash_on_delivery">Cash on delivery</option><option value="check">Check</option></select></div>') +
             '<div class="form-field-unit" id="po-modal-check-wrap" style="display:none;"><label for="po-modal-check-no">Check number</label>' +
             '<input type="text" id="po-modal-check-no" placeholder="Check number"></div>' +
             '<div class="form-field-unit"><label>Remarks</label><textarea id="po-modal-remarks" style="width:100%;height:60px;"></textarea></div>' +
@@ -694,11 +705,13 @@
         var key = String(raw || '').toLowerCase().replace(/[\s-]+/g, '_');
         if (key === 'cod' || key === 'cashondelivery' || key === 'cash_on_delivery') return 'cash_on_delivery';
         if (key === 'cheque') return 'check';
+        if (key === 'cons' || key === 'consignment') return 'consignment';
         return key;
     }
 
     function payMethodTitle(method) {
         if (method === 'gcash') return 'GCash';
+        if (method === 'consignment') return 'Consignment';
         if (method === 'cash_on_delivery') return 'Cash on delivery';
         if (method === 'check') return 'Check';
         if (method === 'cash') return 'Cash';
@@ -718,7 +731,8 @@
         else if (order && order.paymentVerified === true) verified = true;
         else if (order && order.paymentVerified === false) verified = false;
         else verified = !!(shop && shop.paymentVerified === true);
-        var known = method === 'gcash' || method === 'cash_on_delivery' || method === 'check' || method === 'cash';
+        if (PAGE_MODE === 'retailer' && !isWholesalerPortal() && method === 'gcash') method = '';
+        var known = method === 'gcash' || method === 'consignment' || method === 'cash_on_delivery' || method === 'check' || method === 'cash';
         return {
             method: known ? method : '',
             reference: reference,
@@ -747,8 +761,12 @@
     }
 
     function paymentListNote(order) {
+        if (order && order.orderSource === 'staff') return '<br><small>Staff order</small>';
         var pay = customerPaymentSnapshot(order);
         var trade = isTradeOrder(order);
+        if (PAGE_MODE === 'retailer' && !isWholesalerPortal()) {
+            return pay.method ? '<br><small>' + escHtml(pay.label) + '</small>' : '';
+        }
         if (!pay.method && !trade) return '';
         var detail = pay.method ? ('Paid by ' + pay.label) : 'Payment type not recorded';
         var webpay = webpayDetails(order);
@@ -1109,6 +1127,13 @@
                 { value: 'cash_on_delivery', label: 'Cash on delivery' }
             ];
         }
+        if (type === 'retailer') {
+            return [
+                { value: 'consignment', label: 'Consignment' },
+                { value: 'cash_on_delivery', label: 'Cash on delivery' },
+                { value: 'check', label: 'Check' }
+            ];
+        }
         return [
             { value: 'gcash', label: 'GCash' },
             { value: 'check', label: 'Check' },
@@ -1122,6 +1147,12 @@
         if (type === 'customer') {
             if (key === 'cash_on_delivery' || key === 'cash') return 'cash_on_delivery';
             return 'gcash';
+        }
+        if (type === 'retailer') {
+            if (key === 'consignment') return 'consignment';
+            if (key === 'cash_on_delivery' || key === 'cash') return 'cash_on_delivery';
+            if (key === 'check') return 'check';
+            return 'consignment';
         }
         if (key === 'gcash' || key === 'check' || key === 'cash') return key;
         return 'cash';
@@ -1172,7 +1203,9 @@
     function readModalPaymentMethod(type) {
         var value = (document.getElementById('po-modal-payment') || {}).value || '';
         if (paymentChoicesFor(type).some(function (choice) { return choice.value === value; })) return value;
-        return type === 'customer' ? 'gcash' : 'cash';
+        if (type === 'customer') return 'gcash';
+        if (type === 'retailer') return 'consignment';
+        return 'cash';
     }
 
     function applyModalPaymentProof(payload, type) {
@@ -1232,7 +1265,7 @@
         setField('po-modal-remarks', order ? (order.remarks || '') : '');
         setField('po-modal-tracking', order ? (order.trackingNumber || '') : '');
         setField('po-modal-courier', order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines');
-        ensureGcashReferenceField();
+        if (type !== 'retailer') ensureGcashReferenceField();
         fillPaymentOptions(type, storedPayValue(order, type));
         setField('po-modal-gcash-ref', order ? (order.gcashReference || '') : '');
         setField('po-modal-check-no', order ? (order.checkNumber || order.chequeNumber || '') : '');
@@ -1326,6 +1359,12 @@
             items: items
         };
         if (!applyModalPaymentProof(payload, type)) return;
+
+        if (/\/staff\//i.test((location.pathname || '').replace(/\\/g, '/'))) {
+            payload.orderSource = 'staff';
+        } else if (editingPoCode && PO_ORDERS[editingPoCode] && PO_ORDERS[editingPoCode].orderSource) {
+            payload.orderSource = PO_ORDERS[editingPoCode].orderSource;
+        }
 
         if (PAGE_MODE === 'retailer') {
             payload.entity = retailerStoreName || payload.entity;
@@ -1447,6 +1486,7 @@
         var key = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
         var labels = {
             gcash: 'GCash',
+            consignment: 'Consignment',
             cashondelivery: 'Cash on delivery',
             cod: 'Cash on delivery',
             maya: 'Maya',
@@ -1467,13 +1507,17 @@
     function receiptPayMarks(order) {
         var raw = lookupOrderPayment(order);
         var method = String(raw || '').toLowerCase().replace(/[\s_-]+/g, '');
-        var marks = { cash: false, gcash: false, check: false, other: false, otherText: '', checkNo: '' };
+        var marks = { cash: false, gcash: false, consignment: false, cod: false, check: false, other: false, otherText: '', checkNo: '' };
         if (!method && order && order.entityType !== 'customer') {
             method = 'onaccount';
             raw = 'on_account';
         }
         if (!method) return marks;
-        if (method === 'cash' || method === 'cashondelivery' || method === 'cod' || method === 'debit' || method === 'debitcard') {
+        if (method === 'consignment' || method === 'cons') {
+            marks.consignment = true;
+        } else if (method === 'cashondelivery' || method === 'cod') {
+            marks.cod = true;
+        } else if (method === 'cash' || method === 'debit' || method === 'debitcard') {
             marks.cash = true;
         } else if (method === 'gcash' || method === 'creditcard' || method === 'credit' || method === 'card') {
             marks.gcash = true;
@@ -1525,11 +1569,16 @@
             '<tr><th>Total:</th><td>' + escHtml(formatMoney(total)) + '</td></tr>' +
             '</tbody></table>' +
             '<div class="po-receipt-pay"><p>Sale Made with:</p>' +
-            '<p>' + receiptBox(pay.cash) + ' Cash</p>' +
-            '<p>' + receiptBox(pay.gcash) + ' GCash</p>' +
-            '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>' +
-            '<p>' + receiptBox(pay.other) + ' Other <span class="po-receipt-line">' + escHtml(pay.otherText) + '</span></p></div>' +
-            (customerPaymentSnapshot(order).reference ? '<p class="po-receipt-date">GCash ref: <span>' + escHtml(customerPaymentSnapshot(order).reference) + '</span></p>' : '') +
+            (order.entityType === 'retailer'
+                ? '<p>' + receiptBox(pay.consignment) + ' Consignment</p>' +
+                    '<p>' + receiptBox(pay.cod) + ' Cash on delivery</p>' +
+                    '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>'
+                : '<p>' + receiptBox(pay.cash) + ' Cash</p>' +
+                    '<p>' + receiptBox(pay.gcash) + ' GCash</p>' +
+                    '<p>' + receiptBox(pay.check) + ' Check, No. <span class="po-receipt-line">' + escHtml(pay.checkNo) + '</span></p>' +
+                    '<p>' + receiptBox(pay.other) + ' Other <span class="po-receipt-line">' + escHtml(pay.otherText) + '</span></p>') +
+            '</div>' +
+            (order.entityType === 'retailer' ? '' : (customerPaymentSnapshot(order).reference ? '<p class="po-receipt-date">GCash ref: <span>' + escHtml(customerPaymentSnapshot(order).reference) + '</span></p>' : '')) +
             '<p class="po-receipt-foot">Owner\'s copy</p>' +
             '</article>';
     }

@@ -1061,11 +1061,9 @@ main.workspace-canvas {
 /* Daily collection sheet layout — matches handwritten Kreezby route forms */
 
 .sales-ledger-stack {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  max-width: 100%;
-  align-items: start;
+  display: block;
+  width: 100%;
+  max-width: none;
 }
 
 @media (max-width: 1100px) {
@@ -1080,8 +1078,26 @@ main.workspace-canvas {
   margin-bottom: 0;
 }
 
+.sales-ledger-stack .panel-data-card + .panel-data-card {
+  margin-top: 20px;
+}
+
 .sales-ledger-stack .card-body-padded {
   overflow-x: auto;
+}
+
+.sales-ledger-stack .data-display-table {
+  width: 100%;
+  min-width: 760px;
+}
+
+.sales-ledger-stack .data-display-table th,
+.sales-ledger-stack .data-display-table td {
+  white-space: nowrap;
+}
+
+.sales-ledger-stack .data-display-table td:nth-child(4) {
+  white-space: normal;
 }
 
 .sales-section-retailer {
@@ -1517,7 +1533,7 @@ table.manual-sheet-table tfoot td {
 body { display: flex; flex-direction: column; min-height: 100vh; background: #f5f5f5; }
         .system-dashboard-wrapper { display: flex; flex: 1; }
         .workspace-canvas { flex: 1; padding: 24px; overflow-x: auto; }
-        .page-title { margin: 0 0 8px; color: #5d4037; }
+        .page-title { margin: 0 0 8px; color: #5d4037; font-size: 1.35rem; font-weight: 700; letter-spacing: 0; }
         .page-subtitle { margin: 0 0 20px; color: #666; font-size: 13px; }
         .retailer-saleslist-toolbar {
             display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;

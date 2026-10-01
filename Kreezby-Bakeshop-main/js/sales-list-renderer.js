@@ -699,12 +699,9 @@
       var badge = document.getElementById('bauan-import-badge');
       if (badge && api.getImportSummary) {
         var s = api.getImportSummary();
-        var base =
+        badge.textContent =
           s.total + ' location entries · ' + filterMeta.months.length + ' months · ' +
-          api.getDailyReports().length + ' route sheets (use filters to view one at a time)';
-        badge.textContent = s.isTestData
-          ? base + ' · Kaggle bakery sales (admin test data)'
-          : base;
+          api.getDailyReports().length + ' route sheets';
       }
     }
 
@@ -820,11 +817,6 @@
   function renderCustomerSales() {
     var tbody = document.getElementById('customer-sales-tbody');
     if (!tbody) return;
-    var note = tbody.closest('.card-body-padded');
-    if (note) {
-      var blurb = note.querySelector('p');
-      if (blurb) blurb.textContent = 'Orders from account logins. Each row shows the customer type, who ordered, and the area.';
-    }
     if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
       window.KreezbyPortalSeed.apply();
     }
@@ -859,8 +851,159 @@
     }).join('');
   }
 
+  function sessionShopName() {
+    try {
+      var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
+      return session && session.userName ? String(session.userName) : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function retailerPaymentBucket(order) {
+    if (!order) return '';
+    if (order.orderSource === 'staff') return 'staff';
+    var method = String(order.paymentMethod || '').toLowerCase().replace(/[\s-]+/g, '_');
+    if (method === 'cheque') method = 'check';
+    if (method === 'cons' || method === 'consignment') return 'consignment';
+    if (method === 'cod' || method === 'cash' || method === 'cash_on_delivery' || method === 'cashondelivery') return 'cash_on_delivery';
+    if (method === 'check') return 'check';
+    return '';
+  }
+
+  function purchasePaymentLabel(order) {
+    var bucket = retailerPaymentBucket(order);
+    if (bucket === 'consignment') return 'Consignment';
+    if (bucket === 'cash_on_delivery') return 'Cash on delivery';
+    if (bucket === 'check') return 'Check';
+    return '—';
+  }
+
+  function purchaseAmount(order) {
+    return (order.items || []).reduce(function (sum, item) {
+      var lineTotal = Number(item.total);
+      if (!lineTotal && item.qty != null && item.cost != null) lineTotal = Number(item.qty) * Number(item.cost);
+      return sum + (lineTotal || 0);
+    }, 0);
+  }
+
+  function formatPurchaseMoney(amount) {
+    return '₱' + Number(amount || 0).toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function renderRetailerPurchaseSummary() {
+    var tbody = document.getElementById('retailer-purchase-summary');
+    if (!tbody) return;
+    if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
+      window.KreezbyPortalSeed.apply();
+    }
+    var shop = sessionShopName();
+    var orders = {};
+    try { orders = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}'); } catch (e) { orders = {}; }
+    var rows = Object.keys(orders).map(function (key) { return orders[key]; }).filter(function (order) {
+      if (!order || order.entityType !== 'retailer') return false;
+      if (!shop) return false;
+      return String(order.entity || '').toLowerCase() === shop.toLowerCase();
+    });
+    rows.sort(function (a, b) {
+      return String(b.dateCreated || '').localeCompare(String(a.dateCreated || ''));
+    });
+    var payments = rows.filter(function (order) {
+      var bucket = retailerPaymentBucket(order);
+      return bucket === 'consignment' || bucket === 'cash_on_delivery' || bucket === 'check';
+    });
+    var staffOrders = rows.filter(function (order) {
+      return retailerPaymentBucket(order) === 'staff';
+    });
+    fillRetailerOrderTable(tbody, document.getElementById('retailer-purchase-badge'), payments, {
+      empty: 'No payments yet.',
+      noneForShop: 'No payments yet.',
+      label: 'payment',
+      withPayment: true
+    });
+    fillRetailerOrderTable(document.getElementById('retailer-staff-orders'), document.getElementById('retailer-staff-badge'), staffOrders, {
+      empty: 'No staff orders yet.',
+      noneForShop: 'No staff orders yet.',
+      label: 'staff order',
+      withPayment: false
+    });
+  }
+
+  function fillRetailerOrderTable(tbody, badge, rows, copy) {
+    if (!tbody) return;
+    if (!rows.length) {
+      if (badge) badge.textContent = copy.noneForShop;
+      tbody.innerHTML = '<tr><td colspan="' + (copy.withPayment ? 7 : 6) + '" style="text-align:center;padding:24px;color:#888;">' + esc(copy.empty) + '</td></tr>';
+      return;
+    }
+    if (badge) badge.textContent = rows.length + ' ' + copy.label + (rows.length === 1 ? '' : 's');
+    tbody.innerHTML = rows.map(function (order, index) {
+      var items = (order.items || []).map(function (item) {
+        return [item.qty, item.unit, item.name].filter(Boolean).join(' ');
+      }).join(', ');
+      return '<tr>' +
+        '<td>' + (index + 1) + '</td>' +
+        '<td>' + esc(String(order.dateCreated || '').replace('T', ' ').slice(0, 10)) + '</td>' +
+        '<td><strong>' + esc(order.code || '') + '</strong></td>' +
+        '<td>' + esc(items) + '</td>' +
+        (copy.withPayment ? '<td>' + esc(purchasePaymentLabel(order)) + '</td>' : '') +
+        '<td>' + esc(formatPurchaseMoney(purchaseAmount(order))) + '</td>' +
+        '<td><span class="status-pill-badge ' + esc(order.statusClass || 'pending') + '">' + esc(order.status || 'Pending') + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function initSalesViewSwitch() {
+    var root = document.querySelector('.sales-view-switch');
+    var retailer = document.querySelector('.sales-section-retailer');
+    var customer = document.querySelector('.sales-section-customer');
+    if (!root || !retailer || !customer) return;
+
+    function show(view, animate) {
+      var isCustomer = view === 'customer';
+      retailer.hidden = isCustomer;
+      customer.hidden = !isCustomer;
+      root.classList.toggle('is-customer', isCustomer);
+      root.querySelectorAll('[data-sales-view]').forEach(function (btn) {
+        var on = btn.getAttribute('data-sales-view') === (isCustomer ? 'customer' : 'retailer');
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        btn.tabIndex = on ? 0 : -1;
+      });
+      if (!animate) return;
+      var pane = isCustomer ? customer : retailer;
+      pane.classList.remove('sales-view-enter');
+      void pane.offsetWidth;
+      pane.classList.add('sales-view-enter');
+    }
+
+    root.addEventListener('click', function (event) {
+      var btn = event.target.closest('[data-sales-view]');
+      if (!btn || !root.contains(btn)) return;
+      show(btn.getAttribute('data-sales-view'), true);
+    });
+
+    root.addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      show(event.key === 'ArrowRight' ? 'customer' : 'retailer', true);
+      var active = root.querySelector('.sales-view-option.is-active');
+      if (active) active.focus();
+    });
+
+    show(root.classList.contains('is-customer') ? 'customer' : 'retailer', false);
+  }
+
   function bootSalesList() {
     try {
+      initSalesViewSwitch();
+      if (document.getElementById('retailer-purchase-summary')) {
+        renderRetailerPurchaseSummary();
+        return;
+      }
       if (document.getElementById('saleslist-retailer-page')) {
         initRetailerSalesListPage();
       } else if (document.getElementById('retailer-sales-panel')) {

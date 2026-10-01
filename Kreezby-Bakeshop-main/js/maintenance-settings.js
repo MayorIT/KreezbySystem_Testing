@@ -355,6 +355,8 @@
         };
     }
 
+    try { saveUsers(getUsers()); } catch (e) { /* ignore */ }
+
     window.KreezbyMaintenanceSettings = {
         getUsers: getUsers,
         saveUsers: saveUsers,

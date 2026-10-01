@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="../js/kreezby-db-sync.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Sales Records Ledger (Head Admin)</title>
     <link rel="stylesheet" href="../css/pages/admin/saleslist-admin.css?v=20260929cols">
+    <link rel="stylesheet" href="../css/shared/sales-view-switch.css?v=20261001switch">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
 </head>
@@ -34,7 +36,12 @@
         <main class="workspace-view-canvas">
 
             <div id="saleslist-master-directory-panel-view">
-                <div class="sales-ledger-stack">
+                <div class="sales-view-switch" role="tablist" aria-label="Sales list">
+                    <span class="sales-view-thumb" aria-hidden="true"></span>
+                    <button type="button" class="sales-view-option is-active" role="tab" aria-selected="true" data-sales-view="retailer">Retailer</button>
+                    <button type="button" class="sales-view-option" role="tab" aria-selected="false" data-sales-view="customer" tabindex="-1">Customer</button>
+                </div>
+                <div class="sales-ledger-stack sales-view-single">
                     
                     <div class="panel-data-card sales-section-retailer">
                         <div class="panel-card-title-bar route-sheet-title-bar">
@@ -46,7 +53,6 @@
                         </div>
                         <div class="card-body-padded">
                             <p id="bauan-import-badge" style="font-size:13px;color:#5d4037;margin-bottom:12px;font-weight:600;">Loading route sheets…</p>
-                            <p style="font-size:12px;color:#666;margin:0 0 14px;">Admin testing ledger: Kaggle bakery sales (shreyashdodekar/synthetic-bakery-sales-dataset). Live client daily workbooks are not loaded. Click a row for line detail.</p>
                             <div class="route-sheet-filters">
                                 <div class="filter-field">
                                     <label for="route-filter-month">Month</label>
@@ -68,12 +74,11 @@
                         </div>
                     </div>
 
-                    <div class="panel-data-card sales-section-customer">
+                    <div class="panel-data-card sales-section-customer" hidden>
                         <div class="panel-card-title-bar">
                             <h3>Customer Sales Records</h3>
                         </div>
                         <div class="card-body-padded">
-                            <p style="font-size:12px;color:#666;margin:0 0 14px;">Walk-in and direct customer sales (separate from route retailer logs).</p>
                             <div class="datatable-filters-line">
                                 <div>Search Customers: <input type="text" placeholder="Filter code or name…" disabled></div>
                             </div>
@@ -162,6 +167,6 @@
     <script src="../js/kreezby-sales-fake-admin.js?v=20260929areas"></script>
     <script src="../js/kreezby-sales-data.js?v=20260929areas"></script>
     <script src="../js/sales-sheet-editor.js"></script>
-    <script src="../js/sales-list-renderer.js?v=20260929areas"></script>
+    <script src="../js/sales-list-renderer.js?v=20261001nodesc"></script>
 </body>
 </html>

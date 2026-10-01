@@ -5,7 +5,7 @@
 (function (root) {
     'use strict';
 
-    var VERSION = '20260929webpay';
+    var VERSION = '20261001retailerpay';
     var VERSION_KEY = 'kreezbyPortalSeedVersion';
 
     function clone(value) {
@@ -44,8 +44,8 @@
         'PO-SIDC-001': {
             code: 'PO-SIDC-001',             dateCreated: '2026-09-12', entity: 'SIDC Batangas Hub',
             entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Weekly replenishment. Paid by GCash. Reference waiting for verification.',
-            paymentMethod: 'gcash', gcashReference: '9182736455012', gcashPaidTo: '09178001650',
+            remarks: 'Weekly replenishment on consignment.',
+            paymentMethod: 'consignment',
             paymentVerified: false, paymentStatus: 'pending',
             items: [
                 line(80, 'Pouches', 'Chocolate Crinkles', '', 165)
@@ -64,11 +64,23 @@
         'PO-QCM-001': {
             code: 'PO-QCM-001',             dateCreated: '2026-09-16', entity: 'Quezon Crinkle Mart',
             entityType: 'retailer', area: 'Lucena City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Partial delivery of Chocolate Crinkles pouches. Paid in cash.',
-            paymentMethod: 'cash', paymentVerified: true, paymentStatus: 'verified',
+            remarks: 'Partial delivery of Chocolate Crinkles pouches. Cash on delivery.',
+            paymentMethod: 'cash_on_delivery', paymentVerified: true, paymentStatus: 'verified',
             items: [
                 line(36, 'Pouches', 'Chocolate Crinkles', 'Received 24', 165)
             ]
+        },
+        'PO-STAFF-SIDC': {
+            code: 'PO-STAFF-SIDC', dateCreated: '2026-09-18', entity: 'SIDC Batangas Hub',
+            entityType: 'retailer', orderSource: 'staff', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
+            remarks: 'Staff order for this shop.',
+            items: [line(12, 'Pouches', 'Chocolate Crinkles', '', 165)]
+        },
+        'PO-STAFF-MCC': {
+            code: 'PO-STAFF-MCC', dateCreated: '2026-09-18', entity: 'Makati Crinkle Corner',
+            entityType: 'retailer', orderSource: 'staff', area: 'Makati', status: 'PENDING', statusClass: 'pending',
+            remarks: 'Staff order for this shop.',
+            items: [line(10, 'Pouches', 'Chocolate Crinkles', '', 165)]
         },
         'ORD-2026-0102': {
             code: 'ORD-2026-0102', dateCreated: '2026-09-29', entity: 'Retailer',
