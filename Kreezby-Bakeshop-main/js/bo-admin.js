@@ -685,7 +685,7 @@
         if (master) master.style.display = 'none';
         if (details) {
             details.classList.add('is-open');
-            details.style.display = 'flex';
+            details.style.display = PAGE_MODE === 'retailer' ? 'block' : 'flex';
         }
         var title = document.getElementById('bo-details-title');
         if (title) title.textContent = order.code;
@@ -749,12 +749,14 @@
             return '<option value="' + status.class + '"' + (status.class === order.statusClass ? ' selected' : '') + '>' + esc(status.label) + '</option>';
         }).join('');
         content.insertAdjacentHTML('afterbegin',
-            '<form id="bo-edit-form" class="po-detail-remarks" data-kreezby-native="1">' +
-            '<span>Edit this back order</span>' +
-            '<label>Expected delivery<br><input class="po-detail-input" name="expected" value="' + esc(order.expectedDelivery || '') + '"></label>' +
-            '<label>Status<br><select class="po-detail-input" name="status">' + options + '</select></label>' +
-            '<label>Remarks<br><textarea class="po-detail-input" name="remarks" rows="3">' + esc(order.remarks || '') + '</textarea></label>' +
-            '<button class="btn-call-to-action" type="submit">Save changes</button>' +
+            '<form id="bo-edit-form" class="bo-edit-card" data-kreezby-native="1">' +
+            '<h4>Edit this back order</h4>' +
+            '<div class="bo-edit-grid">' +
+            '<label>Expected delivery<input class="po-detail-input" name="expected" value="' + esc(order.expectedDelivery || '') + '"></label>' +
+            '<label>Status<select class="po-detail-input" name="status">' + options + '</select></label>' +
+            '</div>' +
+            '<label>Remarks<textarea class="po-detail-input" name="remarks" rows="3">' + esc(order.remarks || '') + '</textarea></label>' +
+            '<div class="bo-edit-actions"><button class="btn-call-to-action" type="submit">Save changes</button></div>' +
             '</form>');
     }
 

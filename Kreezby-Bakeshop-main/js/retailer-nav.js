@@ -174,7 +174,7 @@
     document.querySelectorAll('aside .navigation-tree').forEach(function (list) {
       list.querySelectorAll('a[href]').forEach(function (a) {
         var file = (a.getAttribute('href') || '').split('?')[0].split('#')[0].split('/').pop();
-        if (/^(po-portal|receive-portal|receiving-retailer)\.html$/i.test(file) || HIDE_MODULES_PATTERN.test(file)) {
+        if (/^(po-portal|receive-portal|receiving-retailer|return-portal)\.html$/i.test(file) || HIDE_MODULES_PATTERN.test(file)) {
           var li = a.closest('li');
           if (li) li.remove();
           else a.remove();
@@ -201,7 +201,6 @@
 
   function removeRetailerDeliveryAndPulloutModules() {
     // Remove nav/sidebar links and inline action shortcuts for receiving (delivery/pullout records).
-    // Return/P.O List (return-{store}.html) stays visible for each retailer.
     function normalizeHref(href) {
       return (href || '').split('?')[0].split('#')[0].trim();
     }
