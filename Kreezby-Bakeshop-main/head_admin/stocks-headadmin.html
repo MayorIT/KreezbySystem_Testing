@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Head Admin Stocks</title>
+    <link rel="stylesheet" href="../css/pages/admin/stocks-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008lay2">
+
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-stocks">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="stocks-master-list-panel-view">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>List of Stocks</h3>
+                            <span class="po-list-count" id="stocks-list-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <div class="stocks-view-switch" id="stocks-view-switch">
+                                <button type="button" class="stocks-view-btn is-active" data-stocks-view="active">Active</button>
+                                <button type="button" class="stocks-view-btn" data-stocks-view="archive">Archive</button>
+                            </div>
+                            <label class="po-page-size">Show
+                                <select id="stocks-page-size">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <label class="po-page-size">Type
+                                <select id="stocks-type-filter">
+                                    <option value="all">All types</option>
+                                    <option value="finished-product">Finished product</option>
+                                    <option value="raw-material">Raw material</option>
+                                    <option value="packaging-material">Packaging</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" id="stocks-search-input" placeholder="Item name, code, or unit...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div id="stocks-record-host"></div>
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="stocks-orders-table">
+                                <thead>
+                                    <tr>
+                                        <th class="po-col-num">#</th>
+                                        <th class="po-col-code">Item Code</th>
+                                        <th class="po-col-type">Stock Type</th>
+                                        <th class="po-col-name">Item Name</th>
+                                        <th class="po-col-unit">Unit</th>
+                                        <th class="po-col-qty">In Stock</th>
+                                        <th class="po-col-cost">Cost</th>
+                                        <th class="po-col-value">Value</th>
+                                        <th class="po-col-action">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stocks-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line" id="stocks-list-footer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stocks-details-panel" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Stock</p>
+                            <h3 id="stocks-details-title">Details</h3>
+                        </div>
+                        <button class="po-details-back" id="stocks-details-back-btn" type="button">Back to list</button>
+                    </div>
+                    <div class="po-details-scroll">
+                        <div id="stocks-details-content"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        <script>
+        (function () {
+            document.body.classList.add('po-admin-page');
+            var theme = document.getElementById('po-theme-sheet');
+            if (!theme) {
+                theme = document.createElement('link');
+                theme.id = 'po-theme-sheet';
+                theme.rel = 'stylesheet';
+                theme.setAttribute('data-po-owned', '1');
+                document.head.appendChild(theme);
+            }
+            theme.disabled = false;
+            if (theme.href.indexOf('20261008fix') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261008lay2';
+            function start() {
+                if (window.StocksAdmin && window.StocksAdmin.bind) window.StocksAdmin.bind();
+            }
+            if (window.StocksAdmin && window.StocksAdmin.bind) {
+                start();
+                return;
+            }
+            var existing = document.getElementById('kreezby-stocks-frame-script');
+            if (existing) {
+                existing.addEventListener('load', start, { once: true });
+                return;
+            }
+            var script = document.createElement('script');
+            script.id = 'kreezby-stocks-frame-script';
+            script.src = '../js/stocks-admin.js?v=20261008fix';
+            script.onload = start;
+            document.body.appendChild(script);
+        })();
+        </script>
+        </turbo-frame>
+    </div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/kreezby-data-dictionary.js?v=20261008fix"></script>
+    <script src="../js/stocks-admin.js?v=20261008fix"></script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261008fix"></script>
+    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

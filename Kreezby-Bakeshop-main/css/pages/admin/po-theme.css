@@ -1,0 +1,2854 @@
+/* Purchase order page — brown and gold, loaded last so it overrides shared blue styles. */
+
+body.po-admin-page {
+    --po-brown: #5d4037;
+    --po-brown-deep: #3e2723;
+    --po-gold: #ffca28;
+    --po-gold-deep: #f9a825;
+    --po-cream: #fbf6ee;
+    --po-line: #efe6d6;
+    background:
+        radial-gradient(circle at 0 0, rgba(255, 202, 40, 0.18), transparent 26%),
+        var(--po-cream);
+}
+
+body.po-admin-page main.workspace-view-canvas {
+    padding: 22px 24px 36px;
+}
+
+body.po-admin-page .panel-data-card,
+body.po-admin-page #po-master-lists-container-block .po-tabbed-card {
+    background: #fff;
+    border: 1px solid rgba(93, 64, 55, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 18px 40px rgba(62, 39, 35, 0.08);
+    overflow: hidden;
+}
+
+body.po-admin-page .po-order-tabs,
+body.po-admin-page .po-order-tabs.expanding-tabs {
+    margin: 14px 14px 0;
+    padding: 6px;
+    gap: 6px;
+    border: 1px solid var(--po-line);
+    border-radius: 16px;
+    background: #fff8ea;
+    box-shadow: none;
+}
+
+body.po-admin-page .po-order-tabs .po-order-tab,
+body.po-admin-page .po-order-tabs .expanding-tab {
+    gap: 8px !important;
+    height: 40px !important;
+    padding: 0 16px !important;
+    width: auto !important;
+    color: var(--po-brown) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
+}
+
+body.po-admin-page .po-order-tabs .expanding-tab__label,
+body.po-admin-page .po-order-tabs .expanding-tab.is-expanded .expanding-tab__label {
+    max-width: 14rem !important;
+    opacity: 1 !important;
+    color: inherit !important;
+}
+
+body.po-admin-page .po-order-tabs .po-order-tab.active,
+body.po-admin-page .po-order-tabs .expanding-tab.active {
+    background: var(--po-gold) !important;
+    color: #1f1f1f !important;
+}
+
+body.po-admin-page .po-tab-panel,
+body.po-admin-page .po-tab-panel.active {
+    transition: none !important;
+}
+
+body.po-admin-page .panel-card-title-bar,
+body.po-admin-page .po-tabbed-card .panel-card-title-bar {
+    background: #fff;
+    border-bottom: none;
+    padding: 16px 20px 8px;
+}
+
+body.po-admin-page .panel-card-title-bar h3,
+body.po-admin-page .po-tabbed-card .panel-card-title-bar h3 {
+    color: var(--po-brown-deep);
+    letter-spacing: 0.08em;
+}
+
+body.po-admin-page .btn-call-to-action,
+body.po-admin-page .po-tabbed-card .btn-call-to-action,
+body.po-admin-page .btn-modal-save,
+body.po-admin-page .btn-viewer-tool.blue,
+body.po-admin-page .btn-viewer-tool.brown {
+    background: var(--po-brown) !important;
+    color: #fff !important;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body.po-admin-page .btn-call-to-action,
+body.po-admin-page .po-tabbed-card .btn-call-to-action {
+    padding: 9px 16px;
+}
+
+body.po-admin-page .btn-call-to-action:hover,
+body.po-admin-page .po-tabbed-card .btn-call-to-action:hover,
+body.po-admin-page .btn-modal-save:hover,
+body.po-admin-page .btn-viewer-tool.blue:hover,
+body.po-admin-page .btn-viewer-tool.brown:hover {
+    background: var(--po-brown-deep);
+}
+
+body.po-admin-page .btn-viewer-tool.black {
+    background: #4e342e;
+    border-radius: 999px;
+}
+
+body.po-admin-page .btn-viewer-tool.green {
+    background: #6d4c41;
+    border-radius: 999px;
+}
+
+body.po-admin-page .datatable-filters-line {
+    align-items: center;
+    gap: 12px;
+    color: #6d4c41;
+}
+
+body.po-admin-page .datatable-filters-line select,
+body.po-admin-page #po-master-lists-container-block select {
+    min-width: 72px;
+    width: auto;
+    color: #3e2723 !important;
+    background: #fff !important;
+}
+
+body.po-admin-page .datatable-filters-line select,
+body.po-admin-page #po-master-lists-container-block select,
+body.po-admin-page .search-field-wrap input,
+body.po-admin-page .form-field-unit input,
+body.po-admin-page .form-field-unit select,
+body.po-admin-page .po-detail-input {
+    height: 36px;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    background: #fff;
+    color: #3e2723;
+}
+
+body.po-admin-page .search-field-wrap input:focus,
+body.po-admin-page .form-field-unit input:focus,
+body.po-admin-page .form-field-unit select:focus,
+body.po-admin-page .po-detail-input:focus {
+    border-color: var(--po-brown);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(93, 64, 55, 0.12);
+}
+
+body.po-admin-page .data-display-table thead th,
+body.po-admin-page .po-tabbed-card .data-display-table thead th,
+body.po-admin-page .order-list-card .data-display-table thead th,
+body.po-admin-page .data-display-table thead tr {
+    background: #e4c9a3 !important;
+    color: #4e342e !important;
+    border: none;
+}
+
+body.po-admin-page .data-display-table tbody tr:nth-child(even) {
+    background: #fffaf3;
+}
+
+body.po-admin-page .data-display-table tbody tr:hover {
+    background: #fff3d6;
+}
+
+body.po-admin-page .po-code-link,
+body.po-admin-page .po-status-link {
+    color: var(--po-brown) !important;
+}
+
+body.po-admin-page .po-code-link {
+    font-weight: 800;
+    text-decoration: none;
+}
+
+body.po-admin-page .po-code-link:hover {
+    color: var(--po-brown-deep);
+    text-decoration: underline;
+}
+
+body.po-admin-page .action-trigger-btn,
+body.po-admin-page .btn-row-action {
+    background: #fff;
+    border: 1px solid #e4d8c4;
+    color: var(--po-brown-deep);
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+body.po-admin-page .action-trigger-btn:hover,
+body.po-admin-page .btn-row-action:hover {
+    background: #fff6e0;
+}
+
+body.po-admin-page .action-popup-item.is-current,
+body.po-admin-page .action-popup-item-status.is-current {
+    color: var(--po-brown) !important;
+    background: #fff6e0 !important;
+}
+
+body.po-admin-page .system-modal-backdrop {
+    z-index: 10040;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 18px 0 24px;
+    background: rgba(42, 28, 22, 0.46);
+}
+
+body.po-admin-page .form-modal-box {
+    width: min(980px, 94vw);
+    max-width: 980px;
+    max-height: calc(100vh - 28px);
+    display: flex;
+    flex-direction: column;
+    border: none;
+    border-radius: 22px;
+    box-shadow: 0 28px 70px rgba(42, 28, 22, 0.32);
+}
+
+body.po-admin-page .modal-form-header {
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, var(--po-brown-deep), var(--po-brown));
+    color: #fff;
+    border-bottom: none;
+}
+
+body.po-admin-page .po-modal-heading {
+    min-width: 0;
+}
+
+body.po-admin-page .po-modal-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--po-gold);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .modal-form-header h2 {
+    margin: 0;
+    color: #fff !important;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+}
+
+body.po-admin-page .po-modal-close {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff !important;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+body.po-admin-page .po-modal-close:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+body.po-admin-page .modal-form-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 16px;
+    overflow-y: auto;
+    background: var(--po-cream);
+}
+
+body.po-admin-page .po-form-section {
+    margin-bottom: 12px;
+    padding: 16px 16px 4px;
+    background: #fff;
+    border: 1px solid var(--po-line);
+    border-radius: 16px;
+}
+
+body.po-admin-page .po-form-section-last {
+    padding-bottom: 8px;
+}
+
+body.po-admin-page .po-form-section-title {
+    margin: 0 0 12px;
+    color: var(--po-brown);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page #purchase-order-modal-node .form-inputs-row-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+body.po-admin-page #purchase-order-modal-node .po-form-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.po-admin-page .po-form-status-field {
+    display: none;
+}
+
+body.po-admin-page #purchase-order-modal-node .form-field-unit label {
+    color: #6d4c41;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page #purchase-order-modal-node .form-field-unit input,
+body.po-admin-page #purchase-order-modal-node .form-field-unit select,
+body.po-admin-page #purchase-order-modal-node .form-field-unit textarea {
+    width: 100%;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--po-brown-deep);
+    font: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+body.po-admin-page #purchase-order-modal-node .form-field-unit textarea {
+    min-height: 84px;
+    padding: 10px 12px;
+    resize: vertical;
+}
+
+body.po-admin-page #po-modal-code {
+    background: #fff6e0;
+    color: var(--po-brown-deep);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+body.po-admin-page .item-entry-builder-bar {
+    grid-template-columns: minmax(180px, 2fr) minmax(90px, 0.7fr) minmax(90px, 0.7fr) auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: #fffaf3;
+    border: 1px solid var(--po-line);
+    border-radius: 14px;
+}
+
+body.po-admin-page #po-modal-add-item-btn {
+    height: 36px;
+    margin-bottom: 0;
+    padding: 0 16px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+body.po-admin-page .po-modal-table-wrap {
+    margin: 0 -4px 12px;
+    overflow-x: auto;
+}
+
+body.po-admin-page .po-modal-items-table {
+    margin: 0;
+}
+
+body.po-admin-page #po-modal-items-injector input {
+    min-width: 64px;
+    height: 34px;
+    padding: 4px 8px;
+    border: 1px solid #e4d8c4;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--po-brown-deep);
+}
+
+body.po-admin-page .po-modal-total-row td {
+    background: #fff6e0;
+    color: var(--po-brown-deep);
+    font-weight: 800;
+    text-align: right;
+}
+
+body.po-admin-page .trash-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fff4f2;
+    color: #b71c1c;
+}
+
+body.po-admin-page .modal-action-footer-panel {
+    padding: 14px 18px;
+    background: #fff;
+    border-top: 1px solid var(--po-line);
+}
+
+body.po-admin-page .btn-modal-cancel,
+body.po-admin-page .btn-modal-save {
+    min-height: 40px;
+    padding: 8px 18px;
+    border-radius: 999px;
+}
+
+body.po-admin-page .btn-modal-cancel {
+    background: #fff;
+    border: 1px solid #e4d8c4;
+    color: var(--po-brown);
+}
+
+body.po-admin-page .btn-modal-save {
+    background: var(--po-brown);
+}
+
+@media (max-width: 760px) {
+    body.po-admin-page #purchase-order-modal-node .form-inputs-row-grid,
+    body.po-admin-page #purchase-order-modal-node .po-form-grid-2,
+    body.po-admin-page .item-entry-builder-bar {
+        grid-template-columns: 1fr;
+    }
+}
+
+#po-print-receipt-root {
+    display: none;
+}
+
+#po-print-receipt-root .po-receipt-sheet {
+    width: 100%;
+    max-width: 180mm;
+    margin: 0 auto;
+    padding: 6mm 8mm 8mm;
+    background: #fff;
+    color: #111;
+    font-family: "Times New Roman", Times, serif;
+    border: 2px solid #111;
+    box-sizing: border-box;
+}
+
+#po-print-receipt-root .po-receipt-logo {
+    display: block !important;
+    visibility: visible !important;
+    height: 74px;
+    width: auto;
+    max-width: 260px;
+    margin: 0 auto 6px;
+    object-fit: contain;
+}
+
+#po-print-receipt-root .po-receipt-rule {
+    border: none;
+    border-top: 1px solid #111;
+    margin: 0;
+}
+
+#po-print-receipt-root .po-receipt-title {
+    margin: 4px 0;
+    color: #111;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#po-print-receipt-root .po-receipt-date,
+#po-print-receipt-root .po-receipt-sold {
+    margin: 8px 0 0;
+    font-size: 13px;
+}
+
+#po-print-receipt-root .po-receipt-date span,
+#po-print-receipt-root .po-receipt-sold span {
+    display: inline-block;
+    min-width: 180px;
+    margin-left: 8px;
+    border-bottom: 1px solid #111;
+    font-weight: 700;
+}
+
+#po-print-receipt-root .po-receipt-sold {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+#po-print-receipt-root .po-receipt-no {
+    float: none;
+    min-width: 140px;
+    margin-left: auto;
+    text-align: right;
+}
+
+#po-print-receipt-root .po-receipt-table,
+#po-print-receipt-root .po-receipt-sum {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#po-print-receipt-root .po-receipt-table {
+    margin-top: 10px;
+}
+
+#po-print-receipt-root .po-receipt-table th,
+#po-print-receipt-root .po-receipt-table td,
+#po-print-receipt-root .po-receipt-sum th,
+#po-print-receipt-root .po-receipt-sum td {
+    border: 1px solid #111 !important;
+    background: #fff !important;
+    color: #111 !important;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: left;
+}
+
+#po-print-receipt-root .po-receipt-table th {
+    padding: 6px 8px;
+    font-weight: 700;
+    text-align: center;
+}
+
+#po-print-receipt-root .po-receipt-table td {
+    height: 18px;
+    padding: 2px 6px;
+}
+
+#po-print-receipt-root .po-receipt-table .qty {
+    width: 64px;
+    text-align: center;
+}
+
+#po-print-receipt-root .po-receipt-table .money,
+#po-print-receipt-root .po-receipt-table th:nth-child(3),
+#po-print-receipt-root .po-receipt-table th:nth-child(4) {
+    width: 90px;
+    text-align: right;
+}
+
+#po-print-receipt-root .po-receipt-sum {
+    width: 240px;
+    margin: 0 0 0 auto;
+    border-top: none;
+}
+
+#po-print-receipt-root .po-receipt-sum th {
+    width: 90px;
+    padding: 6px 8px;
+    font-weight: 700;
+    text-align: right;
+}
+
+#po-print-receipt-root .po-receipt-sum td {
+    padding: 6px 8px;
+    font-weight: 700;
+    text-align: right;
+}
+
+#po-print-receipt-root .po-receipt-pay {
+    clear: both;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+#po-print-receipt-root .po-receipt-pay p {
+    margin: 3px 0;
+}
+
+#po-print-receipt-root .po-receipt-box {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border: 1.5px solid #111;
+    vertical-align: -2px;
+    text-align: center;
+    line-height: 14px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    background: #fff;
+}
+
+#po-print-receipt-root .po-receipt-line {
+    display: inline-block;
+    width: 140px;
+    border-bottom: 1px solid #111;
+}
+
+#po-print-receipt-root .po-receipt-foot {
+    margin: 18px 0 0;
+    font-size: 12px;
+    text-align: center;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    header.top-navbar-node,
+    body.po-printing header,
+    body.po-printing .top-navbar-node,
+    body.po-printing .core-viewport-wrapper,
+    body.po-printing turbo-frame,
+    body.po-printing #kreezby-main-content,
+    body.po-printing main,
+    body.po-printing aside,
+    body.po-printing .dark-sidebar-panel,
+    body.po-printing .system-modal-backdrop,
+    body.po-printing .notification-modal-overlay,
+    body.po-printing .kreezby-nav-scrim {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        position: static !important;
+    }
+
+    body.po-printing #po-print-receipt-root {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100%;
+        background: #fff;
+    }
+
+    body.po-printing #po-print-receipt-root .po-receipt-logo {
+        display: block !important;
+        visibility: visible !important;
+        height: 74px !important;
+    }
+
+    body.po-printing #po-print-receipt-root,
+    body.po-printing #po-print-receipt-root * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #po-print-receipt-root .po-receipt-sheet {
+        width: auto;
+        border: none;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+
+body.po-admin-page .item-builder-sub-header,
+body.po-admin-page .viewer-table-title {
+    color: var(--po-brown);
+}
+
+body.po-admin-page .item-entry-builder-bar,
+body.po-admin-page .modal-action-footer-panel {
+    background: #fffaf3;
+    border-color: var(--po-line);
+}
+
+body.po-admin-page .details-container-view {
+    border: 1px solid var(--po-line);
+    border-radius: 14px;
+    background: #fffaf3;
+}
+
+body.po-admin-page .datatable-footer-line {
+    color: #6d4c41;
+}
+
+body.po-admin-page .status-pill-badge.pending {
+    background: #ffca28;
+    color: #3e2723;
+}
+
+/* Stays with the purchase-order markup, even if another module's stylesheet loaded first. */
+#po-master-lists-container-block .po-tabbed-card,
+#po-details-viewer-container-block .panel-data-card {
+    background: #fff;
+    border: 1px solid rgba(93, 64, 55, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 18px 40px rgba(62, 39, 35, 0.08);
+}
+
+#po-master-lists-container-block .po-order-tabs,
+#po-master-lists-container-block .po-order-tabs.expanding-tabs {
+    margin: 14px 14px 0;
+    padding: 6px;
+    border: 1px solid #efe6d6;
+    border-radius: 16px;
+    background: #fff8ea;
+}
+
+#po-master-lists-container-block .po-order-tab,
+#po-master-lists-container-block .expanding-tab {
+    color: #5d4037 !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+#po-master-lists-container-block .po-order-tab.active,
+#po-master-lists-container-block .expanding-tab.active {
+    background: #ffca28 !important;
+    color: #1f1f1f !important;
+}
+
+#po-master-lists-container-block .data-display-table thead th,
+#po-master-lists-container-block .data-display-table thead tr,
+#po-details-viewer-container-block .data-display-table thead th,
+#purchase-order-modal-node .data-display-table thead th {
+    background: #e4c9a3 !important;
+    background-color: #e4c9a3 !important;
+    color: #4e342e !important;
+}
+
+#po-master-lists-container-block .po-table-scroll-wrap .data-display-table thead th {
+    background: #5d4037 !important;
+    background-color: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+#po-master-lists-container-block .po-code-link,
+#po-master-lists-container-block .po-status-link {
+    color: #5d4037 !important;
+    font-weight: 800;
+}
+
+#po-master-lists-container-block .btn-call-to-action,
+#po-details-viewer-container-block .btn-viewer-tool.blue,
+#po-details-viewer-container-block .btn-viewer-tool.green,
+#purchase-order-modal-node .btn-modal-save,
+#purchase-order-modal-node #po-modal-add-item-btn {
+    background: #5d4037 !important;
+    background-color: #5d4037 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 999px !important;
+}
+
+#po-master-lists-container-block .datatable-filters-line select {
+    min-width: 72px;
+    width: auto;
+    height: 36px;
+    color: #3e2723 !important;
+    background: #fff !important;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+}
+
+/* List fills the window. Search, paging, and actions update in place. */
+body.po-admin-page {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+body.po-admin-page .core-viewport-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page main.workspace-view-canvas {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px 16px 12px;
+}
+
+body.po-admin-page #po-master-lists-container-block,
+body.po-admin-page #po-details-viewer-container-block {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.po-admin-page #po-master-lists-container-block {
+    display: flex;
+    overflow: hidden;
+}
+
+body.po-admin-page #po-details-viewer-container-block {
+    overflow: auto;
+}
+
+body.po-admin-page #po-master-lists-container-block .po-tabbed-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page .po-order-tabs,
+body.po-admin-page .po-order-tabs.expanding-tabs {
+    flex: 0 0 auto;
+}
+
+body.po-admin-page .po-tab-panel {
+    display: none;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+body.po-admin-page .po-tab-panel.active {
+    display: flex;
+}
+
+body.po-admin-page .po-list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 16px;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    padding: 14px 18px 8px;
+}
+
+body.po-admin-page .po-list-toolbar-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+body.po-admin-page .po-list-toolbar-title h3 {
+    margin: 0;
+    color: #3e2723;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .po-list-count {
+    color: #8d6e63;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.po-admin-page .po-list-toolbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+body.po-admin-page .po-page-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6d4c41;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+body.po-admin-page .po-page-size select,
+body.po-admin-page .po-list-toolbar .search-field-wrap input {
+    height: 36px;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    background: #fff;
+    color: #3e2723;
+}
+
+body.po-admin-page .po-page-size select {
+    min-width: 68px;
+    padding: 0 8px;
+}
+
+body.po-admin-page .po-list-toolbar .search-field-wrap input {
+    width: min(280px, 42vw);
+    min-width: 160px;
+    padding: 0 12px;
+}
+
+body.po-admin-page .po-list-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px 16px 12px;
+}
+
+body.po-admin-page .po-table-scroll-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overflow-anchor: none;
+    border: 1px solid #e6d3b8;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(93, 64, 55, 0.04);
+}
+
+body.po-admin-page .po-table-scroll-wrap table.data-display-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 11px 8px;
+    background: #5d4037 !important;
+    color: #fff8ee !important;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table th,
+body.po-admin-page .po-table-scroll-wrap .data-display-table td {
+    box-sizing: border-box;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0e6d8;
+    overflow: hidden;
+    background: #fff;
+    color: #3e2723;
+    font-size: 13.5px;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table tbody tr:nth-child(even) td {
+    background: #fbf6ee;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table tbody tr:hover td {
+    background: #fff6d8;
+}
+
+body.po-admin-page .po-table-scroll-wrap .data-display-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+body.po-admin-page #retailer-orders-table .po-col-num,
+body.po-admin-page #customer-orders-table .po-col-num {
+    width: 4%;
+    text-align: center;
+}
+
+body.po-admin-page #retailer-orders-table .po-col-date { width: 11%; }
+body.po-admin-page #customer-orders-table .po-col-date { width: 12%; }
+
+body.po-admin-page #retailer-orders-table .po-col-code { width: 14%; }
+body.po-admin-page #customer-orders-table .po-col-code { width: 13%; }
+
+body.po-admin-page #retailer-orders-table .po-col-entity { width: 22%; }
+body.po-admin-page #customer-orders-table .po-col-entity { width: 20%; }
+
+body.po-admin-page #customer-orders-table .po-col-items {
+    width: 6%;
+    text-align: center;
+}
+
+body.po-admin-page #retailer-orders-table .po-col-status { width: 15%; }
+body.po-admin-page #customer-orders-table .po-col-status { width: 14%; }
+
+body.po-admin-page #retailer-orders-table .po-col-status,
+body.po-admin-page #customer-orders-table .po-col-status {
+    text-align: center;
+}
+
+body.po-admin-page #retailer-orders-table .po-col-pay { width: 24%; }
+body.po-admin-page #customer-orders-table .po-col-pay { width: 21%; }
+
+body.po-admin-page #retailer-orders-table .po-col-action,
+body.po-admin-page #customer-orders-table .po-col-action {
+    width: 10%;
+    text-align: right;
+}
+
+body.po-admin-page td.po-col-num {
+    color: #a1887f;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+body.po-admin-page .po-date-main,
+body.po-admin-page .po-date-time {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.po-admin-page .po-date-main {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+body.po-admin-page .po-date-time {
+    margin-top: 2px;
+    color: #8d6e63;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body.po-admin-page .po-table-scroll-wrap .po-code-link {
+    display: inline-block;
+    max-width: 100%;
+    padding: 4px 8px;
+    overflow: hidden;
+    border: 1px solid #e7d3b0;
+    border-radius: 8px;
+    background: #fff;
+    color: #5d4037 !important;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+body.po-admin-page .po-table-scroll-wrap .po-code-link:hover {
+    background: #ffca28;
+    border-color: #f9a825;
+    color: #3e2723 !important;
+    text-decoration: none;
+}
+
+body.po-admin-page .po-entity-name,
+body.po-admin-page .po-entity-meta {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.po-admin-page .po-entity-name {
+    color: #3e2723;
+    font-weight: 700;
+}
+
+body.po-admin-page .po-entity-meta {
+    margin-top: 4px;
+}
+
+body.po-admin-page .po-type-chip {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #efe6d8;
+    color: #5d4037;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+body.po-admin-page .po-type-chip.is-retail {
+    background: #ffe7a3;
+    color: #6a4a08;
+}
+
+body.po-admin-page .po-type-chip.is-wholesale {
+    background: #efe0d4;
+    color: #4e342e;
+}
+
+body.po-admin-page .po-type-chip.is-customer {
+    background: #f8e4da;
+    color: #8d4b32;
+}
+
+body.po-admin-page .po-entity-area {
+    color: #8d6e63;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+body.po-admin-page .po-item-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #fff3cc;
+    color: #5d4037;
+    font-size: 13px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+body.po-admin-page .po-table-scroll-wrap .status-pill-badge {
+    max-width: 100%;
+    padding: 5px 8px 5px 7px;
+    overflow: hidden;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+body.po-admin-page .po-table-scroll-wrap .status-pill-badge::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 1px;
+}
+
+body.po-admin-page .po-pay-note,
+body.po-admin-page .po-pay-empty {
+    display: block;
+    margin: 0;
+    overflow: hidden;
+    color: #5d4037;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.po-admin-page .po-pay-empty {
+    color: #bcaaa4;
+}
+
+body.po-admin-page .po-col-action .action-menu-relative-container {
+    display: inline-block;
+    max-width: 100%;
+}
+
+body.po-admin-page .po-table-scroll-wrap .action-trigger-btn {
+    width: 100%;
+    max-width: 92px;
+    min-width: 0;
+    height: 32px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border: 1px solid #c4a574;
+    border-radius: 9px;
+    background: #fff;
+    color: #5d4037;
+    box-shadow: 0 1px 0 rgba(78, 52, 46, 0.05);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+body.po-admin-page .po-table-scroll-wrap .action-trigger-btn:hover {
+    background: #ffca28;
+    border-color: #f9a825;
+    color: #3e2723;
+}
+
+body.po-admin-page .po-table-scroll-wrap .status-pill-badge.pending {
+    background: #ffca28;
+    color: #3e2723;
+}
+
+body.po-admin-page .status-pill-badge.packed,
+body.po-admin-page .status-pill-badge.shipped {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+body.po-admin-page .status-pill-badge.ready-for-dispatch,
+body.po-admin-page .status-pill-badge.out-for-delivery {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+body.po-admin-page .status-pill-badge.completed,
+body.po-admin-page .status-pill-badge.received {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+body.po-admin-page .status-pill-badge.partial {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+body.po-admin-page .status-pill-badge.rejected {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+body.po-admin-page .po-empty-row td {
+    padding: 28px 16px;
+    text-align: center;
+    color: #8d6e63;
+}
+
+body.po-admin-page .datatable-footer-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+body.po-admin-page .po-pager {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.po-admin-page .po-pager-status {
+    min-width: 88px;
+    text-align: center;
+    font-weight: 700;
+}
+
+body.po-admin-page .po-pager-btn {
+    border: 1px solid #e4d8c4;
+    background: #fff;
+    color: #5d4037;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body.po-admin-page .po-pager-btn:hover:not(:disabled) {
+    background: #fff6e0;
+}
+
+body.po-admin-page .po-pager-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+body.po-admin-page .action-popup-menu {
+    min-width: 210px;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 16px 36px rgba(62, 39, 35, 0.18);
+}
+
+body.po-admin-page .action-popup-item {
+    border-radius: 8px;
+}
+
+@media (max-width: 860px) {
+    body.po-admin-page main.workspace-view-canvas {
+        padding: 10px;
+    }
+
+    body.po-admin-page .po-list-toolbar-tools {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    body.po-admin-page .po-list-toolbar .search-field-wrap {
+        flex: 1 1 160px;
+    }
+
+    body.po-admin-page .po-list-toolbar .search-field-wrap input {
+        width: 100%;
+    }
+
+    body.po-admin-page .po-detail-facts,
+    body.po-admin-page .po-detail-hero {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Details stay in view: header and actions fixed, body scrolls from the top. */
+body.po-admin-page #po-details-viewer-container-block {
+    overflow: hidden;
+}
+
+body.po-admin-page #po-details-viewer-container-block[style*="flex"],
+body.po-admin-page #po-details-viewer-container-block.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page .po-details-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+body.po-admin-page .po-details-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    padding: 16px 20px 10px;
+}
+
+body.po-admin-page .po-details-kicker {
+    margin: 0 0 2px;
+    color: #8d6e63;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .po-details-topbar h3 {
+    margin: 0;
+    color: #3e2723;
+    font-size: 22px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.po-admin-page .po-details-back {
+    border: 1px solid #e4d8c4;
+    background: #fff;
+    color: #5d4037;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body.po-admin-page .po-details-back:hover {
+    background: #fff6e0;
+}
+
+body.po-admin-page .po-details-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overflow-anchor: none;
+    padding: 0 20px 18px;
+}
+
+body.po-admin-page .po-detail-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid #efe6d6;
+    border-radius: 16px;
+    background: #fffaf3;
+}
+
+body.po-admin-page .po-detail-kicker,
+body.po-admin-page .po-detail-sub,
+body.po-admin-page .po-detail-total {
+    margin: 0;
+}
+
+body.po-admin-page .po-detail-kicker {
+    color: #8d6e63;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .po-detail-sub {
+    margin-top: 4px;
+    color: #5d4037;
+    font-weight: 700;
+}
+
+body.po-admin-page .po-detail-hero-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+body.po-admin-page .po-detail-total {
+    color: #3e2723;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+body.po-admin-page .po-detail-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+body.po-admin-page .po-detail-fact {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #efe6d6;
+    border-radius: 14px;
+    background: #fff;
+}
+
+body.po-admin-page .po-detail-fact span,
+body.po-admin-page .po-detail-remarks span,
+body.po-admin-page .gcash-verify-card .meta-data-line strong {
+    display: block;
+    width: auto;
+    margin-bottom: 4px;
+    color: #8d6e63;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .po-detail-fact strong {
+    display: block;
+    color: #3e2723;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+body.po-admin-page .po-detail-remarks {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff8ea;
+    color: #4e342e;
+    line-height: 1.45;
+}
+
+body.po-admin-page .po-detail-section {
+    margin: 16px 0 8px;
+    color: #5d4037;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page .po-detail-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #efe6d6;
+    border-radius: 14px;
+}
+
+body.po-admin-page .po-detail-table-wrap table {
+    width: 100%;
+    min-width: 640px;
+    margin: 0;
+}
+
+body.po-admin-page .po-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+body.po-admin-page .po-detail-table-wrap tfoot td {
+    background: #fff6e0;
+    font-weight: 800;
+}
+
+body.po-admin-page .gcash-verify-card {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border: 1px solid #efe6d6 !important;
+    border-radius: 14px;
+    background: #fff !important;
+}
+
+body.po-admin-page #po-details-viewer-container-block .details-action-footer-row,
+body.po-admin-page #bo-details-inspection-panel-view .details-action-footer-row,
+body.po-admin-page #returns-details-inspector-panel-view .details-action-footer-row {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0;
+    padding: 12px 20px 16px;
+    border-top: 1px solid #efe6d6;
+    background: #fff;
+}
+
+body.po-admin-page #bo-master-dashboard-split-view,
+body.po-admin-page #bo-details-inspection-panel-view {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+body.po-admin-page #bo-master-dashboard-split-view {
+    display: flex;
+    overflow: hidden;
+}
+
+body.po-admin-page #bo-master-dashboard-split-view .po-tabbed-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #bo-details-inspection-panel-view {
+    overflow: hidden;
+}
+
+body.po-admin-page #bo-details-inspection-panel-view[style*="flex"],
+body.po-admin-page #bo-details-inspection-panel-view.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page #bo-master-dashboard-split-view .po-list-body {
+    justify-content: flex-start;
+}
+
+body.po-admin-page #bo-master-dashboard-split-view .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-num,
+body.po-admin-page #bo-customer-orders-table .po-col-num {
+    width: 6%;
+    text-align: center;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-date,
+body.po-admin-page #bo-customer-orders-table .po-col-date {
+    width: 15%;
+    text-align: left;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-code,
+body.po-admin-page #bo-customer-orders-table .po-col-code {
+    width: 16%;
+    text-align: left;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-entity,
+body.po-admin-page #bo-customer-orders-table .po-col-entity {
+    width: 27%;
+    text-align: left;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-items,
+body.po-admin-page #bo-customer-orders-table .po-col-items,
+body.po-admin-page #bo-retailer-orders-table .po-col-status,
+body.po-admin-page #bo-customer-orders-table .po-col-status,
+body.po-admin-page #bo-retailer-orders-table .po-col-action,
+body.po-admin-page #bo-customer-orders-table .po-col-action {
+    text-align: center;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-items,
+body.po-admin-page #bo-customer-orders-table .po-col-items {
+    width: 9%;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-status,
+body.po-admin-page #bo-customer-orders-table .po-col-status {
+    width: 15%;
+}
+
+body.po-admin-page #bo-retailer-orders-table .po-col-action,
+body.po-admin-page #bo-customer-orders-table .po-col-action {
+    width: 12%;
+}
+
+body.po-admin-page #bo-retailer-orders-table td.po-col-items,
+body.po-admin-page #bo-customer-orders-table td.po-col-items,
+body.po-admin-page #bo-retailer-orders-table td.po-col-status,
+body.po-admin-page #bo-customer-orders-table td.po-col-status,
+body.po-admin-page #bo-retailer-orders-table td.po-col-action,
+body.po-admin-page #bo-customer-orders-table td.po-col-action {
+    vertical-align: middle;
+}
+
+body.po-admin-page #bo-retailer-orders-table td.po-col-action .action-menu-relative-container,
+body.po-admin-page #bo-customer-orders-table td.po-col-action .action-menu-relative-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+body.po-admin-page #bo-retailer-orders-table .action-trigger-btn,
+body.po-admin-page #bo-customer-orders-table .action-trigger-btn {
+    width: 92px;
+    max-width: 100%;
+}
+
+body.po-admin-page #bo-edit-form {
+    display: grid;
+    gap: 10px;
+}
+
+body.po-admin-page #bo-edit-form label {
+    display: grid;
+    gap: 4px;
+    color: #6d4c41;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.po-admin-page #bo-edit-form .btn-call-to-action {
+    justify-self: start;
+}
+
+body.po-admin-page #returns-master-list-panel-view,
+body.po-admin-page #returns-details-inspector-panel-view {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+body.po-admin-page #returns-master-list-panel-view {
+    display: flex;
+    overflow: hidden;
+}
+
+body.po-admin-page #returns-master-list-panel-view .po-tabbed-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #returns-master-list-panel-view .po-list-body {
+    justify-content: flex-start;
+}
+
+body.po-admin-page #returns-master-list-panel-view .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #returns-details-inspector-panel-view {
+    overflow: hidden;
+}
+
+body.po-admin-page #returns-details-inspector-panel-view[style*="flex"],
+body.po-admin-page #returns-details-inspector-panel-view.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page #return-orders-table .po-col-num { width: 5%; text-align: center; }
+body.po-admin-page #return-orders-table .po-col-date { width: 13%; text-align: left; }
+body.po-admin-page #return-orders-table .po-col-code { width: 14%; text-align: left; }
+body.po-admin-page #return-orders-table .po-col-origin { width: 14%; text-align: left; }
+body.po-admin-page #return-orders-table .po-col-entity { width: 22%; text-align: left; }
+body.po-admin-page #return-orders-table .po-col-items,
+body.po-admin-page #return-orders-table .po-col-status,
+body.po-admin-page #return-orders-table .po-col-action { text-align: center; }
+body.po-admin-page #return-orders-table .po-col-items { width: 8%; }
+body.po-admin-page #return-orders-table .po-col-status { width: 14%; }
+body.po-admin-page #return-orders-table .po-col-action { width: 10%; }
+
+body.po-admin-page #return-orders-table td.po-col-action .action-menu-relative-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+body.po-admin-page #return-orders-table .action-trigger-btn {
+    width: 92px;
+    max-width: 100%;
+}
+
+body.po-admin-page #return-edit-form {
+    display: grid;
+    gap: 10px;
+}
+
+body.po-admin-page #return-edit-form label {
+    display: grid;
+    gap: 4px;
+    color: #6d4c41;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.po-admin-page #return-edit-form .btn-call-to-action {
+    justify-self: start;
+}
+
+body.po-admin-page #stocks-master-list-panel-view,
+body.po-admin-page #stocks-details-panel {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+body.po-admin-page #stocks-master-list-panel-view {
+    display: flex;
+    overflow: hidden;
+}
+
+body.po-admin-page #stocks-master-list-panel-view .po-tabbed-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #stocks-master-list-panel-view .po-list-body {
+    justify-content: flex-start;
+}
+
+body.po-admin-page #stocks-master-list-panel-view .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #stocks-details-panel {
+    overflow: hidden;
+}
+
+body.po-admin-page #stocks-details-panel[style*="flex"],
+body.po-admin-page #stocks-details-panel.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page .stocks-view-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid #e4d8c4;
+    border-radius: 999px;
+    background: #fff8ea;
+}
+
+body.po-admin-page .stocks-view-btn {
+    height: 30px;
+    margin: 0;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #5d4037;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+body.po-admin-page .stocks-view-btn.is-active {
+    background: #ffca28;
+    color: #3e2723;
+}
+
+body.po-admin-page #stocks-record-host {
+    flex: 0 0 auto;
+    min-width: 0;
+    margin: 0 0 10px;
+}
+
+body.po-admin-page #stocks-record-host .fr-records {
+    margin: 0;
+}
+
+body.po-admin-page #stocks-record-host .fr-card {
+    padding: 10px 12px 8px;
+}
+
+body.po-admin-page #stocks-record-host .fr-card__lead {
+    margin-bottom: 8px;
+}
+
+body.po-admin-page #stocks-record-host .fr-fields,
+body.po-admin-page #stocks-record-host .fr-card--materials .fr-fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.po-admin-page #stocks-record-host .fr-field--wide {
+    grid-column: auto;
+}
+
+body.po-admin-page #stocks-record-host .fr-btn {
+    border-radius: 999px;
+}
+
+body.po-admin-page #stocks-orders-table .po-col-num { width: 4%; text-align: center; }
+body.po-admin-page #stocks-orders-table .po-col-code { width: 12%; text-align: left; }
+body.po-admin-page #stocks-orders-table .po-col-type { width: 15%; text-align: center; }
+body.po-admin-page #stocks-orders-table .po-col-name { width: 16%; text-align: left; }
+body.po-admin-page #stocks-orders-table .po-col-unit { width: 14%; text-align: left; }
+body.po-admin-page #stocks-orders-table .po-col-qty { width: 8%; text-align: center; }
+body.po-admin-page #stocks-orders-table .po-col-cost,
+body.po-admin-page #stocks-orders-table .po-col-value { text-align: right; }
+body.po-admin-page #stocks-orders-table .po-col-cost { width: 10%; }
+body.po-admin-page #stocks-orders-table .po-col-value { width: 11%; }
+body.po-admin-page #stocks-orders-table .po-col-action { width: 10%; text-align: center; }
+
+body.po-admin-page #stocks-orders-table td.po-col-action .action-menu-relative-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+body.po-admin-page #stocks-orders-table .action-trigger-btn {
+    width: 92px;
+    max-width: 100%;
+}
+
+body.po-admin-page #stocks-orders-table .status-pill-badge.finished-product {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+body.po-admin-page #stocks-orders-table .status-pill-badge.raw-material {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+body.po-admin-page #stocks-orders-table .status-pill-badge.packaging-material {
+    background: #fff3c4;
+    color: #6d4c41;
+}
+
+body.po-admin-page #stocks-orders-table .inventory-count-text.low-warning {
+    color: #c62828;
+    font-weight: 800;
+}
+
+body.po-admin-page #stocks-orders-table .inventory-count-text.high-stock {
+    color: #2e7d32;
+    font-weight: 800;
+}
+
+body.po-admin-page #stocks-edit-form {
+    display: grid;
+    gap: 10px;
+    max-width: 420px;
+}
+
+body.po-admin-page #stocks-edit-form label {
+    display: grid;
+    gap: 4px;
+    color: #6d4c41;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.po-admin-page #stocks-edit-form input,
+body.po-admin-page #stocks-edit-form select {
+    height: 36px;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    padding: 0 10px;
+    color: #3e2723;
+    background: #fff;
+}
+
+body.po-admin-page #stocks-edit-form .btn-call-to-action {
+    justify-self: start;
+}
+
+body.po-admin-page #saleslist-master-directory-panel-view,
+body.po-admin-page #saleslist-detailed-inspector-panel-view {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+body.po-admin-page #saleslist-master-directory-panel-view {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+body.po-admin-page #saleslist-detailed-inspector-panel-view {
+    overflow: hidden;
+}
+
+body.po-admin-page #saleslist-detailed-inspector-panel-view[style*="flex"],
+body.po-admin-page #saleslist-detailed-inspector-panel-view.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page .sales-view-switch {
+    flex: 0 0 auto;
+    width: min(280px, 100%);
+    margin: 0 0 12px;
+    background: #fff8ea;
+    border-color: #e4d8c4;
+}
+
+body.po-admin-page .sales-view-thumb {
+    background: #ffca28;
+}
+
+body.po-admin-page .sales-view-option.is-active {
+    color: #3e2723;
+}
+
+body.po-admin-page .sales-ledger-stack {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page .sales-section-retailer,
+body.po-admin-page .sales-section-customer {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page .sales-section-retailer > .panel-card-title-bar,
+body.po-admin-page .sales-section-customer > .panel-card-title-bar,
+body.po-admin-page .route-sheet-filters,
+body.po-admin-page #bauan-import-badge,
+body.po-admin-page .sales-customer-toolbar {
+    flex: 0 0 auto;
+}
+
+body.po-admin-page .sales-section-retailer .card-body-padded,
+body.po-admin-page .sales-section-customer .card-body-padded {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 12px 16px 14px;
+}
+
+body.po-admin-page .sales-section-customer .po-table-scroll-wrap,
+body.po-admin-page #bauan-route-sheets-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body.po-admin-page .route-sheet-title-bar,
+body.po-admin-page .sales-section-customer .panel-card-title-bar {
+    background: #fff;
+    color: #3e2723;
+}
+
+body.po-admin-page .route-sheet-title-actions .btn-call-to-action,
+body.po-admin-page .sheet-edit-btn,
+body.po-admin-page #sales-details-print-btn {
+    background: #5d4037 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 999px !important;
+}
+
+body.po-admin-page .manual-sheet-header {
+    background: #3e2723;
+    color: #fff8ee;
+    border-bottom: 3px solid #ffca28;
+}
+
+body.po-admin-page .manual-sheet-header .sheet-brand,
+body.po-admin-page .manual-sheet-header .sheet-meta,
+body.po-admin-page .manual-sheet-header .sheet-meta strong {
+    color: #fff8ee;
+}
+
+body.po-admin-page .manual-sheet-scroll {
+    overflow-x: hidden;
+}
+
+body.po-admin-page table.manual-sheet-table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+}
+
+body.po-admin-page table.manual-sheet-table .sl-col-num { width: 4%; }
+body.po-admin-page table.manual-sheet-table .sl-col-loc { width: 18%; }
+body.po-admin-page table.manual-sheet-table .sl-col-ar { width: 11%; }
+body.po-admin-page table.manual-sheet-table .sl-col-qty { width: 7.85%; }
+body.po-admin-page table.manual-sheet-table .sl-col-money { width: 12.05%; }
+
+body.po-admin-page table.manual-sheet-table thead th,
+body.po-admin-page table.manual-sheet-table .manual-sheet-group-row th,
+body.po-admin-page table.manual-sheet-table .manual-sheet-subhead th {
+    background: #5d4037 !important;
+    background-color: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+body.po-admin-page table.manual-sheet-table td.loc-cell {
+    min-width: 0;
+    text-align: left;
+    white-space: normal;
+}
+
+body.po-admin-page #sales-customer-table th {
+    padding: 8px 10px;
+}
+
+body.po-admin-page #sales-customer-table td {
+    padding: 6px 10px;
+    line-height: 1.25;
+}
+
+body.po-admin-page #sales-customer-table .sl-cust-num { width: 4%; }
+body.po-admin-page #sales-customer-table .sl-cust-date { width: 12%; }
+body.po-admin-page #sales-customer-table .sl-cust-invoice { width: 14%; }
+body.po-admin-page #sales-customer-table .sl-cust-who { width: 32%; }
+body.po-admin-page #sales-customer-table .sl-cust-pay { width: 12%; }
+body.po-admin-page #sales-customer-table .sl-cust-status { width: 14%; }
+body.po-admin-page #sales-customer-table .sl-cust-action { width: 12%; }
+
+body.po-admin-page #sales-customer-table th:nth-child(1),
+body.po-admin-page #sales-customer-table td:nth-child(1) {
+    text-align: center;
+}
+
+body.po-admin-page #sales-customer-table th:nth-child(5),
+body.po-admin-page #sales-customer-table td:nth-child(5) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+body.po-admin-page #sales-customer-table td:nth-child(4) {
+    text-align: left;
+    white-space: normal;
+}
+
+body.po-admin-page #sales-customer-table td:nth-child(4) small {
+    display: block;
+    margin-top: 1px;
+    color: #8d6e63;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+body.po-admin-page #sales-customer-table td.sl-status-cell,
+body.po-admin-page #sales-customer-table th:nth-child(6) {
+    text-align: center;
+}
+
+body.po-admin-page #sales-customer-table td.sl-action-cell,
+body.po-admin-page #sales-customer-table th:nth-child(7) {
+    text-align: center;
+}
+
+body.po-admin-page #sales-customer-table .status-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 108px;
+    height: 28px;
+    margin: 0;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+body.po-admin-page #sales-customer-table td.sl-action-cell .action-trigger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    max-width: 84px;
+    min-width: 84px;
+    height: 32px;
+    margin: 0;
+    vertical-align: middle;
+}
+
+body.po-admin-page .sales-customer-toolbar {
+    margin: 0 0 10px;
+    padding: 0;
+}
+
+body.po-admin-page #ot-master-list-panel,
+body.po-admin-page #ot-details-panel {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+body.po-admin-page #ot-master-list-panel {
+    display: flex;
+    overflow: hidden;
+}
+
+body.po-admin-page #ot-master-list-panel .po-tabbed-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #ot-details-panel {
+    overflow: hidden;
+}
+
+body.po-admin-page #ot-details-panel[style*="flex"],
+body.po-admin-page #ot-details-panel.is-open {
+    display: flex;
+    flex-direction: column;
+}
+
+body.po-admin-page #order-tracking-toast {
+    position: fixed;
+    z-index: 10060;
+    left: 50%;
+    top: 18px;
+    margin: 0;
+    transform: translateX(-50%);
+}
+
+body.po-admin-page #order-tracking-table .ot-col-num { width: 5%; }
+body.po-admin-page #order-tracking-table .ot-col-date { width: 13%; }
+body.po-admin-page #order-tracking-table .ot-col-code { width: 15%; }
+body.po-admin-page #order-tracking-table .ot-col-who { width: 24%; }
+body.po-admin-page #order-tracking-table .ot-col-status { width: 14%; }
+body.po-admin-page #order-tracking-table .ot-col-track { width: 17%; }
+body.po-admin-page #order-tracking-table .ot-col-action { width: 12%; }
+
+body.po-admin-page #order-tracking-table td.ot-who {
+    text-align: left;
+    white-space: normal;
+}
+
+body.po-admin-page #order-tracking-table td.ot-who small,
+body.po-admin-page #order-tracking-table .ot-track-empty {
+    display: block;
+    margin-top: 2px;
+    color: #8d6e63;
+    font-size: 12px;
+}
+
+body.po-admin-page #order-tracking-table td.ot-status,
+body.po-admin-page #order-tracking-table td.ot-action,
+body.po-admin-page #order-tracking-table th:nth-child(5),
+body.po-admin-page #order-tracking-table th:nth-child(7) {
+    text-align: center;
+}
+
+body.po-admin-page #order-tracking-table td.ot-action .action-trigger-btn {
+    width: 84px;
+    max-width: 84px;
+    margin: 0 auto;
+}
+
+body.po-admin-page #ot-orders-footer .ot-pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.po-admin-page #ot-details-panel .order-tracking-detail-sub {
+    margin: 0 0 14px;
+    color: #8d6e63;
+}
+
+body.po-admin-page #ot-details-panel .order-tracking-form-group label {
+    color: #5d4037;
+}
+
+body.po-admin-page #ot-details-panel .order-tracking-form-group input,
+body.po-admin-page #ot-details-panel .order-tracking-form-group select,
+body.po-admin-page #ot-details-panel .order-tracking-form-group textarea,
+body.po-admin-page #ot-create-modal .order-tracking-form-group input,
+body.po-admin-page #ot-create-modal .order-tracking-form-group select,
+body.po-admin-page #ot-create-modal .order-tracking-form-group textarea {
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    color: #3e2723;
+    background: #fff;
+}
+
+body.po-admin-page #ot-details-panel .order-tracking-form-actions .order-tracking-btn-primary,
+body.po-admin-page #ot-create-modal .order-tracking-btn-primary {
+    background: #5d4037;
+    border-color: #5d4037;
+    color: #fff;
+    border-radius: 999px;
+}
+
+body.po-admin-page #ot-details-panel .order-tracking-btn,
+body.po-admin-page #ot-create-modal .order-tracking-btn {
+    border-radius: 999px;
+}
+
+body.po-admin-page #ot-create-modal.ot-modal-backdrop {
+    background: rgba(62, 39, 35, 0.45);
+}
+
+body.po-admin-page #ot-create-modal .ot-modal {
+    border: 1px solid #e6d3b8;
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(62, 39, 35, 0.16);
+}
+
+body.po-admin-page #ot-create-modal .order-tracking-detail-title,
+body.po-admin-page #ot-create-modal .ot-modal-close {
+    color: #3e2723;
+}
+
+body.po-admin-page #sales-analysis-master {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #sales-analysis-master > #ai-filter-pills.po-order-tabs {
+    display: flex !important;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 14px 14px 0 !important;
+    padding: 6px !important;
+    gap: 6px !important;
+    border: 1px solid #efe6d6 !important;
+    border-radius: 16px !important;
+    background: #fff8ea !important;
+    box-shadow: none !important;
+}
+
+body.po-admin-page #sales-analysis-master #ai-filter-pills .pill,
+body.po-admin-page #sales-analysis-master #ai-filter-pills .po-order-tab {
+    height: 40px !important;
+    min-height: 40px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+    padding: 0 16px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: #5d4037 !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 40px !important;
+    white-space: nowrap;
+}
+
+body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab__label,
+body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__label {
+    display: inline !important;
+    max-width: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+
+body.po-admin-page #sales-analysis-master #ai-filter-pills .pill.active,
+body.po-admin-page #sales-analysis-master #ai-filter-pills .po-order-tab.active {
+    background: #ffca28 !important;
+    color: #1f1f1f !important;
+    border-color: transparent !important;
+}
+
+body.po-admin-page #sales-analysis-table .sa-col-num { width: 6%; }
+body.po-admin-page #sales-analysis-table .sa-col-flavor { width: 26%; }
+body.po-admin-page #sales-analysis-table .sa-col-stock { width: 14%; }
+body.po-admin-page #sales-analysis-table .sa-col-sales { width: 16%; }
+body.po-admin-page #sales-analysis-table .sa-col-forecast { width: 20%; }
+body.po-admin-page #sales-analysis-table .sa-col-var { width: 18%; }
+
+body.po-admin-page #sales-analysis-table .sa-flavor {
+    text-align: left;
+}
+
+body.po-admin-page #sales-analysis-table .sa-num,
+body.po-admin-page #sales-analysis-table th:nth-child(n + 3) {
+    text-align: right;
+}
+
+body.po-admin-page #sales-analysis-table .variance-text.positive {
+    color: #2e7d32;
+    font-weight: 800;
+}
+
+body.po-admin-page #sales-analysis-table .variance-text.negative {
+    color: #c62828;
+    font-weight: 800;
+}
+
+body.po-admin-page #sales-analysis-table tbody tr[hidden] {
+    display: none;
+}
+
+body.po-admin-page #sales-analysis-master > .insights-panel {
+    display: none;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #sales-analysis-master > .insights-panel.is-active {
+    display: flex;
+}
+
+body.po-admin-page #sales-analysis-master .insights-panel .po-list-body {
+    overflow: hidden;
+    justify-content: flex-start;
+}
+
+body.po-admin-page #sales-analysis-master .insights-panel .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #forecast-table .fc-col-num { width: 6%; }
+body.po-admin-page #forecast-table .fc-col-flavor { width: 22%; }
+body.po-admin-page #forecast-table .fc-col-recent { width: 22%; }
+body.po-admin-page #forecast-table .fc-col-avg { width: 16%; }
+body.po-admin-page #forecast-table .fc-col-date { width: 16%; }
+body.po-admin-page #forecast-table .fc-col-action { width: 18%; }
+
+body.po-admin-page #forecast-table .sa-flavor {
+    text-align: left;
+}
+
+body.po-admin-page #forecast-table .sa-num,
+body.po-admin-page #forecast-table th:nth-child(3),
+body.po-admin-page #forecast-table th:nth-child(4) {
+    text-align: right;
+}
+
+body.po-admin-page #forecast-table th:nth-child(5),
+body.po-admin-page #forecast-table td:nth-child(5),
+body.po-admin-page #forecast-table th:nth-child(6),
+body.po-admin-page #forecast-table td:nth-child(6) {
+    text-align: center;
+}
+
+body.po-admin-page #forecast-table td,
+body.po-admin-page #forecast-table th {
+    white-space: nowrap;
+}
+
+body.po-admin-page #sales-analysis-master .insights-panel .datatable-footer-line {
+    margin-top: auto;
+}
+
+body.po-admin-page #sales-analysis-master .dict-reorder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 108px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+body.po-admin-page #sales-analysis-master .management-insight__refresh,
+body.po-admin-page #sales-analysis-master #management-insight-refresh {
+    height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff;
+    font-weight: 800;
+}
+
+
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #sales-analysis-master .datatable-footer-line {
+    margin-top: auto;
+}
+
+body.po-admin-page #sales-analysis-master .dict-sales-window {
+    margin: 0;
+}
+
+body.po-admin-page #delivery-schedule-master {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #delivery-schedule-master .po-list-body,
+body.po-admin-page #delivery-schedule,
+body.po-admin-page #delivery-schedule-master .delivery-schedule {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule {
+    gap: 12px;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__form {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px 12px;
+    align-items: end;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__form label,
+body.po-admin-page #delivery-schedule-master .delivery-schedule__bar label {
+    color: #6d4c41;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__form input,
+body.po-admin-page #delivery-schedule-master .delivery-schedule__form select,
+body.po-admin-page #delivery-schedule-master .delivery-schedule__bar input,
+body.po-admin-page #delivery-schedule-master .delivery-schedule__bar select {
+    height: 36px;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    background: #fff;
+    color: #3e2723;
+    padding: 0 10px;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__save {
+    grid-column: 1 / -1;
+    justify-self: start;
+    height: 36px;
+    margin: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff;
+    font-weight: 800;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__save:hover {
+    background: #3e2723;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__note {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #2e7d32;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__bar {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__bar h4 {
+    margin: 0;
+    color: #3e2723;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__search {
+    width: min(220px, 42vw);
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-schedule__list .po-table-scroll-wrap {
+    flex: 1 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #delivery-schedule-master .delivery-stop-table .po-col-num { width: 5%; text-align: center; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(2),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(2) { width: 12%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(3),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(3) { width: 12%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(4),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(4) { width: 14%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(5),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(5) { width: 22%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(6),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(6) { width: 25%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(7),
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(7) { width: 10%; }
+
+body.po-admin-page #delivery-schedule-master .datatable-footer-line {
+    margin-top: auto;
+}
+
+@media (max-width: 1100px) {
+    body.po-admin-page #delivery-schedule-master .delivery-schedule__form {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+body.po-admin-page #alert-master {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #alert-list-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #alert-list-panel[hidden],
+body.po-admin-page #alert-details-panel[hidden] {
+    display: none !important;
+}
+
+body.po-admin-page #alert-details-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #alert-master .kreezby-alert-stack {
+    display: grid;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 14px 14px 0;
+}
+
+body.po-admin-page #alert-master .po-list-body {
+    overflow: hidden;
+    justify-content: flex-start;
+}
+
+body.po-admin-page #alert-master .po-table-scroll-wrap {
+    flex: 0 1 auto;
+    max-height: 100%;
+}
+
+body.po-admin-page #alert-master .datatable-footer-line {
+    margin-top: auto;
+}
+
+body.po-admin-page #alert-table .al-col-num { width: 6%; }
+body.po-admin-page #alert-table .al-col-time { width: 16%; }
+body.po-admin-page #alert-table .al-col-source { width: 14%; }
+body.po-admin-page #alert-table .al-col-message { width: 40%; }
+body.po-admin-page #alert-table .al-col-severity { width: 12%; }
+body.po-admin-page #alert-table .al-col-action { width: 12%; }
+
+body.po-admin-page #alert-table .al-col-message,
+body.po-admin-page #alert-table td.al-message {
+    text-align: left;
+    white-space: normal;
+    line-height: 1.35;
+}
+
+body.po-admin-page #alert-table .al-col-severity,
+body.po-admin-page #alert-table td.al-severity,
+body.po-admin-page #alert-table .al-col-action,
+body.po-admin-page #alert-table td.al-action,
+body.po-admin-page #alert-table .al-col-num {
+    text-align: center;
+}
+
+body.po-admin-page #alert-master .severity-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page #alert-master .severity-badge.critical {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+body.po-admin-page #alert-master .severity-badge.warning {
+    background: #ffca28;
+    color: #3e2723;
+}
+
+body.po-admin-page #alert-master .severity-badge.info {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+body.po-admin-page #alert-master .action-popup-item {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+body.po-admin-page #alert-master .action-popup-item.dismiss-action {
+    color: #b71c1c;
+    font-weight: 800;
+}
+
+body.po-admin-page #alert-details-body {
+    display: grid;
+    gap: 14px;
+    padding: 8px 18px 18px;
+    overflow: auto;
+}
+
+body.po-admin-page #alert-details-body .alert-detail-label {
+    color: #8d6e63;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+body.po-admin-page #alert-details-body .alert-detail-value {
+    margin-top: 4px;
+    color: #3e2723;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+body.po-admin-page #alert-details-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+body.po-admin-page #alert-details-actions button,
+body.po-admin-page #alert-back {
+    height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+body.po-admin-page #alert-details-actions button.dismiss-action {
+    background: #b71c1c;
+}
+
+body.po-admin-page #stocklevel-master {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.po-admin-page #stocklevel-master > #stocklevel-filter-pills.po-order-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 0 0 auto;
+    align-items: center;
+    margin: 14px 14px 0 !important;
+    padding: 6px !important;
+    gap: 6px !important;
+    border: 1px solid #efe6d6 !important;
+    border-radius: 16px !important;
+    background: #fff8ea !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .pill,
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .po-order-tab {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 40px !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    padding: 0 12px !important;
+    gap: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: #5d4037 !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 40px !important;
+    text-align: center !important;
+    white-space: nowrap;
+}
+
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__icon {
+    display: none !important;
+}
+
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__label,
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab.is-expanded .expanding-tab__label {
+    display: inline !important;
+    max-width: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .pill.active,
+body.po-admin-page #stocklevel-master #stocklevel-filter-pills .po-order-tab.active {
+    background: #ffca28 !important;
+    color: #1f1f1f !important;
+}
+
+body.po-admin-page #stocklevel-scroll {
+    overflow: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.po-admin-page #stocklevel-master .sl-detail-hero {
+    background: #fff8ea;
+    border: 1px solid #efe6d6;
+    border-left: 6px solid #5d4037;
+    border-radius: 16px;
+    color: #3e2723;
+}
+
+body.po-admin-page #stocklevel-master .sl-detail-hero-value,
+body.po-admin-page #stocklevel-master .sl-panel-head h4 {
+    color: #3e2723;
+}
+
+body.po-admin-page #stocklevel-master .sl-mini-bar,
+body.po-admin-page #stocklevel-master .sl-inline-bar-fill {
+    background: #5d4037 !important;
+}
+
+body.po-admin-page #stocklevel-master .sl-compact-table thead th {
+    background: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+body.po-admin-page #stocklevel-master .sl-open-stock,
+body.po-admin-page #stocklevel-master .sl-btn-report {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 108px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff !important;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+body.po-admin-page #stocklevel-master .sl-chart-range,
+body.po-admin-page #stocklevel-master .sl-search-input {
+    height: 36px;
+    border: 1px solid #e4d8c4;
+    border-radius: 10px;
+    background: #fff;
+    color: #3e2723;
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <style id="admin-no-motion">
+        @view-transition { navigation: none; }
+        body.kreezby-admin-home,
+        body.kreezby-admin-home *,
+        body.kreezby-admin-home *::before,
+        body.kreezby-admin-home *::after {
+            animation: none !important;
+            animation-delay: 0s !important;
+            animation-duration: 0s !important;
+            transition: none !important;
+            transition-delay: 0s !important;
+            transition-duration: 0s !important;
+            scroll-behavior: auto !important;
+            will-change: auto !important;
+        }
+        body.kreezby-admin-home turbo-frame#kreezby-main-content,
+        body.kreezby-admin-home #kreezby-main-content,
+        body.kreezby-admin-home turbo-frame#kreezby-main-content.is-kreezby-leaving,
+        body.kreezby-admin-home #kreezby-main-content.is-kreezby-leaving,
+        body.kreezby-admin-home aside.dark-sidebar-panel {
+            opacity: 1 !important;
+            view-transition-name: none !important;
+        }
+        body.kreezby-admin-home button:active,
+        body.kreezby-admin-home [role="button"]:active,
+        body.kreezby-admin-home .admin-home-menu-btn:hover,
+        body.kreezby-admin-home .admin-home-menu-btn:active,
+        body.kreezby-admin-home .kreezby-sidebar-nav-item:active {
+            transform: none !important;
+        }
+    </style>
+    <script>
+        (function () {
+            function onHome() {
+                var file = (location.pathname.split('/').pop() || '').toLowerCase().split('?')[0];
+                return file === 'head_admin.html' || file === '';
+            }
+            function stripViewTransition() {
+                if (!onHome()) return;
+                document.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
+            }
+            stripViewTransition();
+            if (window.MutationObserver && document.documentElement) {
+                new MutationObserver(stripViewTransition).observe(document.documentElement, { childList: true, subtree: true });
+            }
+        })();
+    </script>
+    <title>Kreezby Bakeshop - Head Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/pages/admin/admin.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
+</head>
+<body class="kreezby-admin-home">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Head Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+ 
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="admin-dashboard-root">
+                <section class="admin-home" aria-label="Welcome">
+                    <div class="admin-home-stage">
+                        <div class="admin-home-copy">
+                            <p class="admin-home-kicker">The Crinkle Factory</p>
+                            <h2>Welcome, Head Admin</h2>
+                            <p class="admin-home-tagline">Making your life sweeter!</p>
+                            <p class="admin-home-lead">Your home is ready. Purchase orders, deliveries, sales, stock, and alerts open from the menu.</p>
+                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
+                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
+                                <span class="admin-home-menu-btn__label">Open menu</span>
+                            </button>
+                        </div>
+                        <figure class="admin-home-photo">
+                            <img src="../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+                        </figure>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <div class="notification-modal-overlay" id="notification-modal-overlay" hidden aria-hidden="true"></div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/kreezby-partner-inquiries.js"></script>
+    <script src="../js/order-tracking.js"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+    <script src="../js/admin-permissions.js?v=20261006perm"></script>
+    <script src="../js/admin-sidebar.js?v=20261007proc"></script>
+    <script src="../js/sidebar-toggle.js?v=20261005home"></script>
+    <script>
+        (function () {
+            function isDashboard() {
+                var file = (location.pathname.split('/').pop() || '').toLowerCase().split('?')[0];
+                return file === 'head_admin.html' || file === '';
+            }
+            function keepNumberedBell(header) {
+                if (!header || !header.querySelector('.notification-popover-root')) return;
+                header.querySelectorAll('.notification-pill').forEach(function (el) { el.remove(); });
+            }
+            function stripHeaderChrome() {
+                var dashboard = isDashboard();
+                document.body.classList.toggle('kreezby-admin-home', dashboard);
+                if (!dashboard) return;
+                var header = document.querySelector('.top-navbar-node');
+                if (!header) return;
+                header.querySelectorAll('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
+                    if (el.closest('.user-dropdown')) return;
+                    el.remove();
+                });
+                keepNumberedBell(header);
+            }
+            function syncMenuButton() {
+                var btn = document.getElementById('admin-open-menu');
+                if (!btn) return;
+                var open = document.body.classList.contains('kreezby-nav-open');
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                var label = btn.querySelector('.admin-home-menu-btn__label');
+                if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+            }
+            stripHeaderChrome();
+            document.addEventListener('kreezby:page-load', function () {
+                stripHeaderChrome();
+                syncMenuButton();
+            });
+            document.addEventListener('kreezby-admin-sidebar-ready', stripHeaderChrome);
+            var header = document.querySelector('.top-navbar-node');
+            if (header && window.MutationObserver) {
+                new MutationObserver(function (records) {
+                    if (!document.body.classList.contains('kreezby-admin-home')) return;
+                    var dirty = false;
+                    records.forEach(function (record) {
+                        record.addedNodes.forEach(function (node) {
+                            if (!node || node.nodeType !== 1) return;
+                            if (node.matches('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs, .notification-pill') ||
+                                (node.querySelector && node.querySelector('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .notification-pill, .notification-popover-root'))) {
+                                dirty = true;
+                            }
+                        });
+                    });
+                    if (dirty) stripHeaderChrome();
+                }).observe(header, { childList: true, subtree: true });
+            }
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('aside.dark-sidebar-panel a')) return;
+                document.body.classList.remove('kreezby-nav-open');
+                syncMenuButton();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key !== 'Escape' || !document.body.classList.contains('kreezby-nav-open')) return;
+                document.body.classList.remove('kreezby-nav-open');
+                syncMenuButton();
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            var el = document.querySelector('[data-inquiry-count]');
+            if (!el || !window.KreezbyPartnerInquiries) return;
+            try {
+                el.textContent = String((window.KreezbyPartnerInquiries.list() || []).length);
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
+</body>
+</html>
