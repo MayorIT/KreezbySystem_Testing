@@ -3,13 +3,12 @@
 <head>
 <script src="../../js/kreezby-db-sync.js"></script>
     <meta charset="UTF-8">
-        <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Retailer</title>
     <link rel="stylesheet" href="../../css/pages/retailer/retailer-portal.css">
 
-    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20260929logo">
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261008tables">
     <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
     <link rel="stylesheet" href="../../css/shared/kreezby-welcome-home.css?v=20261005layout">
 </head>
@@ -38,12 +37,11 @@
         <div class="panel-brand">Retailer</div>
                 <ul class="navigation-tree">
             <li class="tree-node active"><a href="retailer-portal.html">Dashboard</a></li>
-            <li class="tree-node"><a href="po-portal.html">Purchase Order</a></li>
-            <li class="tree-node"><a href="receive-portal.html">Receiving</a></li>
             <li class="tree-node"><a href="bo-portal.html">Back Order</a></li>
             <li class="tree-node"><a href="return-portal.html">Return/P.O List</a></li>
             <li class="tree-node"><a href="saleslist-portal.html">Sales List</a></li>
             <li class="tree-node"><a href="alert-portal.html">Alert</a></li>
+            <li class="tree-node"><a href="inbox-portal.html" data-turbo="false" data-turbo-frame="_top">Inbox</a></li>
         </ul>
     </aside>
 
@@ -56,7 +54,7 @@
                             <p class="admin-home-kicker">The Crinkle Factory</p>
                             <h2>Welcome, Retailer</h2>
                             <p class="admin-home-tagline">Making your life sweeter!</p>
-                            <p class="admin-home-lead">Your home is ready. Purchase orders, deliveries, sales, and alerts open from the menu.</p>
+                            <p class="admin-home-lead">Your home is ready. Deliveries, sales, alerts, and inbox open from the menu.</p>
                             <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
                                 <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
                                 <span class="admin-home-menu-btn__label">Open menu</span>
@@ -73,7 +71,7 @@
 
     <script src="../../js/kreezby-seed-portal-data.js?v=20261005rnote"></script>
     <script src="../../js/sidebar-toggle.js?v=20261005rbell"></script>
-    <script src="../../js/retailer-nav.js?v=20260929dash"></script>
-    <script src="../../js/user-dropdown-nav.js?v=20261005rbell"></script>
+    <script src="../../js/retailer-nav.js?v=20261008tabs3"></script>
+    <script src="../../js/user-dropdown-nav.js?v=20261008tabs2"></script>
     </body>
 </html>

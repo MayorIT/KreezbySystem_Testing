@@ -268,7 +268,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261008stock2';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261008tabs';
         document.head.appendChild(s);
     }
 
@@ -361,7 +361,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-portal-icon-sidebar-script';
-        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261005who2';
+        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261008tabs';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -528,7 +528,9 @@
     }
 
     function isWholesalerPage() {
-        return /\/wholesaler\//i.test(window.location.pathname || '');
+        var path = (window.location.pathname || '').replace(/\\/g, '/');
+        if (/\/retailer\//i.test(path)) return false;
+        return /\/wholesaler\//i.test(path);
     }
 
     function isWholesalerHomePage() {
@@ -645,15 +647,14 @@
             else right.appendChild(keep);
         }
         keep.className = 'top-nav-item home-badge';
-        keep.removeAttribute('aria-label');
         keep.removeAttribute('aria-current');
-        keep.setAttribute('href', href);
+        keep.setAttribute('href', 'retailer-portal.html');
+        keep.setAttribute('aria-label', 'Dashboard');
+        keep.setAttribute('title', 'Dashboard');
         keep.textContent = 'Home';
-        if (document.getElementById('kreezby-main-content')) {
-            keep.removeAttribute('data-turbo');
-            keep.setAttribute('data-turbo-frame', 'kreezby-main-content');
-            keep.setAttribute('data-turbo-action', 'advance');
-        }
+        keep.setAttribute('data-turbo', 'false');
+        keep.setAttribute('data-turbo-frame', '_top');
+        keep.removeAttribute('data-turbo-action');
         orderPortalHeader();
     }
 

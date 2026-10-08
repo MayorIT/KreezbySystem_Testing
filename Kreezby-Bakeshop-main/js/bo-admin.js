@@ -118,6 +118,8 @@
 
     function matchesPortalEntity(order) {
         if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
+        var name = String(retailerStoreName).toLowerCase();
+        if (name === 'retailer' || name === 'wholesaler') return true;
         return order && order.entity === retailerStoreName;
     }
 
@@ -560,6 +562,21 @@
                     '<td>' + (o.items ? o.items.length : 0) + '</td>' +
                     '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td></tr>';
             }).join('');
+            var note = document.querySelector('#bo-retailer-dashboard-view [data-bo-footer]');
+            if (!note) {
+                var host = document.querySelector('#bo-retailer-dashboard-view .card-body-padded');
+                if (host) {
+                    host.querySelectorAll('div').forEach(function (node) {
+                        if (note || node.children.length) return;
+                        if (/^Showing /i.test((node.textContent || '').trim())) note = node;
+                    });
+                    if (note) note.setAttribute('data-bo-footer', '1');
+                }
+            }
+            if (note) {
+                var total = rows.length;
+                note.textContent = total ? ('Showing 1 to ' + total + ' of ' + total + ' entries') : 'Showing 0 entries';
+            }
             return;
         }
         var page = pageSlice(rows, 'retailer');

@@ -89,8 +89,12 @@
         return /inbox/i.test(fileFromHref(href));
     }
 
+    function onRetailerArea() {
+        return /\/retailer\//i.test(location.pathname || '');
+    }
+
     function turboAttrs(href) {
-        if (isInboxHref(href)) return ' data-turbo-frame="_top"';
+        if (onRetailerArea() || isInboxHref(href)) return ' data-turbo="false" data-turbo-frame="_top"';
         if (document.getElementById('kreezby-main-content')) {
             return ' data-turbo-frame="kreezby-main-content" data-turbo-action="advance"';
         }

@@ -76,6 +76,18 @@
         }
     }
 
+    function onRetailerArea() {
+        return /\/retailer\//i.test(window.location.pathname || '');
+    }
+
+    function isRetailerAreaHref(href) {
+        try {
+            return /\/retailer\//i.test(new URL(href, window.location.href).pathname || '');
+        } catch (e) {
+            return /\/retailer\//i.test(href || '');
+        }
+    }
+
     function isInboxPage(href) {
         try {
             var file = new URL(href, window.location.href).pathname.split('/').pop() || '';
@@ -133,6 +145,7 @@
     function shouldTurboLink(link) {
         if (!link || !link.href) return false;
         if (link.dataset.turbo === 'false') return false;
+        if (onRetailerArea() && isRetailerAreaHref(link.href)) return false;
         if (isInboxPage(link.href) && !isStaffInboxHref(link.href)) return false;
         if (leavingInboxForDashboard(link)) return false;
         if (isReportIssuePage(link.href)) return false;
@@ -164,7 +177,7 @@
         (root || document).querySelectorAll('a[href]').forEach(function (link) {
             if (!link.href) return;
 
-            if ((isInboxPage(link.href) && !isStaffInboxHref(link.href)) || leavingInboxForDashboard(link) || isReportIssuePage(link.href) || isCustomerShopPage(link.href) || isHeadAdminShellPage(link.href)) {
+            if ((onRetailerArea() && isRetailerAreaHref(link.href)) || (isInboxPage(link.href) && !isStaffInboxHref(link.href)) || leavingInboxForDashboard(link) || isReportIssuePage(link.href) || isCustomerShopPage(link.href) || isHeadAdminShellPage(link.href)) {
                 link.setAttribute('data-turbo', 'false');
                 link.setAttribute('data-turbo-frame', '_top');
                 link.removeAttribute('data-turbo-action');
