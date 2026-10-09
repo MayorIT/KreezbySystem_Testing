@@ -8,10 +8,10 @@
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">
     <title>Kreezby Crinkles - Menu</title>
-    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261005brand">
+    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010brown">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
-    <link rel="stylesheet" href="../css/shared/testimonial.css">
+    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010create2">
     <link rel="stylesheet" href="../css/shared/order-stepper.css">
     <link rel="stylesheet" href="../css/shared/order-tracking.css">
     <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
@@ -87,13 +87,33 @@
             </div>
             
             <div id="shop-menu-container"></div>
-            </section>
-
+            <div class="category-feedback">
+                <button type="button" class="category-feedback__btn" id="category-feedback-btn" aria-expanded="false" aria-controls="category-feedback-panel" onclick="toggleCategoryFeedback()">
+                    <span aria-hidden="true">★</span>
+                    Feedback
+                </button>
+                <div id="category-feedback-panel" class="category-feedback__panel" hidden>
             <section class="testimonials-section" aria-label="Customer reviews">
-                <div class="section-heading">
-                    <h2 class="menu-section-title">What Our Customers Say</h2>
-                    <p class="section-heading__hint">Real notes from people who keep coming back for another pouch.</p>
+                <div class="section-heading category-feedback__head">
+                    <div>
+                        <h2 class="menu-section-title">What Our Customers Say</h2>
+                        <p class="section-heading__hint">Real notes from people who keep coming back for another pouch.</p>
+                    </div>
+                    <button type="button" class="category-feedback__create" id="create-feedback-btn" aria-expanded="false" aria-controls="create-feedback-form" onclick="toggleCreateFeedback()">Create Feedback</button>
                 </div>
+                <form id="create-feedback-form" class="create-feedback-form" hidden onsubmit="submitCustomerFeedback(event)">
+                    <p class="create-feedback-form__label">Your rating</p>
+                    <div class="create-feedback-form__stars" role="radiogroup" aria-label="Star rating">
+                        <button type="button" class="create-feedback-star is-on" data-star="1" onclick="setFeedbackRating(1)" aria-label="1 star">★</button>
+                        <button type="button" class="create-feedback-star is-on" data-star="2" onclick="setFeedbackRating(2)" aria-label="2 stars">★</button>
+                        <button type="button" class="create-feedback-star is-on" data-star="3" onclick="setFeedbackRating(3)" aria-label="3 stars">★</button>
+                        <button type="button" class="create-feedback-star is-on" data-star="4" onclick="setFeedbackRating(4)" aria-label="4 stars">★</button>
+                        <button type="button" class="create-feedback-star is-on" data-star="5" onclick="setFeedbackRating(5)" aria-label="5 stars">★</button>
+                    </div>
+                    <label class="create-feedback-form__label" for="create-feedback-comment">Your comment</label>
+                    <textarea id="create-feedback-comment" name="comment" required maxlength="240" placeholder="Tell us what you think of the crinkles"></textarea>
+                    <button type="submit" class="category-feedback__create">Post Feedback</button>
+                </form>
                 <div class="testimonials-grid" id="customer-testimonials-grid">
 
                     <article class="testimonial">
@@ -181,6 +201,9 @@
                     </article>
 
                 </div>
+            </section>
+                </div>
+            </div>
             </section>
         </div>
 
@@ -403,9 +426,127 @@
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/notification-store.js"></script>
     <script src="../js/customer-orders.js?v=20260929webpay"></script>
-    <script src="../js/customer-shop-cards.js"></script>
+    <script src="../js/customer-shop-cards.js?v=20261010jars"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script>
+        function toggleCategoryFeedback() {
+            var btn = document.getElementById('category-feedback-btn');
+            var panel = document.getElementById('category-feedback-panel');
+            if (!btn || !panel) return;
+            var open = panel.hasAttribute('hidden');
+            if (open) panel.removeAttribute('hidden');
+            else panel.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.classList.toggle('is-open', open);
+        }
+
+        var feedbackRating = 5;
+        var CUSTOMER_FEEDBACK_KEY = 'kreezbyCustomerCreatedFeedbackV1';
+
+        function toggleCreateFeedback() {
+            var btn = document.getElementById('create-feedback-btn');
+            var form = document.getElementById('create-feedback-form');
+            if (!btn || !form) return;
+            var open = form.hasAttribute('hidden');
+            if (open) form.removeAttribute('hidden');
+            else form.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                var comment = document.getElementById('create-feedback-comment');
+                if (comment) comment.focus();
+            }
+        }
+
+        function setFeedbackRating(value) {
+            feedbackRating = value;
+            document.querySelectorAll('.create-feedback-star').forEach(function (star) {
+                star.classList.toggle('is-on', Number(star.getAttribute('data-star')) <= value);
+            });
+        }
+
+        function escapeFeedbackText(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function feedbackStarMarkup(count) {
+            var star = '<svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+            var muted = '<svg class="testimonial__star testimonial__star--muted" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+            var html = '';
+            for (var i = 1; i <= 5; i++) html += i <= count ? star : muted;
+            return '<div class="testimonial__stars" aria-label="' + count + ' out of 5 stars">' + html + '</div>';
+        }
+
+        function feedbackCardMarkup(entry) {
+            return '<article class="testimonial">' +
+                '<span class="testimonial__quote-mark" aria-hidden="true">"</span>' +
+                '<div class="testimonial__body">' +
+                    feedbackStarMarkup(entry.rating) +
+                    '<p class="testimonial__text">' + escapeFeedbackText(entry.comment) + '</p>' +
+                    '<div class="testimonial__author">' +
+                        '<div class="testimonial__avatar" aria-hidden="true">•</div>' +
+                        '<div>' +
+                            '<h3 class="testimonial__name">' + escapeFeedbackText(entry.name) + '</h3>' +
+                            '<p class="testimonial__role">Customer @ Kreezby Philippines</p>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</article>';
+        }
+
+        function readCreatedFeedback() {
+            try {
+                var saved = JSON.parse(localStorage.getItem(CUSTOMER_FEEDBACK_KEY) || '[]');
+                return Array.isArray(saved) ? saved : [];
+            } catch (err) {
+                return [];
+            }
+        }
+
+        function renderCreatedFeedback() {
+            var grid = document.getElementById('customer-testimonials-grid');
+            if (!grid || grid.querySelector('[data-created-feedback]')) return;
+            var items = readCreatedFeedback();
+            if (!items.length) return;
+            for (var i = items.length - 1; i >= 0; i--) {
+                var wrap = document.createElement('div');
+                wrap.innerHTML = feedbackCardMarkup(items[i]);
+                var card = wrap.firstChild;
+                card.setAttribute('data-created-feedback', '1');
+                grid.insertBefore(card, grid.firstChild);
+            }
+        }
+
+        function submitCustomerFeedback(event) {
+            event.preventDefault();
+            var commentField = document.getElementById('create-feedback-comment');
+            var grid = document.getElementById('customer-testimonials-grid');
+            var comment = commentField ? commentField.value.trim() : '';
+            if (!comment || !grid) return;
+            var profile = typeof loadCustomerProfile === 'function' ? loadCustomerProfile() : null;
+            var entry = {
+                rating: feedbackRating,
+                comment: comment,
+                name: (profile && profile.fullName) || 'Customer'
+            };
+            var saved = readCreatedFeedback();
+            saved.unshift(entry);
+            localStorage.setItem(CUSTOMER_FEEDBACK_KEY, JSON.stringify(saved.slice(0, 20)));
+            var wrap = document.createElement('div');
+            wrap.innerHTML = feedbackCardMarkup(entry);
+            var card = wrap.firstChild;
+            card.setAttribute('data-created-feedback', '1');
+            grid.insertBefore(card, grid.firstChild);
+            commentField.value = '';
+            setFeedbackRating(5);
+            toggleCreateFeedback();
+        }
+
+        renderCreatedFeedback();
+
         // System Data Matrix Catalog Initialization Structures 
         const productFlavorsCatalog = [
             { id: "flavor-choc", name: "Chocolate Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/chocolate.jpg" },

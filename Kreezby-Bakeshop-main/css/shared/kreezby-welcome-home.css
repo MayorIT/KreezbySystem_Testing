@@ -131,6 +131,36 @@ body.kreezby-admin-home main.workspace-view-canvas {
         linear-gradient(180deg, #fbf7f1 0%, #f3eee6 100%);
 }
 
+/* Home dashboards fill the viewport so the welcome card reaches the bottom. */
+body.kreezby-admin-home:has(#admin-dashboard-root) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+}
+
+body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+}
+
+body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper > turbo-frame#kreezby-main-content,
+body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper > .kreezby-turbo-main {
+    min-height: 0;
+    height: 100%;
+}
+
+body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-canvas,
+body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
 body.kreezby-admin-home #admin-dashboard-root,
 body.kreezby-admin-home #staff-dashboard-root,
 body.kreezby-admin-home .workspace-container {
@@ -156,8 +186,29 @@ body.kreezby-admin-home #admin-dashboard-root {
     min-height: 0;
 }
 
-body.kreezby-admin-home .admin-home {
+body.kreezby-admin-home #staff-dashboard-root .admin-home {
     flex: 0 0 auto;
+}
+
+body.kreezby-admin-home #admin-dashboard-root .admin-home {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+body.kreezby-admin-home #admin-dashboard-root .admin-home-stage {
+    height: 100%;
+    min-height: 0;
+}
+
+body.kreezby-admin-home #admin-dashboard-root .admin-home-photo {
+    min-height: 0;
+    align-self: stretch;
+}
+
+body.kreezby-admin-home #admin-dashboard-root .admin-home-photo img {
+    max-height: none;
+    height: 100%;
 }
 
 .admin-home-stage {
@@ -412,6 +463,18 @@ body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby
 }
 
 @media (max-width: 860px) {
+    body.kreezby-admin-home:has(#admin-dashboard-root) {
+        height: auto;
+        overflow: visible;
+    }
+
+    body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-canvas,
+    body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas {
+        height: auto;
+        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px));
+        overflow: visible;
+    }
+
     .admin-home-stage {
         grid-template-columns: 1fr;
     }

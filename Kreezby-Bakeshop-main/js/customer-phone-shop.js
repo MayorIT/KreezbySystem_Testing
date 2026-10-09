@@ -127,7 +127,6 @@
         nav.setAttribute('aria-label', 'Shop shortcuts');
         nav.innerHTML =
             catButton('pouch', 'Pouches', '.shop-category--pouch-favorites') +
-            catButton('jar', 'Jars', '.shop-category--jar-specials') +
             catButton('deals', 'Deals', '.pricing-banner') +
             catButton('help', 'Help', isGuest() ? '../auth/log_in.html' : 'inbox-customer.html');
         host.insertBefore(nav, host.firstChild);

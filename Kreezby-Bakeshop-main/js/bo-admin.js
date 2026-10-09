@@ -149,7 +149,7 @@
         var theadRow = document.querySelector('#bo-retailer-dashboard-view table thead tr');
         if (theadRow && !theadRow.getAttribute('data-kreezby-portal-head')) {
             theadRow.setAttribute('data-kreezby-portal-head', '1');
-            theadRow.innerHTML = '<th>#</th><th>Date Created</th><th>BO Code</th><th>Action</th><th>Supplier</th><th>Items</th><th>Status</th>';
+            theadRow.innerHTML = '<th>#</th><th>Date Created</th><th>BO Code</th><th>Supplier</th><th>Items</th><th>Status</th><th>Action</th>';
         }
         var brand = document.querySelector('.panel-brand');
         var brandName = brand ? brand.textContent.trim() : '';
@@ -545,10 +545,10 @@
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + o.dateCreated + '</td>' +
                     '<td><a href="#" class="bo-code-link" data-bo="' + o.code + '">' + o.code + '</a></td>' +
-                    '<td>' + buildActionMenu(o.code) + '</td>' +
                     '<td>' + (o.supplier || SUPPLIER_LABEL) + '</td>' +
                     '<td>' + (o.items ? o.items.length : 0) + '</td>' +
-                    '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td></tr>';
+                    '<td><span class="status-pill-badge ' + o.statusClass + ' bo-status-link" data-bo="' + o.code + '">' + statusMeta(o.statusClass).label + '</span></td>' +
+                    '<td>' + buildActionMenu(o.code) + '</td></tr>';
             }).join('');
             var note = document.querySelector('#bo-retailer-dashboard-view [data-bo-footer]');
             if (!note) {

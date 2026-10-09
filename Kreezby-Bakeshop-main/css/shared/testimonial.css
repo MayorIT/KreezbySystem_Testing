@@ -4,6 +4,137 @@
     margin-top: 48px;
 }
 
+.category-feedback {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 16px;
+}
+
+.category-feedback__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 999px;
+    background: #ffca28;
+    color: #1f1f1f;
+    padding: 7px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(251, 192, 45, 0.28);
+}
+
+.category-feedback__btn:hover,
+.category-feedback__btn.is-open {
+    background: #fbc02d;
+}
+
+.category-feedback__btn:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 3px;
+}
+
+.category-feedback__panel {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.category-feedback__panel .testimonials-section {
+    margin-top: 0;
+}
+
+.category-feedback__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.category-feedback__create {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    border: 1px solid #e7c15a;
+    border-radius: 999px;
+    background: #fff8e1;
+    color: #7a4b00;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.category-feedback__create:hover {
+    background: #ffca28;
+    color: #1f1f1f;
+}
+
+.create-feedback-form[hidden] {
+    display: none;
+}
+
+.create-feedback-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: min(100%, 520px);
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid rgba(30, 136, 229, 0.12);
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.create-feedback-form__label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    color: #475569;
+}
+
+.create-feedback-form__stars {
+    display: flex;
+    gap: 4px;
+}
+
+.create-feedback-star {
+    border: none;
+    background: transparent;
+    color: #e5e7eb;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.create-feedback-star.is-on {
+    color: #facc15;
+}
+
+.create-feedback-form textarea {
+    width: 100%;
+    min-height: 84px;
+    resize: vertical;
+    border: 1px solid #d7e2ef;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    color: #111111;
+}
+
+.create-feedback-form textarea:focus {
+    outline: 3px solid rgba(29, 78, 216, 0.25);
+    border-color: #1d4ed8;
+}
+
 .testimonials-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -146,15 +146,15 @@
         }
 
         .nav-actions .nav-btn.is-active {
-            background: linear-gradient(135deg, #1e88e5, #1565c0);
-            color: #ffffff;
+            background: #3e2723;
+            color: #fff8ee;
             border-color: transparent;
-            box-shadow: 0 8px 18px rgba(21, 101, 192, 0.28);
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         .nav-actions .nav-btn.is-active:hover {
-            background: linear-gradient(135deg, #1976d2, #0d47a1);
-            color: #ffffff;
+            background: #2c1810;
+            color: #fff8ee;
         }
 
         .nav-actions .nav-btn.is-tapped {
@@ -571,9 +571,10 @@
             right: 18px;
             min-width: 40px;
             min-height: 40px;
-            border: 1px solid #bfdbfe;
-            background: #eff6ff;
-            color: #1d4ed8;
+            border: none;
+            background: #3e2723;
+            color: #fff8ee;
+            box-shadow: 0 3px 0 #d4af37;
             border-radius: 999px;
             padding: 8px 12px;
             font-size: 13px;
@@ -584,9 +585,9 @@
         }
 
         .cart-close-btn:hover {
-            background: #dbeafe;
+            background: #2c1810;
             transform: translateY(-1px);
-            box-shadow: 0 8px 14px rgba(37, 99, 235, 0.18);
+            box-shadow: 0 3px 0 #e8c56b;
         }
 
         .cart-items-container {
@@ -763,8 +764,8 @@
         }
 
         .checkout-btn {
-            background-color: var(--primary-blue);
-            color: #ffffff;
+            background-color: #3e2723;
+            color: #fff8ee;
             border: none;
             width: 100%;
             padding: 14px;
@@ -773,13 +774,14 @@
             font-weight: 800;
             cursor: pointer;
             margin-top: 12px;
+            box-shadow: 0 3px 0 #d4af37;
             transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
         }
 
         .checkout-btn:hover {
-            background-color: var(--dark-blue);
+            background-color: #2c1810;
             transform: translateY(-1px);
-            box-shadow: 0 10px 20px rgba(30, 136, 229, 0.25);
+            box-shadow: 0 3px 0 #e8c56b;
         }
 
         /* Generic Center View Modal Popups Frame styling */
@@ -913,15 +915,15 @@
         }
 
         .tab-link.active {
-            color: var(--primary-blue);
-            border-bottom-color: var(--primary-blue);
+            color: #3e2723;
+            border-bottom-color: #d4af37;
         }
 
         #profile-settings-modal .tab-link.active {
-            border-color: #1d4ed8;
-            color: #ffffff;
-            background: linear-gradient(130deg, #1d4ed8, #2563eb);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            border-color: transparent;
+            color: #fff8ee;
+            background: #3e2723;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         #profile-settings-modal .tab-content-panel {
@@ -1095,25 +1097,28 @@
         }
 
         .profile-avatar-pane .nav-btn {
-            background: #e8f2ff;
-            color: #0b4a8c;
-            border: 1px solid #b9d5f6;
+            background: #3e2723;
+            color: #fff8ee;
+            border: none;
             font-weight: 700;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         .profile-avatar-pane .nav-btn:hover {
-            background: #d6e9ff;
-            color: #09386c;
+            background: #2c1810;
+            color: #fff8ee;
+            box-shadow: 0 3px 0 #e8c56b;
         }
 
         .btn-action-primary {
-            background-color: var(--primary-blue);
-            color: #ffffff;
+            background-color: #3e2723;
+            color: #fff8ee;
             border: none;
             padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         .settings-status {
@@ -1136,7 +1141,7 @@
             width: 100%;
             position: sticky;
             bottom: 0;
-            box-shadow: 0 -6px 14px rgba(255, 255, 255, 0.9);
+            box-shadow: 0 3px 0 #d4af37, 0 -6px 14px rgba(255, 255, 255, 0.9);
             z-index: 1;
         }
 
@@ -1351,10 +1356,10 @@
         }
 
         .notification-filter-btn.active {
-            border-color: #1d4ed8;
-            color: #ffffff;
-            background: linear-gradient(130deg, #1d4ed8, #2563eb);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            border-color: transparent;
+            color: #fff8ee;
+            background: #3e2723;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         .notifications-toolbar-actions {
@@ -1636,20 +1641,21 @@
         }
 
         .notification-log-read-btn {
-            border: 1px solid #bfdbfe;
-            background: linear-gradient(130deg, #eff6ff, #dbeafe);
-            color: #1d4ed8;
+            border: none;
+            background: #3e2723;
+            color: #fff8ee;
             border-radius: 999px;
             padding: 7px 12px;
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 3px 0 #d4af37;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         .notification-log-read-btn:hover {
-            background: linear-gradient(130deg, #dbeafe, #bfdbfe);
-            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+            background: #2c1810;
+            box-shadow: 0 3px 0 #e8c56b;
             transform: translateY(-1px);
         }
 
@@ -1829,10 +1835,10 @@
         }
 
         .modal-box.orders-modal .tab-link.active {
-            border-color: #1d4ed8;
-            color: #ffffff;
-            background: linear-gradient(130deg, #1d4ed8, #2563eb);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            border-color: transparent;
+            color: #fff8ee;
+            background: #3e2723;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         #orders-container {
@@ -2078,19 +2084,21 @@
         }
 
         .orders-back-btn {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: #3e2723;
+            border: none;
             font-size: 18px;
             font-weight: 700;
-            color: #1d4ed8;
+            color: #fff8ee;
             cursor: pointer;
             padding: 6px 10px;
             line-height: 1;
             border-radius: 10px;
+            box-shadow: 0 3px 0 #d4af37;
         }
 
         .orders-back-btn:hover {
-            background: #dbeafe;
+            background: #2c1810;
+            box-shadow: 0 3px 0 #e8c56b;
         }
 
         .orders-empty-state {
@@ -2549,4 +2557,12 @@
 
         .review-done-date {
             color: #6b7280;
+        }
+
+        #profile-settings-modal .tab-link.active.expanding-tab.is-expanded,
+        .modal-box.orders-modal .tab-link.active.expanding-tab.is-expanded,
+        .notification-filter-btn.active.expanding-tab.is-expanded {
+            background: #3e2723 !important;
+            color: #fff8ee !important;
+            box-shadow: 0 3px 0 #d4af37 !important;
         }
