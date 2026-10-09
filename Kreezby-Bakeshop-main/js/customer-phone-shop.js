@@ -30,17 +30,35 @@
         return /\/customer\//i.test(location.pathname || '');
     }
 
-    function isShopPage() {
+    function isHomePage() {
         var file = fileName();
-        return file === 'customer.html' || file === 'customer_guest.html' || file === '';
+        return file === 'customer.html' || file === 'customer_guest.html';
+    }
+
+    function isMenuPage() {
+        var file = fileName();
+        return file === 'menu-customer.html' || file === 'menu-guest.html';
+    }
+
+    function isShopPage() {
+        return isHomePage() || isMenuPage() || fileName() === '';
     }
 
     function isGuest() {
-        return fileName() === 'customer_guest.html';
+        var file = fileName();
+        return file === 'customer_guest.html' || file === 'menu-guest.html';
+    }
+
+    function homeHref() {
+        return isGuest() ? 'customer_guest.html' : 'customer.html';
+    }
+
+    function menuHref() {
+        return isGuest() ? 'menu-guest.html' : 'menu-customer.html';
     }
 
     function shopHref() {
-        return isGuest() ? 'customer_guest.html' : 'customer.html';
+        return menuHref();
     }
 
     function ensureCss() {
@@ -56,7 +74,7 @@
     }
 
     function ensureSearch() {
-        if (!isShopPage()) return;
+        if (!isMenuPage()) return;
         var header = document.querySelector('header, .site-header, .top-navbar-node');
         if (!header || header.querySelector('.shop-search')) return;
 
@@ -99,7 +117,7 @@
     }
 
     function ensureCategories() {
-        if (!isShopPage()) return;
+        if (!isMenuPage()) return;
         if (document.querySelector('.shop-cats')) return;
         var host = document.querySelector('.content-workspace') || document.querySelector('.main-layout');
         if (!host) return;
@@ -140,10 +158,9 @@
         if (document.querySelector('.shop-tabbar')) return;
 
         var file = fileName();
-        var homeHref = shopHref();
         var helpHref = isGuest() ? '../auth/log_in.html' : 'inbox-customer.html';
         var meHref = isGuest() ? '../auth/log_in.html' : '';
-        var onShop = isShopPage();
+        var onShop = isMenuPage();
         var onHelp = file === 'inbox-customer.html' || file === 'report_issue-customer.html';
         var onCheckout = file === 'checkout-customer.html';
 
@@ -151,8 +168,8 @@
         nav.className = 'shop-tabbar';
         nav.setAttribute('aria-label', 'Customer shortcuts');
         nav.innerHTML =
-            tabLink('home', 'Home', homeHref, onShop) +
-            tabLink('mall', 'Shop', homeHref + '#catalog-heading', false) +
+            tabLink('home', 'Home', homeHref(), isHomePage()) +
+            tabLink('mall', 'Shop', menuHref(), onShop) +
             tabLink('help', 'Help', helpHref, onHelp) +
             tabButton('cart', 'Cart', onCheckout) +
             tabLink('me', 'Me', meHref, false);

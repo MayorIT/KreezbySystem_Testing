@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-store">
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">
-    <title>Kreezby Crinkles</title>
+    <title>Kreezby Crinkles - Menu</title>
     <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261005brand">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
@@ -15,16 +15,15 @@
     <link rel="stylesheet" href="../css/shared/order-stepper.css">
     <link rel="stylesheet" href="../css/shared/order-tracking.css">
     <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
-    <link rel="stylesheet" href="../css/pages/customer/coverflow-home.css?v=20261009ube">
 
     
 </head>
 <body>
 
     <header class="site-header">
-        <div class="logo-area">
+        <a href="customer.html" class="logo-area">
             <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
-        </div>
+        </a>
         <nav class="nav-actions" aria-label="Customer account">
             <button class="nav-btn notifications-trigger-btn" data-nav="favorites" onclick="openModal('favorites-modal')">
                 <span class="nav-btn__icon" aria-hidden="true">
@@ -70,10 +69,121 @@
         </nav>
     </header>
 
-    <section id="coverflow-home" class="coverflow-home" data-menu="menu-customer.html" aria-label="Featured Kreezby flavors"></section>
+    <div class="pricing-banner" role="note">
+        <span class="pricing-banner__label">Simple pricing</span>
+        <div class="pricing-chips">
+            <span class="pricing-chip">₱165 standard pouches</span>
+            <span class="pricing-chip pricing-chip--specialty">₱200 Choco Butternut jars</span>
+        </div>
+    </div>
 
     <div class="main-layout">
         
+        <div class="content-workspace">
+            <section class="catalog-section" aria-labelledby="catalog-heading">
+            <div class="section-heading">
+                <h2 class="menu-section-title" id="catalog-heading">Explore Our Fresh Crinkles</h2>
+                <p class="section-heading__hint">Pouches for everyday favorites, jars for sharing and gifts.</p>
+            </div>
+            
+            <div id="shop-menu-container"></div>
+            </section>
+
+            <section class="testimonials-section" aria-label="Customer reviews">
+                <div class="section-heading">
+                    <h2 class="menu-section-title">What Our Customers Say</h2>
+                    <p class="section-heading__hint">Real notes from people who keep coming back for another pouch.</p>
+                </div>
+                <div class="testimonials-grid" id="customer-testimonials-grid">
+
+                    <article class="testimonial">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">napakasarp nakakaddict eh...alah eh sinsay mna kau sa kreezby at talagang pagkakasarap😘😘😘</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">J••••• S•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Their fresh milk are the best in the city. Real milk! Real taste!</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">C••••• A•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">super yummy ng krinckles! addictive talaga..🥰🥰</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">A•••• H••••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Ang sarap mo syet 😂</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">E•• S•••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </section>
+        </div>
+
         <div class="cart-sidebar" id="interactive-cart-sidebar">
             <div class="cart-header">
                 <div class="cart-header-copy">
@@ -294,7 +404,6 @@
     <script src="../js/notification-store.js"></script>
     <script src="../js/customer-orders.js?v=20260929webpay"></script>
     <script src="../js/customer-shop-cards.js"></script>
-    <script src="../js/coverflow-home.js?v=20261009ube"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script>
         // System Data Matrix Catalog Initialization Structures 
@@ -355,11 +464,6 @@
         }
 
         function bootCustomerShop() {
-            try {
-                if (window.KreezbyCoverflow) {
-                    window.KreezbyCoverflow.mount(document.getElementById('coverflow-home'));
-                }
-            } catch (err) {}
             try { renderCatalogCards(); } catch (err) {}
             try { updateFavoritesTriggerState(); } catch (err) {}
             try { loadPersistedCart(); } catch (err) {}
