@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Report Issue — Retailer</title>
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-portal.css">
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261008tables">
+    <link rel="stylesheet" href="../../css/pages/admin/report_issue-admin.css">
+    <link rel="stylesheet" href="../../css/shared/retailer-module-heading.css?v=20260930title">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="retailer-portal.html">Home</a>
+        <div class="user-dropdown">
+            <button class="user-dropdown-pill" type="button" id="user-dropdown-trigger">Retailer ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-portal.html" class="dropdown-item">Report Issue</a>
+                <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+<div class="system-dashboard-wrapper">
+    <aside class="sidebar-panel">
+        <div class="hamburger-row">☰</div>
+        <div class="panel-brand">Retailer</div>
+        <ul class="navigation-tree">
+            <li class="tree-node"><a href="retailer-portal.html">Dashboard</a></li>
+            <li class="tree-node"><a href="bo-portal.html">Back Order</a></li>
+            <li class="tree-node"><a href="saleslist-portal.html">Sales List</a></li>
+            <li class="tree-node"><a href="inbox-portal.html">Inbox</a></li>
+        </ul>
+    </aside>
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-canvas">
+        <h2 class="page-title">Retailer — Report an Issue</h2>
+        <p class="page-subtitle">Kreezby retailer portal</p>
+        <div class="page-shell">
+            <div class="report-panel">
+                <div class="report-header">
+                    <p>Submit issues related to orders, deliveries, payments, or stock availability.</p>
+                </div>
+                <div class="report-body">
+                    <form class="report-form" onsubmit="submitIssue(event, 'Retailer');">
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label for="retailer-name">Full Name</label>
+                                <input id="retailer-name" name="fullName" type="text" placeholder="Your full name" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="retailer-email">Email / Phone</label>
+                                <input id="retailer-email" name="contact" type="text" placeholder="you@example.com or 0917 123 4567" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="retailer-store">Retailer / Store Name</label>
+                                <input id="retailer-store" name="storeName" type="text" value="Retailer" readonly>
+                            </div>
+                            <div class="form-row">
+                                <label for="retailer-order">Order / PO Number</label>
+                                <input id="retailer-order" name="orderNumber" type="text" placeholder="E.g. PO-2026-0042" required>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="retailer-issue-type">Issue Type</label>
+                                <select id="retailer-issue-type" name="issueType" required>
+                                    <option value="">Select issue type</option>
+                                    <option>Delivery / Tracking</option>
+                                    <option>Payment / Invoice</option>
+                                    <option>Stock Availability</option>
+                                    <option>Order Confirmation</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="retailer-description">Issue Description</label>
+                                <textarea id="retailer-description" name="description" placeholder="Describe the issue and how it affects your order or delivery." required></textarea>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="retailer-steps">Additional Notes</label>
+                                <textarea id="retailer-steps" name="notes" placeholder="Provide any extra details, dates, or reference numbers."></textarea>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="retailer-attachment">Attach Screenshot / Invoice (optional)</label>
+                                <input id="retailer-attachment" name="attachment" type="file">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit">Submit Report</button>
+                            <a href="retailer-portal.html" class="btn-secondary">Return to Retailer Portal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="../../js/kreezby-issue-reports.js?v=20260924c"></script>
+        <script>
+        function submitIssue(event, role) {
+            event.preventDefault();
+            var form = event.target;
+            var file = form.attachment && form.attachment.files && form.attachment.files[0];
+            if (window.KreezbyIssueReports) {
+                KreezbyIssueReports.add({
+                    role: role,
+                    submittedBy: (form.fullName && form.fullName.value) || '',
+                    contact: (form.contact && form.contact.value) || '',
+                    issueType: (form.issueType && form.issueType.value) || 'Other',
+                    reference: (form.orderNumber && form.orderNumber.value) || (form.storeName && form.storeName.value) || '',
+                    description: (form.description && form.description.value) || '',
+                    notes: (form.notes && form.notes.value) || '',
+                    attachmentName: file ? file.name : '',
+                    status: 'New'
+                });
+            }
+            alert('Issue report submitted.');
+            window.location.href = 'retailer-portal.html';
+        }
+        </script>
+        </main>
+    </turbo-frame>
+</div>
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+<script src="../../js/retailer-nav.js?v=20261009acct"></script>
+<script src="../../js/user-dropdown-nav.js?v=20261008tabs2"></script>
+
+</body>
+</html>

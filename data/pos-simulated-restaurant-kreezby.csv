@@ -1,0 +1,1001 @@
+Timestamp,Customer_ID,Customer_Name,Item_Category,Item_Name,Quantity,Price_Per_Item,Total_Price,Payment_Method
+2023-06-21 10:35:45,518529,Cassidy David,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2023-04-23 19:13:55,929362,Kayla Ball,Pouch,Red Velvet Crinkles,5,165.00,825.00,GCash
+2023-08-13 17:13:43,390753,James Vaughn,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2024-01-24 18:38:37,310934,Eric Spears,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2023-04-09 14:24:55,781110,Hayley King,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-09-25 11:22:34,671615,Edward Case,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-05-06 04:37:27,421259,Deborah Graham,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2023-04-30 05:44:24,233961,Jacqueline Johnson,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2024-03-15 11:32:01,711114,Kenneth Reyes,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2024-03-17 09:14:04,584205,Stefanie Davis,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-05-31 14:35:33,851827,Sarah Leblanc,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-09-05 21:27:31,950651,Nicholas Greer,Pouch,Ube Crinkles,2,165.00,330.00,GCash
+2024-02-11 23:27:26,770201,Mr. Trevor Bartlett Jr.,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-05-20 07:46:58,503326,Anna Gates,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-12-18 14:53:02,931900,Terry Williams,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-08-09 11:13:32,854332,Lynn Campbell MD,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-06-25 08:30:30,117564,James Kirk,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2023-10-22 17:03:49,818009,Mark Jones,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-07-08 14:07:42,797343,Regina Thomas,Pouch,Melon Crinkles,3,165.00,495.00,Cash
+2024-02-23 15:54:28,227460,Brandon Gentry,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-12-25 01:02:05,48252,Carolyn Brown,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2023-04-10 23:05:27,743095,Marie Brown,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-11-10 10:33:31,634752,Marie Johnson,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-09-16 14:53:43,196694,Kenneth Moore,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2023-07-21 23:43:19,928153,Ross Rowe,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2024-03-18 18:36:53,243001,Kelly Fowler,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-04-12 08:55:19,117438,Sheryl Castaneda,Jar,Choco Butternut Crinkles,1,200.00,200.00,GCash
+2023-08-21 07:51:19,423850,Kristin Nelson,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-05-30 23:51:34,645397,Robin Pham,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2023-09-01 21:40:59,623329,Maria Odom,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-05-02 11:09:08,328674,John Jones,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-06-17 00:04:19,269403,Brandon White,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-05-29 21:29:01,984944,Jessica Stephens,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2024-01-03 15:35:38,888264,Sydney Maddox,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2024-03-20 07:28:18,595665,Nicole Calderon,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-11-13 16:34:22,191023,Debra Camacho,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-06-10 19:41:32,210786,Rachel Price,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-06-05 12:18:55,14716,Beth Fisher,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2024-02-21 10:37:38,460891,John Moody,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-11-03 00:54:31,874931,Kimberly Rodriguez,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2023-06-12 23:29:57,518060,Robert Graham,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2023-10-15 07:50:34,875197,Dana Ruiz,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-01-21 06:25:23,475721,Barbara Shaw,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2024-01-30 03:40:36,612285,Chelsea Ashley,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2024-01-06 15:42:02,165447,Timothy Bowers,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-04-11 15:00:18,781633,Richard Robinson,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2023-06-05 23:47:24,985595,Stacy Walsh,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2024-02-22 16:47:46,194033,Mary Wiggins,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-06-25 20:25:45,384498,Matthew Ho,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-09-14 10:43:49,471531,Michael Hernandez,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2023-12-28 15:19:03,944536,Brian Powell,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-05-22 03:35:39,36650,Paul Rogers,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2024-01-27 09:15:20,101581,Joe Anthony,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-12-19 15:53:03,932610,Melissa Strong,Pouch,Strawberry Crinkles,4,165.00,660.00,GCash
+2023-05-14 05:31:15,596592,Terri Bell,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-06-29 19:28:02,173880,Jacob Wilson,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2023-12-20 12:58:05,996410,Jacqueline Kim,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-06-21 04:46:16,55761,Caroline Nguyen,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-06-02 00:56:53,581785,Mrs. Tasha Mack,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-12-20 20:17:19,707603,Charles Griffith,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-08-17 19:33:37,879144,Emily Dillon,Pouch,Ube Crinkles,4,165.00,660.00,GCash
+2023-12-31 17:55:12,685146,Kenneth Jones,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-06-15 11:31:15,809937,Jorge Johnson,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2023-10-03 16:24:54,357687,Elizabeth Cooper,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-12-27 20:24:57,117617,Mrs. Amanda Bean,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-08-06 21:42:07,330048,Melissa Richards,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-10-17 01:40:47,64080,Erica Horton,Pouch,Strawberry Crinkles,4,165.00,660.00,GCash
+2023-04-25 15:43:12,364209,Jenna Cook,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-04-14 15:12:37,996981,Ms. Paula Lopez MD,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2023-11-13 07:11:35,983500,Angela Henry,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-09-23 17:11:41,889015,Virginia Turner,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2024-03-16 11:18:57,546734,Stephanie Short,Jar,Choco Butternut Crinkles,1,200.00,200.00,GCash
+2024-04-05 19:55:43,522129,Destiny Chen,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-12-25 21:41:54,762180,Nathan Duncan,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-10-14 19:51:37,136854,Kylie Freeman,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-09-12 18:28:42,940543,Kyle Flores,Pouch,Choco-Almond Crinkles,5,165.00,825.00,GCash
+2023-10-05 18:33:18,388457,Bob Duncan Jr.,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-09-27 18:51:19,413067,Sean Watson,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2024-01-25 20:54:59,637424,Patricia Robinson,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-08-15 18:50:14,304670,John Little,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-06-05 16:18:23,502364,Alexis Taylor,Pouch,Pandan Crinkles,4,165.00,660.00,GCash
+2023-09-03 12:51:19,534438,Susan Maxwell,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-01-03 20:17:17,458127,Derrick Morales,Jar,Mango Crinkles,1,165.00,165.00,GCash
+2023-04-16 19:21:30,180714,David Johnson,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2024-03-09 13:32:03,530255,Tiffany Boyle,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2024-02-08 18:02:07,776964,Larry Yoder,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2023-12-07 01:30:45,598837,Matthew Pollard,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-05-19 01:35:41,292659,Christina Guzman,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-05-02 11:00:31,406478,Patricia Johnson,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-09-27 20:50:53,635577,Lori Lucas MD,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-06-12 11:30:01,899762,John Gates II,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-05-23 22:49:45,672970,Tim Mendoza,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-05-22 08:59:31,327052,Penny Martin,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2024-02-19 09:23:54,437613,Brian Collins,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2023-08-31 13:08:34,650920,Derrick Smith,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-10-04 12:35:45,31020,Lori Aguirre,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-05-22 09:25:59,559015,Chad Pittman,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2023-09-03 19:43:03,246433,Brian Baker,Pouch,Choco-Almond Crinkles,1,165.00,165.00,GCash
+2024-03-12 15:40:25,96638,Cassandra Fuller,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2024-02-12 04:39:06,423250,Victoria Walker,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-11-15 01:21:19,136977,Laurie Gonzalez,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2024-02-16 03:14:50,56767,Jeffrey Green,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-08-11 15:08:56,914716,Amanda Gates,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-10-29 11:40:02,328693,Stacey Obrien,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-05-06 11:04:24,628600,Kenneth Good,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-12-18 03:01:47,559654,Virginia Martinez,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-12-04 00:47:07,245401,Lisa Rosales,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-09-22 14:54:34,369762,Breanna Ellis,Pouch,Ube Crinkles,5,165.00,825.00,GCash
+2023-09-18 07:27:24,564102,Anthony Greer,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-05-27 01:04:03,609353,Adriana Hicks,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-11-20 23:32:29,197332,Matthew Fletcher,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-12-05 19:16:50,428763,Timothy Sullivan,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2024-03-18 07:49:17,316043,Cynthia Flowers,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-10-27 14:51:05,147377,Anna Wright,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-10-02 02:36:12,93429,John Rodriguez,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2024-01-18 19:47:11,994805,Gerald Davidson,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-05-07 18:48:30,680979,Michael Johnson,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-07-23 13:15:01,421812,Debra Swanson,Pouch,Ube Crinkles,3,165.00,495.00,GCash
+2023-06-01 06:23:09,459452,Lydia Bennett,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-07-06 18:51:33,930161,Allison Hill,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2023-05-18 09:49:36,755569,Danielle Armstrong,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2023-04-30 19:09:02,507590,Joseph Rodriguez,Pouch,Red Velvet Crinkles,2,165.00,330.00,GCash
+2024-03-26 02:23:34,664472,Debra Hernandez,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-01-25 16:58:25,97357,Michelle Villegas,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-04-16 00:31:35,584901,Darlene Shaw,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-04-30 07:14:45,52791,James Vega,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2023-11-22 23:19:41,455050,Lance Jennings DDS,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-05-01 22:40:32,86387,Lisa Martin,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-12-18 22:23:37,140363,Crystal Randall,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-05-08 04:46:52,683437,Mr. Justin Rodriguez MD,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-12-09 16:26:09,644226,Lauren Johnson,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-09 05:30:35,849419,Carol Peters,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-06-09 02:52:31,617129,Vincent Ramirez,Pouch,Red Velvet Crinkles,2,165.00,330.00,GCash
+2024-02-03 02:31:11,856378,Matthew Johnson,Jar,Mango Crinkles,5,165.00,825.00,GCash
+2023-10-22 16:31:53,398448,Jennifer Thompson,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2024-02-12 14:40:27,448024,Jennifer Silva,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-10-17 17:40:00,95212,Nathan Caldwell,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-04-27 11:30:38,679903,Anthony Nelson,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2024-02-10 21:32:59,189952,April Boone,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-11-13 09:38:48,965858,Christopher Alvarez,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-10-07 00:17:10,78103,Jose Hughes,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-11-27 11:39:56,91950,Anthony Garcia,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-06-02 13:07:48,36968,Sarah Mack,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2023-12-14 15:51:34,855969,Lindsey Davis,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-11-20 14:24:04,56301,Ms. Rachel Buckley,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2024-02-29 06:31:23,34532,Michael Roberts,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-01-31 21:36:01,430353,Mr. Juan Snyder,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-08-05 23:49:04,269216,Daniel Graves,Pouch,Melon Crinkles,4,165.00,660.00,GCash
+2023-04-21 14:20:55,738214,Philip Doyle,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-08-07 20:08:26,220457,Andrea Hood,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2024-03-29 10:32:03,507663,Christopher Barker,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2024-03-16 01:52:08,720132,Brenda Khan,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-08-23 00:40:42,20908,Mrs. Alexa Mills,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2023-10-07 14:33:43,86639,Megan Weber,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2024-03-09 09:47:54,737992,Stephanie Young,Jar,Choco Butternut Crinkles,5,200.00,1000.00,Cash
+2023-08-04 21:56:59,664593,Donald Turner,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-08-30 22:01:08,536662,Jennifer Jones,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-09-23 18:13:02,562761,Alicia Acosta,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-08-29 20:28:12,78394,Meghan Johnston,Pouch,Choco-Almond Crinkles,2,165.00,330.00,GCash
+2023-05-11 08:05:12,100995,Eric Clarke,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2023-09-28 07:32:40,392642,James Moore,Pouch,Choco-Almond Crinkles,5,165.00,825.00,GCash
+2024-02-01 07:13:07,650477,Raymond Peterson,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2024-03-14 06:56:31,904716,Patrick Hoffman,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-08-02 20:16:00,581874,Roberto Duncan,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-05-19 00:06:32,254784,Matthew Smith,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-05-12 09:02:17,585430,Paul Carter,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-06-08 07:35:47,861226,Leonard Wright,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-05-04 21:46:12,276853,Julia Lozano,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-05-25 16:23:05,445821,Valerie Bryan,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2024-01-24 23:08:42,173137,Gregory Pittman,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-11-01 23:29:40,823307,Steven Gordon,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-10-03 20:57:58,866691,Matthew Mcgee,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-10-13 07:35:29,378265,Tina Hess,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-02-09 05:03:32,596475,Chad Davila,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2024-02-03 12:14:12,921846,Michelle Foster,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-05-07 19:30:40,513575,Kayla Carpenter,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-12-01 17:56:16,983759,Tiffany Good,Jar,Mango Crinkles,1,165.00,165.00,GCash
+2023-12-11 03:20:54,603804,Christine Hopkins,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-11-06 15:49:35,738288,Reginald Wiggins,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-05-09 15:23:07,989857,Joseph Harper,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-06-12 20:54:31,746928,Daniel Frye,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-01-16 10:45:33,423447,Susan Rodgers,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-10-05 03:26:49,640289,Beth Barber,Jar,Mango Crinkles,5,165.00,825.00,GCash
+2023-06-05 22:23:20,602295,Kayla Davis,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2023-05-07 16:37:17,76629,Katrina Shelton,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-04-18 21:50:54,385508,William Cohen,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-11-16 18:48:08,552623,Brenda Gamble,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-06-18 10:42:17,583600,Natasha Hawkins,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-08-08 14:23:13,936416,Samantha Hubbard,Pouch,Melon Crinkles,5,165.00,825.00,GCash
+2024-01-09 22:53:49,175660,Robert Thompson,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2024-02-24 17:23:40,982599,Erin Escobar,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-11-17 09:36:50,236261,Shelby Mayo,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2024-01-21 03:39:48,461623,Sheila Huffman,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-04-22 00:45:07,139071,Victor Hernandez,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-10-15 07:19:20,600615,Kelly Wu,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2024-01-21 09:22:43,137563,Jason Copeland,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-10-06 07:48:54,917391,Carolyn Landry,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-05-06 20:31:32,991217,Elizabeth Cook,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2024-02-12 13:06:15,950564,Valerie Henson,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-10-20 01:58:30,768698,Angela Cannon,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-09-29 00:42:12,78305,Jack Bell,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2024-04-08 06:25:14,926409,Aimee Turner,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-09-15 10:47:54,101303,Diana Ball,Pouch,Melon Crinkles,3,165.00,495.00,GCash
+2023-10-22 07:39:57,484153,Shannon Vazquez,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-10-18 01:21:43,848551,Jason Powers,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-01-17 10:59:01,784309,Laurie Miller,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-01-15 19:20:10,508050,Allison Smith,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-09-27 20:19:47,233931,Bruce Love,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2024-03-12 21:51:03,257045,Annette Jones,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-08-09 15:06:26,88198,Tommy Day,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2024-02-27 23:09:13,52517,Trevor Brown,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-01-23 04:21:06,688297,Anna Landry,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-12-03 01:11:51,495086,Perry Montoya,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-04-19 12:28:41,852444,Jennifer Haas,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,GCash
+2024-01-29 17:50:21,612883,Danielle Garcia,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-10-23 01:42:15,637121,Chad Richardson,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2024-02-06 06:18:05,957202,Martin Dudley,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-07-01 07:39:22,521482,Debra Wright,Pouch,Melon Crinkles,4,165.00,660.00,GCash
+2023-06-13 16:16:11,587167,Mr. Brian Gibson,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2023-08-15 19:43:09,910504,Marcia Thompson,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2023-12-21 00:05:28,322789,Miguel Baker,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-08-05 14:40:32,655350,Caroline Johnson,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-10-16 20:37:35,590720,Steven Bright,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2024-03-05 06:11:04,14156,Gene Ramirez,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-11-11 17:11:48,699868,Richard Kennedy,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-29 20:53:37,525282,Kristine Levine,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-12-25 03:13:12,209102,Dr. Jim Le,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2024-01-20 04:08:18,365942,Justin Mcmahon,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2024-02-18 17:51:57,616268,Kimberly Durham,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-07-05 02:07:24,544204,Jessica Lynch,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-03-11 10:13:38,203905,Christopher Smith DDS,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-10-12 16:18:23,881504,Michael Nichols,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2023-05-30 05:22:37,520796,Marcus Butler,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-03-24 06:32:30,515877,Daniel Hamilton,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-10-28 11:41:42,822677,Juan Smith,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-09-20 13:37:26,145543,Steven Smith,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-06-18 08:58:45,912319,Courtney Moreno,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2024-01-10 04:45:17,558584,Autumn Adams,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2024-04-06 00:52:39,203138,Carrie Walters,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-08-02 20:44:55,47229,Mr. Raymond Gutierrez,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2023-12-15 15:52:38,522477,James Williams DDS,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2024-01-12 02:27:51,44897,Leonard White,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-09-17 00:24:21,905034,Joseph Wallace,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-12-11 20:00:15,413526,Craig Rios,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2024-01-05 04:04:08,933740,Kari Johnson,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-04-25 01:31:40,647427,Jennifer Kirk,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-11-29 10:40:10,587452,Jeremy Bryant,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2024-03-10 08:17:03,75319,Wendy Gibson,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-04-18 05:36:30,670663,Miss Tammie Sampson,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-09-05 00:39:14,838747,William Howell,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-08-21 22:02:46,352921,Gina Smith,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-12-08 23:02:14,27431,Phillip Richardson,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-06-29 13:24:23,999193,Joseph Riddle,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2024-02-06 11:39:58,39169,Derrick Rogers,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-08-11 11:43:12,201269,Patricia Graham,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-08-26 21:06:24,299575,Jacob Davis,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-09-21 19:39:06,250257,Latoya Davis,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-08-15 00:53:35,755658,Patricia Smith,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2023-09-29 04:21:31,507959,Mary Brewer,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2024-03-21 04:26:10,76351,Kevin Cook,Jar,Choco Butternut Crinkles,3,200.00,600.00,GCash
+2023-05-27 12:45:31,712403,Monique Martinez,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-06-23 10:36:23,129054,Isabel Newton,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2024-01-29 01:21:40,536585,Robert Shelton,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-04-27 03:00:26,737704,Mr. Daniel Thompson MD,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-10-09 17:42:34,321005,Tammy Michael,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-09-03 19:52:02,407697,Stephanie Kelly,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2023-09-18 09:38:24,48993,Anne Smith,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-07-19 13:00:47,664546,Danielle Stephens,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-12-26 00:34:42,371641,Austin Pham,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-12-14 07:38:43,785898,Brandon Jenkins,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-11-04 13:01:48,668642,Donna Perez,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2024-02-05 01:36:22,373973,Mary Kim,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-08-26 00:27:30,865995,Ashley Torres,Pouch,Ube Crinkles,5,165.00,825.00,GCash
+2024-03-31 22:34:13,667707,Zachary Riley,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2024-01-04 18:28:21,705850,Diana Mclaughlin,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-12-21 20:52:45,334337,Jeffery Murray,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-04-10 22:48:37,857493,Donald Little,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-06-11 07:42:45,164141,Patricia Anderson DDS,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2024-01-15 03:29:51,161363,Susan Stafford,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-11-17 10:39:21,36691,Emily Pham,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-05-06 17:31:05,789602,Joshua Wood,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2023-04-20 19:12:04,470246,Emily Dickson,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-08-01 20:36:29,465060,Todd Jones,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-05-02 17:46:49,352350,Anthony House,Jar,Choco Butternut Crinkles,3,200.00,600.00,GCash
+2023-10-31 16:27:15,870713,Justin Garcia,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-07-19 09:07:51,616942,Ricardo Nichols,Pouch,Melon Crinkles,3,165.00,495.00,Cash
+2024-03-26 16:49:11,363949,Brian Boyd,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-11-18 11:43:44,412348,Christina Browning,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-08-16 09:17:55,999062,David Vargas,Pouch,Melon Crinkles,3,165.00,495.00,Cash
+2024-03-13 16:16:04,546843,Andrew Palmer DDS,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-08-26 06:25:48,27692,Brittany Hernandez,Pouch,Choco-Almond Crinkles,5,165.00,825.00,GCash
+2024-02-07 14:06:41,382352,Susan Lynch,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-07-24 10:09:21,730227,Dawn Perry MD,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-05-17 00:11:12,264,Richard Rhodes,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-10-04 22:34:05,473251,Amanda Foster,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-07-03 14:04:15,523769,Michael Lee,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2024-02-28 06:56:56,471884,Christopher Stephenson,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-11-23 07:51:50,933252,Brian Thomas,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-07-28 11:18:50,653283,Leah Castillo,Pouch,Choco-Almond Crinkles,4,165.00,660.00,GCash
+2024-03-17 08:17:15,949022,Connie Boyer,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-11-10 16:11:08,675166,Melissa Gardner,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-03-10 01:37:21,867541,Bethany Jackson,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-11-06 01:33:12,151421,Sarah Jarvis,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-05-26 19:58:53,857559,Tim Marshall,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2023-06-25 08:12:40,569815,Katherine Macias,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-09-09 00:58:00,771817,Diane Zimmerman,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-07-07 13:31:40,231666,Brandy Graves,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2024-02-06 21:31:54,781457,Nicholas Stephens,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-12-10 21:02:42,170645,Austin Williams,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-12-30 01:11:32,169931,Mark Mccann,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2023-06-21 04:29:10,895437,Kenneth Harris,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2024-01-17 17:10:26,612320,Sherry Castro,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-05-24 07:01:15,974063,Patrick Neal,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-11-15 12:11:28,138968,Jennifer Higgins,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2024-03-29 23:05:39,602672,Robert Jennings,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-05-30 10:51:08,858301,Charlene Frye,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2023-11-21 21:21:44,560789,Cynthia Myers,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-10-05 11:05:52,194013,David Miller,Jar,Mango Crinkles,1,165.00,165.00,GCash
+2023-10-17 05:46:48,166760,Mark Hartman Jr.,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-06-30 17:05:39,770672,Raymond Walker,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-08-02 10:24:57,457833,James Gardner,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2024-01-27 06:12:00,201317,Joshua Jenkins,Pouch,Lemon Crinkles,5,165.00,825.00,GCash
+2023-08-19 20:45:37,778409,Selena Jones,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2024-01-11 03:10:46,624190,Austin Diaz,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-04-23 15:27:08,703243,Judy Dennis,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,GCash
+2024-01-09 14:17:58,660396,Robert Mack,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2023-08-08 02:33:14,181160,Richard Schmidt,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-09-20 12:32:45,862401,John Hahn,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-03-22 01:26:26,934099,Victoria Murphy,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2024-03-02 01:58:41,882275,Krista Durham,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2023-05-06 06:01:31,342650,Elizabeth Williams,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-10-02 15:39:57,455009,Michelle Montgomery,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2024-02-28 19:11:10,346285,Patricia Olson,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-05-27 14:57:16,490474,Anthony Calhoun,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2024-01-04 16:52:28,350718,Anne Sanchez,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-08-14 04:44:22,975708,Kevin Oconnor,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2024-02-28 23:58:01,999281,Philip Burns,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2024-03-19 18:18:30,906897,Matthew Love,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-05-03 02:49:42,434454,James Dalton,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-04-19 18:34:07,833937,Deborah Lewis,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-04-15 16:15:01,98059,Nicole Simon,Jar,Choco Butternut Crinkles,4,200.00,800.00,GCash
+2023-07-04 13:13:21,884008,Michael Nolan,Pouch,Choco-Almond Crinkles,5,165.00,825.00,GCash
+2023-09-06 20:14:22,113557,David Rasmussen,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-12-23 17:19:10,489456,Suzanne Evans,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2024-02-05 10:27:25,22193,Raymond Gonzalez,Pouch,Lemon Crinkles,3,165.00,495.00,GCash
+2023-08-12 01:21:43,444971,Mary Briggs,Pouch,Choco-Almond Crinkles,1,165.00,165.00,GCash
+2023-07-14 12:35:02,690045,Shawn Graham,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-06-08 12:36:02,587520,Ronald Williams,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2023-05-14 05:25:20,772143,Terry Harrell,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2024-02-29 15:49:48,354049,Jennifer Carey,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-06-10 19:40:39,603175,Monique Mcguire,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2024-02-20 05:00:49,523967,Krystal Little,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2024-02-15 07:40:59,996395,Alexis Miller,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-06-11 22:26:50,395415,Misty Alvarez,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2024-03-15 17:21:47,477462,Mrs. Kristina Rodriguez,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-11-16 12:46:34,430659,Jacob Sanders,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-05-30 04:06:12,14007,Angel Holmes,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2023-04-21 16:14:08,171617,Douglas Golden,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2024-03-04 02:05:20,806741,Cindy Miller,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2023-10-06 03:13:55,616785,Whitney Davis,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2024-02-08 15:48:24,395993,Cynthia Williams,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-05-25 19:43:30,728531,Patrick Castro,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,GCash
+2023-10-08 17:12:52,972,James Collier,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-08-01 03:59:10,13633,Alyssa Williams,Pouch,Melon Crinkles,2,165.00,330.00,GCash
+2023-04-11 18:29:02,920417,Denise King,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-07-26 07:28:01,568643,Mark Brown,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-04-14 13:06:33,319048,Frank Vargas,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2024-03-15 21:26:00,6280,Pamela James,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2024-03-28 17:29:37,402571,Laura Price,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2024-03-18 11:13:37,691462,Lisa Ayala,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2023-06-15 11:14:26,951187,Jennifer Vaughn,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-12-01 21:51:27,6966,Robert Morgan,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-07-26 07:09:08,488355,Cameron Hood,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-09-16 17:09:34,349515,George Davis,Pouch,Melon Crinkles,5,165.00,825.00,GCash
+2023-05-07 04:56:54,80245,Mark Moore,Jar,Choco Butternut Crinkles,3,200.00,600.00,GCash
+2023-05-07 03:36:26,798040,Stephanie Franklin,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2024-03-15 11:52:13,434060,Martin Berry,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2024-04-04 19:23:25,861881,Patrick Murphy,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-04-14 19:11:19,978405,Scott Medina,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,GCash
+2023-07-24 05:51:13,459592,Cameron Morgan,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2023-09-21 16:31:11,925109,Gregory Tucker,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-04-27 20:57:39,999394,Michael Turner,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-12-07 06:46:58,128910,Patricia Clark,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-12-30 03:09:42,280621,Tamara James,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-03-10 11:57:33,477812,David Braun,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-12-26 15:23:12,815674,Becky Williams,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-12-02 18:12:50,806750,Melissa Rodriguez,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-06-17 15:14:04,909686,Robert James,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-08-18 08:01:59,539776,Sally Griffin,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2024-03-29 13:36:29,50727,Justin Walton,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-04-15 16:35:59,716313,Aaron Coleman,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2023-04-17 05:55:16,150881,Tammy Best,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-03-28 15:22:56,29691,Michael Townsend,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2024-03-07 19:57:32,383240,Thomas Sanchez,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-08-25 23:41:27,787999,Paul Sanford,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2024-01-16 13:47:14,783799,William Myers,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-08-28 21:14:27,585680,Valerie Walsh,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2024-02-23 00:19:33,862942,Keith Sweeney,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-12-15 01:00:17,916845,Benjamin Johns,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-09-11 13:09:15,107,Lauren Gomez,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-09-22 22:41:21,833387,Lisa Graham,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2024-01-24 23:45:25,351294,Barbara Stephens,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2024-02-11 02:25:28,223171,Andrew Phelps,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2024-03-11 09:43:07,612911,Amy Hale,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,GCash
+2024-03-15 06:40:15,927044,Kimberly Palmer,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2024-01-20 09:17:32,112468,David Nelson,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2024-03-09 00:39:34,797081,Madison Mann,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2024-03-22 07:53:10,672447,Madison Gonzalez,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-08-28 16:06:11,630187,Mark Salazar,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-07-15 07:57:57,712248,Dana Solomon,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2024-01-05 18:26:49,831313,Jamie Edwards,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-10-15 05:04:43,38326,Dr. Mike Martinez,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-03-16 04:33:24,332191,Alexandra Carlson,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2024-03-04 12:10:24,250839,Angela Cohen,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-05-05 00:07:58,145017,Cameron Henry,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-01-07 04:00:09,443894,Miguel Lin,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2024-02-07 12:53:48,344745,Mary George,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-08-14 09:00:01,608871,Angela Mays,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2024-01-19 16:58:17,718057,Timothy Hernandez MD,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2024-03-31 07:13:06,762467,Taylor Robinson,Pouch,Red Velvet Crinkles,5,165.00,825.00,GCash
+2023-07-08 21:13:58,630372,Micheal Frazier,Pouch,Melon Crinkles,2,165.00,330.00,GCash
+2023-04-23 19:00:01,792811,Justin Thompson,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2024-01-08 09:26:17,394905,Bob Wagner,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-12-05 15:30:40,602168,Amanda Evans,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-04-29 16:27:37,563667,Joe Clark,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,GCash
+2023-12-09 01:09:32,882824,Adam Scott,Pouch,Strawberry Crinkles,4,165.00,660.00,GCash
+2023-04-18 14:19:26,265526,Dr. Martha Lee,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2024-01-01 01:22:26,815093,David Jackson,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2024-03-27 16:45:15,152706,Mark Jensen,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-11-13 19:56:34,235946,Jesus Miller,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-08-14 08:54:38,714030,Theodore Cox,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-08-04 22:12:47,566460,Jacqueline Smith,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2024-02-24 07:43:03,81851,Courtney Anderson,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-09-10 14:09:06,753714,Nathan Perez,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2024-03-08 07:43:15,137973,Kevin Cooper,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-11-06 13:29:06,240678,Christopher Henderson,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2024-03-15 08:21:19,137143,Suzanne Singh,Pouch,Red Velvet Crinkles,5,165.00,825.00,GCash
+2023-08-14 16:35:20,95035,Martha Mitchell,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2023-08-18 11:29:00,424768,Sarah Manning,Pouch,Ube Crinkles,4,165.00,660.00,Cash
+2023-06-15 12:29:43,592397,Randy Lopez,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2024-03-31 12:26:21,910549,Diana Martinez,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2024-04-02 12:29:37,851099,Jordan Thompson,Jar,Choco Butternut Crinkles,5,200.00,1000.00,Cash
+2023-09-27 21:36:50,752474,Jason Jennings,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2024-03-11 20:08:18,833534,Frederick Fernandez,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-06-19 07:02:00,411290,Kristin Barnes,Pouch,Pandan Crinkles,2,165.00,330.00,GCash
+2023-09-23 14:54:02,968938,Amber Nelson,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-05-14 18:49:49,734750,Cynthia Coleman,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2024-04-08 03:17:13,923735,Christopher Jones,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-12-31 07:11:52,188064,Patricia Phillips DDS,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-12-02 08:20:26,438470,Michael Mcmahon,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-07-08 03:06:09,252726,Hannah Stewart,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-04-30 06:50:17,755605,Karen Adams,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-07-01 22:25:46,647133,Deborah Graves,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-02-16 04:47:19,584487,Justin Sullivan,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-10-17 13:59:28,359114,Michele Beck,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-05-11 15:21:21,166845,Christopher Carr,Pouch,Pandan Crinkles,2,165.00,330.00,GCash
+2023-07-25 09:07:49,574036,Rebecca Lee,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-07-15 23:34:03,812359,Stephen Garner,Pouch,Ube Crinkles,5,165.00,825.00,GCash
+2023-04-17 20:27:05,839980,April Reyes MD,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-05-14 14:05:18,160253,Paul Kelly,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-09-03 00:52:45,708481,Brian Townsend,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-12-13 07:42:49,575300,Edgar Williams,Pouch,Lemon Crinkles,3,165.00,495.00,GCash
+2023-08-16 02:39:43,750166,Sandra Meyer,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-06-28 14:29:58,248821,Amber Jackson,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-09-26 05:46:40,460564,Victoria Boyd,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-11-24 09:08:53,363185,Valerie Ortiz,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2024-02-10 16:13:19,357133,Barbara Stephens,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2024-03-15 01:15:38,493910,Jessica Espinoza,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-12-26 09:43:48,475216,Matthew Green,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2023-10-08 11:51:05,567803,Colleen Rollins,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2024-01-31 09:40:20,473522,Jennifer Burns,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-10-08 12:57:28,140954,Sandra Wilson,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-02-17 22:19:51,371931,Diana Jackson,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-07-25 06:07:56,169499,Brooke Fox,Pouch,Ube Crinkles,2,165.00,330.00,GCash
+2023-08-09 15:40:34,662349,Kathleen Weeks,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2024-03-07 06:13:21,42196,Kimberly Rogers,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2023-07-08 00:25:28,767075,Robert Jones,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-10-26 00:55:17,429154,Gabriel Gonzalez,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-10-10 08:18:49,192349,Jamie Moran,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-01-08 01:08:42,560182,Joseph Forbes,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-09-08 20:09:45,679591,Autumn Harrell,Pouch,Choco-Almond Crinkles,2,165.00,330.00,GCash
+2023-07-28 02:42:45,292167,Anita Carlson,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2023-05-04 10:27:14,209384,Elizabeth Martinez,Jar,Choco Butternut Crinkles,3,200.00,600.00,GCash
+2023-07-03 02:12:09,127969,Amanda Brock,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-10-08 21:39:58,277760,Oscar Duncan,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-04-06 15:53:30,630170,Kristen Martinez,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-03-10 20:19:33,446720,April Fuentes,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2023-05-03 21:20:57,665275,John Martinez,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2024-03-26 06:28:22,207054,Russell Hall,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-09-18 22:28:51,71793,Cheryl Anthony,Pouch,Melon Crinkles,1,165.00,165.00,GCash
+2023-06-04 03:13:50,582460,Steven Johnson,Pouch,Red Velvet Crinkles,3,165.00,495.00,GCash
+2023-07-04 12:53:04,11063,Mark Hunter,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2024-03-26 18:19:22,368377,Alexander West,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-08-17 18:59:06,163285,Lee Love,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-06-09 19:45:23,139611,Amy Prince,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-06-12 00:17:48,557832,Michelle Wilkins,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2024-02-21 22:09:05,468662,Lisa Horton,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2024-01-19 12:19:57,591871,Sheila Cook,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-11-18 16:29:49,199278,Brian Gardner,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2024-03-24 19:45:40,587473,Caitlin Haynes,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2024-03-13 17:53:01,197277,Andrew Smith,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-10-21 12:21:32,732828,Matthew Anderson,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-12-12 20:38:58,309850,Miranda Brown,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-10-21 02:53:57,576503,Mark Vega,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-06-01 22:28:44,372169,Jeffery Reyes,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-01-27 13:32:36,532728,Nicolas Thompson,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-12-10 13:59:24,863933,Kenneth Rogers,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-10-18 20:52:51,155900,James Brady,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-11-13 20:56:38,39274,Justin Owens,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-08-16 03:19:36,538101,Ashley Gray,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-08-03 09:49:15,291570,Lauren Fisher,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2023-09-08 12:01:12,712225,Justin Watts,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-10-04 16:58:42,923323,Ryan Cohen,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2024-03-29 03:51:32,958101,Lisa Davis,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2024-03-09 15:04:31,82751,Taylor Arnold,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2024-01-03 10:44:20,549594,Dennis Davidson,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-04-18 08:03:55,489399,Casey Horton,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2023-06-15 18:59:17,308352,Jesse Reynolds,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-05-24 21:28:20,90269,Ann Shaffer,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-08-23 09:06:40,336037,Regina Phillips,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-05-23 04:03:51,751452,Christopher Smith,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-12-09 21:45:39,115915,Kelly Shelton,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-08-31 14:41:17,515184,Tina Taylor,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-04-09 21:21:18,464872,Michael Long,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-07-03 21:27:11,134961,Jesus Collins,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2024-01-13 09:52:36,554003,Diamond Potts,Pouch,Lemon Crinkles,4,165.00,660.00,GCash
+2024-03-09 22:21:46,320269,Travis Lewis,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-11-07 01:33:47,165384,Heather Smith,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-09-17 21:47:49,771511,Donald Chen,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2024-01-04 22:00:46,227596,Alan Clark,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-07-09 07:54:25,938933,Kristopher Gray,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2024-03-27 18:49:19,495230,Kaitlin Crawford MD,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2024-02-01 04:20:39,380641,Steve Larson,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-07-31 20:16:51,135057,April Romero,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-07-03 23:08:15,664033,Jessica Stevens,Pouch,Ube Crinkles,4,165.00,660.00,Cash
+2024-02-04 13:29:05,968698,Courtney Schwartz,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2024-02-10 13:04:42,246692,Alexis Valentine,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-04-26 10:22:59,515351,Maria Murphy,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2024-03-24 18:15:44,559490,Katherine Reese,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2024-01-26 16:00:11,429678,Cole Knox,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-12-04 03:16:40,923173,Dorothy Rose,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-07-13 17:08:58,401873,Kevin Taylor,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2024-01-27 07:06:46,484287,Troy Curry,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2024-03-07 13:50:10,104133,Sarah Taylor,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2023-12-10 08:20:11,247475,Dale Hunt,Pouch,Lemon Crinkles,3,165.00,495.00,GCash
+2023-10-02 11:56:05,125751,Christopher Kaiser,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-30 17:49:15,262568,Kelly Gomez,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-12-23 01:18:21,7845,Erica Lang,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2023-09-03 17:23:34,827793,Brian Jennings,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-10-11 20:04:59,831848,Laura Evans,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-07-11 13:34:07,57626,Jordan Foster,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-05-15 21:10:57,818239,Jacob Mcgee,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-12-10 02:06:52,584449,Brittany Wagner,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-07-29 12:08:57,870603,Thomas Hardin,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2024-03-06 19:29:50,678612,Richard Jackson,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2023-08-22 16:42:44,294946,Katelyn Mcclain,Pouch,Melon Crinkles,2,165.00,330.00,GCash
+2024-02-21 18:57:16,927858,Adam Lloyd,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-08-01 15:06:49,832829,Juan Vazquez,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2023-09-20 07:47:17,742451,Leslie Hayden,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-12-15 22:15:09,556400,Dustin Flores,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-08-24 05:30:56,689465,Caleb Turner,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2023-08-19 07:32:19,839606,Alicia Rodriguez,Pouch,Choco-Almond Crinkles,1,165.00,165.00,GCash
+2023-07-07 05:08:54,855529,Laura Sanchez,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-08-19 19:06:37,546941,Brooke Smith,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2024-03-04 09:36:32,419995,David Andrews,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-10-03 10:03:18,381642,Jamie Mueller,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-12-06 03:25:07,96215,Anthony Wright,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-11-18 09:20:14,823597,Bryan Richardson,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-09-27 18:24:24,520947,Daniel Martin,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-09-20 04:06:59,818357,Jane Morgan,Pouch,Ube Crinkles,2,165.00,330.00,GCash
+2023-10-29 06:39:11,37203,Matthew Fleming,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-05-29 20:33:05,874005,Vincent Lee,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-04-19 03:25:22,848977,Amy Young,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-12-08 03:05:52,207490,Elizabeth Harris,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2024-02-07 11:53:38,620941,Anne Newman,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-05-08 04:17:39,154332,Justin Shannon,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2024-02-05 10:12:23,549661,Patricia Morales,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-10-15 17:53:37,833612,Alex Ford,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-01-03 05:13:22,654393,Andrew Gray,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-10-23 19:07:04,188685,Daniel Henderson,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2024-03-20 22:09:21,301993,Maria Williamson,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-10-08 20:55:46,455424,Andrew Molina,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2024-03-11 06:10:33,315390,Jamie Harris,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2023-09-01 03:57:15,16493,Brenda Neal,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2024-03-18 12:01:33,519434,Vanessa Hill,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-10-31 12:55:55,60181,Evan Klein,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-06-23 15:53:54,803353,Christine Coleman,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-11-05 18:30:12,911637,Mark Wells,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2024-03-16 05:28:59,404701,Richard Mccarty,Jar,Choco Butternut Crinkles,1,200.00,200.00,GCash
+2023-08-28 08:30:12,535660,Joseph Austin,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2023-11-16 20:00:31,870946,Sergio Moreno,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2024-03-01 18:58:11,932993,Theresa Fisher,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-09-16 02:25:20,729705,Kristin Woods,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2023-09-15 07:00:51,331733,Roger Chavez,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-10-25 11:09:42,774904,Breanna Fernandez,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2023-07-24 12:05:49,777276,Travis Lynch,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-12-16 11:58:33,376907,Ian Curry,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-09-26 11:56:40,81751,Adam Diaz,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2024-03-11 23:17:45,888391,Vanessa Washington,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-12-02 04:12:34,261634,Don Moon,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-08-22 00:01:30,391388,Kathryn Campbell,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-07-18 12:23:17,804960,Timothy Ross,Pouch,Ube Crinkles,5,165.00,825.00,GCash
+2023-11-28 22:15:23,550085,Matthew Hoover,Pouch,Lemon Crinkles,5,165.00,825.00,GCash
+2023-06-11 10:00:04,813963,Gabrielle Smith,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-08-24 21:22:19,238439,Jeffrey Garcia,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2024-02-28 11:13:20,697058,John Williams,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2024-03-07 11:40:28,84819,Sarah Nguyen,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-06-08 20:11:22,172823,Michael Lopez,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2024-01-16 09:23:45,866116,Anthony Davis,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2024-02-01 05:29:44,840878,Joseph Adams,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2023-09-15 12:35:05,706695,Jennifer Mccarty,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-06-24 17:26:59,483536,Christian Harris,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2023-11-25 06:38:47,932225,Leslie Thompson,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-11-24 01:43:32,626497,William Perry,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-09-09 09:33:30,728075,Cassandra Patterson,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-04-11 08:59:17,920416,Daniel Orozco,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2024-01-02 19:48:53,6126,Michael Fletcher,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2024-02-13 04:56:44,768286,James Ellison,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2023-07-26 11:30:42,413337,Michael Fry II,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-05-24 11:00:50,836889,Brittany Barron,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2023-10-19 19:48:12,72733,Ruth Townsend,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-07-05 05:29:48,729973,Jason Fields,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2023-08-01 11:43:20,601735,Ashley Smith,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2023-06-28 00:05:30,636102,Mr. Mark Johnson,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2024-03-11 09:43:02,396712,Ronald Anderson,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2023-07-28 21:12:57,342638,Amy Spencer,Pouch,Melon Crinkles,1,165.00,165.00,GCash
+2024-01-28 23:54:11,621098,Frank Summers,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-08-13 09:27:21,874974,Daniel Thomas,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2023-12-30 03:04:29,984864,Jeffrey Grimes,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-06-27 11:10:38,213513,Michelle Miller,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-05-30 00:23:25,382805,Joseph Wright,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-02-15 23:34:15,341424,Elizabeth Schaefer,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2024-03-03 01:20:57,117826,Kelsey Woodward,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-08-09 12:18:32,204004,Michael Medina,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-08-29 08:46:38,615548,Malik White,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-05-10 23:53:32,80031,Erin Gomez,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-10-29 04:57:13,294850,Lee Ferguson,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-05-20 17:16:56,70187,Eric Martin,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-05-20 23:26:40,884581,Tami Ramirez,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2024-01-19 19:13:12,778269,Deborah Miller,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2024-02-21 17:24:51,280851,Jacob Sims,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-10-05 18:41:35,484281,Erik Bailey,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-07-04 19:28:47,550732,Garrett Dodson,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-12-21 02:16:29,454548,David Chambers,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2024-01-20 03:56:10,463207,Gregory Jones,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-02 20:09:26,11923,Cheryl Porter,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-04-12 08:05:01,61280,Philip Acosta,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2023-06-26 03:57:34,787796,Kim Montgomery,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2024-02-10 12:54:18,946402,Stacey Stevens,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-12-23 05:53:09,689337,Micheal Gaines,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-12-27 00:28:14,378584,Kelly Vance,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-10-31 03:25:15,88155,Andrew Barnett,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2024-02-05 14:15:00,583637,Alejandra West,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-06-05 11:37:33,888626,Scott Thomas,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-07-25 22:08:09,937428,Robert Burgess,Pouch,Ube Crinkles,4,165.00,660.00,Cash
+2023-11-28 02:45:22,442735,Sara Daniels,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-06-18 04:10:34,121137,Wayne Harrison,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-05-14 16:39:20,714845,Christy Adams,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2024-01-15 06:22:57,392170,Ann Benjamin,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-07-05 06:22:39,116528,Frank Wright,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-12-03 09:51:11,404730,Nicholas Pratt,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-09-21 07:01:10,350411,Mary Woods,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-04-13 09:04:35,801256,Sarah Wright,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-07-10 00:25:41,500610,Theodore Cruz,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-06-22 04:58:28,60144,Wesley Vasquez,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2024-02-05 21:17:09,279732,Larry Jones,Pouch,Strawberry Crinkles,1,165.00,165.00,GCash
+2023-04-15 07:10:46,77521,Gina Mcdonald,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2024-01-26 12:24:22,374054,Joy Keller,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-09-07 12:24:43,431024,Tyler Stone,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-12-28 02:42:13,395107,Jodi Rush,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2023-06-17 08:28:00,415384,Teresa Bridges,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,GCash
+2023-05-21 13:31:56,722344,Lydia Diaz,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2024-03-21 07:06:51,191757,Kari Williams,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-08-08 04:20:02,661404,John Hatfield,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2024-01-03 07:56:58,749908,Mathew Martin,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-07-04 00:01:30,703950,Raymond Carrillo DVM,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-11-06 01:11:38,736344,Brenda Solis,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-03-21 11:16:21,32215,Lisa Farmer,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-12-08 03:07:07,63974,Jordan Cochran,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2024-02-23 04:02:47,1652,Sean Riley,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-11-12 22:12:15,932854,Robert Smith,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2023-11-07 08:08:28,213990,Teresa Rice,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-04-30 15:21:28,299053,Michael Wolfe,Pouch,Red Velvet Crinkles,2,165.00,330.00,GCash
+2023-06-24 23:06:35,200524,Lauren Mills,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2024-02-11 10:58:04,707338,Richard Shea,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2024-03-17 05:47:40,628014,Ethan Tate,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-10-01 16:35:33,968335,Brian Watson,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-04-24 05:14:24,745900,Joseph Smith,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2024-04-05 17:14:11,42986,Bridget Sampson,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,GCash
+2023-05-22 01:56:28,48466,Ashley Chavez,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-06-16 18:08:47,229812,Timothy Torres,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-08-17 07:48:10,755614,Maurice Lucas,Pouch,Ube Crinkles,1,165.00,165.00,GCash
+2024-01-04 17:08:25,361959,Joshua Alexander,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-03-16 11:25:44,783508,Kristina Rodriguez,Pouch,Pandan Crinkles,2,165.00,330.00,GCash
+2023-10-21 08:00:02,685086,Jose Perkins,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-10-02 03:00:08,765317,Scott Day,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-12-08 01:09:43,464332,Jeremy Spence,Pouch,Lemon Crinkles,5,165.00,825.00,GCash
+2023-10-01 12:40:07,92889,Sheila Glover,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-08-24 13:44:21,234825,Christina Shaw,Pouch,Melon Crinkles,3,165.00,495.00,GCash
+2023-09-11 16:02:41,20448,Kelli Rubio,Pouch,Melon Crinkles,3,165.00,495.00,GCash
+2023-09-19 07:36:52,777018,Emily Kelly,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-05-01 03:48:16,905074,Ashley Braun,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-05-04 05:46:19,464649,Kelsey Carr,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2023-10-09 01:30:20,979032,Bridget Rodriguez,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-06-28 08:44:48,860989,Julia Santos,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-10-30 09:23:31,777664,Brooke Wilson,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-05-26 14:04:38,543824,Anthony Allen,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-10-30 06:19:40,755718,Joan Lopez,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2024-02-10 12:43:26,750621,Janet Black,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2024-03-08 23:48:08,199177,Scott Sharp,Pouch,Pandan Crinkles,1,165.00,165.00,GCash
+2023-11-11 22:08:56,129363,Jacqueline Maynard,Jar,Mango Crinkles,5,165.00,825.00,GCash
+2023-05-30 21:55:59,905074,Phillip Young,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2024-02-01 18:55:11,853361,Dawn Johnson,Pouch,Lemon Crinkles,4,165.00,660.00,GCash
+2023-11-24 23:03:51,37172,Debbie Nguyen,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-10-23 10:42:03,614423,Brian Wilson,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-08-11 07:46:28,692448,Mr. Christopher Weeks,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2024-03-26 15:55:26,463301,Harry Santos,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2023-04-19 15:11:22,848233,Maria Roach,Pouch,Red Velvet Crinkles,4,165.00,660.00,Cash
+2024-01-25 20:05:16,480522,Jacqueline Davis,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2024-01-14 06:02:06,156357,David Scott,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2024-02-05 14:01:19,694594,Paula Bond,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-06-16 20:24:53,871464,James Walker,Pouch,Red Velvet Crinkles,5,165.00,825.00,GCash
+2023-08-09 21:13:28,462805,Robert Mcbride,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-07-18 06:29:40,552170,Christopher Wang,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-05-06 06:58:31,989750,Julie Baker,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2024-02-26 15:12:31,362965,Michael Owens,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-01-12 16:26:36,157837,Eugene Bell,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-06-26 10:00:45,596821,Elizabeth Scott,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-10-08 12:20:49,691958,Jessica Delacruz,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2023-08-05 10:12:23,936762,Spencer Lucas,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-10-22 05:21:51,72045,Ethan Fleming,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-11-19 02:44:49,983629,Morgan Sullivan,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-04-16 02:40:52,877910,Rebecca White,Pouch,Pandan Crinkles,4,165.00,660.00,GCash
+2023-06-24 21:29:52,717300,Matthew Rodriguez,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,GCash
+2023-11-17 04:36:43,164954,Sarah Davis,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2024-02-08 19:25:12,227502,Dennis Miller,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-11-24 20:52:34,318780,Javier Gamble,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-02-10 04:19:01,328884,Tanya Lee,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-10-14 08:30:46,85395,Sheila Stephens,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-10-29 16:47:28,935630,James Washington,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-06-18 04:09:52,117118,Cynthia Short,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2023-11-15 15:23:04,48571,Jaclyn Camacho,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-12-30 07:31:01,255360,Laurie Peterson,Pouch,Lemon Crinkles,5,165.00,825.00,GCash
+2024-02-22 09:20:54,715200,Bryan Evans,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-01-24 17:26:39,157513,Keith Stokes,Pouch,Lemon Crinkles,4,165.00,660.00,GCash
+2023-07-29 07:48:09,502752,Paul Little,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-07-20 07:35:20,997716,Joshua Lewis,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-03-26 03:40:34,774110,Chloe Allen MD,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2024-03-17 03:57:31,923339,Brandy Webb,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2024-02-10 20:23:26,484156,William Hall,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2024-03-19 14:47:22,237427,Teresa Hart,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2023-07-09 13:05:59,118054,Matthew Joseph,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2024-01-11 22:54:05,120021,Dennis Decker,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2024-01-09 13:50:31,798207,James Lawrence,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2023-05-07 00:40:35,341189,Patrick Harrington II,Jar,Choco Butternut Crinkles,4,200.00,800.00,GCash
+2023-05-26 00:44:13,492517,David Luna,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-02-11 18:06:50,78012,Robert Carter,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-04-18 13:15:49,385334,David Thompson,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-04-28 12:43:09,981113,Anne Stevens,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-06-18 19:05:24,154341,Doris Caldwell,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2023-04-28 20:52:18,736972,Joseph Johnson,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2024-02-19 23:14:52,970337,Jon Jones,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-07-23 07:37:31,331537,Carrie Daniels,Pouch,Choco-Almond Crinkles,4,165.00,660.00,GCash
+2024-01-14 04:03:00,653273,Mario Nelson,Pouch,Lemon Crinkles,1,165.00,165.00,GCash
+2023-09-15 14:09:46,548798,James Clements,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-04-29 11:04:15,254927,Andres Rivera,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-11-12 07:24:25,666980,Wesley Atkins,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-06-24 13:59:58,181529,Austin Fernandez,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2023-06-07 11:54:19,83631,Gary Harris,Pouch,Red Velvet Crinkles,3,165.00,495.00,Cash
+2023-09-01 21:37:11,775116,Brent Martinez,Pouch,Melon Crinkles,3,165.00,495.00,Cash
+2023-12-23 12:20:20,536214,Tabitha Santiago,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-07-28 21:07:08,596124,William Davidson,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-20 09:26:50,442540,Jeremy Parker,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-09-06 22:14:11,540279,Darius Benitez,Pouch,Melon Crinkles,2,165.00,330.00,GCash
+2023-08-21 09:53:38,674551,Ronald Williams,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-08-08 03:04:33,881508,Anthony Velasquez,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2024-01-10 22:56:30,429198,Rose Lee,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-09-30 13:32:54,724906,Michael Collins,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-10-09 06:56:11,18871,Rachel Pratt,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2024-02-23 22:24:04,718470,Frank West,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2024-02-04 23:49:13,582992,Lisa Joyce,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-11-27 05:11:10,373727,Daniel Parks,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-07-23 05:49:49,751080,Rose Schwartz,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2023-05-06 23:43:37,903833,Michelle Anderson,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2023-12-16 23:27:57,29907,Hannah Sparks,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-06-03 23:23:47,528078,Joseph Foster,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-10-20 00:04:47,900364,Mason Beltran,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2024-03-01 11:25:07,60575,Misty Rivera,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,Cash
+2023-11-18 10:21:01,24775,Gary Norris,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-05-15 09:49:54,530878,Daniel Page,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-08-26 06:31:30,499516,Brian Woodard,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-07-28 12:30:49,952099,Christine Macias,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2024-02-19 11:38:46,149969,Jason Cain,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2024-02-04 22:25:50,523103,Jason Ashley,Jar,Mango Crinkles,5,165.00,825.00,Cash
+2024-04-06 02:27:45,165102,Jacob Potter,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-05-08 08:58:24,277668,Ryan Baker,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-06-24 17:36:49,808270,Kathleen Mejia,Jar,Choco Butternut Crinkles,4,200.00,800.00,GCash
+2023-08-12 20:08:07,158884,Elizabeth Clark,Pouch,Ube Crinkles,4,165.00,660.00,GCash
+2023-10-23 00:32:34,941588,Robert Benson,Jar,Mango Crinkles,4,165.00,660.00,GCash
+2024-03-28 08:24:38,549116,Jeffrey Barton,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash
+2023-11-25 18:59:28,228270,Steven Williams,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-04-28 23:29:01,477074,Katherine Giles,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-11-05 21:20:25,77472,Michelle Gilbert,Jar,Mango Crinkles,3,165.00,495.00,GCash
+2024-02-28 21:20:46,52908,Heather Roberts,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2024-02-18 02:04:49,862469,Raymond Maddox,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-12-09 08:27:27,922796,Austin Allison,Pouch,Lemon Crinkles,2,165.00,330.00,Cash
+2023-04-16 12:46:57,980930,Jeremy Wood,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2024-01-27 22:50:47,627054,Jennifer Rojas,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-08-11 11:59:15,304403,Walter Silva,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2024-03-04 19:05:52,735471,Christopher Blake,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,Cash
+2023-07-14 15:34:59,278916,Kimberly Carr,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-08-06 06:51:07,218973,Michael Lawrence,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-02-24 09:48:59,360685,Tammy Coleman,Pouch,Strawberry Crinkles,2,165.00,330.00,GCash
+2023-06-17 14:31:37,208890,Brenda Jones,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-05-29 09:54:57,864009,Mary Ball,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2023-09-25 11:27:27,179704,Aaron Mccarthy,Pouch,Melon Crinkles,5,165.00,825.00,GCash
+2024-01-09 14:05:25,499463,Lauren Williams,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-08-09 08:06:48,381466,Miguel Brown,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-05-18 20:53:59,225969,Regina Chavez,Pouch,Pandan Crinkles,1,165.00,165.00,Cash
+2023-11-05 17:05:00,804241,Matthew George,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-11-03 12:41:40,898073,Joe Stone,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-05-18 05:25:11,214246,Jasmine Summers,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,GCash
+2023-04-12 23:54:04,486780,Kathy Williams,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-05-17 02:24:09,973452,Michelle Edwards,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,Cash
+2023-05-31 04:23:14,105447,Darrell Martin,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-11-06 07:24:46,854380,Jennifer Mendoza,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-08-16 00:47:43,827512,Michael Pineda,Pouch,Ube Crinkles,1,165.00,165.00,Cash
+2024-02-17 18:48:54,566860,Christian Day,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-08-27 20:38:07,891691,Timothy Stevens,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-08-30 01:03:12,43553,Robert Wells,Pouch,Choco-Almond Crinkles,4,165.00,660.00,Cash
+2023-04-25 21:30:34,398551,Victor Smith,Jar,Choco Butternut Crinkles,1,200.00,200.00,GCash
+2024-01-09 00:45:15,307515,Michael Allen,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2023-05-28 21:41:40,581542,Kevin Foley,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-10-27 05:58:28,510648,Zachary Williams,Jar,Mango Crinkles,1,165.00,165.00,GCash
+2023-05-12 06:46:04,507580,David Jenkins,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2023-04-13 22:56:35,685167,Chad Wood,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2024-04-01 00:38:26,333759,Jonathan Franklin,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2024-02-08 01:26:15,837824,Brenda Perry,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-09-09 18:44:48,462877,Bonnie Robinson,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2024-01-21 09:31:26,987574,Ashley Smith,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-10-11 21:48:05,657826,Renee Bowen,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-12-06 15:30:16,883745,Marissa Gill,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-06-08 08:23:50,957286,Justin Johnson,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,GCash
+2024-02-29 02:55:43,494975,Lisa Watkins,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-11-12 00:28:48,799887,Gregory Townsend,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-04-28 20:51:33,100885,Elizabeth Mitchell,Jar,Choco Butternut Crinkles,4,200.00,800.00,Cash
+2024-01-15 03:53:21,553227,Paul Black,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2023-10-14 02:49:23,493906,Kyle Smith,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2024-02-03 12:54:26,576849,Jeremy Boyd,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2024-03-11 13:50:55,978760,Tiffany Nichols,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2024-02-07 05:33:02,618028,Becky Decker,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2024-01-25 15:24:01,998210,Kristen Mcintyre,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-11-10 02:43:18,156683,Melissa Martinez,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-10-20 15:03:49,472761,Michael Conner II,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-05-20 19:31:59,890154,Charles Dorsey,Jar,Choco Butternut Crinkles,5,200.00,1000.00,Cash
+2024-03-29 05:34:15,357872,Jonathan Fleming,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-06-04 13:38:49,567773,Crystal Boone,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-10-17 20:14:01,936476,John Bishop,Pouch,Strawberry Crinkles,4,165.00,660.00,GCash
+2024-03-10 04:26:23,805970,Brooke Romero,Pouch,Red Velvet Crinkles,2,165.00,330.00,GCash
+2023-06-03 22:40:50,297897,Ashley Cortez,Jar,Choco Butternut Crinkles,4,200.00,800.00,GCash
+2023-07-19 19:30:43,841357,Karla Mitchell,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2024-02-01 16:42:49,656177,Edward Carter,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-12-17 02:52:48,653713,Shannon Schaefer,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-04-12 20:43:42,710629,Bailey Bell,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-01-26 04:01:06,88642,Shannon George,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-03-17 11:58:13,442336,Candace Wright,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2024-03-01 00:44:09,355554,Carlos Reed,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-12-26 19:02:43,90566,Natasha Newman,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-05-12 00:07:17,783334,Angela Bush,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2023-10-30 16:37:30,31976,Benjamin Donovan,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-11-16 23:11:02,641720,Emily Nelson,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-10-12 05:55:34,185510,Mike Rodriguez,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-07-01 13:52:27,909027,Gary Kemp,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2023-05-02 05:55:15,400481,Sandra Johnson,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2024-03-30 10:13:31,272744,James Jensen,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2023-06-28 00:30:01,292308,Melissa Evans,Pouch,Red Velvet Crinkles,1,165.00,165.00,GCash
+2023-10-05 00:24:23,216945,Kenneth Evans,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-11-15 15:30:51,607077,Cynthia Aguilar,Jar,Mango Crinkles,4,165.00,660.00,Cash
+2024-01-17 01:30:56,640630,Katherine Cooper,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-07-04 19:55:52,81583,Matthew Spears,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-07-04 07:00:53,559077,Cole Strickland,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-07-12 12:41:30,502762,Erin Brown,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-07-13 02:00:41,454202,Joshua Jones,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-06-22 21:13:33,360935,William Wheeler,Jar,Choco Butternut Crinkles,4,200.00,800.00,GCash
+2023-12-22 08:08:10,678813,Sara Salas,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2024-02-09 23:32:52,719780,John Kim,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-07-26 09:23:59,308659,Lisa Diaz,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2024-02-19 15:51:03,925609,Anthony Bryant,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-04-16 16:33:45,994530,Mackenzie Porter,Pouch,Pandan Crinkles,5,165.00,825.00,Cash
+2023-11-28 13:12:02,420069,Megan Gaines,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2024-03-03 20:19:24,873826,David Pennington,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-06-06 02:33:31,715676,Gregory Buchanan,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-09-02 16:18:24,420984,Jennifer Allen,Pouch,Melon Crinkles,1,165.00,165.00,Cash
+2023-05-12 03:04:39,446619,Brian Raymond,Jar,Choco Butternut Crinkles,5,200.00,1000.00,GCash
+2023-06-27 20:47:49,833614,Timothy Jones,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2024-02-22 07:49:07,744442,Erika Walker,Pouch,Chocolate Crinkles,4,165.00,660.00,GCash
+2023-05-09 21:57:01,824820,Robert Clark,Pouch,Pandan Crinkles,4,165.00,660.00,Cash
+2024-03-26 21:42:40,504216,Sophia Davis,Pouch,Red Velvet Crinkles,2,165.00,330.00,GCash
+2023-08-13 14:58:42,191875,Mia Gutierrez,Pouch,Choco-Almond Crinkles,4,165.00,660.00,GCash
+2024-03-19 12:17:41,5290,Jack Peterson,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-10-04 22:11:18,144079,Bonnie Castillo,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2024-03-23 17:08:04,893975,Kevin Garza,Jar,Choco Butternut Crinkles,2,200.00,400.00,GCash
+2023-10-06 17:42:05,839689,Alexandra Oliver,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-07-15 01:22:17,946205,Jenna Robertson,Pouch,Chocolate Crinkles,5,165.00,825.00,GCash
+2023-11-01 04:09:15,571359,Debra Webster,Pouch,Strawberry Crinkles,3,165.00,495.00,GCash
+2023-06-18 02:35:01,252958,Jennifer Gonzales,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-05-13 14:37:21,811992,Roberto Foster,Pouch,Pandan Crinkles,3,165.00,495.00,Cash
+2023-10-19 10:16:21,820285,Peter Anderson,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2024-03-15 13:16:40,883233,Ashley Herring,Pouch,Pandan Crinkles,3,165.00,495.00,GCash
+2024-02-29 08:50:07,510204,Joe Lopez,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2024-02-27 22:16:35,502568,Nathaniel Bennett,Jar,Mango Crinkles,1,165.00,165.00,Cash
+2023-11-30 10:13:43,197284,Julie Day,Jar,Mango Crinkles,3,165.00,495.00,Cash
+2023-10-06 14:01:02,79088,Neil Livingston,Pouch,Strawberry Crinkles,4,165.00,660.00,GCash
+2023-07-09 15:44:37,328665,Angelica Smith,Pouch,Choco-Almond Crinkles,1,165.00,165.00,Cash
+2023-08-17 10:27:10,55925,Robert Mcclain,Pouch,Melon Crinkles,5,165.00,825.00,Cash
+2023-12-25 14:43:34,651032,Andrea Collins,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-09-26 15:49:17,458313,Taylor Smith,Pouch,Ube Crinkles,4,165.00,660.00,GCash
+2023-04-22 03:31:10,345280,Edward Sullivan,Jar,Choco Butternut Crinkles,5,200.00,1000.00,Cash
+2023-11-11 17:51:40,798914,Melvin Wright,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2024-01-31 12:53:30,300241,Charles Cook,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2024-01-26 20:02:49,923160,Yvonne Perez,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-08-17 14:49:54,682994,Norma Joseph,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-01-27 21:00:34,429391,Barbara Bush,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-06-16 09:36:56,879607,Olivia Ray,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-07-15 07:03:03,199526,Brittany Guerrero,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-12-14 20:17:02,464911,Kimberly Nichols,Pouch,Strawberry Crinkles,1,165.00,165.00,Cash
+2023-04-11 14:13:51,191745,Breanna Gutierrez,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2023-11-21 21:18:33,358319,Hunter Williamson,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-10-29 17:37:13,290471,Connor Lane,Pouch,Lemon Crinkles,3,165.00,495.00,Cash
+2023-07-28 15:37:59,842645,Charles Cameron,Pouch,Chocolate Crinkles,2,165.00,330.00,Cash
+2023-11-07 22:25:27,498446,Patrick Woodward,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2023-08-21 23:04:21,133448,Daniel Wilson,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-12-12 04:35:56,476710,Christopher Brooks,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2024-02-27 16:30:45,575118,Sara Dixon,Pouch,Strawberry Crinkles,5,165.00,825.00,GCash
+2023-04-11 15:59:54,233090,Jennifer Phillips,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-11-26 11:23:40,865491,Brandon Clarke,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-04-30 02:10:28,468933,David Stone,Jar,Choco Butternut Crinkles,2,200.00,400.00,Cash
+2023-07-23 20:25:03,380233,Lisa Wilkerson,Pouch,Choco-Almond Crinkles,1,165.00,165.00,GCash
+2023-09-09 17:34:15,547991,Erika Smith,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2024-01-29 02:33:15,794128,Daisy Singh,Pouch,Lemon Crinkles,5,165.00,825.00,Cash
+2023-09-11 19:19:08,372314,Vicki Gray,Pouch,Choco-Almond Crinkles,5,165.00,825.00,Cash
+2023-11-26 03:17:55,171194,Adam Fox,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2023-06-01 11:48:50,665853,Valerie Bender,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,GCash
+2023-11-11 14:59:31,625106,Devin Oliver,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-02-11 00:08:22,637776,Jessica Fisher,Pouch,Lemon Crinkles,5,165.00,825.00,GCash
+2023-07-06 12:55:25,442277,Clayton Boyle,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-10-17 03:55:01,667120,Donald Mcintosh,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2023-12-28 21:05:57,985125,Erin Hester,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-08-07 14:04:03,414848,Jessica Ellis,Pouch,Melon Crinkles,2,165.00,330.00,Cash
+2023-05-18 18:29:46,104344,Latoya Riggs,Pouch,Pandan Crinkles,2,165.00,330.00,Cash
+2023-12-12 08:47:12,514603,Rachel Smith,Pouch,Lemon Crinkles,1,165.00,165.00,Cash
+2023-08-18 14:35:04,708939,Martha Williamson,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-08-28 11:14:51,190782,Harold Chung,Pouch,Chocolate Crinkles,4,165.00,660.00,Cash
+2024-02-16 18:30:40,459435,Tracie Clay,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-10-22 17:00:04,790155,Ryan Hill,Pouch,Strawberry Crinkles,2,165.00,330.00,Cash
+2023-07-21 03:14:17,595838,Alicia Hall,Pouch,Melon Crinkles,4,165.00,660.00,Cash
+2023-08-22 21:13:17,895674,Taylor Andrews,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-09-10 14:24:27,473006,Crystal Blair,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2024-03-26 04:31:32,972653,Thomas Russell,Pouch,Red Velvet Crinkles,2,165.00,330.00,Cash
+2023-04-26 19:24:38,785308,David Byrd,Pouch,Red Velvet Crinkles,5,165.00,825.00,Cash
+2023-10-09 19:04:38,701132,Richard Carson,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-08-05 10:28:48,140678,Eddie Blackwell,Pouch,Choco-Almond Crinkles,3,165.00,495.00,GCash
+2023-09-29 09:09:10,289817,Jennifer Brown,Pouch,Choco-Almond Crinkles,3,165.00,495.00,Cash
+2023-09-11 22:52:53,740191,Teresa Petty,Pouch,Ube Crinkles,4,165.00,660.00,Cash
+2023-10-04 11:22:43,477647,Andre Holland,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2024-01-25 14:25:40,376931,Jenna Turner,Pouch,Lemon Crinkles,4,165.00,660.00,Cash
+2024-02-04 13:55:23,932009,Patrick Butler,Pouch,Strawberry Crinkles,3,165.00,495.00,Cash
+2024-01-01 23:40:56,549340,Amanda Smith,Pouch,Chocolate Crinkles,3,165.00,495.00,Cash
+2023-12-30 05:55:16,138760,Mary Ramirez,Jar,Mango Crinkles,2,165.00,330.00,Cash
+2023-04-11 00:53:15,706808,Tamara Giles,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,Cash
+2023-08-11 18:21:52,406509,Betty Johnson,Pouch,Choco-Almond Crinkles,4,165.00,660.00,GCash
+2023-12-23 22:18:20,685931,Kylie Baldwin,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-07-16 12:34:12,992331,Jessica Davis,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-11-29 14:09:31,781298,Casey Munoz,Pouch,Chocolate Crinkles,3,165.00,495.00,GCash
+2023-09-15 20:36:40,719781,Karen Perry,Pouch,Ube Crinkles,5,165.00,825.00,Cash
+2023-10-11 20:35:56,338863,Megan Wong,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2023-11-18 12:34:39,143199,Christopher Miller,Jar,Mango Crinkles,5,165.00,825.00,GCash
+2023-11-25 13:37:04,861278,Jose Wu,Pouch,Lemon Crinkles,3,165.00,495.00,GCash
+2024-03-30 02:57:33,71423,Sydney Blake,Pouch,Red Velvet Crinkles,1,165.00,165.00,Cash
+2024-03-23 23:05:53,974319,Joseph Cisneros,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,Cash
+2024-03-08 00:03:02,766327,Cathy Chan,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-10-23 22:41:56,740184,Veronica Torres,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2024-02-03 10:29:58,243801,Miguel Grant,Pouch,Strawberry Crinkles,4,165.00,660.00,Cash
+2023-07-21 20:59:10,318076,Diane Thompson,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-11-03 09:56:58,458958,Angel Bauer,Pouch,Chocolate Crinkles,1,165.00,165.00,GCash
+2023-11-02 13:50:57,890879,Jill Curtis,Jar,Mango Crinkles,2,165.00,330.00,GCash
+2023-07-11 12:26:07,873867,Sarah Norris,Pouch,Choco-Almond Crinkles,2,165.00,330.00,Cash
+2023-05-20 12:31:02,620906,Shane Kelly,Pouch,Pandan Crinkles,5,165.00,825.00,GCash
+2023-12-27 10:36:24,701755,Kaitlin Singleton,Pouch,Chocolate Crinkles,2,165.00,330.00,GCash
+2023-11-03 19:25:03,58707,Ashley Whitehead,Pouch,Strawberry Crinkles,5,165.00,825.00,Cash
+2023-04-14 03:42:31,822595,Madison Garcia,Jar,Choco Butternut Crinkles,1,200.00,200.00,Cash
+2023-07-14 06:52:16,537282,David Scott,Pouch,Ube Crinkles,3,165.00,495.00,Cash
+2023-09-27 15:31:40,442376,Elizabeth Obrien,Pouch,Chocolate Crinkles,5,165.00,825.00,Cash
+2023-07-27 15:53:14,672507,Kelsey Jones,Pouch,Chocolate Crinkles,1,165.00,165.00,Cash
+2023-09-21 14:40:44,240965,Michael Cole,Pouch,Choco-Almond Crinkles,4,165.00,660.00,GCash
+2024-03-10 15:02:14,883404,Douglas Evans,Jar,Choco Butternut Crinkles,3,200.00,600.00,Cash
+2023-08-12 11:07:44,558750,Kimberly Clark,Pouch,Ube Crinkles,2,165.00,330.00,Cash
+2023-07-25 03:20:05,156762,Beth Brown,Pouch,Melon Crinkles,4,165.00,660.00,GCash
+2023-10-18 11:11:21,419733,Lisa Rodriguez,Pouch,Lemon Crinkles,2,165.00,330.00,GCash
+2023-05-05 23:25:12,94802,Denise Smith,Pouch,Red Velvet Crinkles,4,165.00,660.00,GCash

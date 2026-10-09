@@ -1,0 +1,634 @@
+{
+  "batangas_3m": {
+    "area": "batangas",
+    "slug": "3m",
+    "storeName": "3M",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_3m.json"
+  },
+  "batangas_aalomibalagtas": {
+    "area": "batangas",
+    "slug": "aalomibalagtas",
+    "storeName": "AA Lomi Balagtas",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_aalomibalagtas.json"
+  },
+  "batangas_butchalangilan": {
+    "area": "batangas",
+    "slug": "butchalangilan",
+    "storeName": "Butch Alangilan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_butchalangilan.json"
+  },
+  "batangas_citimartbaystaybaymall": {
+    "area": "batangas",
+    "slug": "citimartbaystaybaymall",
+    "storeName": "Citimart Baystay/Baymall",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_citimartbaystaybaymall.json"
+  },
+  "batangas_citimartcaedo": {
+    "area": "batangas",
+    "slug": "citimartcaedo",
+    "storeName": "Citimart Caedo",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_citimartcaedo.json"
+  },
+  "batangas_citimartnuciti": {
+    "area": "batangas",
+    "slug": "citimartnuciti",
+    "storeName": "Citimart Nuciti",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_citimartnuciti.json"
+  },
+  "batangas_citimartshoponrizalave": {
+    "area": "batangas",
+    "slug": "citimartshoponrizalave",
+    "storeName": "Citimart Shop on/ Rizal Ave",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_citimartshoponrizalave.json"
+  },
+  "batangas_graciaspasalubong": {
+    "area": "batangas",
+    "slug": "graciaspasalubong",
+    "storeName": "Gracias Pasalubong",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_graciaspasalubong.json"
+  },
+  "batangas_jhorjhanesbalagtas": {
+    "area": "batangas",
+    "slug": "jhorjhanesbalagtas",
+    "storeName": "Jhorjhanes Balagtas",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_jhorjhanesbalagtas.json"
+  },
+  "batangas_shellselectkumintangibaba": {
+    "area": "batangas",
+    "slug": "shellselectkumintangibaba",
+    "storeName": "Shell Select Kumintang Ibaba",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_shellselectkumintangibaba.json"
+  },
+  "batangas_sidclibjo": {
+    "area": "batangas",
+    "slug": "sidclibjo",
+    "storeName": "SIDC Libjo",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_sidclibjo.json"
+  },
+  "batangas_sidcmain": {
+    "area": "batangas",
+    "slug": "sidcmain",
+    "storeName": "SIDC Main",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_sidcmain.json"
+  },
+  "batangas_sidcpallocan": {
+    "area": "batangas",
+    "slug": "sidcpallocan",
+    "storeName": "SIDC Pallocan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_sidcpallocan.json"
+  },
+  "batangas_sidcsorosoroilaya": {
+    "area": "batangas",
+    "slug": "sidcsorosoroilaya",
+    "storeName": "SIDC Soro-Soro Ilaya",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_sidcsorosoroilaya.json"
+  },
+  "batangas_sidctulo": {
+    "area": "batangas",
+    "slug": "sidctulo",
+    "storeName": "SIDC Tulo",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_sidctulo.json"
+  },
+  "batangas_wanamsabukidbalagtas": {
+    "area": "batangas",
+    "slug": "wanamsabukidbalagtas",
+    "storeName": "Wanam sa Bukid Balagtas",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_wanamsabukidbalagtas.json"
+  },
+  "batangas_wanamsabukidgulod": {
+    "area": "batangas",
+    "slug": "wanamsabukidgulod",
+    "storeName": "Wanam sa Bukid Gulod",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_wanamsabukidgulod.json"
+  },
+  "batangas_wanamsabukidpalengke": {
+    "area": "batangas",
+    "slug": "wanamsabukidpalengke",
+    "storeName": "Wanam sa Bukid Palengke",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_wanamsabukidpalengke.json"
+  },
+  "bauan_aalomitaal": {
+    "area": "bauan",
+    "slug": "aalomitaal",
+    "storeName": "AA Lomi Taal",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_aalomitaal.json"
+  },
+  "bauan_bulabog": {
+    "area": "bauan",
+    "slug": "bulabog",
+    "storeName": "Bulabog",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_bulabog.json"
+  },
+  "bauan_citimartbauan": {
+    "area": "bauan",
+    "slug": "citimartbauan",
+    "storeName": "Citimart Bauan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_citimartbauan.json"
+  },
+  "bauan_citimartlemery": {
+    "area": "bauan",
+    "slug": "citimartlemery",
+    "storeName": "Citimart Lemery",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_citimartlemery.json"
+  },
+  "bauan_dyans": {
+    "area": "bauan",
+    "slug": "dyans",
+    "storeName": "Dyan's",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_dyans.json"
+  },
+  "bauan_hmmmuzon": {
+    "area": "bauan",
+    "slug": "hmmmuzon",
+    "storeName": "HMM Muzon",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_hmmmuzon.json"
+  },
+  "bauan_jorjhanesstarita": {
+    "area": "bauan",
+    "slug": "jorjhanesstarita",
+    "storeName": "Jorjhanes Sta. Rita",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_jorjhanesstarita.json"
+  },
+  "bauan_ofels": {
+    "area": "bauan",
+    "slug": "ofels",
+    "storeName": "Ofels",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_ofels.json"
+  },
+  "bauan_sidcbauan": {
+    "area": "bauan",
+    "slug": "sidcbauan",
+    "storeName": "SIDC Bauan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_sidcbauan.json"
+  },
+  "bauan_sidcstateresita": {
+    "area": "bauan",
+    "slug": "sidcstateresita",
+    "storeName": "SIDC Sta. Teresita",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/bauan_sidcstateresita.json"
+  },
+  "lipa_aalomilipa": {
+    "area": "lipa",
+    "slug": "aalomilipa",
+    "storeName": "AA Lomi Lipa",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_aalomilipa.json"
+  },
+  "lipa_banaybanayeatery": {
+    "area": "lipa",
+    "slug": "banaybanayeatery",
+    "storeName": "Banay-banay Eatery",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_banaybanayeatery.json"
+  },
+  "lipa_butchlipa": {
+    "area": "lipa",
+    "slug": "butchlipa",
+    "storeName": "Butch Lipa",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_butchlipa.json"
+  },
+  "lipa_chicha": {
+    "area": "lipa",
+    "slug": "chicha",
+    "storeName": "Chicha",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_chicha.json"
+  },
+  "lipa_kubosahalamananmalarayat": {
+    "area": "lipa",
+    "slug": "kubosahalamananmalarayat",
+    "storeName": "Kubo sa Halamanan Malarayat",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_kubosahalamananmalarayat.json"
+  },
+  "lipa_kubosahalamananmarawoy": {
+    "area": "lipa",
+    "slug": "kubosahalamananmarawoy",
+    "storeName": "Kubo sa Halamanan Marawoy",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_kubosahalamananmarawoy.json"
+  },
+  "lipa_lbnmarawoy": {
+    "area": "lipa",
+    "slug": "lbnmarawoy",
+    "storeName": "LBN Marawoy",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_lbnmarawoy.json"
+  },
+  "lipa_lipagrilllipa": {
+    "area": "lipa",
+    "slug": "lipagrilllipa",
+    "storeName": "Lipa Grill Lipa",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_lipagrilllipa.json"
+  },
+  "lipa_luciascafelipa": {
+    "area": "lipa",
+    "slug": "luciascafelipa",
+    "storeName": "Lucias Cafe Lipa",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_luciascafelipa.json"
+  },
+  "lipa_shellselectbalintawak": {
+    "area": "lipa",
+    "slug": "shellselectbalintawak",
+    "storeName": "Shell Select Balintawak",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_shellselectbalintawak.json"
+  },
+  "lipa_shellselecttambo": {
+    "area": "lipa",
+    "slug": "shellselecttambo",
+    "storeName": "Shell Select Tambo",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_shellselecttambo.json"
+  },
+  "lipa_sidcmahabangparang": {
+    "area": "lipa",
+    "slug": "sidcmahabangparang",
+    "storeName": "SIDC Mahabang Parang",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_sidcmahabangparang.json"
+  },
+  "lipa_sidcsanjose": {
+    "area": "lipa",
+    "slug": "sidcsanjose",
+    "storeName": "SIDC San Jose",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lipa_sidcsanjose.json"
+  },
+  "lucena_bangihan": {
+    "area": "lucena",
+    "slug": "bangihan",
+    "storeName": "Bangihan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_bangihan.json"
+  },
+  "lucena_dagatcusinagubat": {
+    "area": "lucena",
+    "slug": "dagatcusinagubat",
+    "storeName": "Dagat Cusina Gubat",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_dagatcusinagubat.json"
+  },
+  "lucena_girasoles": {
+    "area": "lucena",
+    "slug": "girasoles",
+    "storeName": "Girasoles",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_girasoles.json"
+  },
+  "lucena_koperightlucena": {
+    "area": "lucena",
+    "slug": "koperightlucena",
+    "storeName": "Kope Right Lucena",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_koperightlucena.json"
+  },
+  "lucena_koperightsariaya": {
+    "area": "lucena",
+    "slug": "koperightsariaya",
+    "storeName": "Kope Right Sariaya",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_koperightsariaya.json"
+  },
+  "lucena_matteosliquiwan": {
+    "area": "lucena",
+    "slug": "matteosliquiwan",
+    "storeName": "Matteos Liquiwan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_matteosliquiwan.json"
+  },
+  "lucena_mrfieldscoffe": {
+    "area": "lucena",
+    "slug": "mrfieldscoffe",
+    "storeName": "Mr.Fields Coffe+",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_mrfieldscoffe.json"
+  },
+  "lucena_shellselectdomoit": {
+    "area": "lucena",
+    "slug": "shellselectdomoit",
+    "storeName": "Shell Select Domoit",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_shellselectdomoit.json"
+  },
+  "lucena_shellselectsariaya": {
+    "area": "lucena",
+    "slug": "shellselectsariaya",
+    "storeName": "Shell Select Sariaya",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_shellselectsariaya.json"
+  },
+  "lucena_sidcsanjuan": {
+    "area": "lucena",
+    "slug": "sidcsanjuan",
+    "storeName": "SIDC San Juan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_sidcsanjuan.json"
+  },
+  "lucena_sidctiaong": {
+    "area": "lucena",
+    "slug": "sidctiaong",
+    "storeName": "SIDC Tiaong",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_sidctiaong.json"
+  },
+  "manila_mangmuringshell": {
+    "area": "manila",
+    "slug": "mangmuringshell",
+    "storeName": "Mang Muring Shell",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/manila_mangmuringshell.json"
+  },
+  "manila_mangmuringtotal": {
+    "area": "manila",
+    "slug": "mangmuringtotal",
+    "storeName": "Mang Muring Total",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/manila_mangmuringtotal.json"
+  },
+  "rosario_aalomipadregarcia": {
+    "area": "rosario",
+    "slug": "aalomipadregarcia",
+    "storeName": "AA Lomi Padre Garcia",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_aalomipadregarcia.json"
+  },
+  "rosario_balkonahe": {
+    "area": "rosario",
+    "slug": "balkonahe",
+    "storeName": "Balkonahe",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_balkonahe.json"
+  },
+  "rosario_bencha": {
+    "area": "rosario",
+    "slug": "bencha",
+    "storeName": "Ben & Cha",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_bencha.json"
+  },
+  "rosario_chicknjibaan": {
+    "area": "rosario",
+    "slug": "chicknjibaan",
+    "storeName": "Chick'N J Ibaan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_chicknjibaan.json"
+  },
+  "rosario_chicknjpadregarcia": {
+    "area": "rosario",
+    "slug": "chicknjpadregarcia",
+    "storeName": "Chick'N J Padre Garcia",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_chicknjpadregarcia.json"
+  },
+  "rosario_citimartrosario": {
+    "area": "rosario",
+    "slug": "citimartrosario",
+    "storeName": "Citimart Rosario",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_citimartrosario.json"
+  },
+  "rosario_hangout": {
+    "area": "rosario",
+    "slug": "hangout",
+    "storeName": "Hang Out",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_hangout.json"
+  },
+  "rosario_lipagrillsanfelipe": {
+    "area": "rosario",
+    "slug": "lipagrillsanfelipe",
+    "storeName": "Lipa Grill San Felipe",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_lipagrillsanfelipe.json"
+  },
+  "rosario_sidcibaan": {
+    "area": "rosario",
+    "slug": "sidcibaan",
+    "storeName": "SIDC Ibaan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/rosario_sidcibaan.json"
+  },
+  "lucena_yummies": {
+    "area": "lucena",
+    "slug": "yummies",
+    "storeName": "Yummies",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/lucena_yummies.json"
+  },
+  "stotomas_avilles": {
+    "area": "stotomas",
+    "slug": "avilles",
+    "storeName": "Avilles",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_avilles.json"
+  },
+  "stotomas_citimarttanauan": {
+    "area": "stotomas",
+    "slug": "citimarttanauan",
+    "storeName": "Citimart Tanauan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_citimarttanauan.json"
+  },
+  "stotomas_dvinias": {
+    "area": "stotomas",
+    "slug": "dvinias",
+    "storeName": "D'Vinias",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_dvinias.json"
+  },
+  "stotomas_laonglaan": {
+    "area": "stotomas",
+    "slug": "laonglaan",
+    "storeName": "Laong Laan",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_laonglaan.json"
+  },
+  "stotomas_luciascafestotomas": {
+    "area": "stotomas",
+    "slug": "luciascafestotomas",
+    "storeName": "Lucias Cafe Sto Tomas",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_luciascafestotomas.json"
+  },
+  "stotomas_titachu": {
+    "area": "stotomas",
+    "slug": "titachu",
+    "storeName": "Tita Chu",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_titachu.json"
+  },
+  "tagaytay_balinsasayawtagaytay": {
+    "area": "tagaytay",
+    "slug": "balinsasayawtagaytay",
+    "storeName": "Balinsasayaw Tagaytay",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_balinsasayawtagaytay.json"
+  },
+  "tagaytay_greenats": {
+    "area": "tagaytay",
+    "slug": "greenats",
+    "storeName": "Green Ats",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_greenats.json"
+  },
+  "tagaytay_jaytees9th": {
+    "area": "tagaytay",
+    "slug": "jaytees9th",
+    "storeName": "Jaytees 9th",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_jaytees9th.json"
+  },
+  "tagaytay_jayteesacienda": {
+    "area": "tagaytay",
+    "slug": "jayteesacienda",
+    "storeName": "Jaytees Acienda",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_jayteesacienda.json"
+  },
+  "tagaytay_jayteesmain": {
+    "area": "tagaytay",
+    "slug": "jayteesmain",
+    "storeName": "Jaytees Main",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_jayteesmain.json"
+  },
+  "tagaytay_pamana": {
+    "area": "tagaytay",
+    "slug": "pamana",
+    "storeName": "Pamana",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_pamana.json"
+  },
+  "tagaytay_rsmsilvinas": {
+    "area": "tagaytay",
+    "slug": "rsmsilvinas",
+    "storeName": "RSM Silvinas",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/tagaytay_rsmsilvinas.json"
+  },
+  "stotomas_jma": {
+    "area": "stotomas",
+    "slug": "jma",
+    "storeName": "JMA",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_jma.json"
+  },
+  "stotomas_rosegrace": {
+    "area": "stotomas",
+    "slug": "rosegrace",
+    "storeName": "Rose & Grace",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/stotomas_rosegrace.json"
+  }
+}

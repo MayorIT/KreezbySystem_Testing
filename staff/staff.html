@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Staff Dashboard</title>
+    <link rel="stylesheet" href="../css/pages/staff/staff-1.css">
+
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261004btn">
+</head>
+<body class="kreezby-admin-home">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+            <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+</header>
+
+<div class="core-viewport-wrapper">
+    <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            <div id="staff-dashboard-root">
+                <section class="admin-home" aria-label="Welcome">
+                    <div class="admin-home-stage">
+                        <div class="admin-home-copy">
+                            <p class="admin-home-kicker">The Crinkle Factory</p>
+                            <h2>Welcome, Staff</h2>
+                            <p class="admin-home-tagline">Making your life sweeter!</p>
+                            <p class="admin-home-lead">Your home is ready. Purchase orders, deliveries, sales, and alerts open from the menu.</p>
+                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
+                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
+                                <span class="admin-home-menu-btn__label">Open menu</span>
+                            </button>
+                        </div>
+                        <figure class="admin-home-photo">
+                            <img src="../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+                        </figure>
+                    </div>
+                </section>
+            </div>
+        </main>
+                </turbo-frame>
+</div>
+
+<script src="../js/order-tracking.js"></script>
+<script src="../js/staff-permissions.js?v=20261006perm2"></script>
+<script src="../js/user-dropdown-nav.js?v=20261005one"></script>
+<script src="../js/staff-sidebar.js?v=20261006perm"></script>
+<script src="../js/sidebar-toggle.js?v=20261005one"></script>
+
+</body>
+</html>

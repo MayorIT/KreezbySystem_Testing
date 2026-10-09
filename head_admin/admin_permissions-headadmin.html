@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <title>Head Admin — Permissions</title>
+    <link rel="stylesheet" href="../css/pages/admin/admin.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/pages/customer/report_issue-customer.css">
+    <link rel="stylesheet" href="../css/pages/head_admin/head-admin.css?v=20261009add">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <div class="expandable-nav-tabs">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+        </div>
+        <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+        <div class="user-dropdown">
+            <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                Head Admin ▾
+            </button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="core-viewport-wrapper">
+    <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+    <main class="workspace-view-canvas">
+        <div class="page-shell">
+            <div class="report-panel">
+                <div class="report-header">
+                    <span class="report-kicker">Permissions</span>
+                    <h1>What each account can open</h1>
+                    <p>Head Admin controls Admin, Staff, Retailer, and Customer access. They only see the modules you allow. Home stays available. Archive an account that didn't exist, was deleted, or changed business partner.</p>
+                </div>
+                <div class="report-body">
+                <div class="permissions-toolbar">
+                <div class="permissions-switch" role="tablist" aria-label="Permission group" data-index="0">
+                    <span class="permissions-switch-thumb" aria-hidden="true"></span>
+                    <button type="button" role="tab" id="permissions-tab-admin" aria-controls="admin-permissions-root" aria-selected="true">Admin</button>
+                    <button type="button" role="tab" id="permissions-tab-staff" aria-controls="staff-permissions-root" aria-selected="false">Staff</button>
+                    <button type="button" role="tab" id="permissions-tab-retailer" aria-controls="retailer-permissions-root" aria-selected="false">Retailer</button>
+                    <button type="button" role="tab" id="permissions-tab-customer" aria-controls="customer-permissions-root" aria-selected="false">Customer</button>
+                </div>
+                <button type="button" class="btn-archived-accounts" id="permissions-tab-archived" aria-controls="archived-accounts-root">Archived</button>
+                </div>
+                <section class="permissions-section" id="admin-permissions-root" role="tabpanel" aria-label="Admin permissions">
+                    <div class="settings-split-grid">
+                        <div class="roles-navigator-card">
+                            <div class="roles-navigator-title">Admin accounts</div>
+                            <div class="account-list-scroll" data-account-list>
+                            <button type="button" class="role-selection-pill active-role" data-admin-id="ailore">Ailore Embalzado<br><span class="staff-task-hint">ailore_admin · Marketing</span></button>
+                            </div>
+                        </div>
+                        <div class="inbox-list-card">
+                            <div class="panel-card-title-bar">
+                                <h3 id="permissions-panel-title">Module access — Ailore Embalzado</h3>
+                                <div class="permission-actions">
+                                    <button type="button" class="btn-archive-account" id="btn-archive-admin">Archive</button>
+                                    <button type="button" class="btn-save-permissions" id="btn-save-permissions">Save Permissions</button>
+                                </div>
+                            </div>
+                            <table class="matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th>Task / Module</th>
+                                        <th class="center-align">Allow Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissions-matrix-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section class="permissions-section is-hidden" id="staff-permissions-root" role="tabpanel" aria-label="Staff permissions" hidden>
+                    <div class="settings-split-grid">
+                        <div class="roles-navigator-card">
+                            <div class="roles-navigator-title">Staff accounts</div>
+                            <input type="search" class="account-search" placeholder="Search staff" data-account-search>
+                            <div class="account-list-scroll" data-account-list>
+                                <p class="archived-empty">No staff accounts yet.</p>
+                            </div>
+                        </div>
+                        <div class="inbox-list-card">
+                            <div class="panel-card-title-bar">
+                                <h3 id="staff-permissions-panel-title">No staff accounts</h3>
+                                <div class="permission-actions">
+                                    <button type="button" class="btn-archive-account" id="staff-btn-archive">Archive</button>
+                                    <button type="button" class="btn-save-permissions" id="staff-btn-save-permissions">Save Permissions</button>
+                                </div>
+                            </div>
+                            <table class="matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th>Task / Module</th>
+                                        <th class="center-align">Allow Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staff-permissions-matrix-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section class="permissions-section is-hidden" id="retailer-permissions-root" role="tabpanel" aria-label="Retailer permissions" hidden>
+                    <div class="settings-split-grid">
+                        <div class="roles-navigator-card">
+                            <div class="roles-navigator-title">Retailer accounts</div>
+                            <input type="search" class="account-search" placeholder="Search retailers" data-account-search>
+                            <div class="account-list-scroll" data-account-list></div>
+                            <form class="account-create-form" data-account-create>
+                                <div class="roles-navigator-title">Add retailer</div>
+                                <input name="name" type="text" required placeholder="Store name" autocomplete="off">
+                                <input name="username" type="text" required placeholder="Username" autocomplete="off">
+                                <input name="area" type="text" placeholder="Area" autocomplete="off">
+                                <button type="submit" class="btn-save-permissions">Add retailer</button>
+                                <p class="permission-save-status" data-create-status></p>
+                            </form>
+                        </div>
+                        <div class="inbox-list-card">
+                            <div class="panel-card-title-bar">
+                                <h3 data-permissions-title>Retailer accounts</h3>
+                                <div class="permission-actions">
+                                    <button type="button" class="btn-archive-account" data-archive-account>Archive</button>
+                                    <button type="button" class="btn-save-permissions" data-save-permissions>Save Permissions</button>
+                                </div>
+                            </div>
+                            <table class="matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th>Task / Module</th>
+                                        <th class="center-align">Allow Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-permissions-matrix></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section class="permissions-section is-hidden" id="customer-permissions-root" role="tabpanel" aria-label="Customer permissions" hidden>
+                    <div class="settings-split-grid">
+                        <div class="roles-navigator-card">
+                            <div class="roles-navigator-title">Customer accounts</div>
+                            <input type="search" class="account-search" placeholder="Search customers" data-account-search>
+                            <div class="account-list-scroll" data-account-list></div>
+                            <form class="account-create-form" data-account-create>
+                                <div class="roles-navigator-title">Add customer</div>
+                                <input name="name" type="text" required placeholder="Full name" autocomplete="off">
+                                <input name="email" type="email" required placeholder="Email" autocomplete="off">
+                                <input name="phone" type="text" placeholder="Phone" autocomplete="off">
+                                <button type="submit" class="btn-save-permissions">Add customer</button>
+                                <p class="permission-save-status" data-create-status></p>
+                            </form>
+                        </div>
+                        <div class="inbox-list-card">
+                            <div class="panel-card-title-bar">
+                                <h3 data-permissions-title>Customer accounts</h3>
+                                <div class="permission-actions">
+                                    <button type="button" class="btn-archive-account" data-archive-account>Archive</button>
+                                    <button type="button" class="btn-save-permissions" data-save-permissions>Save Permissions</button>
+                                </div>
+                            </div>
+                            <table class="matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th>Task / Module</th>
+                                        <th class="center-align">Allow Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-permissions-matrix></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section class="permissions-section is-hidden" id="archived-accounts-root" role="tabpanel" aria-label="Archived accounts" hidden>
+                    <div class="inbox-list-card">
+                        <div class="panel-card-title-bar">
+                            <h3>Archived accounts</h3>
+                        </div>
+                        <p class="archived-note">Accounts that didn't exist, were deleted, or changed to another business partner. Restoring puts the account back on its list and lets it sign in again.</p>
+                        <div class="archive-filters" role="tablist" aria-label="Archive reason">
+                            <button type="button" class="archive-filter is-active" data-archive-filter="all">All</button>
+                            <button type="button" class="archive-filter" data-archive-filter="missing">Didn't exist</button>
+                            <button type="button" class="archive-filter" data-archive-filter="deleted">Deleted</button>
+                            <button type="button" class="archive-filter" data-archive-filter="partner">Changed partner</button>
+                            <button type="button" class="archive-filter" data-archive-filter="other">Other</button>
+                        </div>
+                        <p class="permission-save-status" id="archived-restore-status"></p>
+                        <div id="archived-accounts-list"></div>
+                    </div>
+                </section>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="archive-dialog" id="archive-account-dialog" hidden>
+    <div class="archive-dialog-card" role="dialog" aria-modal="true" aria-labelledby="archive-dialog-title">
+        <h3 id="archive-dialog-title">Archive account</h3>
+        <p id="archive-dialog-name"></p>
+        <label class="archive-field">Reason
+            <select id="archive-reason">
+                <option value="missing">Didn't exist</option>
+                <option value="deleted">Deleted account</option>
+                <option value="partner">Changed business partner</option>
+                <option value="other">Other</option>
+            </select>
+        </label>
+        <label class="archive-field">Note
+            <input id="archive-note" type="text" maxlength="120" placeholder="Required when the reason is Other">
+        </label>
+        <p class="archive-dialog-error" id="archive-dialog-error"></p>
+        <div class="archive-dialog-actions">
+            <button type="button" class="btn-archive-account" id="archive-cancel">Cancel</button>
+            <button type="button" class="btn-save-permissions" id="archive-confirm">Archive</button>
+        </div>
+    </div>
+</div>
+<script src="../js/maintenance-settings.js?v=20261009add"></script>
+<script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+<script src="../js/admin-permissions.js?v=20261009acct"></script>
+<script src="../js/staff-permissions.js?v=20261009acct"></script>
+<script src="../js/partner-permissions.js?v=20261009add"></script>
+<script>
+if (window.KreezbyStaffPermissions) {
+    KreezbyStaffPermissions.initPermissionsEditor(document.getElementById('staff-permissions-root'));
+}
+(function () {
+    var switcher = document.querySelector('.permissions-switch');
+    var archivedBtn = document.getElementById('permissions-tab-archived');
+    var panels = {
+        admin: document.getElementById('admin-permissions-root'),
+        staff: document.getElementById('staff-permissions-root'),
+        retailer: document.getElementById('retailer-permissions-root'),
+        customer: document.getElementById('customer-permissions-root'),
+        archived: document.getElementById('archived-accounts-root')
+    };
+    var buttons = {
+        admin: document.getElementById('permissions-tab-admin'),
+        staff: document.getElementById('permissions-tab-staff'),
+        retailer: document.getElementById('permissions-tab-retailer'),
+        customer: document.getElementById('permissions-tab-customer')
+    };
+    var order = ['admin', 'staff', 'retailer', 'customer'];
+    if (!switcher || !panels.admin) return;
+
+    function show(group) {
+        var archived = group === 'archived';
+        switcher.classList.toggle('is-archived', archived);
+        if (!archived) switcher.setAttribute('data-index', String(order.indexOf(group)));
+        Object.keys(panels).forEach(function (key) {
+            var on = key === group;
+            if (!panels[key]) return;
+            panels[key].classList.toggle('is-hidden', !on);
+            panels[key].hidden = !on;
+        });
+        Object.keys(buttons).forEach(function (key) {
+            if (buttons[key]) buttons[key].setAttribute('aria-selected', key === group ? 'true' : 'false');
+        });
+        if (archivedBtn) archivedBtn.classList.toggle('is-active', archived);
+        if (archived && window.KreezbyAccountArchive) window.KreezbyAccountArchive.renderPanel();
+    }
+
+    Object.keys(buttons).forEach(function (key) {
+        if (buttons[key]) buttons[key].addEventListener('click', function () { show(key); });
+    });
+    if (archivedBtn) archivedBtn.addEventListener('click', function () { show('archived'); });
+    show('admin');
+})();
+</script>
+<script src="../js/admin-sidebar.js?v=20261006perm"></script>
+<script src="../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

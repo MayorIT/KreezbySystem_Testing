@@ -1,0 +1,307 @@
+/* Admin icon sidebar (collapsible, lucide-style nav) — grey theme */
+.kreezby-icon-sidebar.dark-sidebar-panel,
+.kreezby-icon-sidebar.sidebar-panel {
+    --kreezby-sidebar-width: 256px;
+    --kreezby-sidebar-collapsed: 64px;
+    --kreezby-sidebar-bg: #424242;
+    --kreezby-sidebar-border: #383838;
+    --kreezby-sidebar-text: #bdbdbd;
+    --kreezby-sidebar-text-hover: #f5f5f5;
+    --kreezby-sidebar-active-bg: #525252;
+    --kreezby-sidebar-active-text: #ffffff;
+    --kreezby-sidebar-active-accent: #e0e0e0;
+    position: sticky;
+    top: 0;
+    align-self: stretch;
+    height: calc(100vh - var(--kreezby-admin-header-height, 60px));
+    max-height: calc(100vh - var(--kreezby-admin-header-height, 60px));
+    width: var(--kreezby-sidebar-width);
+    min-width: var(--kreezby-sidebar-width);
+    max-width: var(--kreezby-sidebar-width);
+    background: var(--kreezby-sidebar-bg);
+    border-right: 1px solid var(--kreezby-sidebar-border);
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    flex-shrink: 0;
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+    overflow: hidden;
+    z-index: 20;
+}
+
+.kreezby-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0 4px;
+    min-height: 0;
+}
+
+.kreezby-sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 4px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--kreezby-sidebar-text);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kreezby-sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--kreezby-sidebar-text-hover);
+}
+
+.kreezby-sidebar-nav-item.is-active,
+.kreezby-sidebar-nav-item.is-active:hover {
+    background: #ffca28 !important;
+    color: #1f1f1f !important;
+    box-shadow: inset 4px 0 0 #e6a800 !important;
+}
+
+.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-label {
+    color: #1f1f1f !important;
+    font-weight: 800 !important;
+}
+
+.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg,
+.kreezby-sidebar-nav-item.is-active .kreezby-sidebar-nav-icon svg * {
+    stroke: #1f1f1f !important;
+}
+
+.kreezby-sidebar-nav-icon {
+    width: 48px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.kreezby-sidebar-nav-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.kreezby-sidebar-nav-icon svg,
+.kreezby-sidebar-nav-icon svg * {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.kreezby-icon-sidebar.dark-sidebar-panel,
+.kreezby-icon-sidebar.sidebar-panel {
+    background: var(--kreezby-sidebar-bg) !important;
+}
+
+/* Override legacy sidebar menu styles */
+.kreezby-icon-sidebar .sidebar-menu-list,
+.kreezby-icon-sidebar .hamburger-row,
+.kreezby-icon-sidebar .menu-node-item,
+.kreezby-icon-sidebar .panel-brand,
+.kreezby-icon-sidebar .navigation-tree {
+    display: none !important;
+}
+
+.kreezby-sidebar-nav-label {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+    flex: 1;
+    min-width: 0;
+}
+
+aside.dark-sidebar-panel.kreezby-sidebar-ready,
+aside.sidebar-panel.kreezby-icon-sidebar.kreezby-sidebar-ready {
+    visibility: visible;
+}
+
+body.sidebar-collapsed .kreezby-icon-sidebar.dark-sidebar-panel,
+body.sidebar-collapsed .kreezby-icon-sidebar.sidebar-panel {
+    width: var(--kreezby-sidebar-collapsed);
+    min-width: var(--kreezby-sidebar-collapsed);
+    max-width: var(--kreezby-sidebar-collapsed);
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+body.sidebar-collapsed .kreezby-sidebar-nav-label {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+body.sidebar-collapsed .hamburger-row {
+    display: none;
+}
+
+/* Keep icon sidebar visible — only hide legacy sidebars when collapsed */
+body.sidebar-collapsed aside.dark-sidebar-panel:not(.kreezby-icon-sidebar),
+body.sidebar-collapsed aside.sidebar-panel:not(.kreezby-icon-sidebar) {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    transform: translateX(-8px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kreezby-icon-sidebar.dark-sidebar-panel,
+    .kreezby-icon-sidebar.sidebar-panel,
+    .kreezby-sidebar-nav-item {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Override legacy staff page CSS that zeroes out collapsed sidebars */
+aside.dark-sidebar-panel.kreezby-icon-sidebar,
+aside.dark-sidebar-panel.kreezby-sidebar-ready {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
+.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready {
+    width: var(--kreezby-sidebar-collapsed, 64px) !important;
+    min-width: var(--kreezby-sidebar-collapsed, 64px) !important;
+    max-width: var(--kreezby-sidebar-collapsed, 64px) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+@media (max-width: 900px) {
+    aside.kreezby-icon-sidebar.dark-sidebar-panel,
+    aside.kreezby-icon-sidebar.sidebar-panel,
+    aside.dark-sidebar-panel.kreezby-icon-sidebar,
+    aside.dark-sidebar-panel.kreezby-sidebar-ready,
+    body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+    body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
+    .sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+    .sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready {
+        position: fixed !important;
+        top: var(--kreezby-admin-header-height, 56px) !important;
+        left: 0 !important;
+        height: calc(100dvh - var(--kreezby-admin-header-height, 56px)) !important;
+        max-height: none !important;
+        width: min(280px, 86vw) !important;
+        min-width: min(280px, 86vw) !important;
+        max-width: min(280px, 86vw) !important;
+        transform: translateX(-110%) !important;
+        pointer-events: none !important;
+        z-index: 1400 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    body.kreezby-nav-open aside.kreezby-icon-sidebar.dark-sidebar-panel,
+    body.kreezby-nav-open aside.kreezby-icon-sidebar.sidebar-panel,
+    body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-icon-sidebar,
+    body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-sidebar-ready,
+    body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+    body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready {
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+    }
+
+    body.kreezby-nav-open .kreezby-sidebar-nav-label {
+        opacity: 1;
+        max-width: none;
+        overflow: visible;
+        pointer-events: auto;
+    }
+}
+
+/* Menu lives in the hamburger on every screen size */
+body aside.dark-sidebar-panel.kreezby-icon-sidebar,
+body aside.sidebar-panel.kreezby-icon-sidebar,
+body aside.dark-sidebar-panel.kreezby-sidebar-ready,
+body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
+body.sidebar-collapsed aside.sidebar-panel.kreezby-icon-sidebar {
+    position: fixed !important;
+    top: var(--kreezby-admin-header-height, 60px) !important;
+    left: 0 !important;
+    height: calc(100vh - var(--kreezby-admin-header-height, 60px)) !important;
+    width: 256px !important;
+    min-width: 256px !important;
+    max-width: 256px !important;
+    transform: translateX(-110%) !important;
+    pointer-events: none !important;
+    z-index: 1400 !important;
+}
+
+body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-icon-sidebar,
+body.kreezby-nav-open aside.sidebar-panel.kreezby-icon-sidebar,
+body.kreezby-nav-open aside.dark-sidebar-panel.kreezby-sidebar-ready,
+body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-icon-sidebar,
+body.kreezby-nav-open.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
+body.kreezby-nav-open.sidebar-collapsed aside.sidebar-panel.kreezby-icon-sidebar {
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    box-shadow: 16px 0 40px rgba(0, 0, 0, 0.28) !important;
+}
+
+body.kreezby-nav-open .kreezby-sidebar-nav-label {
+    opacity: 1 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+}
+
+body.kreezby-nav-open .kreezby-nav-scrim {
+    display: block;
+}
+
+.kreezby-sidebar-group.is-open > .kreezby-sidebar-nav-item {
+    background: rgba(255, 202, 40, 0.16);
+}
+
+.kreezby-sidebar-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 8px 10px 36px;
+}
+
+.kreezby-sidebar-sub a {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: #f3f4f6;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    white-space: normal;
+}
+
+.kreezby-sidebar-sub a:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.kreezby-sidebar-sub a.is-active,
+.kreezby-sidebar-sub a.is-active:hover {
+    background: #ffca28;
+    color: #1f1f1f;
+}

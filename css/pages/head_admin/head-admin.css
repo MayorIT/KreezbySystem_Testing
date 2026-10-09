@@ -1,0 +1,450 @@
+/* Head Admin shell extras on top of issue-reports.css */
+
+.head-admin-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.head-admin-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.head-admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.1);
+}
+
+.about-card {
+    background: #fff;
+    border: 1px solid #e6edf6;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.about-card h3 {
+    margin: 0 0 8px;
+}
+
+.about-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.permissions-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px;
+}
+
+.permissions-switch {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: min(560px, 100%);
+    margin: 0;
+    padding: 4px;
+    border-radius: 999px;
+    background: #f3efe6;
+}
+
+.permissions-switch-thumb {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(25% - 4px);
+    height: calc(100% - 8px);
+    border-radius: 999px;
+    background: #ffca28;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.permissions-switch[data-index="1"] .permissions-switch-thumb {
+    transform: translateX(100%);
+}
+
+.permissions-switch[data-index="2"] .permissions-switch-thumb {
+    transform: translateX(200%);
+}
+
+.permissions-switch[data-index="3"] .permissions-switch-thumb {
+    transform: translateX(300%);
+}
+
+.permissions-switch.is-archived .permissions-switch-thumb {
+    opacity: 0;
+}
+
+.permissions-switch button {
+    position: relative;
+    z-index: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #5c5346;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.permissions-switch button[aria-selected="true"] {
+    color: #1f1f1f;
+}
+
+.btn-archived-accounts,
+.btn-archive-account,
+.btn-restore-account {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid #e0d5c3;
+    border-radius: 999px;
+    background: #fff;
+    color: #5c5346;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-archived-accounts.is-active,
+.archive-filter.is-active {
+    background: #ffca28;
+    border-color: #ffca28;
+    color: #1f1f1f;
+}
+
+.btn-archive-account:disabled,
+.btn-save-permissions:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.permission-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.account-search {
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font: inherit;
+}
+
+.account-list-scroll {
+    max-height: 460px;
+    overflow: auto;
+}
+
+.roles-navigator-card:has(.account-create-form) .account-list-scroll {
+    max-height: 240px;
+}
+
+.account-create-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e6edf6;
+}
+
+.account-create-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font: inherit;
+}
+
+.account-create-form .btn-save-permissions {
+    width: 100%;
+}
+
+.account-create-form .permission-save-status {
+    min-height: 1.2em;
+    margin: 0;
+}
+
+.archived-empty,
+.archived-note {
+    margin: 0 0 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.archive-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.archive-filter {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #e0d5c3;
+    border-radius: 999px;
+    background: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.archive-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(31, 24, 16, 0.45);
+}
+
+.archive-dialog[hidden] {
+    display: none !important;
+}
+
+.archive-dialog-card {
+    width: min(440px, 100%);
+    padding: 22px;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+}
+
+.archive-dialog-card h3 {
+    margin: 0 0 8px;
+}
+
+.archive-dialog-card p {
+    margin: 0 0 14px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.archive-field {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #5c5346;
+}
+
+.archive-field select,
+.archive-field input {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 600;
+}
+
+.archive-dialog-error {
+    min-height: 1.2em;
+    color: #c62828 !important;
+    font-weight: 700;
+}
+
+.archive-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.permissions-section.is-hidden {
+    display: none !important;
+}
+
+.settings-split-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.roles-navigator-card {
+    background: #fff;
+    border: 1px solid #e6edf6;
+    border-radius: 20px;
+    padding: 16px;
+}
+
+.roles-navigator-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.role-selection-pill {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    text-align: left;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.role-selection-pill.active-role,
+.role-selection-pill:hover {
+    border-color: #fbc02d;
+    background: #fff8e1;
+}
+
+.staff-task-hint {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: #777;
+}
+
+.panel-card-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.btn-save-permissions {
+    min-height: 40px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 999px;
+    background: #ffca28;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matrix-table th,
+.matrix-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #edf2f7;
+    text-align: left;
+}
+
+.matrix-table th.center-align,
+.matrix-table td.center-align {
+    text-align: center;
+}
+
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.custom-checkmark {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: #e0e0e0;
+    box-shadow: inset 0 0 0 1px #bdbdbd;
+}
+
+.checkbox-container input:checked + .custom-checkmark {
+    background: #2e7d32;
+    box-shadow: none;
+}
+
+.checkbox-container input:checked + .custom-checkmark::after {
+    content: "";
+    display: block;
+    width: 5px;
+    height: 9px;
+    margin: 2px 0 0 6px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container input:disabled + .custom-checkmark {
+    background: #2e7d32;
+    opacity: 0.55;
+    cursor: default;
+}
+
+.permission-save-status {
+    margin: 8px 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.panel-card-title-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+}
+
+.support-card-kicker {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b45309;
+}
+
+@media (max-width: 860px) {
+    .permissions-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .permissions-switch {
+        width: 100%;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .permissions-switch-thumb {
+        display: none;
+    }
+
+    .permissions-switch button[aria-selected="true"] {
+        background: #ffca28;
+    }
+
+    .head-admin-cards,
+    .settings-split-grid {
+        grid-template-columns: 1fr;
+    }
+}

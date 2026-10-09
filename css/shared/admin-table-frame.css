@@ -1,0 +1,28 @@
+/* Light gray border on every admin and head admin table. */
+
+body .workspace-view-canvas table,
+body .system-modal-backdrop table,
+body .form-modal-box table,
+body .details-container-view table,
+body .sheet-editor-modal-box table {
+    border: 1px solid #c8c8c8 !important;
+    border-collapse: collapse;
+}
+
+body .workspace-view-canvas table th,
+body .workspace-view-canvas table td,
+body .workspace-view-canvas table tr:last-child td,
+body .system-modal-backdrop table th,
+body .system-modal-backdrop table td,
+body .system-modal-backdrop table tr:last-child td,
+body .form-modal-box table th,
+body .form-modal-box table td,
+body .form-modal-box table tr:last-child td,
+body .details-container-view table th,
+body .details-container-view table td,
+body .details-container-view table tr:last-child td,
+body .sheet-editor-modal-box table th,
+body .sheet-editor-modal-box table td,
+body .sheet-editor-modal-box table tr:last-child td {
+    border: 1px solid #c8c8c8 !important;
+}

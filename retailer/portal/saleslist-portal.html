@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Sales List — Retailer</title>
+    <link rel="stylesheet" href="../../css/pages/retailer/saleslist-portal.css?v=20261001retailerpay">
+
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261008tables">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <a class="top-nav-item home-badge" href="retailer-portal.html">Home</a>
+        <div class="user-dropdown">
+            <button class="user-dropdown-pill" type="button" id="user-dropdown-trigger">Retailer ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-portal.html" class="dropdown-item">Report Issue</a>
+                <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="system-dashboard-wrapper" id="saleslist-retailer-page">
+    <aside class="sidebar-panel">
+        <div class="hamburger-row">☰</div>
+        <div class="panel-brand">Retailer</div>
+        <ul class="navigation-tree">
+            <li class="tree-node"><a href="retailer-portal.html">Dashboard</a></li>
+            <li class="tree-node"><a href="bo-portal.html">Back Order</a></li>
+            <li class="tree-node active"><a href="saleslist-portal.html">Sales List</a></li>
+            <li class="tree-node"><a href="inbox-portal.html" data-turbo="false" data-turbo-frame="_top">Inbox</a></li>
+        </ul>
+    </aside>
+
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-canvas">
+        <h2 class="page-title">Payment summary</h2>
+        <div id="saleslist-master-directory-panel-view">
+                <div class="sales-ledger-stack">
+                    <div class="panel-data-card">
+                        <div class="card-body-padded">
+                            <p id="retailer-purchase-badge" style="font-size:13px;color:#5d4037;margin:0 0 14px;font-weight:600;">Loading payments…</p>
+                            <table class="data-display-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>P.O. Code</th>
+                                        <th>Items</th>
+                                        <th>Payment</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="retailer-purchase-summary">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center;padding:24px;color:#888;">Loading payments…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="panel-data-card">
+                        <div class="panel-card-title-bar">
+                            <h3>Staff orders</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <p id="retailer-staff-badge" style="font-size:13px;color:#5d4037;margin:0 0 14px;font-weight:600;">Loading staff orders…</p>
+                            <table class="data-display-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>P.O. Code</th>
+                                        <th>Items</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="retailer-staff-orders">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center;padding:24px;color:#888;">Loading staff orders…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+        </turbo-frame>
+</div>
+
+<script src="../../js/sidebar-toggle.js?v=20260927row"></script>
+<script src="../../js/retailer-nav.js?v=20261009acct"></script>
+    <script src="../../js/user-dropdown-nav.js?v=20261008tabs2"></script>
+    <script src="../../js/kreezby-seed-portal-data.js?v=20261005rnote"></script>
+    <script src="../../js/sales-list-renderer.js?v=20261008tabs"></script>
+</body>
+</html>
