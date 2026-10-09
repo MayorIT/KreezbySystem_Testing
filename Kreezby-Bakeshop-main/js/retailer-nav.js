@@ -174,7 +174,7 @@
     document.querySelectorAll('aside .navigation-tree').forEach(function (list) {
       list.querySelectorAll('a[href]').forEach(function (a) {
         var file = (a.getAttribute('href') || '').split('?')[0].split('#')[0].split('/').pop();
-        if (/^(po-portal|receive-portal|receiving-retailer|return-portal)\.html$/i.test(file) || HIDE_MODULES_PATTERN.test(file)) {
+        if (/^(po-portal|receive-portal|receiving-retailer|return-portal|alert-portal)\.html$/i.test(file) || HIDE_MODULES_PATTERN.test(file)) {
           var li = a.closest('li');
           if (li) li.remove();
           else a.remove();

@@ -136,31 +136,31 @@
 
     function retailerHref(source) {
         var pages = {
-            po: 'po-portal.html',
-            payment: 'po-portal.html',
-            delivery: 'po-portal.html',
+            po: 'inbox-portal.html',
+            payment: 'inbox-portal.html',
+            delivery: 'inbox-portal.html',
             bo: 'bo-portal.html',
-            return: 'return-portal.html',
-            alert: 'alert-portal.html',
-            stock: 'alert-portal.html',
-            new_product: 'alert-portal.html',
-            price_change: 'alert-portal.html'
+            return: 'inbox-portal.html',
+            alert: 'inbox-portal.html',
+            stock: 'inbox-portal.html',
+            new_product: 'inbox-portal.html',
+            price_change: 'inbox-portal.html'
         };
         return pages[source] || '';
     }
 
     function wholesalerHref(source) {
         var pages = {
-            po: 'po-portal.html',
-            payment: 'po-portal.html',
-            delivery: 'po-portal.html',
-            receive: 'receive-portal.html',
+            po: 'inbox-portal.html',
+            payment: 'inbox-portal.html',
+            delivery: 'inbox-portal.html',
+            receive: 'inbox-portal.html',
             bo: 'bo-portal.html',
-            return: 'return-portal.html',
-            alert: 'alert-portal.html',
-            stock: 'alert-portal.html',
-            new_product: 'alert-portal.html',
-            price_change: 'alert-portal.html'
+            return: 'inbox-portal.html',
+            alert: 'inbox-portal.html',
+            stock: 'inbox-portal.html',
+            new_product: 'inbox-portal.html',
+            price_change: 'inbox-portal.html'
         };
         return pages[source] || '';
     }
