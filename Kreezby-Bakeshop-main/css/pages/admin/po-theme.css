@@ -1097,11 +1097,6 @@ body.po-admin-page .po-type-chip.is-retail {
     color: #6a4a08;
 }
 
-body.po-admin-page .po-type-chip.is-wholesale {
-    background: #efe0d4;
-    color: #4e342e;
-}
-
 body.po-admin-page .po-type-chip.is-customer {
     background: #f8e4da;
     color: #8d4b32;

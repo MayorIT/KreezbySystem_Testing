@@ -60,8 +60,8 @@
         var pos = readJson('kreezby-po-orders-v1', {});
         Object.keys(pos || {}).forEach(function (code) {
             var order = pos[code];
-            if (!order) return;
-            var type = order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
+            if (!order || order.entityType === 'wholesaler') return;
+            var type = order.accountType || (order.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
             rows.push({
                 when: order.dateCreated || '',
                 code: order.code || code,
@@ -80,7 +80,7 @@
         if (!host) return;
         var rows = collect();
         if (!rows.length) {
-            host.innerHTML = '<p class="account-order-empty">Orders from a regular customer, retailer, or wholesaler account show here with their name, area, and items.</p>';
+            host.innerHTML = '<p class="account-order-empty">Orders from a regular customer or retailer account show here with their name, area, and items.</p>';
             return;
         }
         host.innerHTML = rows.map(function (row) {

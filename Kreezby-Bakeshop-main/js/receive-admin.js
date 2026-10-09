@@ -36,11 +36,6 @@
             poOrigin: 'PO-0003', reference: '', subTotal: 12500,
             lineItems: [{ qty: 50, unit: 'Boxes', name: 'Item 106', note: 'Full delivery', cost: 250, total: 12500 }]
         },
-        'recv-105': {
-            id: 'recv-105', supplier: 'Metro Bulk Distributors', sourceType: 'Wholesaler', dateReceived: '2024-05-12 11:45',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
-            poOrigin: 'PO-0005', reference: '', subTotal: 0, lineItems: []
-        },
         'recv-104': {
             id: 'recv-104', supplier: 'Supplier 104', sourceType: 'Supplier', dateReceived: '2024-05-10 16:20',
             type: 'Returned Order', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
@@ -56,7 +51,7 @@
         { class: 'pending', label: 'Pending', value: 'PENDING' }
     ];
 
-    var RECV_SOURCE_TYPES = ['Supplier', 'Retailer', 'Customer', 'Wholesaler'];
+    var RECV_SOURCE_TYPES = ['Supplier', 'Retailer', 'Customer'];
 
     var RECEIPTS = {};
     var currentReceiptId = null;
@@ -135,7 +130,7 @@
             var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
             sessionName = session && session.userName ? String(session.userName) : '';
         } catch (e) { sessionName = ''; }
-        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer' || brandName.toLowerCase() === 'wholesaler';
+        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer';
         retailerStoreName = genericBrand ? (sessionName || brandName || '') : brandName;
         var master = document.getElementById('receiving-retailer-directory-panel-view');
         if (master) {
@@ -269,6 +264,10 @@
         }
         Object.keys(RECEIPTS).forEach(function (k) {
             var receipt = RECEIPTS[k];
+            if (receipt && String(receipt.sourceType || '').toLowerCase() === 'wholesaler') {
+                delete RECEIPTS[k];
+                return;
+            }
             if (!isAdminOrHeadReceivePage() && receipt && (receipt.statusClass === 'received' || receipt.statusClass === 'partial')) {
                 receipt.statusClass = 'pending';
                 receipt.status = 'PENDING';

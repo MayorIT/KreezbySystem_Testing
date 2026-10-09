@@ -64,7 +64,7 @@
     }
 
     function isModulePage() {
-        return /\/(admin|head_admin|staff|retailer|customer|wholesaler)\//i.test(window.location.pathname || '');
+        return /\/(admin|head_admin|staff|retailer|customer)\//i.test(window.location.pathname || '');
     }
 
     function isCustomerShopPage(href) {
@@ -369,7 +369,7 @@
             }
             var s = document.createElement('script');
             s.id = 'kreezby-inbox-chat-script';
-            s.src = root + 'js/inbox-chat.js?v=20261005tabs2';
+            s.src = root + 'js/inbox-chat.js?v=20261009camera';
             s.onload = afterChat;
             document.body.appendChild(s);
             return;
@@ -413,7 +413,7 @@
             for (var ri = 0; ri < parts.length; ri++) {
                 if (parts[ri].toLowerCase() === 'retailer') { retailerIdx = ri; break; }
             }
-            if (retailerIdx >= 0 && parts.length > retailerIdx + 2 && parts[retailerIdx + 1].toLowerCase() !== 'wholesaler') {
+            if (retailerIdx >= 0 && parts.length > retailerIdx + 2 && parts[retailerIdx + 1].toLowerCase() !== 'portal') {
                 var storeFolder = parts[retailerIdx + 2];
                 ensureStylesheet(root + 'css/pages/retailer/' + storeFolder + '/' + slug);
             }

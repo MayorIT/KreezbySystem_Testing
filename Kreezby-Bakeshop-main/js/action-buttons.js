@@ -48,13 +48,7 @@
     var p = (location.pathname || '').toLowerCase();
     if (p.indexOf('/admin/') >= 0 || p.indexOf('/head_admin/') >= 0) return 'admin';
     if (p.indexOf('/staff/') >= 0) return 'staff';
-    if (p.indexOf('/retailer/') >= 0) {
-      try {
-        var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
-        if (session && session.accountType === 'Wholesaler') return 'wholesaler';
-      } catch (e) { /* ignore */ }
-      return 'retailer';
-    }
+    if (p.indexOf('/retailer/') >= 0) return 'retailer';
     if (p.indexOf('/customer/') >= 0) return 'customer';
     return 'generic';
   }

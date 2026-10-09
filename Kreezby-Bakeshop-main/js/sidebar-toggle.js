@@ -70,7 +70,6 @@
         if (file === 'head_admin.html' && path.indexOf('/head_admin/') !== -1) return true;
         if ((path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) && (file === 'staff.html' || /^staff-\d+\.html$/.test(file))) return true;
         if (path.indexOf('/retailer/') >= 0 && file === 'retailer-portal.html') return true;
-        if (path.indexOf('/wholesaler/') >= 0 && file === 'wholesaler-portal.html') return true;
         if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
         return file === 'admin.html';
     }
@@ -130,7 +129,7 @@
         if (/\/retailer\/[^/]+\//i.test(path)) {
             src = '../../js/notification-popover.js';
             storeSrc = '../../js/notification-store.js';
-        } else if (/\/(admin|head_admin|staff|customer|wholesaler)\//i.test(path)) {
+        } else if (/\/(admin|head_admin|staff|customer)\//i.test(path)) {
             src = '../js/notification-popover.js';
             storeSrc = '../js/notification-store.js';
         }
@@ -169,7 +168,7 @@
         const path = (window.location && window.location.pathname) ? window.location.pathname : '';
         let src = 'js/kreezby-mobile.js';
         if (/\/retailer\/[^/]+\//i.test(path)) src = '../../js/kreezby-mobile.js';
-        else if (/\/(admin|staff|customer|wholesaler|head_admin|it_kreezby|auth)\//i.test(path)) src = '../js/kreezby-mobile.js';
+        else if (/\/(admin|staff|customer|head_admin|it_kreezby|auth)\//i.test(path)) src = '../js/kreezby-mobile.js';
         const ref = document.querySelector('script[src*="sidebar-toggle.js"]');
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'kreezby-mobile.js');
@@ -191,7 +190,7 @@
         if (!document.getElementById('user-dropdown-trigger') && !needsDropdownShell) return;
         let src = 'js/user-dropdown-nav.js';
         if (/\/retailer\/[^/]+\//i.test(path)) src = '../../js/user-dropdown-nav.js';
-        else if (/\/(admin|head_admin|staff|customer|wholesaler)\//i.test(path)) src = '../js/user-dropdown-nav.js';
+        else if (/\/(admin|head_admin|staff|customer)\//i.test(path)) src = '../js/user-dropdown-nav.js';
         const ref = document.querySelector('script[src*="/js/sidebar-toggle.js"]');
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'user-dropdown-nav.js');

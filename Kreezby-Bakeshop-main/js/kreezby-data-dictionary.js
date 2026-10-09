@@ -209,13 +209,13 @@
             { alert_type: 'near_expiry', target_role: 'Admin', reference_id: 'CRK-LEM-P', message: 'Lemon Crinkles batch BCH-2026-0920-LEM expires on 2026-09-30, inside the 3-day expiry alert.', status: 'pending' },
             { alert_type: 'near_expiry', target_role: 'Staff', reference_id: 'RM-BUT-01', message: 'Unsalted Butter expires on 2026-10-04, inside the 7-day ingredient alert.', status: 'pending' },
             { alert_type: 'expired', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles batch BCH-2026-0908-MNG expired on 2026-09-26 and cannot be sold.', status: 'pending' },
-            { alert_type: 'price_change', target_role: 'Retailer/Wholesaler', reference_id: 'CRK-CHO-P', message: 'Chocolate Crinkles price was updated for retailer and wholesaler accounts.', status: 'acknowledged' },
+            { alert_type: 'price_change', target_role: 'Retailer', reference_id: 'CRK-CHO-P', message: 'Chocolate Crinkles price was updated for retailer accounts.', status: 'acknowledged' },
             { alert_type: 'new_product', target_role: 'Customer', reference_id: 'CRK-UBE-P', message: 'Ube Crinkles is a newly released flavor.', status: 'resolved' }
         ];
     }
 
     function users() {
-        var source = { admins: [], staff: [], retailers: [], wholesalers: [], customers: [] };
+        var source = { admins: [], staff: [], retailers: [], customers: [] };
         if (window.KreezbyMaintenanceSettings && typeof window.KreezbyMaintenanceSettings.getUsers === 'function') {
             source = window.KreezbyMaintenanceSettings.getUsers();
         }
@@ -231,8 +231,7 @@
         }
         push(source.admins, 'Admin');
         push(source.staff, 'Staff');
-        push(source.retailers, 'Retailer/Wholesaler');
-        push(source.wholesalers, 'Retailer/Wholesaler');
+        push(source.retailers, 'Retailer');
         push(source.customers, 'Customer');
         return rows;
     }
@@ -905,7 +904,7 @@
 
     function seedPartnerAlerts() {
         var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        var partner = path.indexOf('/customer/') >= 0 || path.indexOf('/retailer/') >= 0 || path.indexOf('/wholesaler/') >= 0;
+        var partner = path.indexOf('/customer/') >= 0 || path.indexOf('/retailer/') >= 0;
         if (!partner) return;
         var notes = alerts().filter(function (alert) {
             return alert.alert_type === 'price_change' || alert.alert_type === 'new_product';

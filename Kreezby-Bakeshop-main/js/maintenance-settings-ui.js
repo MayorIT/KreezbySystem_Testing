@@ -13,7 +13,6 @@
         + '<button type="button" class="settings-sub-tab active-sub" data-sub="login-history">Login History</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="customers">Customers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="retailers">Retailers</button>'
-        + '<button type="button" class="settings-sub-tab" data-sub="wholesalers">Wholesalers</button>'
         + '</div>'
         + '<div id="settings-sub-content"></div>'
         + '<div id="kreezby-backup-tools" style="margin-top:18px;">'
@@ -27,7 +26,6 @@
         var t = (type || '').toLowerCase();
         if (t === 'customer') return 'badge-customer';
         if (t === 'retailer') return 'badge-retailer';
-        if (t === 'wholesaler') return 'badge-wholesaler';
         if (t === 'staff') return 'badge-staff';
         return 'badge-admin';
     }
@@ -41,7 +39,7 @@
         }).join('');
         return ''
             + '<h4 class="settings-section-title">Login History</h4>'
-            + '<p class="settings-section-desc">Recent sign-ins for all users (customers, retailers, wholesalers, staff, and admin).</p>'
+            + '<p class="settings-section-desc">Recent sign-ins for all users (customers, retailers, staff, and admin).</p>'
             + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
             + '<th style="width:40px;">#</th><th>Full Name</th><th>Account Type</th><th>Email / Username</th><th>Date &amp; Time</th>'
             + '</tr></thead><tbody>' + (rows || '<tr><td colspan="5">No login records yet.</td></tr>') + '</tbody></table>';
@@ -53,12 +51,11 @@
             return '<tr><td>' + (i + 1) + '</td><td>' + c.user_id + '</td><td><strong>' + c.name + '</strong></td><td>' + c.dictionaryRole + '</td><td>Hashed</td><td>' + c.email + '</td><td>' + c.phone + '</td>'
                 + '<td>' + c.joined + '</td><td>'
                 + '<button type="button" class="btn-upgrade" onclick="KreezbyMaintenanceUI.upgradeCustomer(\'' + c.id + '\',\'retailer\')">→ Retailer</button>'
-                + '<button type="button" class="btn-upgrade wholesaler" onclick="KreezbyMaintenanceUI.upgradeCustomer(\'' + c.id + '\',\'wholesaler\')">→ Wholesaler</button>'
                 + '</td></tr>';
         }).join('');
         return ''
             + '<h4 class="settings-section-title">Customer Accounts</h4>'
-            + '<p class="settings-section-desc">Upgrade a customer to retailer or wholesaler. Their customer account will be removed and they receive partner access instead.</p>'
+            + '<p class="settings-section-desc">Upgrade a customer to retailer. Their customer account will be removed and they receive partner access instead.</p>'
             + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
             + '<th>#</th><th>User ID</th><th>Name</th><th>Role</th><th>Password</th><th>Email</th><th>Phone</th><th>Joined</th><th>Grant Access</th>'
             + '</tr></thead><tbody>' + (rows || '<tr><td colspan="9">No customer accounts.</td></tr>') + '</tbody></table>';
@@ -78,20 +75,6 @@
             + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
-    function renderWholesalers() {
-        var list = window.KreezbyMaintenanceSettings.getUsers().wholesalers;
-        var rows = list.map(function (w, i) {
-            var note = w.upgradedFrom ? '<span style="font-size:11px;color:#00897b;">Upgraded from customer</span>' : '—';
-            return '<tr><td>' + (i + 1) + '</td><td>' + w.user_id + '</td><td><strong>' + w.name + '</strong></td><td>' + w.dictionaryRole + '</td><td>Hashed</td><td>' + w.contact + '</td><td>' + w.email + '</td><td>' + w.area + '</td><td>' + note + '</td></tr>';
-        }).join('');
-        return ''
-            + '<h4 class="settings-section-title">Wholesaler Accounts</h4>'
-            + '<p class="settings-section-desc">Bulk distributors with wholesaler portal access.</p>'
-            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
-            + '<th>#</th><th>User ID</th><th>Business Name</th><th>Role</th><th>Password</th><th>Contact</th><th>Email</th><th>Area</th><th>Source</th>'
-            + '</tr></thead><tbody>' + rows + '</tbody></table>';
-    }
-
     function renderSettingsSub(subKey) {
         currentSettingsSub = subKey;
         var root = document.getElementById('settings-sub-content');
@@ -104,7 +87,6 @@
         if (subKey === 'login-history') root.innerHTML = renderLoginHistory();
         else if (subKey === 'customers') root.innerHTML = renderCustomers();
         else if (subKey === 'retailers') root.innerHTML = renderRetailers();
-        else if (subKey === 'wholesalers') root.innerHTML = renderWholesalers();
     }
 
     function initSettingsPanel() {
@@ -159,7 +141,6 @@
         var map = {
             'metric-customers-count': c.customers,
             'metric-retailers-count': c.retailers,
-            'metric-wholesalers-count': c.wholesalers,
             'metric-staff-count': c.staff,
             'metric-admins-count': c.admins,
             'metric-suppliers-count': c.suppliers
@@ -175,7 +156,6 @@
     var DIRECTORY = {
         supplier: { bucket: 'suppliers', title: 'Suppliers', detail: 'Contact', detailOf: function (u) { return u.contact || '—'; }, accountOf: function (u) { return u.email || '—'; } },
         retailer: { bucket: 'retailers', title: 'Retailers', detail: 'Area', detailOf: function (u) { return u.area || '—'; }, accountOf: function (u) { return u.email || '—'; } },
-        wholesaler: { bucket: 'wholesalers', title: 'Wholesalers', detail: 'Area', detailOf: function (u) { return u.area || '—'; }, accountOf: function (u) { return u.email || '—'; } },
         customer: { bucket: 'customers', title: 'Customers', detail: 'Phone', detailOf: function (u) { return u.phone || '—'; }, accountOf: function (u) { return u.email || '—'; } },
         staff: { bucket: 'staff', title: 'Staff', detail: 'Job', detailOf: function (u) { return u.role || '—'; }, accountOf: function (u) { return u.username || '—'; } },
         admins: { bucket: 'admins', title: 'Admins', detail: 'Job', detailOf: function (u) { return u.role || '—'; }, accountOf: function (u) { return u.username || '—'; } }
@@ -198,7 +178,7 @@
     function canManageAccounts() {
         var session = readSession();
         var type = session.accountType || '';
-        if (type === 'Staff' || type === 'Customer' || type === 'Retailer' || type === 'Wholesaler' || type === 'Regular Customer') {
+        if (type === 'Staff' || type === 'Customer' || type === 'Retailer' || type === 'Regular Customer') {
             return false;
         }
         if (type === 'Head Administrator' || type === 'Administrator' || type === 'Admin') return true;
@@ -218,7 +198,6 @@
         var specs = [
             { dir: 'supplier', id: 'metric-suppliers-count', label: 'Active Suppliers', theme: '' },
             { dir: 'retailer', id: 'metric-retailers-count', label: 'Retailers', theme: 'blue-theme' },
-            { dir: 'wholesaler', id: 'metric-wholesalers-count', label: 'Wholesalers', theme: 'teal-theme' },
             { dir: 'customer', id: 'metric-customers-count', label: 'Customers', theme: 'green-theme' },
             { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: 'staff-theme' },
             { dir: 'admins', id: 'metric-admins-count', label: 'Admins', theme: 'admin-theme' }
@@ -231,7 +210,7 @@
                 var metric = card.querySelector('[id]');
                 var metricId = metric ? metric.id : '';
                 var label = ((card.querySelector('label') || {}).textContent || '').toLowerCase();
-                if (metricId === 'metric-suppliers-count' || metricId === 'metric-wholesalers-count' || label.indexOf('supplier') >= 0 || label.indexOf('wholesaler') >= 0) {
+                if (metricId === 'metric-suppliers-count' || label.indexOf('supplier') >= 0) {
                     card.remove();
                 }
             });
@@ -468,8 +447,8 @@
     }
 
     function upgradeCustomer(customerId, role) {
-        var label = role === 'retailer' ? 'Retailer' : 'Wholesaler';
-        if (!confirm('Upgrade this customer to ' + label + '?\n\nTheir customer account will be removed. They will only have ' + label.toLowerCase() + ' portal access.')) return;
+        if (role !== 'retailer') return;
+        if (!confirm('Upgrade this customer to Retailer?\n\nTheir customer account will be removed. They will only have retailer portal access.')) return;
         var result = KreezbyMaintenanceSettings.upgradeCustomerToRole(customerId, role);
         alert(result.message);
         if (result.ok) {

@@ -60,23 +60,8 @@
         return /\/staff\//i.test(window.location.pathname || '');
     }
 
-    function sessionAccountType() {
-        try {
-            var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
-            return session && session.accountType ? String(session.accountType) : '';
-        } catch (e) { return ''; }
-    }
-
-    function isPartnerPortal() {
-        return /\/retailer\//i.test(window.location.pathname || '');
-    }
-
-    function isWholesalerPortal() {
-        return isPartnerPortal() && sessionAccountType() === 'Wholesaler';
-    }
-
     function isRetailerPortal() {
-        return isPartnerPortal() && !isWholesalerPortal();
+        return /\/retailer\//i.test(window.location.pathname || '');
     }
 
     function itemAudiences(item) {
@@ -95,7 +80,6 @@
 
     function audienceKey() {
         var path = window.location.pathname || '';
-        if (isWholesalerPortal()) return 'wholesaler';
         if (isRetailerPortal()) return 'retailer';
         if (isStaffPortal()) {
             var api = window.KreezbyStaffPermissions;
@@ -139,22 +123,6 @@
             po: 'inbox-portal.html',
             payment: 'inbox-portal.html',
             delivery: 'inbox-portal.html',
-            bo: 'bo-portal.html',
-            return: 'inbox-portal.html',
-            alert: 'inbox-portal.html',
-            stock: 'inbox-portal.html',
-            new_product: 'inbox-portal.html',
-            price_change: 'inbox-portal.html'
-        };
-        return pages[source] || '';
-    }
-
-    function wholesalerHref(source) {
-        var pages = {
-            po: 'inbox-portal.html',
-            payment: 'inbox-portal.html',
-            delivery: 'inbox-portal.html',
-            receive: 'inbox-portal.html',
             bo: 'bo-portal.html',
             return: 'inbox-portal.html',
             alert: 'inbox-portal.html',
@@ -215,11 +183,6 @@
             var source = item && item.source ? item.source : '';
             return source === 'new_product' || source === 'price_change';
         }
-        if (isWholesalerPortal()) {
-            if (audiences) return audiences.indexOf('wholesaler') !== -1;
-            var wholesaleSource = item && item.source ? item.source : '';
-            return wholesaleSource === 'new_product' || wholesaleSource === 'price_change';
-        }
         if (audiences && audiences.length === 1 && (audiences[0] === 'retailer' || audiences[0] === 'wholesaler')) return false;
         if (!isStaffPortal()) return true;
         var tasks = staffTasks();
@@ -249,9 +212,6 @@
             } else if (isRetailerPortal()) {
                 var retailerLink = retailerHref(n.source);
                 if (retailerLink) item.href = retailerLink;
-            } else if (isWholesalerPortal()) {
-                var wholesaleLink = wholesalerHref(n.source);
-                if (wholesaleLink) item.href = wholesaleLink;
             } else if (isAdminPortal()) {
                 var adminLink = adminHref(n.source);
                 if (adminLink) item.href = adminLink;
@@ -400,7 +360,7 @@
         });
 
         var path = window.location.pathname || '';
-        if (path.indexOf('/admin/') !== -1 || path.indexOf('/head_admin/') !== -1 || path.indexOf('/staff/') !== -1 || path.indexOf('/retailer/') !== -1 || path.indexOf('/wholesaler/') !== -1) {
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/head_admin/') !== -1 || path.indexOf('/staff/') !== -1 || path.indexOf('/retailer/') !== -1) {
             setInterval(function () {
                 var c = readJson(CURSOR_KEY, ensureCursor());
                 scanStorage(c);

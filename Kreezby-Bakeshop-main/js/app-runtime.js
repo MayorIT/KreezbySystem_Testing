@@ -185,7 +185,7 @@
     retailer: {
       userName: 'SIDC Batangas Hub',
       accountType: 'Retailer',
-      redirectUrl: 'retailer/wholesaler/retailer-portal.html'
+      redirectUrl: 'retailer/portal/retailer-portal.html'
     },
     customer: {
       userName: 'Maria Santos',
@@ -206,26 +206,6 @@
       userName: 'Guest Customer',
       accountType: 'Customer',
       redirectUrl: 'customer/customer.html'
-    },
-    metrobulk: {
-      userName: 'Metro Bulk Distributors',
-      accountType: 'Wholesaler',
-      redirectUrl: 'retailer/wholesaler/retailer-portal.html'
-    },
-    'james@metrobulkcom': {
-      userName: 'Metro Bulk Distributors',
-      accountType: 'Wholesaler',
-      redirectUrl: 'retailer/wholesaler/retailer-portal.html'
-    },
-    visayas: {
-      userName: 'Visayas Wholesale Hub',
-      accountType: 'Wholesaler',
-      redirectUrl: 'retailer/wholesaler/retailer-portal.html'
-    },
-    'carla@visayaswholesalecom': {
-      userName: 'Visayas Wholesale Hub',
-      accountType: 'Wholesaler',
-      redirectUrl: 'retailer/wholesaler/retailer-portal.html'
     },
     kylaramosemailcom: {
       userName: 'Kyla Ramos',
@@ -391,7 +371,7 @@
     var body = document.getElementById('notification-modal-body');
     var notices = STATIC_NOTIFICATIONS.slice();
     var path = (location.pathname || '').toLowerCase();
-    var partner = path.indexOf('/retailer/') >= 0 || path.indexOf('/wholesaler/') >= 0 || path.indexOf('/customer/') >= 0;
+    var partner = path.indexOf('/retailer/') >= 0 || path.indexOf('/customer/') >= 0;
     if (partner && window.KreezbyDictionary && typeof KreezbyDictionary.alerts === 'function') {
       KreezbyDictionary.alerts().forEach(function (alert) {
         if (alert.alert_type !== 'price_change' && alert.alert_type !== 'new_product') return;
@@ -456,10 +436,6 @@
   function areaForLogin(resolved) {
     var href = String(resolved && resolved.redirectUrl || '').toLowerCase();
     var name = String(resolved && resolved.userName || '').toLowerCase();
-    if (resolved && resolved.accountType === 'Wholesaler') {
-      if (href.indexOf('quezon') >= 0 || name.indexOf('metro') >= 0) return 'Quezon City';
-      if (href.indexOf('iloilo') >= 0 || name.indexOf('visayas') >= 0) return 'Iloilo City';
-    }
     if (resolved && resolved.accountType === 'Retailer') {
       var areaMatch = href.match(/retailer\/([a-z0-9]+)\//);
       var labels = {
@@ -478,8 +454,7 @@
     if (accountType === 'Staff') {
       return staffDashboardFromIdentity(identity);
     }
-    if (accountType === 'Wholesaler') return 'retailer/wholesaler/retailer-portal.html';
-    if (accountType === 'Retailer') return 'retailer/wholesaler/retailer-portal.html';
+    if (accountType === 'Retailer') return 'retailer/portal/retailer-portal.html';
     if (accountType === 'Customer') return 'customer/customer.html';
     return 'customer/customer_guest.html';
   }

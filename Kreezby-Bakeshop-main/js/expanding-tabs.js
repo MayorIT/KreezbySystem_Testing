@@ -140,7 +140,7 @@
         if (/sign\s*up|create account/.test(blob)) return ICONS.users;
         if (/retailer/.test(blob)) return ICONS.store;
         if (/customer|profile/.test(blob)) return ICONS.user;
-        if (/supplier|wholesaler/.test(blob)) return ICONS.truck;
+        if (/supplier/.test(blob)) return ICONS.truck;
         if (/address/.test(blob)) return ICONS.map;
         if (/password|security/.test(blob)) return ICONS.lock;
         if (/all (order|ticket)/.test(blob) || blob.indexOf('all ') === 0) return ICONS.list;

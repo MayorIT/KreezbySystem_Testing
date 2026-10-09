@@ -1,5 +1,5 @@
 /**
- * Partnership / wholesale inquiries from the checkout ad landing page.
+ * Partnership inquiries from the checkout ad landing page.
  * Head Admin reads these in head_admin/inquiries.html.
  */
 (function (root) {

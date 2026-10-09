@@ -25,8 +25,7 @@
         else if (type === 'Administrator') dest = '../admin/report_issue-admin.html';
         else if (type === 'Staff') dest = '../staff/report_issue-staff.html';
         else if (type === 'Customer') dest = '../customer/report_issue-customer.html';
-        else if (type === 'Retailer') dest = '../retailer/wholesaler/report_issue-portal.html';
-        else if (type === 'Wholesaler') dest = '../retailer/wholesaler/report_issue-portal.html';
+        else if (type === 'Retailer') dest = '../retailer/portal/report_issue-portal.html';
         window.location.replace(dest);
         return true;
     }

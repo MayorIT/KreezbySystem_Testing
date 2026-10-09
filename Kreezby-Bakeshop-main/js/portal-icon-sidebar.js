@@ -56,8 +56,7 @@
     function isPortalPage() {
         var path = (location.pathname || '').toLowerCase();
         return path.indexOf('/staff/') !== -1
-            || /\/retailer\//i.test(path)
-            || /\/wholesaler\//i.test(path);
+            || /\/retailer\//i.test(path);
     }
 
     function currentFilename() {
@@ -70,7 +69,7 @@
 
     function iconForFile(file) {
         if (!file) return 'home';
-        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || /^wholesaler-/.test(file)) return 'home';
+        if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file)) return 'home';
         if (file === 'po-staff.html' || file.indexOf('po-') === 0) return 'cart';
         if (file === 'receive-staff.html' || file.indexOf('receive-') === 0) return 'package';
         if (file === 'bo-staff.html' || file.indexOf('bo-') === 0) return 'layers';
@@ -134,7 +133,7 @@
 
     function isHiddenRetailerModule(href) {
         var path = location.pathname || '';
-        if (!/\/retailer\//i.test(path) && !/\/wholesaler\//i.test(path)) return false;
+        if (!/\/retailer\//i.test(path)) return false;
         var file = fileFromHref(href);
         return /^receive-/i.test(file) || /^(?:po-portal|return-portal|alert-portal)\.html$/i.test(file) || /receiving-retailer/i.test(file) || /pullout|pull-out|delivery/i.test(file);
     }

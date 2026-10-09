@@ -88,13 +88,13 @@
     function returnsByType(type) {
         var list = Object.keys(RETURNS).map(function (k) { return RETURNS[k]; });
         if (type !== 'customer' && !document.getElementById('return-tab-customer') && !document.getElementById('return-customer-tbody')) {
-            return list.sort(function (a, b) {
+            return list.filter(function (r) { return r.entityType !== 'wholesaler'; }).sort(function (a, b) {
                 var d = b.dateCreated.localeCompare(a.dateCreated);
                 return d !== 0 ? d : b.code.localeCompare(a.code);
             });
         }
         return list.filter(function (r) {
-            return type === 'customer' ? r.entityType === 'customer' : r.entityType !== 'customer';
+            return type === 'customer' ? r.entityType === 'customer' : (r.entityType !== 'customer' && r.entityType !== 'wholesaler');
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
             return d !== 0 ? d : b.code.localeCompare(a.code);
@@ -233,13 +233,11 @@
 
     function typeChipClass(type) {
         var label = String(type || '').toLowerCase();
-        if (label.indexOf('whole') >= 0) return 'is-wholesale';
         if (label.indexOf('customer') >= 0) return 'is-customer';
         return 'is-retail';
     }
 
     function typeLabel(type) {
-        if (type === 'wholesaler') return 'Wholesaler';
         if (type === 'customer') return 'Customer';
         return 'Retailer';
     }

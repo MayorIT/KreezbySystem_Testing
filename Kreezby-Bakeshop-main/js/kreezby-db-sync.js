@@ -14,7 +14,6 @@
     kreezbyOpenOrdersAfterCheckout: 1,
     kreezbyLatestOrderNumber: 1,
     kreezby_retailer_home: 1,
-    kreezby_wholesaler_home: 1,
     kreezby_admin_delivery_nav_v1: 1,
     kreezby_staff_delivery_nav_v1: 1
   };

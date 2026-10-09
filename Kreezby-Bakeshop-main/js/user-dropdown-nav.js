@@ -62,7 +62,6 @@
         var path = (location.pathname || '').toLowerCase();
         if (path.indexOf('/staff') >= 0) return 'kreezby-top-navbar-html-staff';
         if (path.indexOf('/retailer') >= 0) return 'kreezby-top-navbar-html-retailer';
-        if (path.indexOf('/wholesaler') >= 0) return 'kreezby-top-navbar-html-wholesaler';
         if (path.indexOf('/customer') >= 0) return 'kreezby-top-navbar-html-customer';
         if (path.indexOf('/head_admin') >= 0) return 'kreezby-top-navbar-html-head';
         return 'kreezby-top-navbar-html-admin';
@@ -203,7 +202,6 @@
         }
         if (path.indexOf('/retailer/') !== -1) return 'report_issue-portal.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
-        if (path.indexOf('/wholesaler/') !== -1) return 'report_issue-portal.html';
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
         if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('report_issue-admin.html');
         return moduleLocalHref('report_issue-admin.html');
@@ -355,7 +353,7 @@
 
     function ensurePortalIconSidebarLoaded() {
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
-        if (!/\/staff\//i.test(path) && !/\/retailer\//i.test(path) && !/\/wholesaler\/[^/]+\//i.test(path)) return;
+        if (!/\/staff\//i.test(path) && !/\/retailer\//i.test(path)) return;
         if (!document.querySelector('aside.sidebar-panel')) return;
         if (document.getElementById('kreezby-portal-icon-sidebar-script')) return;
 
@@ -527,21 +525,8 @@
         }
     }
 
-    function isWholesalerPage() {
-        var path = (window.location.pathname || '').replace(/\\/g, '/');
-        if (/\/retailer\//i.test(path)) return false;
-        return /\/wholesaler\//i.test(path);
-    }
-
-    function isWholesalerHomePage() {
-        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        if (path.indexOf('/wholesaler/') < 0) return false;
-        var file = path.split('/').pop().split('?')[0];
-        return file === 'wholesaler-portal.html';
-    }
-
     function isPortalHeaderPage() {
-        return isAdminLikePage() || isStaffPage() || isRetailerPage() || isWholesalerPage();
+        return isAdminLikePage() || isStaffPage() || isRetailerPage();
     }
 
     function isAdminHomePage() {
@@ -658,48 +643,8 @@
         orderPortalHeader();
     }
 
-    function ensureWholesalerHomeLink() {
-        if (!isWholesalerPage() || isWholesalerHomePage()) return;
-        var right = document.querySelector('.top-navbar-node .top-nav-links-right');
-        if (!right) return;
-        var href = 'wholesaler-portal.html';
-        if (window.KreezbyWholesalerNav && typeof window.KreezbyWholesalerNav.resolveHomeUrl === 'function') {
-            href = window.KreezbyWholesalerNav.resolveHomeUrl() || href;
-        }
-        var homes = Array.prototype.filter.call(right.querySelectorAll('a'), function (link) {
-            if (!link || link.closest('.user-dropdown, .user-dropdown-menu')) return false;
-            if (link.classList.contains('home-badge')) return true;
-            var label = (link.getAttribute('aria-label') || link.getAttribute('title') || '').replace(/\s+/g, ' ').trim().toLowerCase();
-            var text = (link.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-            if (label === 'home' || text === 'home') return true;
-            var file = ((link.getAttribute('href') || '').split('/').pop() || '').split('?')[0].toLowerCase();
-            return file === 'wholesaler-portal.html';
-        });
-        var keep = homes[0] || null;
-        homes.forEach(function (link) {
-            if (link !== keep) link.remove();
-        });
-        if (!keep) {
-            keep = document.createElement('a');
-            var dropdown = right.querySelector('.user-dropdown');
-            if (dropdown) right.insertBefore(keep, dropdown);
-            else right.appendChild(keep);
-        }
-        keep.className = 'top-nav-item home-badge';
-        keep.removeAttribute('aria-label');
-        keep.removeAttribute('aria-current');
-        keep.setAttribute('href', href);
-        keep.textContent = 'Home';
-        if (document.getElementById('kreezby-main-content')) {
-            keep.removeAttribute('data-turbo');
-            keep.setAttribute('data-turbo-frame', 'kreezby-main-content');
-            keep.setAttribute('data-turbo-action', 'advance');
-        }
-        orderPortalHeader();
-    }
-
     function syncAdminHomeHeader() {
-        var home = isAdminHomePage() || isStaffHomePage() || isRetailerHomePage() || isWholesalerHomePage();
+        var home = isAdminHomePage() || isStaffHomePage() || isRetailerHomePage();
         document.body.classList.toggle('kreezby-admin-home', home);
         var style = document.getElementById('kreezby-admin-home-header-style');
         if (!style) {
@@ -915,7 +860,7 @@
         var reportHref = reportIssueHref();
         var loginHref = authLoginHref();
 
-        if (isStaffPage() || isAdminLikePage() || isRetailerPage() || isWholesalerPage()) {
+        if (isStaffPage() || isAdminLikePage() || isRetailerPage()) {
             menu.innerHTML = reportIssueMenuHtml();
             return;
         }
@@ -1085,13 +1030,11 @@
         syncAdminHomeHeader();
         ensureStaffHomeLink();
         ensureRetailerHomeLink();
-        ensureWholesalerHomeLink();
         setTimeout(syncAdminHomeHeader, 0);
         setTimeout(function () {
             syncAdminHomeHeader();
             ensureStaffHomeLink();
             ensureRetailerHomeLink();
-            ensureWholesalerHomeLink();
         }, 80);
     }
 

@@ -35,10 +35,12 @@
     var messages = [];
     var chips = [];
     var pending = false;
+    var pendingFiles = [];
     var threadEl;
     var chipsEl;
     var formEl;
     var inputEl;
+    var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
 
     function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -453,7 +455,7 @@
         if (hasAny(text, ['how to order', 'how do i order', 'place an order', 'how to buy', 'add to cart', 'how do i buy'])) {
             return orderHowReply();
         }
-        if (hasAny(text, ['wholesale', 'partner', 'reseller', 'retailer application', 'become a partner'])) {
+        if (hasAny(text, ['partner', 'reseller', 'retailer application', 'become a partner'])) {
             return partnerReply();
         }
         if (hasAny(text, ['cancel', 'change address', 'change my order', 'edit order', 'wrong address'])) {
@@ -576,6 +578,57 @@
         });
     }
 
+    function fileKind(file) {
+        var type = String((file && file.type) || '');
+        if (type.indexOf('image/') === 0) return 'image';
+        if (type.indexOf('video/') === 0) return 'video';
+        if (type.indexOf('audio/') === 0) return 'audio';
+        return 'file';
+    }
+
+    function appendHelpFiles(bubble, files) {
+        if (!files || !files.length) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'help-files';
+        files.forEach(function (file) {
+            if (file.kind === 'image' && file.url) {
+                var img = document.createElement('img');
+                img.className = 'help-file-image';
+                img.alt = file.name || 'Photo';
+                img.src = file.url;
+                wrap.appendChild(img);
+                return;
+            }
+            if (file.kind === 'video' && file.url) {
+                var video = document.createElement('video');
+                video.className = 'help-file-video';
+                video.controls = true;
+                video.src = file.url;
+                wrap.appendChild(video);
+                return;
+            }
+            if (file.kind === 'audio' && file.url) {
+                var audio = document.createElement('audio');
+                audio.className = 'help-file-audio';
+                audio.controls = true;
+                audio.src = file.url;
+                wrap.appendChild(audio);
+                return;
+            }
+            var doc = document.createElement('a');
+            doc.className = 'help-file-doc';
+            doc.textContent = file.name || 'Document';
+            if (file.url) {
+                doc.href = file.url;
+                doc.download = file.name || 'file';
+            } else {
+                doc.href = '#';
+            }
+            wrap.appendChild(doc);
+        });
+        bubble.appendChild(wrap);
+    }
+
     function renderThread() {
         if (!threadEl) return;
         threadEl.innerHTML = '';
@@ -584,10 +637,13 @@
             row.className = 'help-msg help-msg--' + msg.role;
             var bubble = document.createElement('div');
             bubble.className = 'help-bubble';
-            var text = document.createElement('p');
-            text.className = 'help-bubble__text';
-            text.innerHTML = escapeHtml(msg.text).replace(/\n/g, '<br>');
-            bubble.appendChild(text);
+            appendHelpFiles(bubble, msg.attachments);
+            if (msg.text) {
+                var text = document.createElement('p');
+                text.className = 'help-bubble__text';
+                text.innerHTML = escapeHtml(msg.text).replace(/\n/g, '<br>');
+                bubble.appendChild(text);
+            }
             if (msg.role === 'bot') renderBlocks(bubble, msg.blocks);
             var time = document.createElement('span');
             time.className = 'help-bubble__time';
@@ -627,7 +683,30 @@
 
     function persist() {
         try {
-            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ messages: messages, chips: chips }));
+            var slim = messages.map(function (msg) {
+                var copy = {
+                    role: msg.role,
+                    text: msg.text,
+                    blocks: msg.blocks,
+                    time: msg.time
+                };
+                if (msg.attachments && msg.attachments.length) {
+                    copy.attachments = msg.attachments.map(function (file) {
+                        var item = {
+                            name: file.name,
+                            kind: file.kind,
+                            size: file.size,
+                            type: file.type
+                        };
+                        if (file.url && String(file.url).indexOf('data:') === 0 && String(file.url).length < 400000) {
+                            item.url = file.url;
+                        }
+                        return item;
+                    });
+                }
+                return copy;
+            });
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ messages: slim, chips: chips }));
         } catch (err) { /* ignore */ }
     }
 
@@ -666,16 +745,242 @@
         persist();
     }
 
-    function ask(raw) {
+    function attachmentAck(files) {
+        var first = files && files[0];
+        var label = !first ? 'file' : (first.kind === 'image' ? 'photo' : (first.kind === 'video' ? 'video' : (first.kind === 'audio' ? 'voice message' : 'file')));
+        var name = first && first.name ? ' (' + first.name + ')' : '';
+        return {
+            text: files.length > 1
+                ? 'Thanks, we received your files. Add a short note if you want us to check a specific order.'
+                : 'Thanks, we received your ' + label + name + '. Add a short note if you want us to check a specific order.',
+            blocks: [],
+            chips: chipsOf(MENU)
+        };
+    }
+
+    function ask(raw, attachments, options) {
         var text = String(raw || '').trim();
-        if (!text || pending) return;
-        messages.push({ role: 'user', text: text, time: nowLabel() });
+        var files = attachments || [];
+        if ((!text && !files.length) || pending) return false;
+        messages.push({
+            role: 'user',
+            text: text,
+            time: nowLabel(),
+            attachments: files
+        });
         pending = true;
-        if (inputEl) inputEl.value = '';
+        if (inputEl && !(options && options.keepDraft)) inputEl.value = '';
         renderThread();
         window.setTimeout(function () {
-            pushBot(replyTo(text));
+            pushBot(text ? replyTo(text) : attachmentAck(files));
         }, 550);
+        return true;
+    }
+
+    function showHelpNote(message) {
+        var note = document.getElementById('help-attach-note');
+        if (!note) return;
+        note.hidden = !message;
+        note.textContent = message || '';
+    }
+
+    function renderHelpPending() {
+        var box = document.getElementById('help-attach-preview');
+        if (!box) return;
+        box.innerHTML = '';
+        box.hidden = !pendingFiles.length;
+        pendingFiles.forEach(function (item, index) {
+            var chip = document.createElement('div');
+            chip.className = 'help-attach-chip' + (item.kind === 'file' ? ' is-file' : '');
+            if (item.kind === 'image') {
+                var img = document.createElement('img');
+                img.alt = '';
+                img.src = item.url;
+                chip.appendChild(img);
+            } else if (item.kind === 'video') {
+                var video = document.createElement('video');
+                video.muted = true;
+                video.src = item.url;
+                chip.appendChild(video);
+            } else {
+                var label = document.createElement('span');
+                label.textContent = item.name;
+                chip.appendChild(label);
+            }
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'help-attach-remove';
+            remove.setAttribute('aria-label', 'Remove attachment');
+            remove.textContent = '×';
+            remove.addEventListener('click', function () {
+                pendingFiles.splice(index, 1);
+                renderHelpPending();
+            });
+            chip.appendChild(remove);
+            box.appendChild(chip);
+        });
+    }
+
+    function addHelpFiles(fileList) {
+        if (pending) {
+            showHelpNote('Wait for the assistant to finish before attaching another file.');
+            return;
+        }
+        var rejected = 0;
+        Array.prototype.forEach.call(fileList || [], function (file) {
+            if (!file) return;
+            if (file.size > MAX_ATTACH_BYTES) {
+                rejected += 1;
+                return;
+            }
+            var kind = fileKind(file);
+            pendingFiles.push({
+                name: file.name || (kind === 'image' ? 'Photo' : 'Attachment'),
+                kind: kind,
+                type: file.type || '',
+                size: file.size || 0,
+                url: URL.createObjectURL(file)
+            });
+        });
+        renderHelpPending();
+        showHelpNote(rejected ? 'Each file must be 12 MB or smaller.' : '');
+    }
+
+    var closeHelpCamera = null;
+
+    function openHelpCamera() {
+        if (closeHelpCamera) closeHelpCamera();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showHelpNote('This browser cannot open the camera.');
+            return;
+        }
+        var overlay = document.createElement('div');
+        overlay.className = 'kreezby-camera';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-label', 'Camera');
+        overlay.innerHTML =
+            '<div class="kreezby-camera__panel">' +
+                '<video autoplay playsinline muted></video>' +
+                '<div class="kreezby-camera__actions">' +
+                    '<button type="button" data-camera="cancel">Cancel</button>' +
+                    '<button type="button" data-camera="shot">Take photo</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        var video = overlay.querySelector('video');
+        var stream = null;
+        var settled = false;
+
+        function finish(file, error) {
+            if (settled) return;
+            settled = true;
+            if (stream) {
+                stream.getTracks().forEach(function (track) { track.stop(); });
+                stream = null;
+            }
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            if (closeHelpCamera === finish) closeHelpCamera = null;
+            if (error) showHelpNote(error);
+            else if (file) addHelpFiles([file]);
+        }
+
+        closeHelpCamera = finish;
+        overlay.querySelector('[data-camera="cancel"]').addEventListener('click', function () {
+            finish(null, '');
+        });
+        overlay.querySelector('[data-camera="shot"]').addEventListener('click', function () {
+            var width = video.videoWidth || 0;
+            var height = video.videoHeight || 0;
+            if (!width || !height) return;
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+            canvas.toBlob(function (blob) {
+                if (!blob) {
+                    finish(null, 'Could not take the photo.');
+                    return;
+                }
+                finish(new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' }), '');
+            }, 'image/jpeg', 0.92);
+        });
+
+        function requestCamera(attempt) {
+            var constraints = attempt === 0
+                ? { video: { facingMode: { ideal: 'environment' } }, audio: false }
+                : { video: true, audio: false };
+            return navigator.mediaDevices.getUserMedia(constraints).catch(function () {
+                if (attempt === 0) return requestCamera(1);
+                throw new Error('camera');
+            });
+        }
+
+        requestCamera(0).then(function (media) {
+            if (settled) {
+                media.getTracks().forEach(function (track) { track.stop(); });
+                return;
+            }
+            stream = media;
+            video.srcObject = media;
+            var play = video.play();
+            if (play && typeof play.catch === 'function') play.catch(function () {});
+        }).catch(function () {
+            finish(null, 'Allow camera access to take a photo.');
+        });
+    }
+
+    function wireHelpAttachments() {
+        var button = document.getElementById('help-attach-btn');
+        var menu = document.getElementById('help-attach-menu');
+        if (!button || !menu || !formEl) return;
+
+        function setOpen(open) {
+            menu.hidden = !open;
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var emojiMenu = document.getElementById('help-emoji-menu');
+            var emojiBtn = document.getElementById('help-emoji-btn');
+            if (emojiMenu) emojiMenu.hidden = true;
+            if (emojiBtn) emojiBtn.setAttribute('aria-expanded', 'false');
+            setOpen(menu.hidden);
+        });
+
+        menu.addEventListener('click', function (event) {
+            event.stopPropagation();
+            var item = event.target.closest('[data-attach]');
+            if (!item) return;
+            var kind = item.getAttribute('data-attach');
+            setOpen(false);
+            if (kind === 'camera') {
+                openHelpCamera();
+                return;
+            }
+            var picker = document.getElementById('help-file-' + kind);
+            if (!picker) return;
+            picker.value = '';
+            picker.click();
+        });
+
+        document.addEventListener('click', function () {
+            setOpen(false);
+            var emojiMenu = document.getElementById('help-emoji-menu');
+            var emojiBtn = document.getElementById('help-emoji-btn');
+            if (emojiMenu) emojiMenu.hidden = true;
+            if (emojiBtn) emojiBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        ['document'].forEach(function (kind) {
+            var picker = document.getElementById('help-file-' + kind);
+            if (!picker) return;
+            picker.addEventListener('change', function () {
+                addHelpFiles(picker.files);
+                picker.value = '';
+            });
+        });
     }
 
     function onPromptClick(event) {
@@ -699,9 +1004,178 @@
         if (formEl) {
             formEl.addEventListener('submit', function (event) {
                 event.preventDefault();
-                ask(inputEl ? inputEl.value : '');
+                var files = pendingFiles.slice();
+                if (!ask(inputEl ? inputEl.value : '', files)) return;
+                pendingFiles = [];
+                renderHelpPending();
+                showHelpNote('');
             });
         }
+        wireHelpAttachments();
+        wireHelpEmoji();
+        wireHelpVoice();
+    }
+
+    var HELP_EMOJIS = [
+        '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😎',
+        '😢', '😭', '😡', '🤔', '😴', '🤗', '🙏', '👍',
+        '👎', '👏', '🔥', '❤️', '💯', '✅', '❌', '⭐',
+        '🎉', '🎂', '🍪', '🍫', '📦', '🚚', '💰', '👋'
+    ];
+
+    function insertHelpEmoji(emoji) {
+        if (!inputEl || !emoji) return;
+        var start = inputEl.selectionStart == null ? inputEl.value.length : inputEl.selectionStart;
+        var end = inputEl.selectionEnd == null ? inputEl.value.length : inputEl.selectionEnd;
+        var next = inputEl.value.slice(0, start) + emoji + inputEl.value.slice(end);
+        if (next.length > 240) {
+            showHelpNote('That emoji does not fit in this message.');
+            return;
+        }
+        inputEl.value = next;
+        var pos = start + emoji.length;
+        inputEl.focus();
+        if (inputEl.setSelectionRange) inputEl.setSelectionRange(pos, pos);
+    }
+
+    function wireHelpEmoji() {
+        var button = document.getElementById('help-emoji-btn');
+        var menu = document.getElementById('help-emoji-menu');
+        if (!button || !menu) return;
+        HELP_EMOJIS.forEach(function (emoji) {
+            var item = document.createElement('button');
+            item.type = 'button';
+            item.textContent = emoji;
+            item.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                insertHelpEmoji(emoji);
+            });
+            menu.appendChild(item);
+        });
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var attachMenu = document.getElementById('help-attach-menu');
+            var attachBtn = document.getElementById('help-attach-btn');
+            if (attachMenu) attachMenu.hidden = true;
+            if (attachBtn) attachBtn.setAttribute('aria-expanded', 'false');
+            var open = menu.hidden;
+            menu.hidden = !open;
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    }
+
+    var helpVoice = { recorder: null, stream: null, chunks: [], send: false, started: 0, timer: 0 };
+
+    function helpVoiceClock(ms) {
+        var total = Math.max(0, Math.floor(ms / 1000));
+        var minutes = Math.floor(total / 60);
+        var seconds = total % 60;
+        return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    }
+
+    function setHelpVoiceUi(on) {
+        var btn = document.getElementById('help-voice-btn');
+        if (!btn) return;
+        btn.classList.toggle('is-recording', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.title = on ? 'Stop and send voice message' : 'Voice message';
+    }
+
+    function finishHelpVoice() {
+        window.clearInterval(helpVoice.timer);
+        helpVoice.timer = 0;
+        setHelpVoiceUi(false);
+        if (helpVoice.stream) {
+            helpVoice.stream.getTracks().forEach(function (track) { track.stop(); });
+            helpVoice.stream = null;
+        }
+    }
+
+    function stopHelpVoice(send) {
+        helpVoice.send = !!send;
+        if (helpVoice.recorder && helpVoice.recorder.state === 'recording') {
+            helpVoice.recorder.stop();
+            return;
+        }
+        finishHelpVoice();
+        showHelpNote('');
+    }
+
+    function startHelpVoice() {
+        if (pending) {
+            showHelpNote('Wait for the assistant to finish before sending a voice message.');
+            return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+            showHelpNote('Voice messages need a microphone in this browser.');
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+            var types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+            var mime = '';
+            for (var i = 0; i < types.length; i++) {
+                if (window.MediaRecorder.isTypeSupported(types[i])) {
+                    mime = types[i];
+                    break;
+                }
+            }
+            var recorder;
+            try {
+                recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+            } catch (err) {
+                stream.getTracks().forEach(function (track) { track.stop(); });
+                showHelpNote('This browser could not start a voice recording.');
+                return;
+            }
+            helpVoice.stream = stream;
+            helpVoice.recorder = recorder;
+            helpVoice.chunks = [];
+            helpVoice.send = false;
+            helpVoice.started = Date.now();
+            recorder.ondataavailable = function (event) {
+                if (event.data && event.data.size) helpVoice.chunks.push(event.data);
+            };
+            recorder.onstop = function () {
+                var blob = new Blob(helpVoice.chunks, { type: recorder.mimeType || mime || 'audio/webm' });
+                var shouldSend = helpVoice.send && blob.size && (Date.now() - helpVoice.started) > 350;
+                helpVoice.recorder = null;
+                helpVoice.chunks = [];
+                finishHelpVoice();
+                if (!shouldSend) {
+                    showHelpNote(helpVoice.send ? 'Record a little longer, then tap the microphone to send.' : '');
+                    return;
+                }
+                showHelpNote('');
+                ask('', [{
+                    name: 'Voice message',
+                    kind: 'audio',
+                    type: blob.type || '',
+                    size: blob.size,
+                    url: URL.createObjectURL(blob)
+                }], { keepDraft: true });
+            };
+            recorder.start();
+            setHelpVoiceUi(true);
+            showHelpNote('Recording 0:00 — tap the microphone to send');
+            helpVoice.timer = window.setInterval(function () {
+                showHelpNote('Recording ' + helpVoiceClock(Date.now() - helpVoice.started) + ' — tap the microphone to send');
+            }, 500);
+        }).catch(function () {
+            showHelpNote('Allow microphone access to send a voice message.');
+        });
+    }
+
+    function wireHelpVoice() {
+        var button = document.getElementById('help-voice-btn');
+        if (!button) return;
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (helpVoice.recorder && helpVoice.recorder.state === 'recording') stopHelpVoice(true);
+            else startHelpVoice();
+        });
     }
 
     if (document.readyState === 'loading') {

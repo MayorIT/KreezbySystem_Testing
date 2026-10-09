@@ -61,15 +61,6 @@
         }
     }
 
-    function isWholesalerPortal() {
-        var path = (location.pathname || '').replace(/\\/g, '/');
-        if (!/\/retailer\//i.test(path)) return false;
-        try {
-            var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
-            return !!(session && session.accountType === 'Wholesaler');
-        } catch (e) { return false; }
-    }
-
     function matchesPortalEntity(order) {
         if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
         return order && order.entity === retailerStoreName;
@@ -120,7 +111,7 @@
             var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
             sessionName = session && session.userName ? String(session.userName) : '';
         } catch (e) { sessionName = ''; }
-        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer' || brandName.toLowerCase() === 'wholesaler';
+        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer';
         retailerStoreName = genericBrand
             ? (sessionName || brandName || 'Retailer')
             : brandName;
@@ -234,8 +225,8 @@
             '<div class="form-field-unit"><label>PO Code *</label><input type="text" id="po-modal-code" readonly></div>' +
             '<div class="form-field-unit"><label>Date Created *</label><input type="datetime-local" id="po-modal-date" required></div>' +
             '<div class="form-field-unit"><label>Area *</label><select id="po-modal-area" required><option value="' + areaLabel + '">' + areaLabel + '</option></select></div>' +
-            '<div class="form-field-unit"><label>' + (isWholesalerPortal() ? 'Wholesaler / Account *' : 'Retailer / Entity *') + '</label><input type="text" id="po-modal-entity" required readonly></div>' +
-            '<div class="form-field-unit" style="display:none;"><select id="po-modal-type"><option value="retailer">retailer</option><option value="wholesaler">wholesaler</option></select></div>' +
+            '<div class="form-field-unit"><label>Retailer / Entity *</label><input type="text" id="po-modal-entity" required readonly></div>' +
+            '<div class="form-field-unit" style="display:none;"><select id="po-modal-type"><option value="retailer">retailer</option></select></div>' +
             '<div class="form-field-unit"><label>Status *</label><select id="po-modal-status"><option value="pending">Pending</option></select></div>' +
             '</div>' +
             '<div class="item-builder-sub-header"><span>■</span> Item Form</div>' +
@@ -253,20 +244,8 @@
             '<tbody id="po-modal-items-injector"></tbody>' +
             '<tfoot><tr style="font-weight:bold;background:#f5f5f5;"><td colspan="5" style="text-align:right;">Grand Total</td>' +
             '<td id="po-modal-grand-total" colspan="2">0.00</td></tr></tfoot></table>' +
-            (isWholesalerPortal()
-                ? '<div class="form-field-unit"><label for="po-modal-payment">Payment they made</label><select id="po-modal-payment">' +
-                    '<option value="paymongo">PayMongo</option><option value="check">Check</option><option value="cash">Cash</option></select></div>' +
-                    '<div class="form-field-unit" id="po-modal-paymongo-wrap"><p style="margin:0 0 8px;color:#374151;">Scan the QR code. It opens a PayMongo link like secure-authentication.paymongo.com/sources?id=src_… This order stays unpaid until that payment succeeds.</p>' +
-                    '<div style="display:flex;gap:16px;margin:0 0 10px;">' +
-                    '<label><input type="radio" name="po-paymongo-wallet" value="gcash" checked> GCash</label>' +
-                    '<label><input type="radio" name="po-paymongo-wallet" value="paymaya"> Maya</label></div>' +
-                    '<img id="po-modal-paymongo-qr" alt="PayMongo QR code" hidden style="display:none;width:590px;max-width:100%;height:auto;margin:8px 0 10px;background:#fff;border:0;border-radius:0;">' +
-                    '<label for="po-modal-paymongo-email">Email for the receipt</label>' +
-                    '<input type="email" id="po-modal-paymongo-email" placeholder="name@email.com">' +
-                    '<button type="button" class="btn-call-to-action" id="po-modal-paymongo-btn" style="margin-top:10px;">Show QR code</button>' +
-                    '<p id="po-modal-paymongo-status" style="margin:8px 0 0;color:#374151;"></p></div>'
-                : '<div class="form-field-unit"><label for="po-modal-payment">Payment</label><select id="po-modal-payment">' +
-                    '<option value="consignment">Consignment</option><option value="cash_on_delivery">Cash on delivery</option><option value="check">Check</option></select></div>') +
+            '<div class="form-field-unit"><label for="po-modal-payment">Payment</label><select id="po-modal-payment">' +
+            '<option value="consignment">Consignment</option><option value="cash_on_delivery">Cash on delivery</option><option value="check">Check</option></select></div>' +
             '<div class="form-field-unit" id="po-modal-check-wrap" style="display:none;"><label for="po-modal-check-no">Check number</label>' +
             '<input type="text" id="po-modal-check-no" placeholder="Check number"></div>' +
             '<div class="form-field-unit"><label>Remarks</label><textarea id="po-modal-remarks" style="width:100%;height:60px;"></textarea></div>' +
@@ -275,12 +254,8 @@
             '<button type="button" class="btn-modal-cancel" id="po-modal-cancel-btn">Cancel</button>' +
             '<button type="button" class="btn-modal-save" id="po-modal-save-btn">Submit P.O Request</button></div></div>';
         document.getElementById('po-modal-entity').value = retailerStoreName;
-        var typeSelect = document.getElementById('po-modal-type');
-        if (typeSelect && isWholesalerPortal()) typeSelect.value = 'wholesaler';
         var paySelect = document.getElementById('po-modal-payment');
         if (paySelect) paySelect.addEventListener('change', togglePaymentExtras);
-        var paymongoBtn = document.getElementById('po-modal-paymongo-btn');
-        if (paymongoBtn) paymongoBtn.onclick = startWholesalerPaymongo;
         togglePaymentExtras();
         applyRetailerOrderForm();
     }
@@ -417,7 +392,7 @@
     }
 
     function retailerOrderSelected() {
-        if (PAGE_MODE === 'retailer' && !isWholesalerPortal()) return true;
+        if (PAGE_MODE === 'retailer') return true;
         var typeSelect = document.getElementById('po-modal-type');
         return !!(typeSelect && typeSelect.value === 'retailer');
     }
@@ -483,7 +458,6 @@
     function generateNextCode(entityType) {
         var prefix = 'PO-';
         if (entityType === 'customer') prefix = 'PO-C';
-        else if (entityType === 'wholesaler') prefix = 'WPO-';
         var max = 0;
         Object.keys(PO_ORDERS).forEach(function (k) {
             var o = PO_ORDERS[k];
@@ -509,10 +483,9 @@
         return Object.keys(PO_ORDERS).map(function (k) { return PO_ORDERS[k]; }).filter(function (o) {
             if (PAGE_MODE === 'retailer') {
                 if (!matchesPortalEntity(o)) return false;
-                if (isWholesalerPortal()) return o.entityType === 'wholesaler';
                 return o.entityType !== 'customer' && o.entityType !== 'wholesaler';
             }
-            return type === 'customer' ? o.entityType === 'customer' : o.entityType !== 'customer';
+            return type === 'customer' ? o.entityType === 'customer' : (o.entityType !== 'customer' && o.entityType !== 'wholesaler');
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
             return d !== 0 ? d : b.code.localeCompare(a.code);
@@ -678,7 +651,6 @@
 
     function typeChipClass(type) {
         var label = String(type || '').toLowerCase();
-        if (label.indexOf('whole') >= 0) return 'is-wholesale';
         if (label.indexOf('customer') >= 0) return 'is-customer';
         return 'is-retail';
     }
@@ -715,7 +687,7 @@
         }
         var page = pageSlice(rows, 'retailer');
         tbody.innerHTML = page.rows.map(function (o, i) {
-            var accountType = o.accountType || (o.entityType === 'wholesaler' ? 'Wholesaler' : o.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
+            var accountType = o.accountType || (o.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
             var area = o.accountArea || o.area || '';
             return '<tr data-po="' + o.code + '" class="po-data-row">' +
                 '<td class="po-col-num" data-label="#">' + (page.offset + i + 1) + '</td>' +
@@ -772,7 +744,7 @@
                 '<td class="po-num">' + formatMoney(it.total) + '</td></tr>';
         }).join('');
         if (!itemsHtml) itemsHtml = '<tr><td colspan="5" class="po-empty-row">No items on this order.</td></tr>';
-        var accountType = order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
+        var accountType = order.accountType || (order.entityType === 'customer' ? 'Regular Customer' : 'Retailer');
         var remarks = order.remarks
             ? '<p class="po-detail-remarks"><span>Remarks</span>' + escHtml(order.remarks) + '</p>'
             : '';
@@ -856,7 +828,7 @@
         else if (order && order.paymentVerified === true) verified = true;
         else if (order && order.paymentVerified === false) verified = false;
         else verified = !!(shop && shop.paymentVerified === true);
-        if (PAGE_MODE === 'retailer' && !isWholesalerPortal() && method === 'gcash') method = '';
+        if (PAGE_MODE === 'retailer' && method === 'gcash') method = '';
         var known = method === 'gcash' || method === 'paymongo' || method === 'consignment' || method === 'cash_on_delivery' || method === 'check' || method === 'cash';
         return {
             method: known ? method : '',
@@ -889,7 +861,7 @@
         if (order && order.orderSource === 'staff') return '<span class="po-pay-note" title="Staff order">Staff order</span>';
         var pay = customerPaymentSnapshot(order);
         var trade = isTradeOrder(order);
-        if (PAGE_MODE === 'retailer' && !isWholesalerPortal()) {
+        if (PAGE_MODE === 'retailer') {
             return pay.method ? '<span class="po-pay-note" title="' + escHtml(pay.label) + '">' + escHtml(pay.label) + '</span>' : '';
         }
         if (!pay.method && !trade) return '';
@@ -1171,7 +1143,7 @@
             shippedAt: (statusText === 'Shipped' && order.trackingNumber) ? new Date().toISOString() : undefined,
             paymentVerified: paymentVerified,
             source: 'po-admin',
-            accountType: order.accountType || (order.entityType === 'wholesaler' ? 'Wholesaler' : order.entityType === 'customer' ? 'Regular Customer' : 'Retailer'),
+            accountType: order.accountType || (order.entityType === 'customer' ? 'Regular Customer' : 'Retailer'),
             accountName: order.accountName || order.entity || '',
             accountArea: order.accountArea || order.area || ''
         };
@@ -1215,15 +1187,7 @@
         if (node) node.textContent = text || '';
     }
 
-    function wholesalerPaymongoWallet() {
-        var picked = document.querySelector('input[name="po-paymongo-wallet"]:checked');
-        return picked && picked.value === 'paymaya' ? 'paymaya' : 'gcash';
-    }
 
-    function wholesalerGrandTotal() {
-        var text = (document.getElementById('po-modal-grand-total') || {}).textContent || '0';
-        return Number(String(text).replace(/[^0-9.]/g, '')) || 0;
-    }
 
     var paymongoBase = '';
 
@@ -1261,114 +1225,7 @@
         return { response: lastResponse, data: lastData };
     }
 
-    function watchWholesalerPaymongo(paymentIntentId, wallet, amount) {
-        stopPaymongoPoll();
-        var ticks = 0;
-        async function tick() {
-            ticks += 1;
-            try {
-                var result = await paymongoFetch('/api/paymongo/payment-intents/' + encodeURIComponent(paymentIntentId));
-                var response = result.response;
-                var data = result.data || {};
-                if (!response || !response.ok) {
-                    stopPaymongoPoll();
-                    setPaymongoStatus(data.error || 'PayMongo could not be checked.');
-                    return;
-                }
-                if (data.status === 'succeeded') {
-                    stopPaymongoPoll();
-                    modalPaymongo = {
-                        paymentIntentId: data.paymentIntentId,
-                        status: 'succeeded',
-                        wallet: data.wallet || wallet,
-                        amount: data.amount || amount
-                    };
-                    setPaymongoStatus('Payment successful. PayMongo reference ' + data.paymentIntentId + '.');
-                    return;
-                }
-                if (data.lastPaymentError) {
-                    stopPaymongoPoll();
-                    modalPaymongo = null;
-                    setPaymongoStatus(data.lastPaymentError);
-                    return;
-                }
-                setPaymongoStatus('Scan the QR code. It opens the PayMongo payment link. This form checks every 5 seconds.');
-                if (ticks > 36) {
-                    stopPaymongoPoll();
-                    setPaymongoStatus('The QR code is still waiting. Show it again if you need a new one.');
-                }
-            } catch (error) {
-                stopPaymongoPoll();
-                setPaymongoStatus('PayMongo could not be checked.');
-            }
-        }
-        tick();
-        paymongoPollTimer = setInterval(tick, 5000);
-    }
 
-    async function startWholesalerPaymongo() {
-        var amount = wholesalerGrandTotal();
-        if (amount <= 0) {
-            showToast('Add items before paying with PayMongo.');
-            return;
-        }
-        var email = String((document.getElementById('po-modal-paymongo-email') || {}).value || '').trim();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showToast('Enter an email address so PayMongo can send the receipt.');
-            return;
-        }
-        var name = String((document.getElementById('po-modal-entity') || {}).value || '').trim() || 'Wholesaler';
-        var code = String((document.getElementById('po-modal-code') || {}).value || '').trim();
-        var button = document.getElementById('po-modal-paymongo-btn');
-        var showedQr = false;
-        var wallet = (document.querySelector('input[name="po-paymongo-wallet"]:checked') || {}).value === 'paymaya' ? 'paymaya' : 'gcash';
-        if (button) button.disabled = true;
-        setPaymongoStatus('Creating the QR code…');
-        try {
-            var result = await paymongoFetch('/api/paymongo/e-wallet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount: amount,
-                    wallet: wallet,
-                    name: name,
-                    email: email,
-                    phone: '',
-                    description: 'Kreezby purchase order ' + code,
-                    returnUrl: window.location.origin + window.location.pathname + '?paymongo=return',
-                    reference: code,
-                    audience: 'wholesaler'
-                })
-            });
-            var response = result.response;
-            var data = result.data || {};
-            if (!response) {
-                setPaymongoStatus('The shop server is not running. Open http://localhost:3000 and try again.');
-                return;
-            }
-            if (!response.ok || !data.ok) {
-                setPaymongoStatus(data.error || (response.status === 404
-                    ? 'The shop server needs a restart before PayMongo can take this payment.'
-                    : 'PayMongo could not start the payment.'));
-                return;
-            }
-            var qr = document.getElementById('po-modal-paymongo-qr');
-            if (!qr || String(data.qrImage || '').indexOf('data:image/') !== 0) {
-                setPaymongoStatus('PayMongo did not return a QR code.');
-                return;
-            }
-            qr.src = data.qrImage;
-            qr.hidden = false;
-            qr.style.display = 'block';
-            showedQr = true;
-            if (button) button.textContent = 'QR code ready';
-            watchWholesalerPaymongo(data.paymentIntentId, wallet, amount);
-        } catch (error) {
-            setPaymongoStatus('The shop server is not running. Start it, then try PayMongo again.');
-        } finally {
-            if (button && !showedQr) button.disabled = false;
-        }
-    }
 
     function closeModal() {
         var modal = poModalNode();
@@ -1601,8 +1458,9 @@
         var modal = document.getElementById('purchase-order-modal-node');
         if (modal) modal.setAttribute('data-po-mode', editing ? 'edit' : 'create');
         var type = order ? order.entityType : (PAGE_MODE === 'retailer'
-            ? (isWholesalerPortal() ? 'wholesaler' : 'retailer')
+            ? 'retailer'
             : (activeTab === 'customer' ? 'customer' : 'retailer'));
+        if (type === 'wholesaler') type = 'retailer';
         var code = order ? order.code : generateNextCode(type);
         document.getElementById('po-modal-code').value = code;
         document.getElementById('po-modal-date').value = order ? toDatetimeLocal(order.dateCreated) : nowDatetimeLocal();
@@ -1610,19 +1468,13 @@
         document.getElementById('po-modal-entity').value = order ? order.entity : (PAGE_MODE === 'retailer' ? retailerStoreName : '');
         var typeSelect = document.getElementById('po-modal-type');
         if (typeSelect) {
-            if (type === 'wholesaler' && !typeSelect.querySelector('option[value="wholesaler"]')) {
-                var whoOpt = document.createElement('option');
-                whoOpt.value = 'wholesaler';
-                whoOpt.textContent = 'Wholesaler Order';
-                typeSelect.appendChild(whoOpt);
-            }
-            typeSelect.value = type === 'customer' ? 'customer' : (type === 'wholesaler' ? 'wholesaler' : 'retailer');
+            typeSelect.value = type === 'customer' ? 'customer' : 'retailer';
         }
         setField('po-modal-status', order ? (order.statusClass || 'pending') : 'pending');
         setField('po-modal-remarks', order ? (order.remarks || '') : '');
         setField('po-modal-tracking', order ? (order.trackingNumber || '') : '');
         setField('po-modal-courier', order ? (order.courier || 'J&T Express Philippines') : 'J&T Express Philippines');
-        if (type === 'customer' || (type === 'wholesaler' && order && normalizePayMethod(order.paymentMethod) === 'gcash')) ensureGcashReferenceField();
+        if (type === 'customer') ensureGcashReferenceField();
         fillPaymentOptions(type, storedPayValue(order, type));
         setField('po-modal-gcash-ref', order ? (order.gcashReference || '') : '');
         setField('po-modal-check-no', order ? (order.checkNumber || order.chequeNumber || '') : '');
@@ -1685,7 +1537,7 @@
 
     function saveModal() {
         var code = document.getElementById('po-modal-code').value.trim();
-        var type = (document.getElementById('po-modal-type') || {}).value || (isWholesalerPortal() ? 'wholesaler' : 'retailer');
+        var type = (document.getElementById('po-modal-type') || {}).value || 'retailer';
         var statusEl = document.getElementById('po-modal-status');
         var statusClass = (statusEl && statusEl.value) || 'pending';
         var trackingNumber = (document.getElementById('po-modal-tracking') || {}).value || '';
@@ -1734,8 +1586,8 @@
 
         if (PAGE_MODE === 'retailer') {
             payload.entity = retailerStoreName || payload.entity;
-            payload.entityType = isWholesalerPortal() ? 'wholesaler' : 'retailer';
-            payload.accountType = isWholesalerPortal() ? 'Wholesaler' : 'Retailer';
+            payload.entityType = 'retailer';
+            payload.accountType = 'Retailer';
             payload.accountName = payload.entity;
             payload.accountArea = payload.area;
         } else if (type === 'customer') {
@@ -1807,7 +1659,6 @@
     function orderKindLabel(order) {
         if (!order) return 'Retailer order';
         if (order.entityType === 'customer') return 'Customer order';
-        if (order.entityType === 'wholesaler') return 'Wholesaler order';
         return 'Retailer order';
     }
 

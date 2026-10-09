@@ -1,11 +1,11 @@
 /**
- * Functional test records for customer, admin, and wholesaler modules.
+ * Functional test records for customer, admin, and retailer modules.
  * Overlay seed IDs when kreezbyPortalSeedVersion is stale; keep user-created rows.
  */
 (function (root) {
     'use strict';
 
-    var VERSION = '20261005who';
+    var VERSION = '20261009retail';
     var VERSION_KEY = 'kreezbyPortalSeedVersion';
 
     function clone(value) {
@@ -141,47 +141,6 @@
             entityType: 'customer', area: 'Lipa City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Shop order ORD-2026-1008 awaiting pack.',
             items: [line(2, 'Jars', 'Mango Crinkles', '', 165)]
-        },
-        'WPO-M-0088': {
-            code: 'WPO-M-0088', dateCreated: '2026-09-08 07:50', entity: 'Metro Bulk Distributors',
-            entityType: 'wholesaler', area: 'Quezon City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Inbound pallet program for NCR franchise partners.',
-            items: [
-                line(24, 'Pallets', 'Mixed Crinkles Bulk', 'Chocolate / Ube / Lemon', 12000),
-                line(60, 'Cases', 'Choco Butternut Bulk', '', 1800)
-            ]
-        },
-        'WPO-M-0091': {
-            code: 'WPO-M-0091', dateCreated: '2026-09-21 09:10', entity: 'Metro Bulk Distributors',
-            entityType: 'wholesaler', area: 'Quezon City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Next bulk wave. GCash reference waiting for verification.',
-            paymentMethod: 'gcash', gcashReference: '5647382910645', gcashPaidTo: '09178001650',
-            paymentVerified: false, paymentStatus: 'pending',
-            items: [line(18, 'Pallets', 'Lemon Crinkles Bulk', '', 12000)]
-        },
-        'WPO-M-0094': {
-            code: 'WPO-M-0094', dateCreated: '2026-09-15 15:30', entity: 'Metro Bulk Distributors',
-            entityType: 'wholesaler', area: 'Quezon City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Chocolate pallets received; ube still in bake cycle.',
-            items: [
-                line(12, 'Pallets', 'Chocolate Crinkles Bulk', 'Received 8', 12000),
-                line(8, 'Pallets', 'Ube Crinkles Bulk', 'Back-ordered', 12000)
-            ]
-        },
-        'WPO-V-0042': {
-            code: 'WPO-V-0042', dateCreated: '2026-09-09 08:25', entity: 'Visayas Wholesale Hub',
-            entityType: 'wholesaler', area: 'Iloilo City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Iloilo hub restock from main facility.',
-            items: [
-                line(12, 'Pallets', 'Choco Butternut Bulk', '', 12000),
-                line(48, 'Cases', 'Mixed Crinkles Bulk', '', 1800)
-            ]
-        },
-        'WPO-V-0045': {
-            code: 'WPO-V-0045', dateCreated: '2026-09-19 12:40', entity: 'Visayas Wholesale Hub',
-            entityType: 'wholesaler', area: 'Iloilo City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Cebu partner allocation — scheduled barge.',
-            items: [line(36, 'Cases', 'Lemon Crinkles Bulk', '', 1800)]
         }
     };
 
@@ -221,32 +180,6 @@
                 line(2, 'Jars', 'Chocolate Crinkles', '', 165),
                 line(1, 'Jars', 'Strawberry Crinkles', '', 165)
             ]
-        },
-        'recv-metro-001': {
-            id: 'recv-metro-001', supplier: 'Kreezby Bakeshop', sourceType: 'Wholesaler',
-            entity: 'Metro Bulk Distributors', dateReceived: '2026-09-09 13:10',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'QC bulk warehouse verified pallets.',
-            poOrigin: 'WPO-M-0088', reference: 'MBD-IN-0909', subTotal: 396000,
-            lineItems: [
-                line(24, 'Pallets', 'Mixed Crinkles Bulk', '', 12000),
-                line(60, 'Cases', 'Choco Butternut Bulk', '', 1800)
-            ]
-        },
-        'recv-metro-002': {
-            id: 'recv-metro-002', supplier: 'Kreezby Bakeshop', sourceType: 'Wholesaler',
-            entity: 'Metro Bulk Distributors', dateReceived: '2026-09-21 17:00',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Truck assigned — awaiting dock-in.',
-            poOrigin: 'WPO-M-0091', reference: 'MBD-IN-0921', subTotal: 0, lineItems: []
-        },
-        'recv-visayas-001': {
-            id: 'recv-visayas-001', supplier: 'Kreezby Bakeshop', sourceType: 'Wholesaler',
-            entity: 'Visayas Wholesale Hub', dateReceived: '2026-09-10 11:25',
-            type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Iloilo dock cleared inbound.',
-            poOrigin: 'WPO-V-0042', reference: 'VWH-IN-0910', subTotal: 230400,
-            lineItems: [
-                line(12, 'Pallets', 'Choco Butternut Bulk', '', 12000),
-                line(48, 'Cases', 'Mixed Crinkles Bulk', '', 1800)
-            ]
         }
     };
 
@@ -276,20 +209,6 @@
                 boLine('Chocolate Crinkles', 'Jars', '', 3, 0, 165),
                 boLine('Ube Crinkles', 'Jars', '', 2, 0, 165)
             ]
-        },
-        'BO-W-0003': {
-            code: 'BO-W-0003', poCode: 'WPO-M-0094', dateCreated: '2026-09-15 15:40',
-            entity: 'Metro Bulk Distributors', entityType: 'wholesaler', supplier: 'Kreezby Bakeshop',
-            expectedDelivery: 'Sep 24, 2026', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Ube bulk pallets awaiting transit authorization to QC hub.',
-            items: [boLine('Ube Crinkles Bulk', 'Pallets', 'Bake cycle', 8, 0, 12000)]
-        },
-        'BO-V-0001': {
-            code: 'BO-V-0001', poCode: 'WPO-V-0045', dateCreated: '2026-09-19 12:50',
-            entity: 'Visayas Wholesale Hub', entityType: 'wholesaler', supplier: 'Kreezby Bakeshop',
-            expectedDelivery: 'Sep 27, 2026', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Cebu partner allocation on next barge.',
-            items: [boLine('Lemon Crinkles Bulk', 'Cases', '', 36, 0, 1800)]
         }
     };
 
@@ -305,21 +224,6 @@
             entity: 'Maria Santos', entityType: 'customer', status: 'PROCESSED', statusClass: 'received',
             reason: 'One strawberry jar arrived with a broken seal. Replacement issued.',
             items: [line(1, 'Jars', 'Strawberry Crinkles', 'Broken seal', 165)]
-        },
-        'RET-M-0001': {
-            code: 'RET-M-0001', poOrigin: 'WPO-M-0088', dateCreated: '2026-09-11 16:40',
-            entity: 'Metro Bulk Distributors', entityType: 'wholesaler', status: 'PENDING REVIEW', statusClass: 'pending',
-            reason: 'Damaged packaging on bulk chocolate and lemon cases at QC warehouse.',
-            items: [
-                line(40, 'Cases', 'Chocolate Crinkles (Bulk)', 'Damaged packaging', 320),
-                line(20, 'Cases', 'Lemon Crinkles (Bulk)', 'Damaged packaging', 280)
-            ]
-        },
-        'RET-V-0001': {
-            code: 'RET-V-0001', poOrigin: 'WPO-V-0042', dateCreated: '2026-09-12 08:05',
-            entity: 'Visayas Wholesale Hub', entityType: 'wholesaler', status: 'PARTIALLY PROCESSED', statusClass: 'partial',
-            reason: 'Moisture damage on mixed-case pallet after barge unload.',
-            items: [line(8, 'Cases', 'Mixed Crinkles Bulk', 'Moisture', 1800)]
         }
     };
 
@@ -463,11 +367,6 @@
             timestamp: '2026-09-20T19:05:00.000Z', read: false, source: 'order'
         },
         {
-            id: 'n-wholesaler-wpo-m-0091', title: 'Wholesale PO pending',
-            description: 'Metro Bulk Distributors WPO-M-0091 awaiting truck assignment.',
-            timestamp: '2026-09-21T09:10:00.000Z', read: false, source: 'po'
-        },
-        {
             id: 'n-alert-stock-mango', title: 'Low stock alert',
             description: 'Mango Crinkles dropped below the safety threshold. Current stock: 45 jars.',
             timestamp: '2026-09-22T07:40:00.000Z', read: false, source: 'alert'
@@ -511,47 +410,13 @@
             id: 'n-retailer-po-delivered', title: 'Order delivered',
             description: 'Purchase order ORD-2026-0102 has been delivered.',
             timestamp: '2026-10-02T08:00:00.000Z', read: true, source: 'po', audience: 'retailer'
-        },
-        {
-            id: 'n-wholesaler-shipment', title: 'Bulk shipment en route',
-            description: 'A pallet truck is on the way to your warehouse. Expected arrival today.',
-            timestamp: '2026-10-05T02:00:00.000Z', read: false, source: 'delivery', audience: 'wholesaler'
-        },
-        {
-            id: 'n-wholesaler-invoice', title: 'Invoice due',
-            description: 'Bulk invoice WINV-2026-089 for ₱288,000 is waiting for payment.',
-            timestamp: '2026-10-04T18:00:00.000Z', read: false, source: 'payment', audience: 'wholesaler'
-        },
-        {
-            id: 'n-wholesaler-stock', title: 'Warehouse low stock',
-            description: 'Chocolate Crinkles cases are below the reorder point at your warehouse.',
-            timestamp: '2026-10-04T10:00:00.000Z', read: false, source: 'alert', audience: 'wholesaler'
-        },
-        {
-            id: 'n-wholesaler-receive', title: 'Receiving ready',
-            description: 'An inbound pallet is ready to receive at your warehouse.',
-            timestamp: '2026-10-03T08:00:00.000Z', read: false, source: 'receive', audience: 'wholesaler'
         }
     ];
 
-    var SEED_WHOLESALER_SALES = {
-        'Metro Bulk Distributors': [
-            { ref: 'WSL-M-2201', date: '2026-09-15', account: 'Makati Franchise Hub', items: '24 Pallets Mixed Crinkles', invoice: 288000, status: 'Delivered' },
-            { ref: 'WSL-M-2198', date: '2026-09-13', account: 'Quezon City Retail Chain', items: '60 Cases Choco Butternut', invoice: 108000, status: 'Delivered' },
-            { ref: 'WSL-M-2194', date: '2026-09-11', account: 'Marikina Distribution Point', items: '18 Pallets Lemon Crinkles', invoice: 216000, status: 'In Transit' },
-            { ref: 'WSL-M-2188', date: '2026-09-06', account: 'Pasig Oven Outlet', items: '40 Cases Ube Crinkles', invoice: 72000, status: 'Delivered' }
-        ],
-        'Visayas Wholesale Hub': [
-            { ref: 'WSL-V-1201', date: '2026-09-14', account: 'Bacolod City Mini-Mart', items: '48 Cases Mixed Crinkles', invoice: 86400, status: 'Delivered' },
-            { ref: 'WSL-V-1198', date: '2026-09-12', account: 'Iloilo SIDC Branch', items: '12 Pallets Choco Butternut', invoice: 144000, status: 'Delivered' },
-            { ref: 'WSL-V-1195', date: '2026-09-10', account: 'Cebu Wholesale Partner', items: '36 Cases Lemon Crinkles', invoice: 64800, status: 'In Transit' }
-        ]
-    };
-
-    var STALE_PO_KEYS = ['PO-0001', 'PO-0002', 'PO-C001', 'PO-C002'];
-    var STALE_RECV_KEYS = ['recv-102', 'recv-101', 'recv-103', 'recv-104', 'recv-105'];
-    var STALE_BO_KEYS = ['BO-0005', 'BO-0004', 'BO-0003', 'BO-0002', 'BO-0001', 'BO-C012', 'BO-C011', 'BO-C010', 'BO-C009', 'BO-C008'];
-    var STALE_RET_KEYS = ['RET-0001', 'RET-0002'];
+    var STALE_PO_KEYS = ['PO-0001', 'PO-0002', 'PO-C001', 'PO-C002', 'WPO-M-0088', 'WPO-M-0091', 'WPO-M-0094', 'WPO-V-0042', 'WPO-V-0045'];
+    var STALE_RECV_KEYS = ['recv-102', 'recv-101', 'recv-103', 'recv-104', 'recv-105', 'recv-metro-001', 'recv-metro-002', 'recv-visayas-001'];
+    var STALE_BO_KEYS = ['BO-0005', 'BO-0004', 'BO-0003', 'BO-0002', 'BO-0001', 'BO-C012', 'BO-C011', 'BO-C010', 'BO-C009', 'BO-C008', 'BO-W-0003', 'BO-V-0001'];
+    var STALE_RET_KEYS = ['RET-0001', 'RET-0002', 'RET-M-0001', 'RET-V-0001'];
     var STALE_ORDER_NUMBERS = ['ORD-2026-0001'];
 
     function mergeMap(key, seedMap, staleKeys) {
@@ -607,7 +472,11 @@
         var existing = readJson('kreezbyNotifications', []);
         if (!Array.isArray(existing)) existing = [];
         var byId = {};
-        existing.forEach(function (n) { if (n && n.id) byId[n.id] = n; });
+        existing.forEach(function (n) {
+            if (!n || !n.id) return;
+            if (n.audience === 'wholesaler' || String(n.id).indexOf('n-wholesaler') === 0) return;
+            byId[n.id] = n;
+        });
         SEED_NOTIFICATIONS.forEach(function (n) {
             if (!byId[n.id]) byId[n.id] = clone(n);
         });
@@ -628,7 +497,7 @@
         mergeReceiptsArray('kreezbyOwnerReceipts', SEED_RECEIPTS_CUSTOMER);
         seedProfileIfNeeded();
         mergeNotifications();
-        writeJson('kreezby-wholesaler-sales-v1', clone(SEED_WHOLESALER_SALES));
+        try { localStorage.removeItem('kreezby-wholesaler-sales-v1'); } catch (e) { /* ignore */ }
         try { localStorage.setItem(VERSION_KEY, VERSION); } catch (e) { /* ignore */ }
         if (window.KreezbyNotifications && typeof window.KreezbyNotifications.notifyExternalChange === 'function') {
             window.KreezbyNotifications.notifyExternalChange();
@@ -652,10 +521,6 @@
         return '';
     }
 
-    function money(n) {
-        return '₱' + Number(n || 0).toLocaleString('en-PH');
-    }
-
     function fillDashboardCounts() {
         var name = portalName();
         var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
@@ -664,7 +529,6 @@
         var bos = readJson('kreezby-bo-orders-v1', {});
         var rets = readJson('kreezby-return-records-v1', {});
         var orders = readJson('kreezbyOrders', []);
-        var wSales = readJson('kreezby-wholesaler-sales-v1', {});
 
         function matchesEntity(record) {
             if (!name) return true;
@@ -678,12 +542,11 @@
         var salesCount = Array.isArray(orders) ? orders.length : 0;
         var alertCount = 3;
 
-        if (path.indexOf('/wholesaler/') >= 0 && name) {
-            poCount = Object.keys(pos).filter(function (k) { return pos[k].entity === name; }).length;
-            recvCount = Object.keys(recvs).filter(function (k) { return matchesEntity(recvs[k]); }).length;
-            boCount = Object.keys(bos).filter(function (k) { return bos[k].entity === name; }).length;
-            retCount = Object.keys(rets).filter(function (k) { return rets[k].entity === name; }).length;
-            salesCount = (wSales[name] || []).length;
+        if (path.indexOf('/retailer/') >= 0 && name) {
+            poCount = Object.keys(pos).filter(function (k) { return pos[k].entity === name && pos[k].entityType !== 'wholesaler'; }).length;
+            recvCount = Object.keys(recvs).filter(function (k) { return matchesEntity(recvs[k]) && recvs[k].sourceType !== 'Wholesaler'; }).length;
+            boCount = Object.keys(bos).filter(function (k) { return bos[k].entity === name && bos[k].entityType !== 'wholesaler'; }).length;
+            retCount = Object.keys(rets).filter(function (k) { return rets[k].entity === name && rets[k].entityType !== 'wholesaler'; }).length;
             alertCount = 3;
         }
 
@@ -702,81 +565,15 @@
         });
     }
 
-    function fillWholesalerSales() {
-        if ((location.pathname || '').replace(/\\/g, '/').toLowerCase().indexOf('/wholesaler/') < 0) return;
-        var name = portalName();
-        if (!name) return;
-        var tbody = document.querySelector('#saleslist-master-directory-panel-view table.data-display-table tbody');
-        if (!tbody) return;
-        var rows = (readJson('kreezby-wholesaler-sales-v1', {})[name]) || [];
-        if (!rows.length) return;
-        tbody.innerHTML = rows.map(function (row, i) {
-            var cls = row.status === 'Delivered' ? 'received' : 'pending';
-            return '<tr data-wsl-ref="' + row.ref + '" style="cursor:pointer;">' +
-                '<td>' + (i + 1) + '</td><td>' + row.ref + '</td><td>' + row.date + '</td>' +
-                '<td><strong>' + row.account + '</strong></td><td>' + row.items + '</td>' +
-                '<td style="text-align:right;">' + money(row.invoice) + '</td>' +
-                '<td><span class="status-pill-badge ' + cls + '">' + row.status + '</span></td></tr>';
-        }).join('');
-        var caption = document.querySelector('.retailer-saleslist-toolbar p');
-        if (caption) caption.textContent = rows.length + ' outbound shipments logged';
-        if (!tbody.getAttribute('data-wsl-bound')) {
-            tbody.setAttribute('data-wsl-bound', '1');
-            tbody.addEventListener('click', function (event) {
-                var tr = event.target.closest ? event.target.closest('tr[data-wsl-ref]') : null;
-                if (!tr) return;
-                openWholesalerSale(tr.getAttribute('data-wsl-ref'));
-            });
-        }
-        var backBtn = document.getElementById('wsl-back-btn');
-        if (backBtn && !backBtn.getAttribute('data-wsl-bound')) {
-            backBtn.setAttribute('data-wsl-bound', '1');
-            backBtn.addEventListener('click', function () {
-                var master = document.getElementById('saleslist-master-directory-panel-view');
-                var detail = document.getElementById('saleslist-detailed-inspector-panel-view');
-                if (detail) detail.style.display = 'none';
-                if (master) master.style.display = 'block';
-            });
-        }
-    }
-
-    function setText(id, value) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = value;
-    }
-
-    function openWholesalerSale(ref) {
-        var name = portalName();
-        var rows = (readJson('kreezby-wholesaler-sales-v1', {})[name]) || [];
-        var row = null;
-        for (var i = 0; i < rows.length; i++) {
-            if (rows[i].ref === ref) { row = rows[i]; break; }
-        }
-        if (!row) return;
-        setText('wsl-detail-ref', row.ref);
-        setText('wsl-detail-date', row.date);
-        setText('wsl-detail-account', row.account);
-        setText('wsl-detail-items', row.items);
-        setText('wsl-detail-invoice', money(row.invoice));
-        setText('wsl-detail-status', row.status);
-        setText('wsl-detail-wholesaler', name);
-        var master = document.getElementById('saleslist-master-directory-panel-view');
-        var detail = document.getElementById('saleslist-detailed-inspector-panel-view');
-        if (master) master.style.display = 'none';
-        if (detail) detail.style.display = 'block';
-    }
 
     function bindUi() {
         fillDashboardCounts();
-        fillWholesalerSales();
     }
 
     root.KreezbyPortalSeed = {
         VERSION: VERSION,
         apply: apply,
         fillDashboardCounts: fillDashboardCounts,
-        fillWholesalerSales: fillWholesalerSales,
-        openWholesalerSale: openWholesalerSale,
         portalName: portalName,
         countMap: countMap,
         POS: SEED_POS,

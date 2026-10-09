@@ -93,7 +93,7 @@
         if (text === 'home' || file === 'admin.html' || file === 'head_admin.html' || /^staff(-\d+)?\.html$/.test(file)) {
             return ICONS.home;
         }
-        if (/^(retailer|wholesaler)-/.test(file)) {
+        if (/^retailer-/.test(file)) {
             return ICONS.home;
         }
         return ICONS.default;

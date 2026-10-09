@@ -118,11 +118,11 @@
         if (bucket === 'admins') return 'Admin';
         if (bucket === 'staff') return 'Staff';
         if (bucket === 'customers') return 'Customer';
-        return 'Retailer/Wholesaler';
+        return 'Retailer';
     }
 
     function withDictionaryFields(users) {
-        ['admins', 'staff', 'retailers', 'wholesalers', 'customers', 'suppliers'].forEach(function (bucket) {
+        ['admins', 'staff', 'retailers', 'customers', 'suppliers'].forEach(function (bucket) {
             (users[bucket] || []).forEach(function (user) {
                 if (!user.user_id) user.user_id = user.id || user.username || user.email || user.name;
                 if (!user.dictionaryRole) user.dictionaryRole = bucket === 'suppliers' ? 'Supplier' : dictionaryRole(bucket);
@@ -153,7 +153,7 @@
                 if (demoNames[String(user.username || '').toLowerCase()]) found = true;
             });
         });
-        ['customers', 'retailers', 'wholesalers', 'suppliers'].forEach(function (bucket) {
+        ['customers', 'retailers', 'suppliers'].forEach(function (bucket) {
             (users[bucket] || []).forEach(function (user) {
                 if (demoEmails[String(user.email || '').toLowerCase()]) found = true;
             });
@@ -190,6 +190,10 @@
         }
         if (!users.retailers.length && DEFAULT_USERS.retailers.length) {
             users.retailers = JSON.parse(JSON.stringify(DEFAULT_USERS.retailers));
+            saveJson(USERS_KEY, users);
+        }
+        if (users.wholesalers && users.wholesalers.length) {
+            users.wholesalers = [];
             saveJson(USERS_KEY, users);
         }
         return withDictionaryFields(users);
@@ -232,7 +236,6 @@
         var pools = [
             { type: 'Customer', list: users.customers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
             { type: 'Retailer', list: users.retailers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
-            { type: 'Wholesaler', list: users.wholesalers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
             { type: 'Staff', list: users.staff, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
             { type: 'Administrator', list: users.admins, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; }, accountType: function (u) { return isHeadAdminAccount(u) ? 'Head Administrator' : 'Administrator'; } }
         ];
@@ -282,14 +285,14 @@
             }
         }
         if (!customer) return { ok: false, message: 'Customer not found.' };
-        if (targetRole !== 'retailer' && targetRole !== 'wholesaler') {
+        if (targetRole !== 'retailer') {
             return { ok: false, message: 'Invalid upgrade role.' };
         }
 
         users.customers.splice(idx, 1);
 
         var newRecord = {
-            id: (targetRole === 'retailer' ? 'ret-' : 'who-') + Date.now(),
+            id: 'ret-' + Date.now(),
             name: customer.name,
             contact: customer.name,
             email: customer.email,
@@ -298,16 +301,12 @@
             phone: customer.phone
         };
 
-        if (targetRole === 'retailer') {
-            users.retailers.push(newRecord);
-        } else {
-            users.wholesalers.push(newRecord);
-        }
+        users.retailers.push(newRecord);
 
         saveUsers(users);
         return {
             ok: true,
-            message: customer.name + ' is now a ' + (targetRole === 'retailer' ? 'Retailer' : 'Wholesaler') + '. Their customer account has been removed.'
+            message: customer.name + ' is now a Retailer. Their customer account has been removed.'
         };
     }
 
@@ -328,7 +327,7 @@
         var q = String(identity || '').trim().toLowerCase();
         if (!q) return null;
         var users = getUsers();
-        var buckets = ['customers', 'retailers', 'wholesalers', 'staff', 'admins'];
+        var buckets = ['customers', 'retailers', 'staff', 'admins'];
         for (var b = 0; b < buckets.length; b++) {
             var list = users[buckets[b]] || [];
             for (var i = 0; i < list.length; i++) {
@@ -443,7 +442,6 @@
         return {
             customers: countActive(users.customers),
             retailers: countActive(users.retailers),
-            wholesalers: countActive(users.wholesalers),
             admins: countActive(users.admins),
             staff: countActive(users.staff),
             suppliers: countActive(users.suppliers)

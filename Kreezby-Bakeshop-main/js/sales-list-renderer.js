@@ -1132,7 +1132,7 @@
       window.KreezbyPortalSeed.apply();
     }
     var shop = sessionShopName();
-    var genericShop = !shop || shop.toLowerCase() === 'retailer' || shop.toLowerCase() === 'wholesaler';
+    var genericShop = !shop || shop.toLowerCase() === 'retailer';
     var orders = {};
     try { orders = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}'); } catch (e) { orders = {}; }
     var rows = Object.keys(orders).map(function (key) { return orders[key]; }).filter(function (order) {

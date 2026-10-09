@@ -946,9 +946,7 @@ function placeOrder() {
     try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
     const accountType = session.accountType === 'Retailer'
         ? 'Retailer'
-        : session.accountType === 'Wholesaler'
-            ? 'Wholesaler'
-            : 'Regular Customer';
+        : 'Regular Customer';
     const accountName = (session.userName || fields.fullName || '').trim();
     const accountArea = (accountType === 'Regular Customer')
         ? fields.address

@@ -1661,6 +1661,8 @@ main.customer-inbox-main.customer-inbox-main--assistant {
 
 .help-bot__composer {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     padding: 10px 12px 12px;
     background: #fff;
@@ -1749,4 +1751,215 @@ main.customer-inbox-main.customer-inbox-main--assistant {
     .help-msg--user .help-bubble {
         max-width: 86%;
     }
+}
+
+.help-attach-preview,
+.help-attach-note {
+    flex: 1 0 100%;
+    width: 100%;
+}
+
+.help-attach-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.help-attach-note {
+    margin: 0;
+    color: #8a4b08;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.help-attach {
+    position: relative;
+}
+
+.help-attach__btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #e6dfd4;
+    border-radius: 50%;
+    background: #faf8f5;
+    color: #3f2f14;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.help-attach__btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.help-attach__btn[aria-expanded="true"],
+.help-attach__btn:hover {
+    background: #fff6df;
+    border-color: #f0c14b;
+}
+
+.help-attach__menu {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    min-width: 180px;
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #efeae3;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(63, 47, 20, 0.14);
+    z-index: 5;
+}
+
+.help-attach__menu button {
+    border: 0;
+    background: #faf8f5;
+    border-radius: 10px;
+    text-align: left;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3f2f14;
+    cursor: pointer;
+}
+
+.help-attach__menu button:hover {
+    background: #fff6df;
+}
+
+.help-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.help-attach-chip {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #faf8f5;
+    border: 1px solid #e6dfd4;
+}
+
+.help-attach-chip img,
+.help-attach-chip video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.help-attach-chip.is-file {
+    width: auto;
+    height: auto;
+    max-width: 220px;
+    display: flex;
+    align-items: center;
+    padding: 8px 28px 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.help-attach-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.68);
+    color: #fff;
+    cursor: pointer;
+    line-height: 16px;
+    padding: 0;
+}
+
+.help-files {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.help-file-image,
+.help-file-video {
+    display: block;
+    max-width: min(220px, 70vw);
+    max-height: 160px;
+    border-radius: 12px;
+}
+
+.help-file-doc {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.14);
+    color: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.help-msg--bot .help-file-doc {
+    background: #faf8f5;
+    color: #3f2f14;
+}
+
+.help-emoji-menu {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    z-index: 6;
+    display: grid;
+    grid-template-columns: repeat(8, 32px);
+    gap: 2px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #efeae3;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(63, 47, 20, 0.14);
+}
+
+.help-emoji-menu button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.help-emoji-menu button:hover {
+    background: #fff6df;
+}
+
+.help-attach__btn.is-recording {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.help-file-audio {
+    display: block;
+    width: min(220px, 70vw);
+    height: 36px;
 }

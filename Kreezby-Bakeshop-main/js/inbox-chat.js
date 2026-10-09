@@ -27,12 +27,18 @@
         sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
     };
 
+    var EMOJIS = [
+        '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😎',
+        '😢', '😭', '😡', '🤔', '😴', '🤗', '🙏', '👍',
+        '👎', '👏', '🔥', '❤️', '💯', '✅', '❌', '⭐',
+        '🎉', '🎂', '🍪', '🍫', '📦', '🚚', '💰', '👋'
+    ];
+
     var PRESETS = {
         admin: {
             contacts: [
                 { id: 'sidc', name: 'SIDC Batangas Hub', preview: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31', initials: 'S', online: true, unread: true },
                 { id: 'maria', name: 'Maria Santos', preview: 'Order ORD-2026-1042 is still packing.', time: 'Today', initials: 'M', unread: true },
-                { id: 'metro', name: 'Metro Bulk Distributors', preview: 'WPO-M-0091 awaiting truck assignment.', time: 'Yesterday', initials: 'W', unread: false },
                 { id: 'claire', name: 'Claire (Staff 1)', preview: 'AI Forecasting report compiled successfully.', time: 'May 14', initials: 'C', online: true, archived: true }
             ],
             messages: {
@@ -46,10 +52,6 @@
                     { type: 'incoming', text: 'Hi, just checking on ORD-2026-1042 — chocolate and ube jars.', time: '09:12' },
                     { type: 'outgoing', text: 'Hi Maria, we are packing that order at the main facility now.', time: '09:18' },
                     { type: 'incoming', text: 'Order ORD-2026-1042 is still packing.', time: '09:20' }
-                ],
-                metro: [
-                    { type: 'incoming', text: 'QC warehouse is ready for the next bulk wave.', time: 'Yesterday' },
-                    { type: 'outgoing', text: 'WPO-M-0091 is queued — truck assignment later today.', time: 'Yesterday' }
                 ]
             }
         },
@@ -184,19 +186,28 @@
                     '<div id="inbox-retailer-access-banner" class="inbox-retailer-access-banner" style="display:none;"></div>' +
                     '<div class="inbox-messages-viewport messages-scroll-viewport" id="chat-messages-container"></div>' +
                     '<div class="inbox-composer-bar chat-composition-footer-bar">' +
-                        iconBtn(SVG.smile, 'Emoji') +
+                        '<div class="inbox-attach-preview" id="inbox-attach-preview" hidden></div>' +
+                        '<p class="inbox-attach-note" id="inbox-attach-note" hidden></p>' +
+                        '<div class="inbox-dropdown" data-dropdown="emoji">' +
+                            '<button type="button" class="inbox-icon-btn" id="inbox-emoji-btn" title="Emoji" aria-haspopup="menu">' + SVG.smile + '</button>' +
+                            '<div class="inbox-dropdown-menu inbox-emoji-menu">' +
+                                EMOJIS.map(function (emoji) {
+                                    return '<button type="button" class="inbox-emoji-btn" data-emoji="' + emoji + '">' + emoji + '</button>';
+                                }).join('') +
+                            '</div>' +
+                        '</div>' +
                         '<div class="inbox-dropdown" data-dropdown="attach">' +
-                            '<button type="button" class="inbox-icon-btn btn-attachment-trigger" title="Attach file">' + SVG.paperclip + '</button>' +
+                            '<button type="button" class="inbox-icon-btn btn-attachment-trigger" title="Attach file" aria-haspopup="menu">' + SVG.paperclip + '</button>' +
                             '<div class="inbox-dropdown-menu">' +
-                                '<button type="button" class="inbox-dropdown-item" data-attach="photos"><span class="inbox-dropdown-icon">' + SVG.image + '</span><span>Photos &amp; Videos</span></button>' +
                                 '<button type="button" class="inbox-dropdown-item" data-attach="camera"><span class="inbox-dropdown-icon">' + SVG.camera + '</span><span>Camera</span></button>' +
                                 '<button type="button" class="inbox-dropdown-item" data-attach="document"><span class="inbox-dropdown-icon">' + SVG.file + '</span><span>Document</span></button>' +
                             '</div>' +
                         '</div>' +
                         '<input type="text" class="composition-input-element" id="chat-type-input" placeholder="Type a message">' +
-                        iconBtn(SVG.send, 'Send') +
-                        iconBtn(SVG.mic, 'Voice message') +
+                        '<button type="button" class="inbox-icon-btn" id="inbox-compose-send" title="Send">' + SVG.send + '</button>' +
+                        '<button type="button" class="inbox-icon-btn" id="inbox-voice-btn" title="Voice message" aria-pressed="false">' + SVG.mic + '</button>' +
                         '<button type="button" class="btn-send-message-action" id="inbox-send-btn" hidden>Send</button>' +
+                        '<input type="file" class="inbox-file-input" id="inbox-file-document" multiple>' +
                     '</div>' +
                 '</div>' +
             '</div>'
@@ -259,16 +270,176 @@
         });
     }
 
+    var closeDeviceCamera = null;
+
+    function openDeviceCamera(done) {
+        if (closeDeviceCamera) closeDeviceCamera();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (done) done(null, 'This browser cannot open the camera.');
+            return;
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'kreezby-camera';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-label', 'Camera');
+        overlay.innerHTML =
+            '<div class="kreezby-camera__panel">' +
+                '<video autoplay playsinline muted></video>' +
+                '<div class="kreezby-camera__actions">' +
+                    '<button type="button" data-camera="cancel">Cancel</button>' +
+                    '<button type="button" data-camera="shot">Take photo</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        var video = overlay.querySelector('video');
+        var stream = null;
+        var settled = false;
+
+        function finish(file, error) {
+            if (settled) return;
+            settled = true;
+            if (stream) {
+                stream.getTracks().forEach(function (track) { track.stop(); });
+                stream = null;
+            }
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            if (closeDeviceCamera === finish) closeDeviceCamera = null;
+            if (done) done(file || null, error || '');
+        }
+
+        closeDeviceCamera = finish;
+        overlay.querySelector('[data-camera="cancel"]').addEventListener('click', function () {
+            finish(null, '');
+        });
+        overlay.querySelector('[data-camera="shot"]').addEventListener('click', function () {
+            var width = video.videoWidth || 0;
+            var height = video.videoHeight || 0;
+            if (!width || !height) return;
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+            canvas.toBlob(function (blob) {
+                if (!blob) {
+                    finish(null, 'Could not take the photo.');
+                    return;
+                }
+                finish(new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' }), '');
+            }, 'image/jpeg', 0.92);
+        });
+
+        function requestCamera(attempt) {
+            var constraints = attempt === 0
+                ? { video: { facingMode: { ideal: 'environment' } }, audio: false }
+                : { video: true, audio: false };
+            return navigator.mediaDevices.getUserMedia(constraints).catch(function (err) {
+                if (attempt === 0) return requestCamera(1);
+                throw err;
+            });
+        }
+
+        requestCamera(0).then(function (media) {
+            if (settled) {
+                media.getTracks().forEach(function (track) { track.stop(); });
+                return;
+            }
+            stream = media;
+            video.srcObject = media;
+            var play = video.play();
+            if (play && typeof play.catch === 'function') play.catch(function () {});
+        }).catch(function () {
+            finish(null, 'Allow camera access to take a photo.');
+        });
+    }
+
+    function formatBytes(size) {
+        var bytes = Number(size) || 0;
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function fileKind(file) {
+        var type = String((file && file.type) || '');
+        if (type.indexOf('image/') === 0) return 'image';
+        if (type.indexOf('video/') === 0) return 'video';
+        if (type.indexOf('audio/') === 0) return 'audio';
+        return 'file';
+    }
+
+    function appendMessageFiles(bubble, files) {
+        if (!files || !files.length) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'inbox-message-files';
+        files.forEach(function (file) {
+            if (file.kind === 'image' && file.url) {
+                var link = document.createElement('a');
+                link.className = 'inbox-message-media';
+                link.href = file.url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                var img = document.createElement('img');
+                img.alt = file.name || 'Photo';
+                img.src = file.url;
+                link.appendChild(img);
+                wrap.appendChild(link);
+                return;
+            }
+            if (file.kind === 'video' && file.url) {
+                var video = document.createElement('video');
+                video.className = 'inbox-message-video';
+                video.controls = true;
+                video.src = file.url;
+                wrap.appendChild(video);
+                return;
+            }
+            if (file.kind === 'audio' && file.url) {
+                var audio = document.createElement('audio');
+                audio.className = 'inbox-message-audio';
+                audio.controls = true;
+                audio.src = file.url;
+                wrap.appendChild(audio);
+                return;
+            }
+            var doc = document.createElement('a');
+            doc.className = 'inbox-message-doc';
+            if (file.url) {
+                doc.href = file.url;
+                doc.download = file.name || 'file';
+            } else {
+                doc.href = '#';
+            }
+            doc.innerHTML = SVG.file + '<span><strong></strong><small></small></span>';
+            doc.querySelector('strong').textContent = file.name || 'Document';
+            doc.querySelector('small').textContent = formatBytes(file.size);
+            wrap.appendChild(doc);
+        });
+        bubble.appendChild(wrap);
+    }
+
     function renderMessages(container, items) {
         container.innerHTML = '';
         (items || []).forEach(function (msg) {
             var row = document.createElement('div');
             row.className = 'inbox-message-row message-row ' + (msg.type === 'outgoing' ? 'is-outgoing outgoing-node' : 'is-incoming incoming-node');
-            row.innerHTML =
-                '<div class="inbox-message-bubble speech-bubble">' +
-                    escapeHtml(msg.text) +
-                    (msg.time ? '<span class="inbox-message-time bubble-time-footnote">' + escapeHtml(msg.time) + '</span>' : '') +
-                '</div>';
+            var bubble = document.createElement('div');
+            bubble.className = 'inbox-message-bubble speech-bubble';
+            appendMessageFiles(bubble, msg.attachments);
+            if (msg.text) {
+                var text = document.createElement('span');
+                text.className = 'inbox-message-text';
+                text.textContent = msg.text;
+                bubble.appendChild(text);
+            }
+            if (msg.time) {
+                var time = document.createElement('span');
+                time.className = 'inbox-message-time bubble-time-footnote';
+                time.textContent = msg.time;
+                bubble.appendChild(time);
+            }
+            row.appendChild(bubble);
             container.appendChild(row);
         });
         container.scrollTop = container.scrollHeight;
@@ -283,7 +454,7 @@
         if (trigger) trigger.classList.remove('is-open');
     }
 
-    function wireDropdowns(root) {
+    function wireDropdowns(root, onAttach, onEmoji) {
         root.querySelectorAll('.inbox-dropdown').forEach(function (wrap) {
             var trigger = wrap.querySelector('.inbox-icon-btn, .btn-attachment-trigger');
             var menu = wrap.querySelector('.inbox-dropdown-menu');
@@ -291,6 +462,7 @@
 
             trigger.addEventListener('click', function (event) {
                 event.stopPropagation();
+                if (trigger.disabled) return;
                 var open = wrap.classList.contains('is-open');
                 root.querySelectorAll('.inbox-dropdown').forEach(function (other) {
                     closeInboxDropdown(other);
@@ -304,8 +476,19 @@
 
             menu.addEventListener('click', function (event) {
                 event.stopPropagation();
-                var item = event.target.closest('.inbox-dropdown-item');
+                var item = event.target.closest('.inbox-dropdown-item, .inbox-emoji-btn');
                 if (!item) return;
+                if (wrap.getAttribute('data-dropdown') === 'emoji') {
+                    var emoji = item.getAttribute('data-emoji');
+                    if (emoji && onEmoji) onEmoji(emoji);
+                    return;
+                }
+                if (wrap.getAttribute('data-dropdown') === 'attach') {
+                    var kind = item.getAttribute('data-attach');
+                    closeInboxDropdown(wrap);
+                    if (kind && onAttach) onAttach(kind);
+                    return;
+                }
                 menu.querySelectorAll('.inbox-dropdown-item').forEach(function (btn) {
                     btn.classList.remove('is-active');
                 });
@@ -357,13 +540,15 @@
 
     function initRoot(mount) {
         var role = (mount.getAttribute('data-inbox-role') || 'admin').toLowerCase();
-        if (role === 'wholesaler' && !PRESETS.wholesaler) role = 'retailer';
         var preset = PRESETS[role] || PRESETS.admin;
         var contacts = preset.contacts.slice();
         var messages = preset.messages || {};
         var activeId = null;
         var listFilter = 'all';
         var searchQuery = '';
+        var pendingFiles = [];
+        var attachNoteTimer = 0;
+        var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
 
         var messenger = mount.classList.contains('inbox-messenger');
         mount.classList.add('inbox-chat-root');
@@ -396,8 +581,7 @@
                 });
             }
         }
-        var sendIcons = mount.querySelectorAll('.inbox-composer-bar .inbox-icon-btn');
-        var sendIcon = sendIcons[sendIcons.length - 2];
+        var sendIcon = mount.querySelector('#inbox-compose-send');
         var hiddenSend = mount.querySelector('#inbox-send-btn');
 
         function visibleContacts() {
@@ -537,19 +721,293 @@
             window.setTimeout(applySelection, activeId ? 160 : 0);
         }
 
+        function showAttachNote(message, sticky) {
+            var note = mount.querySelector('#inbox-attach-note');
+            if (!note) return;
+            window.clearTimeout(attachNoteTimer);
+            note.hidden = !message;
+            note.textContent = message || '';
+            if (message && !sticky) {
+                attachNoteTimer = window.setTimeout(function () {
+                    note.hidden = true;
+                    note.textContent = '';
+                }, 3200);
+            }
+        }
+
+        function releasePending(item) {
+            if (item && item.revoke && item.url) {
+                try { URL.revokeObjectURL(item.url); } catch (err) { /* ignore */ }
+            }
+        }
+
+        function renderPending() {
+            var box = mount.querySelector('#inbox-attach-preview');
+            if (!box) return;
+            box.innerHTML = '';
+            box.hidden = !pendingFiles.length;
+            pendingFiles.forEach(function (item, index) {
+                var chip = document.createElement('div');
+                chip.className = 'inbox-attach-chip' + (item.kind === 'file' ? ' is-file' : '');
+                if (item.kind === 'image') {
+                    var img = document.createElement('img');
+                    img.alt = '';
+                    img.src = item.url;
+                    chip.appendChild(img);
+                } else if (item.kind === 'video') {
+                    var video = document.createElement('video');
+                    video.muted = true;
+                    video.src = item.url;
+                    chip.appendChild(video);
+                } else {
+                    var label = document.createElement('span');
+                    label.className = 'inbox-attach-file';
+                    label.innerHTML = SVG.file + '<span></span>';
+                    label.querySelector('span').textContent = item.name;
+                    chip.appendChild(label);
+                }
+                var remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'inbox-attach-remove';
+                remove.setAttribute('aria-label', 'Remove attachment');
+                remove.textContent = '×';
+                remove.addEventListener('click', function () {
+                    var removed = pendingFiles.splice(index, 1)[0];
+                    releasePending(removed);
+                    renderPending();
+                });
+                chip.appendChild(remove);
+                box.appendChild(chip);
+            });
+        }
+
+        function addPendingFiles(fileList) {
+            var attachBtn = mount.querySelector('.btn-attachment-trigger');
+            if ((attachBtn && attachBtn.disabled) || (input && input.disabled)) return;
+            if (!activeId) {
+                showAttachNote('Open a chat before attaching a file.');
+                return;
+            }
+            var rejected = 0;
+            Array.prototype.forEach.call(fileList || [], function (file) {
+                if (!file) return;
+                if (file.size > MAX_ATTACH_BYTES) {
+                    rejected += 1;
+                    return;
+                }
+                var kind = fileKind(file);
+                pendingFiles.push({
+                    name: file.name || (kind === 'image' ? 'Photo' : 'Attachment'),
+                    kind: kind,
+                    type: file.type || '',
+                    size: file.size || 0,
+                    url: URL.createObjectURL(file),
+                    revoke: true
+                });
+            });
+            renderPending();
+            if (rejected) showAttachNote('Each file must be 12 MB or smaller.');
+        }
+
+        function openAttach(kind) {
+            var attachBtn = mount.querySelector('.btn-attachment-trigger');
+            if ((attachBtn && attachBtn.disabled) || (input && input.disabled)) return;
+            if (kind === 'camera') {
+                if (!activeId) {
+                    showAttachNote('Open a chat before taking a photo.');
+                    return;
+                }
+                openDeviceCamera(function (file, error) {
+                    if (error) showAttachNote(error);
+                    else if (file) addPendingFiles([file]);
+                });
+                return;
+            }
+            var picker = mount.querySelector('#inbox-file-' + kind);
+            if (!picker) return;
+            picker.value = '';
+            picker.click();
+        }
+
+        function attachmentPreview(files, text) {
+            if (text) return text;
+            if (!files || !files.length) return '';
+            if (files[0].kind === 'image') return files.length > 1 ? 'Photos' : 'Photo';
+            if (files[0].kind === 'video') return files.length > 1 ? 'Videos' : 'Video';
+            if (files[0].kind === 'audio') return 'Voice message';
+            return files[0].name || 'Document';
+        }
+
+        function insertEmoji(emoji) {
+            if (!input || input.disabled || !emoji) return;
+            var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+            var end = input.selectionEnd == null ? input.value.length : input.selectionEnd;
+            input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+            var pos = start + emoji.length;
+            input.focus();
+            if (input.setSelectionRange) input.setSelectionRange(pos, pos);
+        }
+
+        var voice = { recorder: null, stream: null, chunks: [], chatId: null, send: false, started: 0, timer: 0 };
+
+        function voiceClock(ms) {
+            var total = Math.max(0, Math.floor(ms / 1000));
+            var minutes = Math.floor(total / 60);
+            var seconds = total % 60;
+            return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        }
+
+        function setVoiceUi(on) {
+            var btn = mount.querySelector('#inbox-voice-btn');
+            if (!btn) return;
+            btn.classList.toggle('is-recording', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.title = on ? 'Stop and send voice message' : 'Voice message';
+        }
+
+        function finishVoice() {
+            window.clearInterval(voice.timer);
+            voice.timer = 0;
+            setVoiceUi(false);
+            if (voice.stream) {
+                voice.stream.getTracks().forEach(function (track) { track.stop(); });
+                voice.stream = null;
+            }
+        }
+
+        function deliverVoice(blob, mime, chatId) {
+            if (!chatId || !blob || !blob.size) return;
+            if (!messages[chatId]) messages[chatId] = [];
+            var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messages[chatId].push({
+                type: 'outgoing',
+                text: '',
+                time: time,
+                attachments: [{
+                    name: 'Voice message',
+                    kind: 'audio',
+                    type: mime || blob.type || '',
+                    size: blob.size,
+                    url: URL.createObjectURL(blob)
+                }]
+            });
+            var contact = getContact(chatId);
+            if (contact) contact.preview = 'You: Voice message';
+            if (activeId === chatId && messageContainer) renderMessages(messageContainer, messages[chatId]);
+            refreshContactList();
+        }
+
+        function stopVoice(send) {
+            voice.send = !!send;
+            if (voice.recorder && voice.recorder.state === 'recording') {
+                voice.recorder.stop();
+                return;
+            }
+            finishVoice();
+            showAttachNote('');
+        }
+
+        function startVoice() {
+            var voiceBtn = mount.querySelector('#inbox-voice-btn');
+            if ((voiceBtn && voiceBtn.disabled) || (input && input.disabled)) return;
+            if (!activeId) {
+                showAttachNote('Open a chat before sending a voice message.');
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+                showAttachNote('Voice messages need a microphone in this browser.');
+                return;
+            }
+            closeInboxDropdown(mount.querySelector('[data-dropdown="emoji"]'));
+            closeInboxDropdown(mount.querySelector('[data-dropdown="attach"]'));
+            var chatId = activeId;
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+                if (activeId !== chatId) {
+                    stream.getTracks().forEach(function (track) { track.stop(); });
+                    return;
+                }
+                var types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+                var mime = '';
+                for (var i = 0; i < types.length; i++) {
+                    if (window.MediaRecorder.isTypeSupported(types[i])) {
+                        mime = types[i];
+                        break;
+                    }
+                }
+                var recorder;
+                try {
+                    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+                } catch (err) {
+                    stream.getTracks().forEach(function (track) { track.stop(); });
+                    showAttachNote('This browser could not start a voice recording.');
+                    return;
+                }
+                voice.stream = stream;
+                voice.recorder = recorder;
+                voice.chunks = [];
+                voice.chatId = chatId;
+                voice.send = false;
+                voice.started = Date.now();
+                recorder.ondataavailable = function (event) {
+                    if (event.data && event.data.size) voice.chunks.push(event.data);
+                };
+                recorder.onstop = function () {
+                    var blob = new Blob(voice.chunks, { type: recorder.mimeType || mime || 'audio/webm' });
+                    var shouldSend = voice.send && blob.size && (Date.now() - voice.started) > 350;
+                    var target = voice.chatId;
+                    voice.recorder = null;
+                    voice.chunks = [];
+                    finishVoice();
+                    if (shouldSend) {
+                        showAttachNote('');
+                        deliverVoice(blob, blob.type, target);
+                    } else if (voice.send) {
+                        showAttachNote('Record a little longer, then tap the microphone to send.');
+                    } else {
+                        showAttachNote('');
+                    }
+                };
+                recorder.start();
+                setVoiceUi(true);
+                showAttachNote('Recording 0:00 — tap the microphone to send', true);
+                voice.timer = window.setInterval(function () {
+                    showAttachNote('Recording ' + voiceClock(Date.now() - voice.started) + ' — tap the microphone to send', true);
+                }, 500);
+            }).catch(function () {
+                showAttachNote('Allow microphone access to send a voice message.');
+            });
+        }
+
+        function toggleVoice() {
+            if (voice.recorder && voice.recorder.state === 'recording') stopVoice(true);
+            else startVoice();
+        }
+
         function sendMessage() {
             if (!input || input.disabled) return;
             var text = input.value.trim();
-            if (!text || !activeId) return;
+            if ((!text && !pendingFiles.length) || !activeId) return;
 
             if (!messages[activeId]) messages[activeId] = [];
             var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            messages[activeId].push({ type: 'outgoing', text: text, time: time });
+            var attachments = pendingFiles.map(function (item) {
+                return {
+                    name: item.name,
+                    kind: item.kind,
+                    type: item.type,
+                    size: item.size,
+                    url: item.url
+                };
+            });
+            pendingFiles.forEach(function (item) { item.revoke = false; });
+            pendingFiles = [];
+            renderPending();
+            messages[activeId].push({ type: 'outgoing', text: text, time: time, attachments: attachments });
             input.value = '';
             renderMessages(messageContainer, messages[activeId]);
 
             var contact = getContact(activeId);
-            if (contact) contact.preview = 'You: ' + text;
+            if (contact) contact.preview = 'You: ' + attachmentPreview(attachments, text);
             refreshContactList();
             if (window.KreezbyStaffInbox && typeof window.KreezbyStaffInbox.onThreadSelected === 'function') {
                 window.KreezbyStaffInbox.onThreadSelected(contact);
@@ -644,8 +1102,24 @@
         }
         if (sendIcon) sendIcon.addEventListener('click', sendMessage);
         if (hiddenSend) hiddenSend.addEventListener('click', sendMessage);
+        var voiceBtn = mount.querySelector('#inbox-voice-btn');
+        if (voiceBtn) {
+            voiceBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                toggleVoice();
+            });
+        }
 
-        wireDropdowns(mount);
+        ['document'].forEach(function (kind) {
+            var picker = mount.querySelector('#inbox-file-' + kind);
+            if (!picker) return;
+            picker.addEventListener('change', function () {
+                addPendingFiles(picker.files);
+                picker.value = '';
+            });
+        });
+
+        wireDropdowns(mount, openAttach, insertEmoji);
         wireResize(mount);
 
         window.transmitLiveMessageRow = sendMessage;
@@ -660,6 +1134,11 @@
             }
             if (messageContainer) messageContainer.innerHTML = '';
             if (input) input.value = '';
+            pendingFiles.forEach(releasePending);
+            pendingFiles = [];
+            renderPending();
+            stopVoice(false);
+            if (closeDeviceCamera) closeDeviceCamera();
             mount.querySelectorAll('.inbox-contact-item').forEach(function (item) {
                 item.classList.remove('is-active', 'selected-active');
             });

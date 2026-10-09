@@ -1584,8 +1584,6 @@ main.workspace-canvas {
             margin-right: 4px;
         }
 
-        .btn-upgrade.wholesaler { background: #00897b; }
-
         .badge-account-type {
             display: inline-block;
             padding: 2px 8px;
@@ -1596,6 +1594,5 @@ main.workspace-canvas {
 
         .badge-customer { background: #e3f2fd; color: #1565c0; }
         .badge-retailer { background: #fff3e0; color: #e65100; }
-        .badge-wholesaler { background: #e8f5e9; color: #2e7d32; }
         .badge-staff { background: #f3e5f5; color: #6a1b9a; }
         .badge-admin { background: #efebe9; color: #4e342e; }

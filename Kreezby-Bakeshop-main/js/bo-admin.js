@@ -107,19 +107,10 @@
         }
     }
 
-    function isWholesalerPortal() {
-        var path = (location.pathname || '').replace(/\\/g, '/');
-        if (!/\/retailer\//i.test(path)) return false;
-        try {
-            var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
-            return !!(session && session.accountType === 'Wholesaler');
-        } catch (e) { return false; }
-    }
-
     function matchesPortalEntity(order) {
         if (PAGE_MODE !== 'retailer' || !retailerStoreName) return true;
         var name = String(retailerStoreName).toLowerCase();
-        if (name === 'retailer' || name === 'wholesaler') return true;
+        if (name === 'retailer') return true;
         return order && order.entity === retailerStoreName;
     }
 
@@ -167,7 +158,7 @@
             var session = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
             sessionName = session && session.userName ? String(session.userName) : '';
         } catch (e) { sessionName = ''; }
-        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer' || brandName.toLowerCase() === 'wholesaler';
+        var genericBrand = !brandName || brandName.toLowerCase() === 'retailer';
         retailerStoreName = genericBrand ? (sessionName || brandName || 'Retailer') : brandName;
         var tbody = document.querySelector('#bo-retailer-dashboard-view table tbody');
         if (tbody) tbody.id = 'bo-retailer-tbody';
@@ -338,10 +329,9 @@
         return Object.keys(BO_ORDERS).map(function (k) { return BO_ORDERS[k]; }).filter(function (o) {
             if (PAGE_MODE === 'retailer') {
                 if (!matchesPortalEntity(o)) return false;
-                if (isWholesalerPortal()) return o.entityType === 'wholesaler';
                 return o.entityType !== 'customer' && o.entityType !== 'wholesaler';
             }
-            return type === 'customer' ? o.entityType === 'customer' : o.entityType !== 'customer';
+            return type === 'customer' ? o.entityType === 'customer' : (o.entityType !== 'customer' && o.entityType !== 'wholesaler');
         }).sort(function (a, b) {
             var d = b.dateCreated.localeCompare(a.dateCreated);
             return d !== 0 ? d : b.code.localeCompare(a.code);
@@ -508,7 +498,6 @@
 
     function typeChipClass(type) {
         var label = String(type || '').toLowerCase();
-        if (label.indexOf('whole') >= 0) return 'is-wholesale';
         if (label.indexOf('customer') >= 0) return 'is-customer';
         return 'is-retail';
     }
@@ -522,7 +511,6 @@
 
     function accountLabel(order) {
         if (order.accountType) return order.accountType;
-        if (order.entityType === 'wholesaler') return 'Wholesaler';
         if (order.entityType === 'customer') return 'Regular Customer';
         return 'Retailer';
     }
