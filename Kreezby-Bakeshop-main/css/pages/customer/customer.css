@@ -2546,6 +2546,9 @@
             display: flex;
             gap: 4px;
             margin-bottom: 8px;
+            color: #d4af37;
+            font-size: 20px;
+            letter-spacing: 2px;
         }
 
         .review-done-text {

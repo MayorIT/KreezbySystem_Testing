@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010brown">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
-    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010create2">
+    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010stars">
     <link rel="stylesheet" href="../css/shared/order-stepper.css">
     <link rel="stylesheet" href="../css/shared/order-tracking.css">
     <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
@@ -99,24 +99,19 @@
                         <h2 class="menu-section-title">What Our Customers Say</h2>
                         <p class="section-heading__hint">Real notes from people who keep coming back for another pouch.</p>
                     </div>
-                    <button type="button" class="category-feedback__create" id="create-feedback-btn" aria-expanded="false" aria-controls="create-feedback-form" onclick="toggleCreateFeedback()">Create Feedback</button>
                 </div>
-                <form id="create-feedback-form" class="create-feedback-form" hidden onsubmit="submitCustomerFeedback(event)">
-                    <p class="create-feedback-form__label">Your rating</p>
-                    <div class="create-feedback-form__stars" role="radiogroup" aria-label="Star rating">
-                        <button type="button" class="create-feedback-star is-on" data-star="1" onclick="setFeedbackRating(1)" aria-label="1 star">★</button>
-                        <button type="button" class="create-feedback-star is-on" data-star="2" onclick="setFeedbackRating(2)" aria-label="2 stars">★</button>
-                        <button type="button" class="create-feedback-star is-on" data-star="3" onclick="setFeedbackRating(3)" aria-label="3 stars">★</button>
-                        <button type="button" class="create-feedback-star is-on" data-star="4" onclick="setFeedbackRating(4)" aria-label="4 stars">★</button>
-                        <button type="button" class="create-feedback-star is-on" data-star="5" onclick="setFeedbackRating(5)" aria-label="5 stars">★</button>
-                    </div>
-                    <label class="create-feedback-form__label" for="create-feedback-comment">Your comment</label>
-                    <textarea id="create-feedback-comment" name="comment" required maxlength="240" placeholder="Tell us what you think of the crinkles"></textarea>
-                    <button type="submit" class="category-feedback__create">Post Feedback</button>
-                </form>
+                <div class="review-star-filters" role="group" aria-label="Filter reviews by star rating">
+                    <button type="button" class="review-star-filter is-active" data-stars="0" onclick="filterTestimonials(0, this)">All</button>
+                    <button type="button" class="review-star-filter" data-stars="5" onclick="filterTestimonials(5, this)">5 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="4" onclick="filterTestimonials(4, this)">4 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="3" onclick="filterTestimonials(3, this)">3 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="2" onclick="filterTestimonials(2, this)">2 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="1" onclick="filterTestimonials(1, this)">1 Star</button>
+                </div>
+                <p id="testimonials-filter-empty" class="testimonials-filter-empty" hidden>No reviews with that star rating yet.</p>
                 <div class="testimonials-grid" id="customer-testimonials-grid">
 
-                    <article class="testimonial">
+                    <article class="testimonial" data-rating="5">
                         <span class="testimonial__quote-mark" aria-hidden="true">"</span>
                         <div class="testimonial__body">
                             <div class="testimonial__stars" aria-label="5 out of 5 stars">
@@ -137,7 +132,7 @@
                         </div>
                     </article>
 
-                    <article class="testimonial">
+                    <article class="testimonial" data-rating="5">
                         <span class="testimonial__quote-mark" aria-hidden="true">"</span>
                         <div class="testimonial__body">
                             <div class="testimonial__stars" aria-label="5 out of 5 stars">
@@ -158,7 +153,7 @@
                         </div>
                     </article>
 
-                    <article class="testimonial">
+                    <article class="testimonial" data-rating="5">
                         <span class="testimonial__quote-mark" aria-hidden="true">"</span>
                         <div class="testimonial__body">
                             <div class="testimonial__stars" aria-label="5 out of 5 stars">
@@ -179,7 +174,7 @@
                         </div>
                     </article>
 
-                    <article class="testimonial">
+                    <article class="testimonial" data-rating="5">
                         <span class="testimonial__quote-mark" aria-hidden="true">"</span>
                         <div class="testimonial__body">
                             <div class="testimonial__stars" aria-label="5 out of 5 stars">
@@ -425,7 +420,7 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/notification-store.js"></script>
-    <script src="../js/customer-orders.js?v=20260929webpay"></script>
+    <script src="../js/customer-orders.js?v=20261010review"></script>
     <script src="../js/customer-shop-cards.js?v=20261010jars"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script>
@@ -440,29 +435,7 @@
             btn.classList.toggle('is-open', open);
         }
 
-        var feedbackRating = 5;
         var CUSTOMER_FEEDBACK_KEY = 'kreezbyCustomerCreatedFeedbackV1';
-
-        function toggleCreateFeedback() {
-            var btn = document.getElementById('create-feedback-btn');
-            var form = document.getElementById('create-feedback-form');
-            if (!btn || !form) return;
-            var open = form.hasAttribute('hidden');
-            if (open) form.removeAttribute('hidden');
-            else form.setAttribute('hidden', '');
-            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            if (open) {
-                var comment = document.getElementById('create-feedback-comment');
-                if (comment) comment.focus();
-            }
-        }
-
-        function setFeedbackRating(value) {
-            feedbackRating = value;
-            document.querySelectorAll('.create-feedback-star').forEach(function (star) {
-                star.classList.toggle('is-on', Number(star.getAttribute('data-star')) <= value);
-            });
-        }
 
         function escapeFeedbackText(value) {
             return String(value || '')
@@ -480,8 +453,51 @@
             return '<div class="testimonial__stars" aria-label="' + count + ' out of 5 stars">' + html + '</div>';
         }
 
+        var feedbackStarFilter = 0;
+
+        function filterTestimonials(stars, button) {
+            feedbackStarFilter = Number(stars) || 0;
+            document.querySelectorAll('.review-star-filter').forEach(function (filterButton) {
+                filterButton.classList.toggle('is-active', filterButton === button);
+            });
+            var grid = document.getElementById('customer-testimonials-grid');
+            var empty = document.getElementById('testimonials-filter-empty');
+            var visible = 0;
+            if (grid) {
+                grid.querySelectorAll('.testimonial').forEach(function (card) {
+                    var rating = Number(card.getAttribute('data-rating') || 5);
+                    var show = !feedbackStarFilter || rating === feedbackStarFilter;
+                    card.hidden = !show;
+                    if (show) visible += 1;
+                });
+            }
+            if (empty) empty.hidden = visible > 0;
+        }
+
+        function publishFeedbackCard(entry) {
+            var grid = document.getElementById('customer-testimonials-grid');
+            if (!grid || !entry) return;
+            var wrap = document.createElement('div');
+            wrap.innerHTML = feedbackCardMarkup(entry);
+            var card = wrap.firstChild;
+            grid.insertBefore(card, grid.firstChild);
+            var allButton = document.querySelector('.review-star-filter[data-stars="0"]');
+            filterTestimonials(0, allButton);
+            var panel = document.getElementById('category-feedback-panel');
+            var feedbackButton = document.getElementById('category-feedback-btn');
+            if (panel && panel.hasAttribute('hidden')) {
+                panel.removeAttribute('hidden');
+                if (feedbackButton) {
+                    feedbackButton.setAttribute('aria-expanded', 'true');
+                    feedbackButton.classList.add('is-open');
+                }
+            }
+            if (typeof closeCurrentModal === 'function') closeCurrentModal();
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         function feedbackCardMarkup(entry) {
-            return '<article class="testimonial">' +
+            return '<article class="testimonial" data-rating="' + Number(entry.rating || 5) + '" data-created-feedback="1">' +
                 '<span class="testimonial__quote-mark" aria-hidden="true">"</span>' +
                 '<div class="testimonial__body">' +
                     feedbackStarMarkup(entry.rating) +
@@ -515,37 +531,14 @@
                 var wrap = document.createElement('div');
                 wrap.innerHTML = feedbackCardMarkup(items[i]);
                 var card = wrap.firstChild;
-                card.setAttribute('data-created-feedback', '1');
                 grid.insertBefore(card, grid.firstChild);
             }
         }
 
-        function submitCustomerFeedback(event) {
-            event.preventDefault();
-            var commentField = document.getElementById('create-feedback-comment');
-            var grid = document.getElementById('customer-testimonials-grid');
-            var comment = commentField ? commentField.value.trim() : '';
-            if (!comment || !grid) return;
-            var profile = typeof loadCustomerProfile === 'function' ? loadCustomerProfile() : null;
-            var entry = {
-                rating: feedbackRating,
-                comment: comment,
-                name: (profile && profile.fullName) || 'Customer'
-            };
-            var saved = readCreatedFeedback();
-            saved.unshift(entry);
-            localStorage.setItem(CUSTOMER_FEEDBACK_KEY, JSON.stringify(saved.slice(0, 20)));
-            var wrap = document.createElement('div');
-            wrap.innerHTML = feedbackCardMarkup(entry);
-            var card = wrap.firstChild;
-            card.setAttribute('data-created-feedback', '1');
-            grid.insertBefore(card, grid.firstChild);
-            commentField.value = '';
-            setFeedbackRating(5);
-            toggleCreateFeedback();
-        }
-
         renderCreatedFeedback();
+        document.addEventListener('kreezby:customer-feedback', function (event) {
+            publishFeedbackCard(event.detail);
+        });
 
         // System Data Matrix Catalog Initialization Structures 
         const productFlavorsCatalog = [

@@ -43,6 +43,43 @@
     margin-top: 16px;
 }
 
+.review-star-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+
+.review-star-filter {
+    border: 1px solid #e7d3a1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #3e2723;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.review-star-filter.is-active {
+    background: #3e2723;
+    color: #fff8ee;
+    border-color: transparent;
+    box-shadow: 0 3px 0 #d4af37;
+}
+
+.testimonials-filter-empty {
+    margin: 0 0 12px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.testimonials-grid .testimonial[hidden] {
+    display: none;
+}
+
 .category-feedback__panel .testimonials-section {
     margin-top: 0;
 }
