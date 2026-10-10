@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Return / P.O List (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/return-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008sls">
+
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-return">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="returns-master-list-panel-view">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Return / P.O List</h3>
+                            <span class="po-list-count" id="return-list-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <label class="po-page-size">Show
+                                <select id="return-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" id="return-retailer-search" placeholder="Return code, P.O., retailer, status...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="return-orders-table">
+                                <thead>
+                                    <tr>
+                                        <th class="po-col-num">#</th>
+                                        <th class="po-col-date">Date Created</th>
+                                        <th class="po-col-code">Return Code</th>
+                                        <th class="po-col-origin">P.O. Origin</th>
+                                        <th class="po-col-entity">Retailer / Entity</th>
+                                        <th class="po-col-items">Items</th>
+                                        <th class="po-col-status">Status</th>
+                                        <th class="po-col-action">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="return-retailer-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line" id="return-retailer-footer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="returns-details-inspector-panel-view" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Return</p>
+                            <h3 id="return-details-title">Details</h3>
+                        </div>
+                        <button class="po-details-back" id="return-details-back-btn" type="button">Back to list</button>
+                    </div>
+                    <div class="po-details-scroll">
+                        <div id="return-details-content"></div>
+                    </div>
+                    <div class="details-action-footer-row">
+                        <button class="btn-viewer-tool green" id="return-details-print-btn" type="button">Print Return Slip</button>
+                        <button class="btn-viewer-tool blue" id="return-details-edit-btn" type="button">Edit Record</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+</turbo-frame>
+</div>
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/return-admin.js?v=20261008ret"></script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

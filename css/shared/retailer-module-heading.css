@@ -1,0 +1,13 @@
+main.workspace-canvas > .page-title {
+    margin: 0 0 6px;
+    color: #5d4037;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+main.workspace-canvas > .page-subtitle {
+    margin: 0 0 20px;
+    color: #666;
+    font-size: 13px;
+}

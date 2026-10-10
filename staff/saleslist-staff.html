@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+        <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Sales Records Ledger (Staff)</title>
+    <link rel="stylesheet" href="../css/pages/staff/saleslist-staff.css?v=20261005notes">
+    <link rel="stylesheet" href="../css/shared/sales-view-switch.css?v=20261001switch">
+
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="staff.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    Staff ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+
+        <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="saleslist-master-directory-panel-view">
+                <div class="sales-view-switch" role="tablist" aria-label="Sales list">
+                    <span class="sales-view-thumb" aria-hidden="true"></span>
+                    <button type="button" class="sales-view-option is-active" role="tab" aria-selected="true" data-sales-view="retailer">Retailer</button>
+                    <button type="button" class="sales-view-option" role="tab" aria-selected="false" data-sales-view="customer" tabindex="-1">Customer</button>
+                </div>
+                <div class="sales-ledger-stack sales-view-single">
+                    
+                    <div class="panel-data-card sales-section-retailer">
+                        <div class="panel-card-title-bar route-sheet-title-bar">
+                            <h3>Retailer Route Sheets (Daily Collection Logs)</h3>
+                            <div class="route-sheet-title-actions">
+                                <button type="button" class="btn-call-to-action btn-sheet-secondary" id="btn-edit-route-sheet">Edit current sheet</button>
+                                <button type="button" class="btn-call-to-action" onclick="toggleCreateSaleModalOverlay(true)">+ New Route Sheet</button>
+                            </div>
+                        </div>
+                        <div class="card-body-padded">
+                            <p id="bauan-import-badge" style="font-size:13px;color:#5d4037;margin-bottom:12px;font-weight:600;">Loading route sheets…</p>
+                            <div class="route-sheet-filters">
+                                <div class="filter-field">
+                                    <label for="route-filter-month">Month</label>
+                                    <select id="route-filter-month" aria-label="Filter by month"></select>
+                                </div>
+                                <div class="filter-field">
+                                    <label for="route-filter-area">Area</label>
+                                    <select id="route-filter-area" aria-label="Filter by area"></select>
+                                </div>
+                                <div class="filter-field">
+                                    <label for="route-filter-date">Date</label>
+                                    <select id="route-filter-date" aria-label="Filter by date"></select>
+                                </div>
+                            </div>
+
+                            <div id="bauan-route-sheets-wrap" class="manual-route-sheets-wrap">
+                                <p style="text-align:center;padding:20px;color:#888;">Loading imported route sheets…</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-data-card sales-section-customer" hidden>
+                        <div class="panel-card-title-bar">
+                            <h3>Customer Sales Records</h3>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="datatable-filters-line">
+                                <div>Search Customers: <input type="text" placeholder="Filter code or name…" disabled></div>
+                            </div>
+
+                            <table class="data-display-table manual-sheet-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Invoice</th>
+                                        <th>Customer / Items</th>
+                                        <th>Total Paid</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-sales-tbody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center;padding:24px;color:#888;">No walk-in customer entries imported yet. Use <strong>+ Create Sale</strong> for new customer transactions.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="saleslist-detailed-inspector-panel-view" style="display: none;">
+                <div class="panel-data-card">
+                    <div class="panel-card-title-bar">
+                        <h3>Sales Invoice Breakdown - SALE-0002</h3>
+                    </div>
+                    <div class="card-body-padded">
+                        
+                        <div class="details-inspection-sheet">
+                            <div class="details-header-meta-block" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
+                                <div>
+                                    <div class="meta-data-line" id="bauan-detail-invoice"><strong>Invoice:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-route"><strong>Area / Date:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-client"><strong>Location:</strong> —</div>
+                                </div>
+                                <div>
+                                    <div class="meta-data-line" id="bauan-detail-cons"><strong>Cons / COD / Staff:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-po"><strong>P.O / Replaced:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-ar"><strong>Account Receivable:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-total"><strong>Row Collected:</strong> —</div>
+                                    <div class="meta-data-line" id="bauan-detail-date" style="display:none;"><strong>Source:</strong> —</div>
+                                </div>
+                            </div>
+                            <div id="bauan-detail-sheet-host"></div>
+                            <div id="bauan-sale-detail-tbody" style="display:none;"></div>
+                            <span id="bauan-detail-grand-total" style="display:none;"></span>
+                        </div>
+
+                        <div class="details-action-footer-row">
+                            <button class="btn-viewer-tool green" onclick="window.print()">Print Official Receipt</button>
+                            <button class="btn-viewer-tool black" onclick="switchToSalesMasterDirectoryListingView()">Back To Sales Ledger</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+
+    <div class="system-modal-backdrop" id="create-saleslist-modal-overlay"></div>
+
+    <script>
+        function switchToDetailedSalesTransactionInspector() {
+            document.getElementById('saleslist-master-directory-panel-view').style.display = 'none';
+            document.getElementById('saleslist-detailed-inspector-panel-view').style.display = 'block';
+        }
+
+        function switchToSalesMasterDirectoryListingView() {
+            document.getElementById('saleslist-detailed-inspector-panel-view').style.display = 'none';
+            document.getElementById('saleslist-master-directory-panel-view').style.display = 'block';
+        }
+
+    </script>
+    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261005one"></script>
+        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
+<script src="../js/sidebar-toggle.js?v=20261005one"></script>
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/kreezby-sales-fake-admin.js?v=20260929areas"></script>
+    <script src="../js/kreezby-sales-data.js?v=20261004fast3"></script>
+    <script src="../js/sales-sheet-editor.js"></script>
+    <script src="../js/sales-list-renderer.js?v=20261005notes"></script>
+</body>
+</html>

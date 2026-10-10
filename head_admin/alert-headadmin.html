@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - System Alerts (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-alert.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008layalert">
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-alert">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+
+            <div id="alert-master" class="panel-data-card po-tabbed-card">
+                <div id="alert-list-panel">
+                    <div class="kreezby-alert-stack" id="admin-alert-banners">
+                        <div role="alert" class="kreezby-alert kreezby-alert--destructive kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>
+                            <div class="kreezby-alert__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+                            <div class="kreezby-alert__content">
+                                <div class="kreezby-alert__title">Critical stock alert</div>
+                                <div class="kreezby-alert__description">Mango Crinkles dropped below the safety threshold. Review restock options in the log below.</div>
+                            </div>
+                            <button type="button" class="kreezby-alert__close" data-kreezby-alert-dismiss aria-label="Dismiss"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                        </div>
+                        <div role="alert" class="kreezby-alert kreezby-alert--info kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>
+                            <div class="kreezby-alert__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div>
+                            <div class="kreezby-alert__content">
+                                <div class="kreezby-alert__title">AI back-order notice</div>
+                                <div class="kreezby-alert__description">Automated back-order entries were generated for missing batch lines. No action required unless flagged.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>System Stock Alerts</h3>
+                            <span class="po-list-count" id="alert-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <label class="po-page-size">Show
+                                <select id="alert-show">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" id="alert-search" placeholder="Filter by message or item...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body-padded po-list-body">
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="alert-table">
+                                <colgroup>
+                                    <col class="al-col-num">
+                                    <col class="al-col-time">
+                                    <col class="al-col-source">
+                                    <col class="al-col-message">
+                                    <col class="al-col-severity">
+                                    <col class="al-col-action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="al-col-num">#</th>
+                                        <th class="al-col-time">Timestamp</th>
+                                        <th class="al-col-source">Trigger Source</th>
+                                        <th class="al-col-message">Alert Message</th>
+                                        <th class="al-col-severity">Severity</th>
+                                        <th class="al-col-action">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-source="CRK-MNG-J" data-time="2026-05-16 14:20" data-severity="Critical" data-actions="restock,modify,dismiss">
+                                        <td class="po-col-num">1</td>
+                                        <td>2026-05-16 14:20</td>
+                                        <td><strong>CRK-MNG-J</strong></td>
+                                        <td class="al-message">Mango Crinkles stock levels dropped below the safety threshold value. Current: 45 Jars.</td>
+                                        <td class="al-severity"><span class="severity-badge critical">Critical</span></td>
+                                        <td class="al-action">
+                                            <div class="action-menu-relative-container" data-kreezby-page-menu>
+                                                <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
+                                                <div class="action-popup-menu">
+                                                    <button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>
+                                                    <button type="button" class="action-popup-item" data-alert-action="modify">Adjust Threshold</button>
+                                                    <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-source="CRK-LEM-P" data-time="2026-05-16 11:05" data-severity="Warning" data-actions="restock,modify,dismiss">
+                                        <td class="po-col-num">2</td>
+                                        <td>2026-05-16 11:05</td>
+                                        <td><strong>CRK-LEM-P</strong></td>
+                                        <td class="al-message">Lemon Crinkles stock levels reaching warning limit limits. Current: 85 Pouches.</td>
+                                        <td class="al-severity"><span class="severity-badge warning">Warning</span></td>
+                                        <td class="al-action">
+                                            <div class="action-menu-relative-container" data-kreezby-page-menu>
+                                                <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
+                                                <div class="action-popup-menu">
+                                                    <button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>
+                                                    <button type="button" class="action-popup-item" data-alert-action="modify">Adjust Threshold</button>
+                                                    <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-source="PO-0005" data-time="2026-05-15 09:12" data-severity="Info" data-actions="view,dismiss">
+                                        <td class="po-col-num">3</td>
+                                        <td>2026-05-15 09:12</td>
+                                        <td><strong>PO-0005</strong></td>
+                                        <td class="al-message">Back Order processing generated automatically by AI system metrics loops for missing batch lines.</td>
+                                        <td class="al-severity"><span class="severity-badge info">Info</span></td>
+                                        <td class="al-action">
+                                            <div class="action-menu-relative-container" data-kreezby-page-menu>
+                                                <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
+                                                <div class="action-popup-menu">
+                                                    <button type="button" class="action-popup-item" data-alert-action="view">View Back Order</button>
+                                                    <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-source="RET-0001" data-time="2026-05-14 16:45" data-severity="Warning" data-actions="view,dismiss">
+                                        <td class="po-col-num">4</td>
+                                        <td>2026-05-14 16:45</td>
+                                        <td><strong>RET-0001</strong></td>
+                                        <td class="al-message">Return Order request submitted to active log queues from Retailer 102. Action required.</td>
+                                        <td class="al-severity"><span class="severity-badge warning">Warning</span></td>
+                                        <td class="al-action">
+                                            <div class="action-menu-relative-container" data-kreezby-page-menu>
+                                                <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
+                                                <div class="action-popup-menu">
+                                                    <button type="button" class="action-popup-item" data-alert-action="view">Inspect Return Slip</button>
+                                                    <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line" id="alert-footer">
+                            <span>System stock alerts</span>
+                            <span id="alert-totals">4 alerts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="alert-details-panel" hidden>
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Alert Details</h3>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <button type="button" id="alert-back">Back to list</button>
+                        </div>
+                    </div>
+                    <div id="alert-details-body"></div>
+                </div>
+            </div>
+
+        </main>
+        <script>
+        (function () {
+            function applyAlertTheme() {
+                if (!document.getElementById('alert-master')) return;
+                document.body.classList.add('po-admin-page');
+                var theme = document.getElementById('po-theme-sheet');
+                if (!theme) {
+                    theme = document.createElement('link');
+                    theme.id = 'po-theme-sheet';
+                    theme.rel = 'stylesheet';
+                    theme.setAttribute('data-po-owned', '1');
+                    document.head.appendChild(theme);
+                }
+                theme.disabled = false;
+                if (theme.href.indexOf('20261008layalert') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261008layalert';
+                if (window.AlertAdmin && window.AlertAdmin.bind) {
+                    try { window.AlertAdmin.bind(); } catch (e) {}
+                    return;
+                }
+                if (document.getElementById('kreezby-alert-frame-script')) return;
+                var script = document.createElement('script');
+                script.id = 'kreezby-alert-frame-script';
+                script.src = '../js/alert-admin.js?v=20261008alert';
+                script.onload = function () {
+                    if (window.AlertAdmin && window.AlertAdmin.bind) window.AlertAdmin.bind();
+                };
+                document.body.appendChild(script);
+            }
+            applyAlertTheme();
+            document.addEventListener('turbo:frame-load', applyAlertTheme);
+            document.addEventListener('kreezby:page-load', applyAlertTheme);
+        })();
+        </script>
+        </turbo-frame>
+    </div>
+
+    <script src="../js/kreezby-alert.js"></script>
+    <script src="../js/alert-admin.js?v=20261008alert"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261008alert"></script>
+    <script src="../js/admin-sidebar.js?v=20261008alert"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>

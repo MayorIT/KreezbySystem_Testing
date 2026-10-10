@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Maintenance Inbox Chat (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/admin.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/inbox-chat-layout.css?v=20261009camera">
+</head>
+<body>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <div class="expandable-nav-tabs">
+                <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            </div>
+            <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Head Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="../auth/log_in.html" class="dropdown-item" id="head-admin-logout">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas inbox-page-main">
+            <div class="inbox-messenger" data-inbox-role="admin"></div>
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/inbox-chat.js?v=20261009camera"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+    <script src="../js/admin-permissions.js?v=20261006perm"></script>
+    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/sidebar-toggle.js?v=20261005home"></script>
+    <script>
+        document.getElementById('head-admin-logout').addEventListener('click', function () {
+            try { localStorage.removeItem('kreezby_session'); sessionStorage.removeItem('kreezby_current_admin'); } catch (e) {}
+        });
+    </script>
+</body>
+</html>

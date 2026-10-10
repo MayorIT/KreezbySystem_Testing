@@ -1,0 +1,1001 @@
+Transaction_ID,Date,Product_ID,Category,Product_Name,Quantity,Unit_Price,Total_Price,Customer_ID,Payment_Method,Store_Location
+1001,2024-01-01,52,Pouch,Chocolate Crinkles,2,165.00,330.00,1901,Cash,Store_B
+1002,2024-01-02,93,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1563,Cash,Store_B
+1003,2024-01-03,15,Pouch,Strawberry Crinkles,8,165.00,1320.00,1661,GCash,Store_C
+1004,2024-01-04,72,Pouch,Red Velvet Crinkles,1,165.00,165.00,1780,Cash,Store_B
+1005,2024-01-05,61,Pouch,Lemon Crinkles,3,165.00,495.00,1562,Cash,Store_A
+1006,2024-01-06,21,Pouch,Melon Crinkles,10,165.00,1650.00,1900,Cash,Store_B
+1007,2024-01-07,83,Pouch,Pandan Crinkles,9,165.00,1485.00,1758,Cash,Store_A
+1008,2024-01-08,87,Pouch,Ube Crinkles,5,165.00,825.00,1113,Cash,Store_C
+1009,2024-01-09,75,Jar,Mango Crinkles,6,165.00,990.00,1170,GCash,Store_A
+1010,2024-01-10,75,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1468,Cash,Store_B
+1011,2024-01-11,88,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1678,Cash,Store_C
+1012,2024-01-12,100,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1921,Cash,Store_B
+1013,2024-01-13,24,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1014,GCash,Store_C
+1014,2024-01-14,3,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1715,Cash,Store_C
+1015,2024-01-15,22,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1288,Cash,Store_B
+1016,2024-01-16,53,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1907,Cash,Store_B
+1017,2024-01-17,2,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1189,GCash,Store_C
+1018,2024-01-18,88,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1914,Cash,Store_C
+1019,2024-01-19,30,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1155,Cash,Store_B
+1020,2024-01-20,38,Pouch,Strawberry Crinkles,5,165.00,825.00,1567,Cash,Store_A
+1021,2024-01-21,2,Pouch,Strawberry Crinkles,6,165.00,990.00,1694,Cash,Store_B
+1022,2024-01-22,64,Pouch,Strawberry Crinkles,6,165.00,990.00,1722,GCash,Store_C
+1023,2024-01-23,60,Pouch,Strawberry Crinkles,7,165.00,1155.00,1888,Cash,Store_B
+1024,2024-01-24,21,Pouch,Strawberry Crinkles,4,165.00,660.00,1471,Cash,Store_A
+1025,2024-01-25,33,Pouch,Strawberry Crinkles,8,165.00,1320.00,1075,Cash,Store_B
+1026,2024-01-26,76,Pouch,Strawberry Crinkles,7,165.00,1155.00,1277,Cash,Store_C
+1027,2024-01-27,58,Pouch,Strawberry Crinkles,9,165.00,1485.00,1940,Cash,Store_B
+1028,2024-01-28,22,Pouch,Strawberry Crinkles,7,165.00,1155.00,1645,Cash,Store_C
+1029,2024-01-29,89,Pouch,Strawberry Crinkles,3,165.00,495.00,1343,Cash,Store_C
+1030,2024-01-30,49,Pouch,Red Velvet Crinkles,3,165.00,495.00,1425,Cash,Store_B
+1031,2024-01-31,91,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1571,Cash,Store_C
+1032,2024-02-01,59,Pouch,Red Velvet Crinkles,5,165.00,825.00,1511,Cash,Store_C
+1033,2024-02-02,42,Pouch,Red Velvet Crinkles,4,165.00,660.00,1857,Cash,Store_A
+1034,2024-02-03,92,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1182,Cash,Store_A
+1035,2024-02-04,60,Pouch,Red Velvet Crinkles,6,165.00,990.00,1458,Cash,Store_A
+1036,2024-02-05,80,Pouch,Red Velvet Crinkles,2,165.00,330.00,1918,Cash,Store_A
+1037,2024-02-06,15,Pouch,Red Velvet Crinkles,4,165.00,660.00,1851,Cash,Store_C
+1038,2024-02-07,62,Pouch,Red Velvet Crinkles,4,165.00,660.00,1833,GCash,Store_B
+1039,2024-02-08,62,Pouch,Red Velvet Crinkles,6,165.00,990.00,1064,Cash,Store_C
+1040,2024-02-09,47,Pouch,Lemon Crinkles,6,165.00,990.00,1839,Cash,Store_C
+1041,2024-02-10,62,Pouch,Lemon Crinkles,1,165.00,165.00,1260,GCash,Store_C
+1042,2024-02-11,51,Pouch,Lemon Crinkles,8,165.00,1320.00,1193,Cash,Store_B
+1043,2024-02-12,55,Pouch,Lemon Crinkles,6,165.00,990.00,1655,GCash,Store_A
+1044,2024-02-13,64,Pouch,Lemon Crinkles,3,165.00,495.00,1616,GCash,Store_C
+1045,2024-02-14,3,Pouch,Lemon Crinkles,9,165.00,1485.00,1972,GCash,Store_C
+1046,2024-02-15,51,Pouch,Lemon Crinkles,2,165.00,330.00,1406,GCash,Store_A
+1047,2024-02-16,7,Pouch,Lemon Crinkles,8,165.00,1320.00,1726,Cash,Store_C
+1048,2024-02-17,21,Pouch,Lemon Crinkles,10,165.00,1650.00,1754,Cash,Store_B
+1049,2024-02-18,73,Pouch,Lemon Crinkles,3,165.00,495.00,1943,GCash,Store_C
+1050,2024-02-19,39,Pouch,Melon Crinkles,5,165.00,825.00,1721,Cash,Store_C
+1051,2024-02-20,18,Pouch,Melon Crinkles,6,165.00,990.00,1093,GCash,Store_A
+1052,2024-02-21,4,Pouch,Melon Crinkles,10,165.00,1650.00,1430,Cash,Store_C
+1053,2024-02-22,89,Pouch,Melon Crinkles,6,165.00,990.00,1654,Cash,Store_C
+1054,2024-02-23,60,Pouch,Melon Crinkles,4,165.00,660.00,1434,Cash,Store_B
+1055,2024-02-24,14,Pouch,Melon Crinkles,3,165.00,495.00,1404,Cash,Store_A
+1056,2024-02-25,9,Pouch,Melon Crinkles,4,165.00,660.00,1434,Cash,Store_A
+1057,2024-02-26,90,Pouch,Melon Crinkles,1,165.00,165.00,1112,GCash,Store_B
+1058,2024-02-27,53,Pouch,Melon Crinkles,4,165.00,660.00,1929,GCash,Store_C
+1059,2024-02-28,2,Pouch,Melon Crinkles,1,165.00,165.00,1375,GCash,Store_A
+1060,2024-02-29,84,Pouch,Pandan Crinkles,1,165.00,165.00,1059,GCash,Store_A
+1061,2024-03-01,92,Pouch,Pandan Crinkles,10,165.00,1650.00,1043,Cash,Store_C
+1062,2024-03-02,60,Pouch,Pandan Crinkles,6,165.00,990.00,1207,Cash,Store_C
+1063,2024-03-03,71,Pouch,Pandan Crinkles,5,165.00,825.00,1780,Cash,Store_A
+1064,2024-03-04,44,Pouch,Pandan Crinkles,4,165.00,660.00,1296,Cash,Store_C
+1065,2024-03-05,8,Pouch,Pandan Crinkles,3,165.00,495.00,1118,Cash,Store_A
+1066,2024-03-06,47,Pouch,Pandan Crinkles,1,165.00,165.00,1532,GCash,Store_C
+1067,2024-03-07,35,Pouch,Pandan Crinkles,6,165.00,990.00,1222,Cash,Store_C
+1068,2024-03-08,78,Pouch,Pandan Crinkles,2,165.00,330.00,1166,GCash,Store_B
+1069,2024-03-09,81,Pouch,Pandan Crinkles,8,165.00,1320.00,1643,GCash,Store_C
+1070,2024-03-10,36,Pouch,Ube Crinkles,10,165.00,1650.00,1156,Cash,Store_B
+1071,2024-03-11,50,Pouch,Ube Crinkles,5,165.00,825.00,1184,Cash,Store_C
+1072,2024-03-12,4,Pouch,Ube Crinkles,7,165.00,1155.00,1090,GCash,Store_A
+1073,2024-03-13,2,Pouch,Ube Crinkles,10,165.00,1650.00,1094,GCash,Store_A
+1074,2024-03-14,6,Pouch,Ube Crinkles,2,165.00,330.00,1013,Cash,Store_C
+1075,2024-03-15,54,Pouch,Ube Crinkles,8,165.00,1320.00,1973,Cash,Store_C
+1076,2024-03-16,4,Pouch,Ube Crinkles,2,165.00,330.00,1834,Cash,Store_A
+1077,2024-03-17,54,Pouch,Ube Crinkles,4,165.00,660.00,1805,Cash,Store_C
+1078,2024-03-18,93,Pouch,Ube Crinkles,1,165.00,165.00,1945,Cash,Store_B
+1079,2024-03-19,63,Pouch,Ube Crinkles,5,165.00,825.00,1742,GCash,Store_B
+1080,2024-03-20,18,Jar,Mango Crinkles,9,165.00,1485.00,1834,Cash,Store_B
+1081,2024-03-21,90,Jar,Mango Crinkles,1,165.00,165.00,1804,Cash,Store_B
+1082,2024-03-22,44,Jar,Mango Crinkles,9,165.00,1485.00,1438,GCash,Store_B
+1083,2024-03-23,34,Jar,Mango Crinkles,8,165.00,1320.00,1538,Cash,Store_C
+1084,2024-03-24,74,Jar,Mango Crinkles,6,165.00,990.00,1587,Cash,Store_C
+1085,2024-03-25,62,Jar,Mango Crinkles,7,165.00,1155.00,1968,Cash,Store_B
+1086,2024-03-26,100,Jar,Mango Crinkles,3,165.00,495.00,1876,GCash,Store_C
+1087,2024-03-27,14,Jar,Mango Crinkles,1,165.00,165.00,1936,Cash,Store_C
+1088,2024-03-28,95,Jar,Mango Crinkles,5,165.00,825.00,1811,Cash,Store_B
+1089,2024-03-29,48,Jar,Mango Crinkles,2,165.00,330.00,1150,Cash,Store_C
+1090,2024-03-30,15,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1660,GCash,Store_C
+1091,2024-03-31,72,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1008,Cash,Store_C
+1092,2024-04-01,78,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1029,Cash,Store_B
+1093,2024-04-02,87,Jar,Choco Butternut Crinkles,2,200.00,400.00,1296,GCash,Store_C
+1094,2024-04-03,62,Jar,Choco Butternut Crinkles,3,200.00,600.00,1986,Cash,Store_A
+1095,2024-04-04,40,Jar,Choco Butternut Crinkles,3,200.00,600.00,1926,Cash,Store_A
+1096,2024-04-05,85,Jar,Choco Butternut Crinkles,1,200.00,200.00,1721,Cash,Store_B
+1097,2024-04-06,80,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1640,Cash,Store_A
+1098,2024-04-07,82,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1340,Cash,Store_B
+1099,2024-04-08,53,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1628,Cash,Store_A
+1100,2024-04-09,24,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1439,Cash,Store_A
+1101,2024-04-10,26,Pouch,Red Velvet Crinkles,5,165.00,825.00,1144,GCash,Store_A
+1102,2024-04-11,89,Pouch,Lemon Crinkles,3,165.00,495.00,1942,GCash,Store_B
+1103,2024-04-12,60,Pouch,Melon Crinkles,5,165.00,825.00,1830,Cash,Store_B
+1104,2024-04-13,41,Pouch,Pandan Crinkles,5,165.00,825.00,1747,Cash,Store_C
+1105,2024-04-14,29,Pouch,Ube Crinkles,5,165.00,825.00,1519,GCash,Store_B
+1106,2024-04-15,15,Jar,Mango Crinkles,3,165.00,495.00,1976,Cash,Store_A
+1107,2024-04-16,45,Jar,Choco Butternut Crinkles,10,200.00,2000.00,1045,Cash,Store_A
+1108,2024-04-17,65,Pouch,Chocolate Crinkles,4,165.00,660.00,1955,Cash,Store_B
+1109,2024-04-18,89,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1239,GCash,Store_B
+1110,2024-04-19,71,Pouch,Strawberry Crinkles,10,165.00,1650.00,1952,Cash,Store_B
+1111,2024-04-20,9,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1944,Cash,Store_C
+1112,2024-04-21,88,Pouch,Lemon Crinkles,2,165.00,330.00,1155,GCash,Store_A
+1113,2024-04-22,1,Pouch,Melon Crinkles,8,165.00,1320.00,1181,Cash,Store_C
+1114,2024-04-23,8,Pouch,Pandan Crinkles,8,165.00,1320.00,1215,GCash,Store_C
+1115,2024-04-24,88,Pouch,Ube Crinkles,7,165.00,1155.00,1088,Cash,Store_A
+1116,2024-04-25,63,Jar,Mango Crinkles,8,165.00,1320.00,1256,GCash,Store_A
+1117,2024-04-26,11,Jar,Choco Butternut Crinkles,3,200.00,600.00,1511,Cash,Store_B
+1118,2024-04-27,81,Pouch,Chocolate Crinkles,6,165.00,990.00,1073,Cash,Store_B
+1119,2024-04-28,8,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1931,Cash,Store_C
+1120,2024-04-29,35,Pouch,Strawberry Crinkles,7,165.00,1155.00,1179,Cash,Store_B
+1121,2024-04-30,35,Pouch,Red Velvet Crinkles,1,165.00,165.00,1212,Cash,Store_B
+1122,2024-05-01,33,Pouch,Lemon Crinkles,9,165.00,1485.00,1805,Cash,Store_A
+1123,2024-05-02,5,Pouch,Melon Crinkles,1,165.00,165.00,1234,Cash,Store_A
+1124,2024-05-03,41,Pouch,Pandan Crinkles,1,165.00,165.00,1465,Cash,Store_B
+1125,2024-05-04,28,Pouch,Ube Crinkles,7,165.00,1155.00,1751,GCash,Store_A
+1126,2024-05-05,7,Jar,Mango Crinkles,2,165.00,330.00,1223,GCash,Store_B
+1127,2024-05-06,73,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1631,GCash,Store_A
+1128,2024-05-07,72,Pouch,Chocolate Crinkles,8,165.00,1320.00,1825,Cash,Store_A
+1129,2024-05-08,12,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1264,Cash,Store_A
+1130,2024-05-09,34,Pouch,Strawberry Crinkles,3,165.00,495.00,1207,Cash,Store_A
+1131,2024-05-10,33,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1607,GCash,Store_B
+1132,2024-05-11,48,Pouch,Lemon Crinkles,3,165.00,495.00,1885,Cash,Store_C
+1133,2024-05-12,23,Pouch,Melon Crinkles,6,165.00,990.00,1734,Cash,Store_A
+1134,2024-05-13,62,Pouch,Pandan Crinkles,6,165.00,990.00,1366,Cash,Store_B
+1135,2024-05-14,88,Pouch,Ube Crinkles,3,165.00,495.00,1276,Cash,Store_B
+1136,2024-05-15,37,Jar,Mango Crinkles,7,165.00,1155.00,1380,Cash,Store_A
+1137,2024-05-16,99,Jar,Choco Butternut Crinkles,3,200.00,600.00,1743,GCash,Store_C
+1138,2024-05-17,44,Pouch,Chocolate Crinkles,8,165.00,1320.00,1309,Cash,Store_A
+1139,2024-05-18,86,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1631,Cash,Store_B
+1140,2024-05-19,91,Pouch,Strawberry Crinkles,4,165.00,660.00,1268,GCash,Store_C
+1141,2024-05-20,35,Pouch,Red Velvet Crinkles,1,165.00,165.00,1945,Cash,Store_B
+1142,2024-05-21,65,Pouch,Lemon Crinkles,4,165.00,660.00,1785,Cash,Store_A
+1143,2024-05-22,99,Pouch,Melon Crinkles,7,165.00,1155.00,1064,GCash,Store_C
+1144,2024-05-23,47,Pouch,Pandan Crinkles,4,165.00,660.00,1810,Cash,Store_B
+1145,2024-05-24,78,Pouch,Ube Crinkles,6,165.00,990.00,1350,Cash,Store_B
+1146,2024-05-25,3,Jar,Mango Crinkles,9,165.00,1485.00,1925,GCash,Store_B
+1147,2024-05-26,1,Jar,Choco Butternut Crinkles,1,200.00,200.00,1915,Cash,Store_A
+1148,2024-05-27,5,Pouch,Chocolate Crinkles,5,165.00,825.00,1494,Cash,Store_C
+1149,2024-05-28,90,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1523,Cash,Store_A
+1150,2024-05-29,14,Pouch,Strawberry Crinkles,1,165.00,165.00,1098,Cash,Store_A
+1151,2024-05-30,27,Pouch,Red Velvet Crinkles,4,165.00,660.00,1946,Cash,Store_A
+1152,2024-05-31,9,Pouch,Lemon Crinkles,6,165.00,990.00,1071,GCash,Store_C
+1153,2024-06-01,79,Pouch,Melon Crinkles,2,165.00,330.00,1364,GCash,Store_A
+1154,2024-06-02,15,Pouch,Pandan Crinkles,10,165.00,1650.00,1570,Cash,Store_A
+1155,2024-06-03,90,Pouch,Ube Crinkles,5,165.00,825.00,1802,GCash,Store_A
+1156,2024-06-04,42,Jar,Mango Crinkles,10,165.00,1650.00,1763,Cash,Store_A
+1157,2024-06-05,77,Jar,Choco Butternut Crinkles,1,200.00,200.00,1276,GCash,Store_B
+1158,2024-06-06,51,Pouch,Chocolate Crinkles,6,165.00,990.00,1050,Cash,Store_A
+1159,2024-06-07,63,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1358,Cash,Store_B
+1160,2024-06-08,96,Pouch,Strawberry Crinkles,4,165.00,660.00,1728,Cash,Store_A
+1161,2024-06-09,52,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1906,Cash,Store_C
+1162,2024-06-10,96,Pouch,Lemon Crinkles,4,165.00,660.00,1928,Cash,Store_B
+1163,2024-06-11,4,Pouch,Melon Crinkles,8,165.00,1320.00,1564,Cash,Store_B
+1164,2024-06-12,94,Pouch,Pandan Crinkles,8,165.00,1320.00,1783,Cash,Store_B
+1165,2024-06-13,23,Pouch,Ube Crinkles,5,165.00,825.00,1485,Cash,Store_B
+1166,2024-06-14,15,Jar,Mango Crinkles,4,165.00,660.00,1084,Cash,Store_C
+1167,2024-06-15,43,Jar,Choco Butternut Crinkles,2,200.00,400.00,1899,Cash,Store_A
+1168,2024-06-16,29,Pouch,Chocolate Crinkles,3,165.00,495.00,1805,GCash,Store_B
+1169,2024-06-17,36,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1638,Cash,Store_C
+1170,2024-06-18,13,Pouch,Strawberry Crinkles,4,165.00,660.00,1808,Cash,Store_B
+1171,2024-06-19,32,Pouch,Red Velvet Crinkles,4,165.00,660.00,1584,Cash,Store_A
+1172,2024-06-20,71,Pouch,Lemon Crinkles,10,165.00,1650.00,1296,Cash,Store_B
+1173,2024-06-21,59,Pouch,Melon Crinkles,5,165.00,825.00,1236,GCash,Store_C
+1174,2024-06-22,86,Pouch,Pandan Crinkles,4,165.00,660.00,1056,Cash,Store_A
+1175,2024-06-23,28,Pouch,Ube Crinkles,10,165.00,1650.00,1919,Cash,Store_C
+1176,2024-06-24,66,Jar,Mango Crinkles,8,165.00,1320.00,1360,GCash,Store_A
+1177,2024-06-25,42,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1907,Cash,Store_A
+1178,2024-06-26,45,Pouch,Chocolate Crinkles,6,165.00,990.00,1110,Cash,Store_A
+1179,2024-06-27,62,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1192,Cash,Store_B
+1180,2024-06-28,57,Pouch,Strawberry Crinkles,7,165.00,1155.00,1904,Cash,Store_C
+1181,2024-06-29,6,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1093,GCash,Store_C
+1182,2024-06-30,28,Pouch,Lemon Crinkles,10,165.00,1650.00,1862,GCash,Store_C
+1183,2024-07-01,28,Pouch,Melon Crinkles,8,165.00,1320.00,1568,Cash,Store_A
+1184,2024-07-02,44,Pouch,Pandan Crinkles,2,165.00,330.00,1060,Cash,Store_B
+1185,2024-07-03,84,Pouch,Ube Crinkles,9,165.00,1485.00,1650,GCash,Store_A
+1186,2024-07-04,30,Jar,Mango Crinkles,1,165.00,165.00,1039,GCash,Store_C
+1187,2024-07-05,62,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1540,GCash,Store_B
+1188,2024-07-06,75,Pouch,Chocolate Crinkles,4,165.00,660.00,1049,Cash,Store_B
+1189,2024-07-07,92,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1420,Cash,Store_B
+1190,2024-07-08,89,Pouch,Strawberry Crinkles,5,165.00,825.00,1637,Cash,Store_C
+1191,2024-07-09,62,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1013,GCash,Store_B
+1192,2024-07-10,97,Pouch,Lemon Crinkles,5,165.00,825.00,1992,Cash,Store_B
+1193,2024-07-11,1,Pouch,Melon Crinkles,8,165.00,1320.00,1036,GCash,Store_A
+1194,2024-07-12,27,Pouch,Pandan Crinkles,10,165.00,1650.00,1101,Cash,Store_A
+1195,2024-07-13,62,Pouch,Ube Crinkles,1,165.00,165.00,1794,GCash,Store_B
+1196,2024-07-14,77,Jar,Mango Crinkles,10,165.00,1650.00,1086,Cash,Store_B
+1197,2024-07-15,3,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1516,Cash,Store_A
+1198,2024-07-16,70,Pouch,Chocolate Crinkles,6,165.00,990.00,1223,Cash,Store_A
+1199,2024-07-17,72,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1338,GCash,Store_A
+1200,2024-07-18,27,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1960,Cash,Store_C
+1201,2024-07-19,9,Pouch,Lemon Crinkles,9,165.00,1485.00,1166,Cash,Store_C
+1202,2024-07-20,62,Pouch,Melon Crinkles,6,165.00,990.00,1383,GCash,Store_A
+1203,2024-07-21,37,Pouch,Pandan Crinkles,7,165.00,1155.00,1856,Cash,Store_B
+1204,2024-07-22,97,Pouch,Ube Crinkles,1,165.00,165.00,1895,GCash,Store_A
+1205,2024-07-23,51,Jar,Mango Crinkles,5,165.00,825.00,1376,Cash,Store_C
+1206,2024-07-24,44,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1471,GCash,Store_B
+1207,2024-07-25,24,Pouch,Chocolate Crinkles,10,165.00,1650.00,1790,Cash,Store_C
+1208,2024-07-26,79,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1642,GCash,Store_B
+1209,2024-07-27,59,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1031,Cash,Store_C
+1210,2024-07-28,32,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1375,Cash,Store_B
+1211,2024-07-29,96,Pouch,Lemon Crinkles,9,165.00,1485.00,1011,Cash,Store_B
+1212,2024-07-30,88,Pouch,Melon Crinkles,1,165.00,165.00,1988,GCash,Store_B
+1213,2024-07-31,52,Pouch,Pandan Crinkles,6,165.00,990.00,1302,Cash,Store_B
+1214,2024-08-01,62,Pouch,Ube Crinkles,7,165.00,1155.00,1096,Cash,Store_C
+1215,2024-08-02,58,Jar,Mango Crinkles,3,165.00,495.00,1190,Cash,Store_C
+1216,2024-08-03,52,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1453,Cash,Store_B
+1217,2024-08-04,12,Pouch,Chocolate Crinkles,5,165.00,825.00,1192,Cash,Store_B
+1218,2024-08-05,39,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1486,GCash,Store_C
+1219,2024-08-06,2,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1266,Cash,Store_B
+1220,2024-08-07,3,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1424,Cash,Store_B
+1221,2024-08-08,56,Pouch,Lemon Crinkles,10,165.00,1650.00,1128,GCash,Store_B
+1222,2024-08-09,81,Pouch,Melon Crinkles,4,165.00,660.00,1238,Cash,Store_A
+1223,2024-08-10,59,Pouch,Pandan Crinkles,9,165.00,1485.00,1920,GCash,Store_B
+1224,2024-08-11,2,Pouch,Ube Crinkles,5,165.00,825.00,1355,GCash,Store_A
+1225,2024-08-12,2,Jar,Mango Crinkles,10,165.00,1650.00,1940,Cash,Store_B
+1226,2024-08-13,92,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1112,GCash,Store_C
+1227,2024-08-14,54,Pouch,Chocolate Crinkles,3,165.00,495.00,1828,Cash,Store_A
+1228,2024-08-15,87,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1446,Cash,Store_A
+1229,2024-08-16,96,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1343,Cash,Store_B
+1230,2024-08-17,97,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1145,GCash,Store_B
+1231,2024-08-18,1,Pouch,Lemon Crinkles,6,165.00,990.00,1065,Cash,Store_A
+1232,2024-08-19,19,Pouch,Melon Crinkles,2,165.00,330.00,1247,Cash,Store_C
+1233,2024-08-20,2,Pouch,Pandan Crinkles,7,165.00,1155.00,1735,Cash,Store_C
+1234,2024-08-21,53,Pouch,Ube Crinkles,2,165.00,330.00,1991,Cash,Store_B
+1235,2024-08-22,44,Jar,Mango Crinkles,2,165.00,330.00,1490,Cash,Store_C
+1236,2024-08-23,90,Jar,Choco Butternut Crinkles,1,200.00,200.00,1825,Cash,Store_C
+1237,2024-08-24,32,Pouch,Chocolate Crinkles,3,165.00,495.00,1439,GCash,Store_B
+1238,2024-08-25,70,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1106,Cash,Store_C
+1239,2024-08-26,32,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1181,Cash,Store_B
+1240,2024-08-27,68,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1184,Cash,Store_A
+1241,2024-08-28,55,Pouch,Lemon Crinkles,7,165.00,1155.00,1226,GCash,Store_B
+1242,2024-08-29,75,Pouch,Melon Crinkles,4,165.00,660.00,1777,GCash,Store_A
+1243,2024-08-30,56,Pouch,Pandan Crinkles,6,165.00,990.00,1790,GCash,Store_A
+1244,2024-08-31,17,Pouch,Ube Crinkles,5,165.00,825.00,1909,GCash,Store_C
+1245,2024-09-01,38,Jar,Mango Crinkles,8,165.00,1320.00,1089,Cash,Store_C
+1246,2024-09-02,24,Jar,Choco Butternut Crinkles,1,200.00,200.00,1688,Cash,Store_C
+1247,2024-09-03,69,Pouch,Chocolate Crinkles,1,165.00,165.00,1530,Cash,Store_B
+1248,2024-09-04,98,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1371,Cash,Store_C
+1249,2024-09-05,70,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1972,GCash,Store_A
+1250,2024-09-06,86,Pouch,Red Velvet Crinkles,2,165.00,330.00,1936,Cash,Store_C
+1251,2024-09-07,11,Pouch,Lemon Crinkles,5,165.00,825.00,1913,Cash,Store_C
+1252,2024-09-08,16,Pouch,Melon Crinkles,1,165.00,165.00,1399,GCash,Store_B
+1253,2024-09-09,97,Pouch,Pandan Crinkles,7,165.00,1155.00,1106,GCash,Store_B
+1254,2024-09-10,73,Pouch,Ube Crinkles,1,165.00,165.00,1271,Cash,Store_A
+1255,2024-09-11,59,Jar,Mango Crinkles,4,165.00,660.00,1975,Cash,Store_B
+1256,2024-09-12,70,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1831,Cash,Store_C
+1257,2024-09-13,80,Pouch,Chocolate Crinkles,1,165.00,165.00,1503,Cash,Store_B
+1258,2024-09-14,93,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1679,Cash,Store_A
+1259,2024-09-15,3,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1525,Cash,Store_C
+1260,2024-09-16,20,Pouch,Red Velvet Crinkles,6,165.00,990.00,1849,GCash,Store_A
+1261,2024-09-17,59,Pouch,Lemon Crinkles,8,165.00,1320.00,1032,GCash,Store_B
+1262,2024-09-18,36,Pouch,Melon Crinkles,1,165.00,165.00,1393,Cash,Store_B
+1263,2024-09-19,19,Pouch,Pandan Crinkles,7,165.00,1155.00,1040,Cash,Store_A
+1264,2024-09-20,90,Pouch,Ube Crinkles,1,165.00,165.00,1660,GCash,Store_C
+1265,2024-09-21,67,Jar,Mango Crinkles,7,165.00,1155.00,1218,Cash,Store_B
+1266,2024-09-22,19,Jar,Choco Butternut Crinkles,3,200.00,600.00,1731,Cash,Store_B
+1267,2024-09-23,20,Pouch,Chocolate Crinkles,8,165.00,1320.00,1981,Cash,Store_C
+1268,2024-09-24,96,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1082,GCash,Store_B
+1269,2024-09-25,71,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1845,GCash,Store_A
+1270,2024-09-26,52,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1720,Cash,Store_B
+1271,2024-09-27,33,Pouch,Lemon Crinkles,3,165.00,495.00,1201,Cash,Store_B
+1272,2024-09-28,40,Pouch,Melon Crinkles,2,165.00,330.00,1447,Cash,Store_C
+1273,2024-09-29,39,Pouch,Pandan Crinkles,1,165.00,165.00,1844,GCash,Store_A
+1274,2024-09-30,82,Pouch,Ube Crinkles,3,165.00,495.00,1428,GCash,Store_C
+1275,2024-10-01,1,Jar,Mango Crinkles,2,165.00,330.00,1038,Cash,Store_B
+1276,2024-10-02,11,Jar,Choco Butternut Crinkles,2,200.00,400.00,1211,Cash,Store_B
+1277,2024-10-03,92,Pouch,Chocolate Crinkles,6,165.00,990.00,1444,Cash,Store_C
+1278,2024-10-04,57,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1327,Cash,Store_C
+1279,2024-10-05,89,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1761,Cash,Store_C
+1280,2024-10-06,50,Pouch,Red Velvet Crinkles,6,165.00,990.00,1227,Cash,Store_A
+1281,2024-10-07,23,Pouch,Lemon Crinkles,3,165.00,495.00,1048,GCash,Store_B
+1282,2024-10-08,31,Pouch,Melon Crinkles,4,165.00,660.00,1018,GCash,Store_C
+1283,2024-10-09,94,Pouch,Pandan Crinkles,1,165.00,165.00,1912,Cash,Store_B
+1284,2024-10-10,42,Pouch,Ube Crinkles,8,165.00,1320.00,1439,Cash,Store_A
+1285,2024-10-11,99,Jar,Mango Crinkles,7,165.00,1155.00,1807,GCash,Store_A
+1286,2024-10-12,7,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1708,Cash,Store_A
+1287,2024-10-13,16,Pouch,Chocolate Crinkles,3,165.00,495.00,1187,Cash,Store_A
+1288,2024-10-14,90,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1345,Cash,Store_B
+1289,2024-10-15,60,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1224,Cash,Store_A
+1290,2024-10-16,2,Pouch,Red Velvet Crinkles,3,165.00,495.00,1830,Cash,Store_A
+1291,2024-10-17,1,Pouch,Lemon Crinkles,2,165.00,330.00,1488,GCash,Store_C
+1292,2024-10-18,48,Pouch,Melon Crinkles,1,165.00,165.00,1909,Cash,Store_A
+1293,2024-10-19,12,Pouch,Pandan Crinkles,7,165.00,1155.00,1877,Cash,Store_C
+1294,2024-10-20,69,Pouch,Ube Crinkles,7,165.00,1155.00,1849,GCash,Store_A
+1295,2024-10-21,37,Jar,Mango Crinkles,2,165.00,330.00,1229,GCash,Store_A
+1296,2024-10-22,32,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1390,GCash,Store_C
+1297,2024-10-23,9,Pouch,Chocolate Crinkles,8,165.00,1320.00,1979,Cash,Store_A
+1298,2024-10-24,99,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1589,Cash,Store_B
+1299,2024-10-25,19,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1188,GCash,Store_B
+1300,2024-10-26,48,Pouch,Lemon Crinkles,7,165.00,1155.00,1858,Cash,Store_A
+1301,2024-10-27,80,Pouch,Melon Crinkles,3,165.00,495.00,1270,Cash,Store_B
+1302,2024-10-28,3,Pouch,Pandan Crinkles,8,165.00,1320.00,1607,Cash,Store_C
+1303,2024-10-29,20,Pouch,Ube Crinkles,7,165.00,1155.00,1310,GCash,Store_A
+1304,2024-10-30,24,Jar,Mango Crinkles,8,165.00,1320.00,1132,GCash,Store_A
+1305,2024-10-31,54,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1551,Cash,Store_C
+1306,2024-11-01,33,Pouch,Chocolate Crinkles,9,165.00,1485.00,1072,GCash,Store_C
+1307,2024-11-02,24,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1793,Cash,Store_C
+1308,2024-11-03,75,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,1845,GCash,Store_A
+1309,2024-11-04,72,Pouch,Strawberry Crinkles,3,165.00,495.00,1672,Cash,Store_C
+1310,2024-11-05,36,Pouch,Lemon Crinkles,1,165.00,165.00,1187,Cash,Store_C
+1311,2024-11-06,38,Pouch,Melon Crinkles,8,165.00,1320.00,1486,Cash,Store_B
+1312,2024-11-07,84,Pouch,Pandan Crinkles,2,165.00,330.00,1191,Cash,Store_B
+1313,2024-11-08,99,Pouch,Ube Crinkles,3,165.00,495.00,1422,Cash,Store_A
+1314,2024-11-09,89,Jar,Mango Crinkles,8,165.00,1320.00,1120,Cash,Store_B
+1315,2024-11-10,99,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1220,GCash,Store_B
+1316,2024-11-11,25,Pouch,Chocolate Crinkles,4,165.00,660.00,1053,Cash,Store_C
+1317,2024-11-12,93,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1734,Cash,Store_C
+1318,2024-11-13,18,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1451,Cash,Store_B
+1319,2024-11-14,82,Pouch,Strawberry Crinkles,6,165.00,990.00,1412,Cash,Store_B
+1320,2024-11-15,66,Pouch,Lemon Crinkles,5,165.00,825.00,1643,Cash,Store_B
+1321,2024-11-16,54,Pouch,Melon Crinkles,7,165.00,1155.00,1237,GCash,Store_A
+1322,2024-11-17,35,Pouch,Pandan Crinkles,2,165.00,330.00,1758,Cash,Store_A
+1323,2024-11-18,80,Pouch,Ube Crinkles,7,165.00,1155.00,1738,Cash,Store_A
+1324,2024-11-19,61,Jar,Mango Crinkles,10,165.00,1650.00,1720,GCash,Store_B
+1325,2024-11-20,41,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1406,Cash,Store_B
+1326,2024-11-21,100,Pouch,Chocolate Crinkles,1,165.00,165.00,1608,GCash,Store_A
+1327,2024-11-22,33,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1422,GCash,Store_A
+1328,2024-11-23,68,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1712,Cash,Store_B
+1329,2024-11-24,33,Pouch,Strawberry Crinkles,3,165.00,495.00,1247,GCash,Store_C
+1330,2024-11-25,14,Pouch,Lemon Crinkles,3,165.00,495.00,1072,Cash,Store_A
+1331,2024-11-26,21,Pouch,Melon Crinkles,4,165.00,660.00,1830,GCash,Store_B
+1332,2024-11-27,48,Pouch,Pandan Crinkles,2,165.00,330.00,1185,Cash,Store_B
+1333,2024-11-28,20,Pouch,Ube Crinkles,2,165.00,330.00,1006,GCash,Store_C
+1334,2024-11-29,8,Jar,Mango Crinkles,1,165.00,165.00,1206,Cash,Store_B
+1335,2024-11-30,7,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1544,Cash,Store_B
+1336,2024-12-01,67,Pouch,Chocolate Crinkles,4,165.00,660.00,1611,GCash,Store_A
+1337,2024-12-02,17,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1906,Cash,Store_A
+1338,2024-12-03,33,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1387,GCash,Store_C
+1339,2024-12-04,48,Pouch,Strawberry Crinkles,3,165.00,495.00,1768,GCash,Store_C
+1340,2024-12-05,76,Pouch,Lemon Crinkles,7,165.00,1155.00,1699,Cash,Store_B
+1341,2024-12-06,59,Pouch,Melon Crinkles,7,165.00,1155.00,1076,Cash,Store_A
+1342,2024-12-07,86,Pouch,Pandan Crinkles,4,165.00,660.00,1177,Cash,Store_C
+1343,2024-12-08,22,Pouch,Ube Crinkles,5,165.00,825.00,1827,Cash,Store_C
+1344,2024-12-09,30,Jar,Mango Crinkles,5,165.00,825.00,1799,Cash,Store_C
+1345,2024-12-10,38,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1349,Cash,Store_B
+1346,2024-12-11,51,Pouch,Chocolate Crinkles,9,165.00,1485.00,1255,GCash,Store_A
+1347,2024-12-12,54,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1837,Cash,Store_C
+1348,2024-12-13,8,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1702,GCash,Store_A
+1349,2024-12-14,27,Pouch,Strawberry Crinkles,3,165.00,495.00,1308,GCash,Store_C
+1350,2024-12-15,27,Pouch,Lemon Crinkles,4,165.00,660.00,1345,GCash,Store_C
+1351,2024-12-16,98,Pouch,Melon Crinkles,10,165.00,1650.00,1127,Cash,Store_A
+1352,2024-12-17,21,Pouch,Pandan Crinkles,6,165.00,990.00,1937,Cash,Store_A
+1353,2024-12-18,30,Pouch,Ube Crinkles,8,165.00,1320.00,1287,GCash,Store_A
+1354,2024-12-19,97,Jar,Mango Crinkles,1,165.00,165.00,1766,GCash,Store_B
+1355,2024-12-20,28,Jar,Choco Butternut Crinkles,10,200.00,2000.00,1725,Cash,Store_C
+1356,2024-12-21,64,Pouch,Chocolate Crinkles,8,165.00,1320.00,1762,Cash,Store_B
+1357,2024-12-22,97,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1596,Cash,Store_A
+1358,2024-12-23,69,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1487,Cash,Store_C
+1359,2024-12-24,61,Pouch,Strawberry Crinkles,2,165.00,330.00,1383,Cash,Store_B
+1360,2024-12-25,48,Pouch,Lemon Crinkles,3,165.00,495.00,1406,Cash,Store_C
+1361,2024-12-26,19,Pouch,Melon Crinkles,1,165.00,165.00,1388,Cash,Store_B
+1362,2024-12-27,4,Pouch,Pandan Crinkles,9,165.00,1485.00,1525,Cash,Store_A
+1363,2024-12-28,35,Pouch,Ube Crinkles,8,165.00,1320.00,1557,Cash,Store_B
+1364,2024-12-29,64,Jar,Mango Crinkles,2,165.00,330.00,1639,GCash,Store_C
+1365,2024-12-30,49,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1938,GCash,Store_C
+1366,2024-12-31,17,Pouch,Chocolate Crinkles,7,165.00,1155.00,1626,Cash,Store_C
+1367,2025-01-01,44,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1945,Cash,Store_C
+1368,2025-01-02,92,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1276,Cash,Store_A
+1369,2025-01-03,30,Pouch,Strawberry Crinkles,6,165.00,990.00,1500,Cash,Store_B
+1370,2025-01-04,93,Pouch,Lemon Crinkles,4,165.00,660.00,1717,Cash,Store_A
+1371,2025-01-05,46,Pouch,Melon Crinkles,10,165.00,1650.00,1337,Cash,Store_A
+1372,2025-01-06,6,Pouch,Pandan Crinkles,10,165.00,1650.00,1950,Cash,Store_A
+1373,2025-01-07,99,Pouch,Ube Crinkles,2,165.00,330.00,1932,Cash,Store_C
+1374,2025-01-08,37,Jar,Mango Crinkles,7,165.00,1155.00,1481,Cash,Store_C
+1375,2025-01-09,24,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1897,Cash,Store_C
+1376,2025-01-10,93,Pouch,Chocolate Crinkles,6,165.00,990.00,1911,Cash,Store_B
+1377,2025-01-11,46,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1973,Cash,Store_C
+1378,2025-01-12,53,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1273,Cash,Store_B
+1379,2025-01-13,95,Pouch,Strawberry Crinkles,10,165.00,1650.00,1920,Cash,Store_C
+1380,2025-01-14,99,Pouch,Lemon Crinkles,4,165.00,660.00,1058,Cash,Store_C
+1381,2025-01-15,60,Pouch,Melon Crinkles,9,165.00,1485.00,1328,Cash,Store_A
+1382,2025-01-16,97,Pouch,Pandan Crinkles,6,165.00,990.00,1731,Cash,Store_A
+1383,2025-01-17,63,Pouch,Ube Crinkles,2,165.00,330.00,1109,Cash,Store_A
+1384,2025-01-18,85,Jar,Mango Crinkles,1,165.00,165.00,1279,Cash,Store_B
+1385,2025-01-19,32,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1686,GCash,Store_B
+1386,2025-01-20,87,Pouch,Chocolate Crinkles,9,165.00,1485.00,1328,Cash,Store_C
+1387,2025-01-21,33,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1776,GCash,Store_B
+1388,2025-01-22,67,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1315,Cash,Store_C
+1389,2025-01-23,18,Pouch,Strawberry Crinkles,7,165.00,1155.00,1474,Cash,Store_B
+1390,2025-01-24,25,Pouch,Lemon Crinkles,5,165.00,825.00,1111,Cash,Store_B
+1391,2025-01-25,95,Pouch,Melon Crinkles,10,165.00,1650.00,1699,Cash,Store_B
+1392,2025-01-26,54,Pouch,Pandan Crinkles,6,165.00,990.00,1781,Cash,Store_A
+1393,2025-01-27,58,Pouch,Ube Crinkles,5,165.00,825.00,1935,Cash,Store_B
+1394,2025-01-28,67,Jar,Mango Crinkles,9,165.00,1485.00,1229,Cash,Store_A
+1395,2025-01-29,46,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1497,GCash,Store_A
+1396,2025-01-30,24,Pouch,Chocolate Crinkles,8,165.00,1320.00,1156,GCash,Store_B
+1397,2025-01-31,32,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1473,Cash,Store_C
+1398,2025-02-01,47,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1701,Cash,Store_C
+1399,2025-02-02,86,Pouch,Strawberry Crinkles,5,165.00,825.00,1272,Cash,Store_C
+1400,2025-02-03,23,Pouch,Melon Crinkles,7,165.00,1155.00,1887,Cash,Store_B
+1401,2025-02-04,66,Pouch,Pandan Crinkles,10,165.00,1650.00,1002,Cash,Store_C
+1402,2025-02-05,27,Pouch,Ube Crinkles,1,165.00,165.00,1758,GCash,Store_A
+1403,2025-02-06,2,Jar,Mango Crinkles,10,165.00,1650.00,1722,GCash,Store_C
+1404,2025-02-07,90,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1511,Cash,Store_B
+1405,2025-02-08,17,Pouch,Chocolate Crinkles,10,165.00,1650.00,1913,GCash,Store_C
+1406,2025-02-09,33,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1286,GCash,Store_A
+1407,2025-02-10,9,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1871,GCash,Store_B
+1408,2025-02-11,43,Pouch,Strawberry Crinkles,1,165.00,165.00,1013,GCash,Store_C
+1409,2025-02-12,48,Pouch,Red Velvet Crinkles,3,165.00,495.00,1608,GCash,Store_B
+1410,2025-02-13,39,Pouch,Melon Crinkles,5,165.00,825.00,1498,Cash,Store_B
+1411,2025-02-14,93,Pouch,Pandan Crinkles,4,165.00,660.00,1733,Cash,Store_B
+1412,2025-02-15,42,Pouch,Ube Crinkles,3,165.00,495.00,1238,GCash,Store_C
+1413,2025-02-16,26,Jar,Mango Crinkles,10,165.00,1650.00,1094,Cash,Store_B
+1414,2025-02-17,99,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1338,Cash,Store_C
+1415,2025-02-18,50,Pouch,Chocolate Crinkles,8,165.00,1320.00,1781,GCash,Store_A
+1416,2025-02-19,25,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1171,Cash,Store_C
+1417,2025-02-20,24,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1981,Cash,Store_A
+1418,2025-02-21,13,Pouch,Strawberry Crinkles,7,165.00,1155.00,1606,Cash,Store_C
+1419,2025-02-22,60,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1661,Cash,Store_B
+1420,2025-02-23,7,Pouch,Melon Crinkles,3,165.00,495.00,1624,Cash,Store_C
+1421,2025-02-24,57,Pouch,Pandan Crinkles,6,165.00,990.00,1567,GCash,Store_B
+1422,2025-02-25,36,Pouch,Ube Crinkles,2,165.00,330.00,1849,Cash,Store_A
+1423,2025-02-26,45,Jar,Mango Crinkles,7,165.00,1155.00,1936,GCash,Store_C
+1424,2025-02-27,20,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1467,Cash,Store_B
+1425,2025-02-28,65,Pouch,Chocolate Crinkles,6,165.00,990.00,1628,Cash,Store_A
+1426,2025-03-01,8,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1143,Cash,Store_A
+1427,2025-03-02,16,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1201,Cash,Store_C
+1428,2025-03-03,14,Pouch,Strawberry Crinkles,8,165.00,1320.00,1180,GCash,Store_A
+1429,2025-03-04,76,Pouch,Red Velvet Crinkles,1,165.00,165.00,1714,Cash,Store_B
+1430,2025-03-05,87,Pouch,Melon Crinkles,10,165.00,1650.00,1364,GCash,Store_A
+1431,2025-03-06,15,Pouch,Pandan Crinkles,4,165.00,660.00,1479,Cash,Store_A
+1432,2025-03-07,92,Pouch,Ube Crinkles,4,165.00,660.00,1565,GCash,Store_B
+1433,2025-03-08,98,Jar,Mango Crinkles,3,165.00,495.00,1471,Cash,Store_A
+1434,2025-03-09,66,Jar,Choco Butternut Crinkles,3,200.00,600.00,1384,GCash,Store_A
+1435,2025-03-10,32,Pouch,Chocolate Crinkles,4,165.00,660.00,1692,Cash,Store_A
+1436,2025-03-11,87,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1926,Cash,Store_A
+1437,2025-03-12,63,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1417,Cash,Store_B
+1438,2025-03-13,86,Pouch,Strawberry Crinkles,9,165.00,1485.00,1825,Cash,Store_A
+1439,2025-03-14,51,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1308,GCash,Store_B
+1440,2025-03-15,25,Pouch,Melon Crinkles,2,165.00,330.00,1649,Cash,Store_A
+1441,2025-03-16,58,Pouch,Pandan Crinkles,5,165.00,825.00,1694,Cash,Store_A
+1442,2025-03-17,63,Pouch,Ube Crinkles,9,165.00,1485.00,1367,Cash,Store_A
+1443,2025-03-18,62,Jar,Mango Crinkles,9,165.00,1485.00,1001,GCash,Store_A
+1444,2025-03-19,22,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1044,GCash,Store_B
+1445,2025-03-20,58,Pouch,Chocolate Crinkles,1,165.00,165.00,1739,Cash,Store_B
+1446,2025-03-21,58,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1843,Cash,Store_B
+1447,2025-03-22,86,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1098,GCash,Store_C
+1448,2025-03-23,49,Pouch,Strawberry Crinkles,8,165.00,1320.00,1720,Cash,Store_A
+1449,2025-03-24,52,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1265,Cash,Store_A
+1450,2025-03-25,42,Pouch,Melon Crinkles,9,165.00,1485.00,1800,Cash,Store_B
+1451,2025-03-26,70,Pouch,Pandan Crinkles,7,165.00,1155.00,1783,Cash,Store_C
+1452,2025-03-27,15,Pouch,Ube Crinkles,3,165.00,495.00,1140,Cash,Store_A
+1453,2025-03-28,54,Jar,Mango Crinkles,3,165.00,495.00,1481,GCash,Store_B
+1454,2025-03-29,60,Jar,Choco Butternut Crinkles,2,200.00,400.00,1237,Cash,Store_A
+1455,2025-03-30,97,Pouch,Chocolate Crinkles,5,165.00,825.00,1974,Cash,Store_A
+1456,2025-03-31,8,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1953,Cash,Store_B
+1457,2025-04-01,53,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1904,Cash,Store_B
+1458,2025-04-02,60,Pouch,Strawberry Crinkles,2,165.00,330.00,1072,GCash,Store_A
+1459,2025-04-03,5,Pouch,Red Velvet Crinkles,3,165.00,495.00,1667,Cash,Store_A
+1460,2025-04-04,68,Pouch,Melon Crinkles,5,165.00,825.00,1190,Cash,Store_B
+1461,2025-04-05,6,Pouch,Pandan Crinkles,1,165.00,165.00,1268,Cash,Store_A
+1462,2025-04-06,96,Pouch,Ube Crinkles,1,165.00,165.00,1321,GCash,Store_A
+1463,2025-04-07,94,Jar,Mango Crinkles,10,165.00,1650.00,1107,Cash,Store_B
+1464,2025-04-08,47,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1232,GCash,Store_A
+1465,2025-04-09,99,Pouch,Chocolate Crinkles,7,165.00,1155.00,1042,GCash,Store_A
+1466,2025-04-10,55,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1702,Cash,Store_C
+1467,2025-04-11,40,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1883,Cash,Store_B
+1468,2025-04-12,52,Pouch,Strawberry Crinkles,3,165.00,495.00,1139,GCash,Store_C
+1469,2025-04-13,16,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1615,Cash,Store_C
+1470,2025-04-14,13,Pouch,Melon Crinkles,5,165.00,825.00,1683,GCash,Store_C
+1471,2025-04-15,30,Pouch,Pandan Crinkles,1,165.00,165.00,1863,Cash,Store_A
+1472,2025-04-16,19,Pouch,Ube Crinkles,7,165.00,1155.00,1273,Cash,Store_A
+1473,2025-04-17,17,Jar,Mango Crinkles,5,165.00,825.00,1481,Cash,Store_C
+1474,2025-04-18,63,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1416,GCash,Store_C
+1475,2025-04-19,19,Pouch,Chocolate Crinkles,6,165.00,990.00,1506,GCash,Store_C
+1476,2025-04-20,92,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1733,GCash,Store_A
+1477,2025-04-21,58,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1725,Cash,Store_C
+1478,2025-04-22,55,Pouch,Strawberry Crinkles,2,165.00,330.00,1853,GCash,Store_C
+1479,2025-04-23,90,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1424,Cash,Store_B
+1480,2025-04-24,90,Pouch,Melon Crinkles,10,165.00,1650.00,1407,Cash,Store_B
+1481,2025-04-25,62,Pouch,Pandan Crinkles,9,165.00,1485.00,1568,Cash,Store_A
+1482,2025-04-26,23,Pouch,Ube Crinkles,10,165.00,1650.00,1390,GCash,Store_B
+1483,2025-04-27,9,Jar,Mango Crinkles,10,165.00,1650.00,1342,Cash,Store_B
+1484,2025-04-28,12,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1946,Cash,Store_B
+1485,2025-04-29,1,Pouch,Chocolate Crinkles,1,165.00,165.00,1614,Cash,Store_A
+1486,2025-04-30,58,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1933,GCash,Store_B
+1487,2025-05-01,1,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1493,GCash,Store_A
+1488,2025-05-02,34,Pouch,Strawberry Crinkles,5,165.00,825.00,1192,Cash,Store_C
+1489,2025-05-03,96,Pouch,Red Velvet Crinkles,6,165.00,990.00,1499,GCash,Store_B
+1490,2025-05-04,48,Pouch,Melon Crinkles,10,165.00,1650.00,1822,Cash,Store_A
+1491,2025-05-05,89,Pouch,Pandan Crinkles,7,165.00,1155.00,1712,Cash,Store_B
+1492,2025-05-06,1,Pouch,Ube Crinkles,5,165.00,825.00,1233,Cash,Store_C
+1493,2025-05-07,16,Jar,Mango Crinkles,7,165.00,1155.00,1945,Cash,Store_A
+1494,2025-05-08,61,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1227,Cash,Store_A
+1495,2025-05-09,64,Pouch,Chocolate Crinkles,3,165.00,495.00,1371,Cash,Store_A
+1496,2025-05-10,63,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1139,GCash,Store_C
+1497,2025-05-11,69,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1856,Cash,Store_C
+1498,2025-05-12,22,Pouch,Strawberry Crinkles,7,165.00,1155.00,1817,GCash,Store_C
+1499,2025-05-13,93,Pouch,Red Velvet Crinkles,2,165.00,330.00,1149,Cash,Store_A
+1500,2025-05-14,67,Pouch,Pandan Crinkles,4,165.00,660.00,1115,Cash,Store_C
+1501,2025-05-15,76,Pouch,Ube Crinkles,7,165.00,1155.00,1450,Cash,Store_B
+1502,2025-05-16,26,Jar,Mango Crinkles,3,165.00,495.00,1063,Cash,Store_C
+1503,2025-05-17,16,Jar,Choco Butternut Crinkles,2,200.00,400.00,1104,Cash,Store_A
+1504,2025-05-18,51,Pouch,Chocolate Crinkles,10,165.00,1650.00,1851,GCash,Store_B
+1505,2025-05-19,86,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1871,GCash,Store_C
+1506,2025-05-20,57,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1668,Cash,Store_B
+1507,2025-05-21,29,Pouch,Strawberry Crinkles,8,165.00,1320.00,1273,Cash,Store_B
+1508,2025-05-22,78,Pouch,Red Velvet Crinkles,3,165.00,495.00,1006,Cash,Store_A
+1509,2025-05-23,92,Pouch,Lemon Crinkles,2,165.00,330.00,1147,Cash,Store_B
+1510,2025-05-24,69,Pouch,Pandan Crinkles,3,165.00,495.00,1184,GCash,Store_B
+1511,2025-05-25,47,Pouch,Ube Crinkles,5,165.00,825.00,1998,Cash,Store_A
+1512,2025-05-26,94,Jar,Mango Crinkles,8,165.00,1320.00,1028,Cash,Store_A
+1513,2025-05-27,62,Jar,Choco Butternut Crinkles,10,200.00,2000.00,1962,Cash,Store_A
+1514,2025-05-28,69,Pouch,Chocolate Crinkles,7,165.00,1155.00,1550,Cash,Store_B
+1515,2025-05-29,76,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1119,Cash,Store_B
+1516,2025-05-30,16,Pouch,Choco-Cashew Crinkles,7,165.00,1155.00,1293,Cash,Store_B
+1517,2025-05-31,90,Pouch,Strawberry Crinkles,8,165.00,1320.00,1371,Cash,Store_A
+1518,2025-06-01,90,Pouch,Red Velvet Crinkles,1,165.00,165.00,1244,Cash,Store_C
+1519,2025-06-02,48,Pouch,Lemon Crinkles,4,165.00,660.00,1580,GCash,Store_B
+1520,2025-06-03,85,Pouch,Pandan Crinkles,6,165.00,990.00,1726,Cash,Store_C
+1521,2025-06-04,39,Pouch,Ube Crinkles,9,165.00,1485.00,1218,Cash,Store_A
+1522,2025-06-05,100,Jar,Mango Crinkles,2,165.00,330.00,1177,GCash,Store_B
+1523,2025-06-06,33,Jar,Choco Butternut Crinkles,1,200.00,200.00,1299,GCash,Store_C
+1524,2025-06-07,94,Pouch,Chocolate Crinkles,10,165.00,1650.00,1676,Cash,Store_B
+1525,2025-06-08,23,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1058,Cash,Store_B
+1526,2025-06-09,10,Pouch,Choco-Cashew Crinkles,7,165.00,1155.00,1269,Cash,Store_B
+1527,2025-06-10,69,Pouch,Strawberry Crinkles,3,165.00,495.00,1308,Cash,Store_C
+1528,2025-06-11,100,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1570,Cash,Store_A
+1529,2025-06-12,34,Pouch,Lemon Crinkles,2,165.00,330.00,1288,GCash,Store_B
+1530,2025-06-13,52,Pouch,Pandan Crinkles,7,165.00,1155.00,1977,Cash,Store_A
+1531,2025-06-14,95,Pouch,Ube Crinkles,2,165.00,330.00,1105,Cash,Store_A
+1532,2025-06-15,10,Jar,Mango Crinkles,3,165.00,495.00,1228,Cash,Store_C
+1533,2025-06-16,19,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1247,Cash,Store_C
+1534,2025-06-17,58,Pouch,Chocolate Crinkles,4,165.00,660.00,1700,GCash,Store_A
+1535,2025-06-18,96,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1494,Cash,Store_B
+1536,2025-06-19,1,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1083,Cash,Store_C
+1537,2025-06-20,69,Pouch,Strawberry Crinkles,9,165.00,1485.00,1186,Cash,Store_B
+1538,2025-06-21,4,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1252,GCash,Store_B
+1539,2025-06-22,16,Pouch,Lemon Crinkles,9,165.00,1485.00,1355,Cash,Store_B
+1540,2025-06-23,24,Pouch,Pandan Crinkles,10,165.00,1650.00,1750,GCash,Store_A
+1541,2025-06-24,80,Pouch,Ube Crinkles,9,165.00,1485.00,1872,Cash,Store_B
+1542,2025-06-25,2,Jar,Mango Crinkles,7,165.00,1155.00,1696,GCash,Store_A
+1543,2025-06-26,92,Jar,Choco Butternut Crinkles,4,200.00,800.00,1796,Cash,Store_A
+1544,2025-06-27,32,Pouch,Chocolate Crinkles,5,165.00,825.00,1897,GCash,Store_B
+1545,2025-06-28,91,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1938,Cash,Store_B
+1546,2025-06-29,84,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1210,Cash,Store_B
+1547,2025-06-30,24,Pouch,Strawberry Crinkles,3,165.00,495.00,1816,Cash,Store_B
+1548,2025-07-01,12,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1808,Cash,Store_A
+1549,2025-07-02,50,Pouch,Lemon Crinkles,2,165.00,330.00,1609,GCash,Store_B
+1550,2025-07-03,35,Pouch,Pandan Crinkles,4,165.00,660.00,1447,Cash,Store_B
+1551,2025-07-04,33,Pouch,Ube Crinkles,2,165.00,330.00,1460,GCash,Store_A
+1552,2025-07-05,33,Jar,Mango Crinkles,5,165.00,825.00,1968,Cash,Store_C
+1553,2025-07-06,61,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1472,GCash,Store_C
+1554,2025-07-07,51,Pouch,Chocolate Crinkles,1,165.00,165.00,1720,GCash,Store_A
+1555,2025-07-08,43,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1370,Cash,Store_C
+1556,2025-07-09,12,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1900,Cash,Store_A
+1557,2025-07-10,67,Pouch,Strawberry Crinkles,1,165.00,165.00,1934,GCash,Store_B
+1558,2025-07-11,65,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1492,Cash,Store_B
+1559,2025-07-12,33,Pouch,Lemon Crinkles,8,165.00,1320.00,1923,Cash,Store_C
+1560,2025-07-13,40,Pouch,Pandan Crinkles,4,165.00,660.00,1137,Cash,Store_B
+1561,2025-07-14,74,Pouch,Ube Crinkles,10,165.00,1650.00,1367,GCash,Store_C
+1562,2025-07-15,43,Jar,Mango Crinkles,5,165.00,825.00,1912,Cash,Store_C
+1563,2025-07-16,44,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1184,Cash,Store_B
+1564,2025-07-17,29,Pouch,Chocolate Crinkles,6,165.00,990.00,1588,Cash,Store_B
+1565,2025-07-18,13,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1287,Cash,Store_C
+1566,2025-07-19,12,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1472,Cash,Store_B
+1567,2025-07-20,95,Pouch,Strawberry Crinkles,8,165.00,1320.00,1375,Cash,Store_A
+1568,2025-07-21,46,Pouch,Red Velvet Crinkles,2,165.00,330.00,1654,Cash,Store_B
+1569,2025-07-22,2,Pouch,Lemon Crinkles,9,165.00,1485.00,1749,GCash,Store_B
+1570,2025-07-23,35,Pouch,Pandan Crinkles,7,165.00,1155.00,1537,Cash,Store_A
+1571,2025-07-24,87,Pouch,Ube Crinkles,4,165.00,660.00,1511,GCash,Store_B
+1572,2025-07-25,81,Jar,Mango Crinkles,4,165.00,660.00,1802,Cash,Store_B
+1573,2025-07-26,90,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1579,Cash,Store_C
+1574,2025-07-27,8,Pouch,Chocolate Crinkles,4,165.00,660.00,1250,Cash,Store_B
+1575,2025-07-28,93,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1920,Cash,Store_B
+1576,2025-07-29,26,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1510,Cash,Store_A
+1577,2025-07-30,74,Pouch,Strawberry Crinkles,3,165.00,495.00,1630,Cash,Store_C
+1578,2025-07-31,90,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1073,GCash,Store_C
+1579,2025-08-01,34,Pouch,Lemon Crinkles,2,165.00,330.00,1282,Cash,Store_C
+1580,2025-08-02,7,Pouch,Pandan Crinkles,9,165.00,1485.00,1916,GCash,Store_B
+1581,2025-08-03,68,Pouch,Ube Crinkles,10,165.00,1650.00,1960,Cash,Store_C
+1582,2025-08-04,58,Jar,Mango Crinkles,9,165.00,1485.00,1360,Cash,Store_A
+1583,2025-08-05,75,Jar,Choco Butternut Crinkles,1,200.00,200.00,1010,Cash,Store_C
+1584,2025-08-06,29,Pouch,Chocolate Crinkles,10,165.00,1650.00,1211,Cash,Store_A
+1585,2025-08-07,36,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1835,Cash,Store_C
+1586,2025-08-08,89,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1152,GCash,Store_C
+1587,2025-08-09,21,Pouch,Strawberry Crinkles,6,165.00,990.00,1005,Cash,Store_A
+1588,2025-08-10,36,Pouch,Red Velvet Crinkles,5,165.00,825.00,1195,GCash,Store_C
+1589,2025-08-11,10,Pouch,Lemon Crinkles,5,165.00,825.00,1954,GCash,Store_C
+1590,2025-08-12,73,Pouch,Pandan Crinkles,6,165.00,990.00,1283,Cash,Store_C
+1591,2025-08-13,24,Pouch,Ube Crinkles,7,165.00,1155.00,1464,Cash,Store_B
+1592,2025-08-14,64,Jar,Mango Crinkles,1,165.00,165.00,1113,Cash,Store_A
+1593,2025-08-15,99,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1271,Cash,Store_C
+1594,2025-08-16,49,Pouch,Chocolate Crinkles,3,165.00,495.00,1163,Cash,Store_A
+1595,2025-08-17,99,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1460,Cash,Store_A
+1596,2025-08-18,36,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1105,Cash,Store_A
+1597,2025-08-19,82,Pouch,Strawberry Crinkles,1,165.00,165.00,1693,GCash,Store_C
+1598,2025-08-20,96,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1556,GCash,Store_C
+1599,2025-08-21,24,Pouch,Lemon Crinkles,3,165.00,495.00,1282,Cash,Store_A
+1600,2025-08-22,23,Pouch,Ube Crinkles,2,165.00,330.00,1687,GCash,Store_B
+1601,2025-08-23,62,Jar,Mango Crinkles,2,165.00,330.00,1162,Cash,Store_A
+1602,2025-08-24,96,Jar,Choco Butternut Crinkles,1,200.00,200.00,1983,GCash,Store_B
+1603,2025-08-25,37,Pouch,Chocolate Crinkles,8,165.00,1320.00,1351,Cash,Store_A
+1604,2025-08-26,12,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1434,GCash,Store_A
+1605,2025-08-27,55,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,1852,Cash,Store_A
+1606,2025-08-28,13,Pouch,Strawberry Crinkles,6,165.00,990.00,1140,GCash,Store_C
+1607,2025-08-29,23,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1471,Cash,Store_B
+1608,2025-08-30,89,Pouch,Lemon Crinkles,9,165.00,1485.00,1132,Cash,Store_B
+1609,2025-08-31,99,Pouch,Melon Crinkles,9,165.00,1485.00,1087,Cash,Store_A
+1610,2025-09-01,30,Pouch,Ube Crinkles,4,165.00,660.00,1688,Cash,Store_C
+1611,2025-09-02,17,Jar,Mango Crinkles,5,165.00,825.00,1183,Cash,Store_C
+1612,2025-09-03,62,Jar,Choco Butternut Crinkles,2,200.00,400.00,1368,Cash,Store_B
+1613,2025-09-04,84,Pouch,Chocolate Crinkles,9,165.00,1485.00,1129,Cash,Store_C
+1614,2025-09-05,89,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1246,GCash,Store_B
+1615,2025-09-06,86,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,1601,Cash,Store_B
+1616,2025-09-07,13,Pouch,Strawberry Crinkles,9,165.00,1485.00,1578,Cash,Store_B
+1617,2025-09-08,59,Pouch,Red Velvet Crinkles,3,165.00,495.00,1670,Cash,Store_C
+1618,2025-09-09,19,Pouch,Lemon Crinkles,9,165.00,1485.00,1899,Cash,Store_B
+1619,2025-09-10,49,Pouch,Melon Crinkles,2,165.00,330.00,1378,Cash,Store_B
+1620,2025-09-11,100,Pouch,Ube Crinkles,10,165.00,1650.00,1149,GCash,Store_A
+1621,2025-09-12,12,Jar,Mango Crinkles,9,165.00,1485.00,1985,Cash,Store_B
+1622,2025-09-13,61,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1852,Cash,Store_B
+1623,2025-09-14,19,Pouch,Chocolate Crinkles,9,165.00,1485.00,1433,Cash,Store_A
+1624,2025-09-15,76,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1628,Cash,Store_A
+1625,2025-09-16,9,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1726,Cash,Store_C
+1626,2025-09-17,71,Pouch,Strawberry Crinkles,8,165.00,1320.00,1469,GCash,Store_B
+1627,2025-09-18,28,Pouch,Red Velvet Crinkles,6,165.00,990.00,1446,GCash,Store_C
+1628,2025-09-19,78,Pouch,Lemon Crinkles,8,165.00,1320.00,1481,Cash,Store_C
+1629,2025-09-20,95,Pouch,Melon Crinkles,5,165.00,825.00,1884,Cash,Store_A
+1630,2025-09-21,52,Pouch,Ube Crinkles,10,165.00,1650.00,1294,Cash,Store_C
+1631,2025-09-22,83,Jar,Mango Crinkles,2,165.00,330.00,1765,Cash,Store_B
+1632,2025-09-23,16,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1143,Cash,Store_A
+1633,2025-09-24,69,Pouch,Chocolate Crinkles,5,165.00,825.00,1250,Cash,Store_B
+1634,2025-09-25,99,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1878,GCash,Store_B
+1635,2025-09-26,12,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1948,Cash,Store_A
+1636,2025-09-27,25,Pouch,Strawberry Crinkles,2,165.00,330.00,1975,GCash,Store_B
+1637,2025-09-28,52,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1302,Cash,Store_A
+1638,2025-09-29,85,Pouch,Lemon Crinkles,3,165.00,495.00,1025,GCash,Store_B
+1639,2025-09-30,100,Pouch,Melon Crinkles,10,165.00,1650.00,1789,Cash,Store_A
+1640,2025-10-01,53,Pouch,Ube Crinkles,3,165.00,495.00,1984,GCash,Store_C
+1641,2025-10-02,23,Jar,Mango Crinkles,8,165.00,1320.00,1889,Cash,Store_B
+1642,2025-10-03,16,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1890,GCash,Store_A
+1643,2025-10-04,57,Pouch,Chocolate Crinkles,2,165.00,330.00,1901,GCash,Store_B
+1644,2025-10-05,39,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1070,GCash,Store_B
+1645,2025-10-06,53,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1625,Cash,Store_B
+1646,2025-10-07,42,Pouch,Strawberry Crinkles,6,165.00,990.00,1875,Cash,Store_A
+1647,2025-10-08,58,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1112,Cash,Store_C
+1648,2025-10-09,39,Pouch,Lemon Crinkles,3,165.00,495.00,1364,Cash,Store_C
+1649,2025-10-10,14,Pouch,Melon Crinkles,8,165.00,1320.00,1303,Cash,Store_C
+1650,2025-10-11,95,Pouch,Ube Crinkles,1,165.00,165.00,1471,GCash,Store_A
+1651,2025-10-12,5,Jar,Mango Crinkles,9,165.00,1485.00,1964,Cash,Store_C
+1652,2025-10-13,35,Jar,Choco Butternut Crinkles,9,200.00,1800.00,1091,GCash,Store_A
+1653,2025-10-14,87,Pouch,Chocolate Crinkles,5,165.00,825.00,1530,GCash,Store_B
+1654,2025-10-15,93,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1661,GCash,Store_B
+1655,2025-10-16,75,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,1988,Cash,Store_C
+1656,2025-10-17,18,Pouch,Strawberry Crinkles,6,165.00,990.00,1739,Cash,Store_A
+1657,2025-10-18,76,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1726,Cash,Store_B
+1658,2025-10-19,9,Pouch,Lemon Crinkles,5,165.00,825.00,1872,GCash,Store_A
+1659,2025-10-20,74,Pouch,Melon Crinkles,10,165.00,1650.00,1663,GCash,Store_A
+1660,2025-10-21,58,Pouch,Ube Crinkles,9,165.00,1485.00,1192,Cash,Store_B
+1661,2025-10-22,17,Jar,Mango Crinkles,3,165.00,495.00,1963,GCash,Store_A
+1662,2025-10-23,7,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1552,GCash,Store_B
+1663,2025-10-24,46,Pouch,Chocolate Crinkles,10,165.00,1650.00,1242,Cash,Store_B
+1664,2025-10-25,13,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1138,Cash,Store_B
+1665,2025-10-26,40,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1345,Cash,Store_A
+1666,2025-10-27,42,Pouch,Strawberry Crinkles,7,165.00,1155.00,1180,GCash,Store_B
+1667,2025-10-28,9,Pouch,Red Velvet Crinkles,2,165.00,330.00,1712,GCash,Store_A
+1668,2025-10-29,50,Pouch,Lemon Crinkles,4,165.00,660.00,1503,Cash,Store_B
+1669,2025-10-30,27,Pouch,Melon Crinkles,2,165.00,330.00,1203,Cash,Store_B
+1670,2025-10-31,66,Pouch,Ube Crinkles,7,165.00,1155.00,1573,Cash,Store_C
+1671,2025-11-01,5,Jar,Mango Crinkles,2,165.00,330.00,1192,Cash,Store_C
+1672,2025-11-02,29,Jar,Choco Butternut Crinkles,1,200.00,200.00,1005,GCash,Store_C
+1673,2025-11-03,37,Pouch,Chocolate Crinkles,9,165.00,1485.00,1890,Cash,Store_A
+1674,2025-11-04,38,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1237,GCash,Store_A
+1675,2025-11-05,83,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1693,Cash,Store_B
+1676,2025-11-06,8,Pouch,Strawberry Crinkles,2,165.00,330.00,1311,Cash,Store_B
+1677,2025-11-07,65,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1549,GCash,Store_B
+1678,2025-11-08,86,Pouch,Lemon Crinkles,3,165.00,495.00,1056,Cash,Store_B
+1679,2025-11-09,17,Pouch,Melon Crinkles,6,165.00,990.00,1443,Cash,Store_A
+1680,2025-11-10,71,Pouch,Ube Crinkles,3,165.00,495.00,1237,Cash,Store_B
+1681,2025-11-11,89,Jar,Mango Crinkles,7,165.00,1155.00,1870,Cash,Store_B
+1682,2025-11-12,45,Jar,Choco Butternut Crinkles,10,200.00,2000.00,1861,Cash,Store_C
+1683,2025-11-13,4,Pouch,Chocolate Crinkles,9,165.00,1485.00,1197,GCash,Store_B
+1684,2025-11-14,36,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1585,Cash,Store_B
+1685,2025-11-15,70,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1571,Cash,Store_B
+1686,2025-11-16,31,Pouch,Strawberry Crinkles,6,165.00,990.00,1752,Cash,Store_A
+1687,2025-11-17,19,Pouch,Red Velvet Crinkles,4,165.00,660.00,1514,GCash,Store_C
+1688,2025-11-18,61,Pouch,Lemon Crinkles,4,165.00,660.00,1449,GCash,Store_B
+1689,2025-11-19,54,Pouch,Melon Crinkles,4,165.00,660.00,1360,Cash,Store_B
+1690,2025-11-20,39,Pouch,Ube Crinkles,2,165.00,330.00,1700,GCash,Store_C
+1691,2025-11-21,91,Jar,Mango Crinkles,4,165.00,660.00,1819,Cash,Store_B
+1692,2025-11-22,74,Jar,Choco Butternut Crinkles,1,200.00,200.00,1030,Cash,Store_A
+1693,2025-11-23,90,Pouch,Chocolate Crinkles,6,165.00,990.00,1779,Cash,Store_B
+1694,2025-11-24,19,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1988,Cash,Store_A
+1695,2025-11-25,39,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1108,Cash,Store_A
+1696,2025-11-26,67,Pouch,Strawberry Crinkles,6,165.00,990.00,1844,Cash,Store_B
+1697,2025-11-27,45,Pouch,Red Velvet Crinkles,1,165.00,165.00,1935,GCash,Store_C
+1698,2025-11-28,13,Pouch,Lemon Crinkles,6,165.00,990.00,1602,GCash,Store_A
+1699,2025-11-29,92,Pouch,Melon Crinkles,10,165.00,1650.00,1717,GCash,Store_C
+1700,2025-11-30,58,Jar,Mango Crinkles,8,165.00,1320.00,1891,GCash,Store_B
+1701,2025-12-01,20,Jar,Choco Butternut Crinkles,2,200.00,400.00,1968,Cash,Store_A
+1702,2025-12-02,92,Pouch,Chocolate Crinkles,2,165.00,330.00,1959,Cash,Store_B
+1703,2025-12-03,72,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1960,Cash,Store_C
+1704,2025-12-04,61,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,1445,Cash,Store_B
+1705,2025-12-05,39,Pouch,Strawberry Crinkles,4,165.00,660.00,1893,Cash,Store_B
+1706,2025-12-06,1,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1438,Cash,Store_A
+1707,2025-12-07,3,Pouch,Lemon Crinkles,1,165.00,165.00,1732,Cash,Store_B
+1708,2025-12-08,77,Pouch,Melon Crinkles,6,165.00,990.00,1890,GCash,Store_B
+1709,2025-12-09,92,Pouch,Pandan Crinkles,3,165.00,495.00,1606,Cash,Store_B
+1710,2025-12-10,62,Jar,Mango Crinkles,10,165.00,1650.00,1457,Cash,Store_A
+1711,2025-12-11,63,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1615,Cash,Store_C
+1712,2025-12-12,25,Pouch,Chocolate Crinkles,10,165.00,1650.00,1735,Cash,Store_C
+1713,2025-12-13,56,Pouch,Choco-Almond Crinkles,2,165.00,330.00,1698,GCash,Store_B
+1714,2025-12-14,33,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1981,Cash,Store_A
+1715,2025-12-15,38,Pouch,Strawberry Crinkles,4,165.00,660.00,1696,Cash,Store_B
+1716,2025-12-16,6,Pouch,Red Velvet Crinkles,1,165.00,165.00,1495,GCash,Store_C
+1717,2025-12-17,58,Pouch,Lemon Crinkles,3,165.00,495.00,1674,Cash,Store_A
+1718,2025-12-18,44,Pouch,Melon Crinkles,9,165.00,1485.00,1247,Cash,Store_C
+1719,2025-12-19,45,Pouch,Pandan Crinkles,7,165.00,1155.00,1543,Cash,Store_C
+1720,2025-12-20,32,Jar,Mango Crinkles,7,165.00,1155.00,1564,Cash,Store_A
+1721,2025-12-21,45,Jar,Choco Butternut Crinkles,4,200.00,800.00,1857,Cash,Store_A
+1722,2025-12-22,61,Pouch,Chocolate Crinkles,2,165.00,330.00,1588,GCash,Store_B
+1723,2025-12-23,47,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1897,Cash,Store_B
+1724,2025-12-24,21,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1439,Cash,Store_C
+1725,2025-12-25,80,Pouch,Strawberry Crinkles,3,165.00,495.00,1278,Cash,Store_A
+1726,2025-12-26,85,Pouch,Red Velvet Crinkles,1,165.00,165.00,1552,Cash,Store_A
+1727,2025-12-27,75,Pouch,Lemon Crinkles,8,165.00,1320.00,1613,GCash,Store_B
+1728,2025-12-28,36,Pouch,Melon Crinkles,5,165.00,825.00,1111,GCash,Store_C
+1729,2025-12-29,99,Pouch,Pandan Crinkles,5,165.00,825.00,1385,GCash,Store_C
+1730,2025-12-30,19,Jar,Mango Crinkles,4,165.00,660.00,1833,Cash,Store_B
+1731,2025-12-31,20,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1761,Cash,Store_A
+1732,2026-01-01,57,Pouch,Chocolate Crinkles,3,165.00,495.00,1191,Cash,Store_B
+1733,2026-01-02,18,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1490,Cash,Store_B
+1734,2026-01-03,47,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1694,Cash,Store_B
+1735,2026-01-04,49,Pouch,Strawberry Crinkles,3,165.00,495.00,1426,Cash,Store_B
+1736,2026-01-05,14,Pouch,Red Velvet Crinkles,1,165.00,165.00,1405,Cash,Store_A
+1737,2026-01-06,15,Pouch,Lemon Crinkles,10,165.00,1650.00,1335,Cash,Store_B
+1738,2026-01-07,31,Pouch,Melon Crinkles,6,165.00,990.00,1209,Cash,Store_A
+1739,2026-01-08,1,Pouch,Pandan Crinkles,2,165.00,330.00,1022,Cash,Store_B
+1740,2026-01-09,54,Jar,Mango Crinkles,3,165.00,495.00,1678,GCash,Store_C
+1741,2026-01-10,3,Jar,Choco Butternut Crinkles,1,200.00,200.00,1611,Cash,Store_A
+1742,2026-01-11,16,Pouch,Chocolate Crinkles,9,165.00,1485.00,1208,Cash,Store_C
+1743,2026-01-12,87,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1008,GCash,Store_B
+1744,2026-01-13,57,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1702,Cash,Store_B
+1745,2026-01-14,75,Pouch,Strawberry Crinkles,8,165.00,1320.00,1687,GCash,Store_B
+1746,2026-01-15,12,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1785,GCash,Store_A
+1747,2026-01-16,74,Pouch,Lemon Crinkles,1,165.00,165.00,1529,Cash,Store_C
+1748,2026-01-17,96,Pouch,Melon Crinkles,5,165.00,825.00,1602,Cash,Store_A
+1749,2026-01-18,16,Pouch,Pandan Crinkles,8,165.00,1320.00,1653,Cash,Store_A
+1750,2026-01-19,72,Jar,Mango Crinkles,2,165.00,330.00,1657,Cash,Store_B
+1751,2026-01-20,76,Jar,Choco Butternut Crinkles,4,200.00,800.00,1166,Cash,Store_C
+1752,2026-01-21,24,Pouch,Chocolate Crinkles,7,165.00,1155.00,1849,Cash,Store_B
+1753,2026-01-22,28,Pouch,Choco-Almond Crinkles,3,165.00,495.00,1496,GCash,Store_A
+1754,2026-01-23,8,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1590,Cash,Store_B
+1755,2026-01-24,92,Pouch,Strawberry Crinkles,8,165.00,1320.00,1429,Cash,Store_C
+1756,2026-01-25,36,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1774,Cash,Store_B
+1757,2026-01-26,90,Pouch,Lemon Crinkles,3,165.00,495.00,1163,Cash,Store_C
+1758,2026-01-27,8,Pouch,Melon Crinkles,4,165.00,660.00,1366,Cash,Store_C
+1759,2026-01-28,58,Pouch,Pandan Crinkles,9,165.00,1485.00,1526,GCash,Store_B
+1760,2026-01-29,60,Jar,Mango Crinkles,7,165.00,1155.00,1239,Cash,Store_A
+1761,2026-01-30,50,Jar,Choco Butternut Crinkles,1,200.00,200.00,1072,Cash,Store_B
+1762,2026-01-31,28,Pouch,Chocolate Crinkles,4,165.00,660.00,1445,Cash,Store_A
+1763,2026-02-01,92,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1655,Cash,Store_A
+1764,2026-02-02,41,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1822,GCash,Store_B
+1765,2026-02-03,100,Pouch,Strawberry Crinkles,6,165.00,990.00,1509,Cash,Store_A
+1766,2026-02-04,64,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1795,GCash,Store_A
+1767,2026-02-05,27,Pouch,Lemon Crinkles,6,165.00,990.00,1269,GCash,Store_B
+1768,2026-02-06,63,Pouch,Melon Crinkles,6,165.00,990.00,1753,GCash,Store_B
+1769,2026-02-07,17,Pouch,Pandan Crinkles,5,165.00,825.00,1415,GCash,Store_B
+1770,2026-02-08,73,Jar,Mango Crinkles,5,165.00,825.00,1245,Cash,Store_A
+1771,2026-02-09,33,Jar,Choco Butternut Crinkles,2,200.00,400.00,1675,Cash,Store_C
+1772,2026-02-10,84,Pouch,Chocolate Crinkles,8,165.00,1320.00,1060,Cash,Store_A
+1773,2026-02-11,77,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1006,Cash,Store_C
+1774,2026-02-12,92,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1709,Cash,Store_B
+1775,2026-02-13,29,Pouch,Strawberry Crinkles,8,165.00,1320.00,1982,Cash,Store_C
+1776,2026-02-14,13,Pouch,Red Velvet Crinkles,5,165.00,825.00,1570,Cash,Store_B
+1777,2026-02-15,46,Pouch,Lemon Crinkles,2,165.00,330.00,1817,Cash,Store_B
+1778,2026-02-16,35,Pouch,Melon Crinkles,2,165.00,330.00,1407,GCash,Store_C
+1779,2026-02-17,6,Pouch,Pandan Crinkles,6,165.00,990.00,1217,Cash,Store_B
+1780,2026-02-18,82,Jar,Mango Crinkles,9,165.00,1485.00,1930,Cash,Store_C
+1781,2026-02-19,69,Jar,Choco Butternut Crinkles,1,200.00,200.00,1026,Cash,Store_B
+1782,2026-02-20,47,Pouch,Chocolate Crinkles,6,165.00,990.00,1815,Cash,Store_A
+1783,2026-02-21,25,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1005,GCash,Store_A
+1784,2026-02-22,66,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1986,GCash,Store_B
+1785,2026-02-23,10,Pouch,Strawberry Crinkles,6,165.00,990.00,1532,GCash,Store_B
+1786,2026-02-24,56,Pouch,Red Velvet Crinkles,3,165.00,495.00,1390,Cash,Store_C
+1787,2026-02-25,30,Pouch,Lemon Crinkles,8,165.00,1320.00,1710,Cash,Store_A
+1788,2026-02-26,5,Pouch,Melon Crinkles,9,165.00,1485.00,1571,Cash,Store_C
+1789,2026-02-27,33,Pouch,Pandan Crinkles,1,165.00,165.00,1448,GCash,Store_B
+1790,2026-02-28,65,Jar,Mango Crinkles,9,165.00,1485.00,1754,Cash,Store_B
+1791,2026-03-01,18,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1146,Cash,Store_C
+1792,2026-03-02,96,Pouch,Chocolate Crinkles,6,165.00,990.00,1388,Cash,Store_B
+1793,2026-03-03,49,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1785,Cash,Store_A
+1794,2026-03-04,11,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1249,Cash,Store_C
+1795,2026-03-05,85,Pouch,Strawberry Crinkles,10,165.00,1650.00,1526,Cash,Store_A
+1796,2026-03-06,26,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1462,Cash,Store_A
+1797,2026-03-07,63,Pouch,Lemon Crinkles,2,165.00,330.00,1013,Cash,Store_A
+1798,2026-03-08,89,Pouch,Melon Crinkles,1,165.00,165.00,1903,Cash,Store_C
+1799,2026-03-09,86,Pouch,Pandan Crinkles,2,165.00,330.00,1384,Cash,Store_B
+1800,2026-03-10,59,Jar,Choco Butternut Crinkles,1,200.00,200.00,1556,GCash,Store_A
+1801,2026-03-11,27,Pouch,Chocolate Crinkles,1,165.00,165.00,1887,GCash,Store_A
+1802,2026-03-12,49,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1399,GCash,Store_A
+1803,2026-03-13,77,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1019,GCash,Store_B
+1804,2026-03-14,33,Pouch,Strawberry Crinkles,4,165.00,660.00,1575,Cash,Store_B
+1805,2026-03-15,98,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1491,GCash,Store_C
+1806,2026-03-16,99,Pouch,Lemon Crinkles,6,165.00,990.00,1751,Cash,Store_B
+1807,2026-03-17,1,Pouch,Melon Crinkles,7,165.00,1155.00,1419,GCash,Store_C
+1808,2026-03-18,21,Pouch,Pandan Crinkles,2,165.00,330.00,1337,GCash,Store_C
+1809,2026-03-19,55,Pouch,Ube Crinkles,6,165.00,990.00,1419,GCash,Store_C
+1810,2026-03-20,6,Jar,Choco Butternut Crinkles,7,200.00,1400.00,1915,Cash,Store_C
+1811,2026-03-21,92,Pouch,Chocolate Crinkles,10,165.00,1650.00,1916,GCash,Store_C
+1812,2026-03-22,81,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1612,Cash,Store_A
+1813,2026-03-23,69,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1675,GCash,Store_B
+1814,2026-03-24,95,Pouch,Strawberry Crinkles,2,165.00,330.00,1928,GCash,Store_A
+1815,2026-03-25,5,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1122,GCash,Store_C
+1816,2026-03-26,3,Pouch,Lemon Crinkles,7,165.00,1155.00,1432,Cash,Store_B
+1817,2026-03-27,53,Pouch,Melon Crinkles,1,165.00,165.00,1044,GCash,Store_A
+1818,2026-03-28,23,Pouch,Pandan Crinkles,8,165.00,1320.00,1872,Cash,Store_A
+1819,2026-03-29,53,Pouch,Ube Crinkles,3,165.00,495.00,1920,Cash,Store_C
+1820,2026-03-30,37,Jar,Choco Butternut Crinkles,6,200.00,1200.00,1317,GCash,Store_A
+1821,2026-03-31,74,Pouch,Chocolate Crinkles,9,165.00,1485.00,1381,Cash,Store_A
+1822,2026-04-01,74,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1145,Cash,Store_A
+1823,2026-04-02,83,Pouch,Choco-Cashew Crinkles,9,165.00,1485.00,1327,GCash,Store_A
+1824,2026-04-03,17,Pouch,Strawberry Crinkles,7,165.00,1155.00,1363,GCash,Store_A
+1825,2026-04-04,85,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1050,Cash,Store_C
+1826,2026-04-05,78,Pouch,Lemon Crinkles,2,165.00,330.00,1065,Cash,Store_C
+1827,2026-04-06,73,Pouch,Melon Crinkles,8,165.00,1320.00,1355,GCash,Store_A
+1828,2026-04-07,1,Pouch,Pandan Crinkles,8,165.00,1320.00,1800,Cash,Store_C
+1829,2026-04-08,51,Pouch,Ube Crinkles,2,165.00,330.00,1164,Cash,Store_C
+1830,2026-04-09,45,Jar,Choco Butternut Crinkles,4,200.00,800.00,1141,Cash,Store_B
+1831,2026-04-10,77,Pouch,Chocolate Crinkles,7,165.00,1155.00,1966,Cash,Store_A
+1832,2026-04-11,4,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1826,Cash,Store_C
+1833,2026-04-12,62,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,1128,GCash,Store_C
+1834,2026-04-13,65,Pouch,Strawberry Crinkles,6,165.00,990.00,1398,Cash,Store_A
+1835,2026-04-14,32,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1933,GCash,Store_B
+1836,2026-04-15,34,Pouch,Lemon Crinkles,6,165.00,990.00,1880,Cash,Store_A
+1837,2026-04-16,92,Pouch,Melon Crinkles,10,165.00,1650.00,1463,Cash,Store_B
+1838,2026-04-17,95,Pouch,Pandan Crinkles,3,165.00,495.00,1751,GCash,Store_A
+1839,2026-04-18,72,Pouch,Ube Crinkles,9,165.00,1485.00,1836,GCash,Store_A
+1840,2026-04-19,39,Jar,Choco Butternut Crinkles,10,200.00,2000.00,1808,GCash,Store_A
+1841,2026-04-20,26,Pouch,Chocolate Crinkles,2,165.00,330.00,1187,Cash,Store_A
+1842,2026-04-21,34,Pouch,Choco-Almond Crinkles,6,165.00,990.00,1720,Cash,Store_B
+1843,2026-04-22,54,Pouch,Choco-Cashew Crinkles,7,165.00,1155.00,1732,GCash,Store_B
+1844,2026-04-23,3,Pouch,Strawberry Crinkles,9,165.00,1485.00,1912,GCash,Store_C
+1845,2026-04-24,50,Pouch,Red Velvet Crinkles,3,165.00,495.00,1190,GCash,Store_A
+1846,2026-04-25,12,Pouch,Lemon Crinkles,10,165.00,1650.00,1388,GCash,Store_B
+1847,2026-04-26,65,Pouch,Melon Crinkles,3,165.00,495.00,1429,Cash,Store_B
+1848,2026-04-27,54,Pouch,Pandan Crinkles,7,165.00,1155.00,1858,Cash,Store_B
+1849,2026-04-28,5,Pouch,Ube Crinkles,4,165.00,660.00,1284,Cash,Store_A
+1850,2026-04-29,94,Jar,Choco Butternut Crinkles,8,200.00,1600.00,1864,GCash,Store_C
+1851,2026-04-30,94,Pouch,Chocolate Crinkles,7,165.00,1155.00,1237,Cash,Store_B
+1852,2026-05-01,57,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1194,GCash,Store_A
+1853,2026-05-02,17,Pouch,Choco-Cashew Crinkles,7,165.00,1155.00,1287,Cash,Store_B
+1854,2026-05-03,47,Pouch,Strawberry Crinkles,3,165.00,495.00,1771,Cash,Store_B
+1855,2026-05-04,23,Pouch,Red Velvet Crinkles,2,165.00,330.00,1758,Cash,Store_C
+1856,2026-05-05,79,Pouch,Lemon Crinkles,6,165.00,990.00,1136,GCash,Store_B
+1857,2026-05-06,85,Pouch,Melon Crinkles,2,165.00,330.00,1792,Cash,Store_B
+1858,2026-05-07,14,Pouch,Pandan Crinkles,3,165.00,495.00,1783,Cash,Store_A
+1859,2026-05-08,66,Pouch,Ube Crinkles,6,165.00,990.00,1171,GCash,Store_A
+1860,2026-05-09,75,Jar,Choco Butternut Crinkles,5,200.00,1000.00,1159,GCash,Store_C
+1861,2026-05-10,51,Pouch,Chocolate Crinkles,8,165.00,1320.00,1201,Cash,Store_A
+1862,2026-05-11,38,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1487,Cash,Store_A
+1863,2026-05-12,64,Pouch,Choco-Cashew Crinkles,3,165.00,495.00,1557,GCash,Store_C
+1864,2026-05-13,98,Pouch,Strawberry Crinkles,10,165.00,1650.00,1962,Cash,Store_B
+1865,2026-05-14,38,Pouch,Red Velvet Crinkles,3,165.00,495.00,1776,Cash,Store_C
+1866,2026-05-15,50,Pouch,Lemon Crinkles,3,165.00,495.00,1583,Cash,Store_A
+1867,2026-05-16,98,Pouch,Melon Crinkles,6,165.00,990.00,1504,Cash,Store_C
+1868,2026-05-17,82,Pouch,Pandan Crinkles,1,165.00,165.00,1876,GCash,Store_B
+1869,2026-05-18,30,Pouch,Ube Crinkles,7,165.00,1155.00,1371,GCash,Store_C
+1870,2026-05-19,79,Jar,Choco Butternut Crinkles,1,200.00,200.00,1103,GCash,Store_A
+1871,2026-05-20,91,Pouch,Chocolate Crinkles,5,165.00,825.00,1125,Cash,Store_A
+1872,2026-05-21,51,Pouch,Choco-Almond Crinkles,10,165.00,1650.00,1313,GCash,Store_C
+1873,2026-05-22,63,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1976,Cash,Store_B
+1874,2026-05-23,98,Pouch,Strawberry Crinkles,4,165.00,660.00,1995,Cash,Store_C
+1875,2026-05-24,52,Pouch,Red Velvet Crinkles,5,165.00,825.00,1798,GCash,Store_B
+1876,2026-05-25,38,Pouch,Lemon Crinkles,4,165.00,660.00,1458,Cash,Store_B
+1877,2026-05-26,97,Pouch,Melon Crinkles,4,165.00,660.00,1230,Cash,Store_C
+1878,2026-05-27,88,Pouch,Pandan Crinkles,8,165.00,1320.00,1658,Cash,Store_B
+1879,2026-05-28,79,Pouch,Ube Crinkles,2,165.00,330.00,1882,Cash,Store_A
+1880,2026-05-29,30,Jar,Choco Butternut Crinkles,1,200.00,200.00,1197,Cash,Store_C
+1881,2026-05-30,51,Pouch,Chocolate Crinkles,3,165.00,495.00,1885,Cash,Store_B
+1882,2026-05-31,81,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1733,GCash,Store_A
+1883,2026-06-01,5,Pouch,Choco-Cashew Crinkles,4,165.00,660.00,1423,Cash,Store_C
+1884,2026-06-02,29,Pouch,Strawberry Crinkles,10,165.00,1650.00,1572,GCash,Store_A
+1885,2026-06-03,4,Pouch,Red Velvet Crinkles,5,165.00,825.00,1610,GCash,Store_A
+1886,2026-06-04,10,Pouch,Lemon Crinkles,2,165.00,330.00,1171,Cash,Store_A
+1887,2026-06-05,56,Pouch,Melon Crinkles,4,165.00,660.00,1382,Cash,Store_B
+1888,2026-06-06,17,Pouch,Pandan Crinkles,2,165.00,330.00,1173,Cash,Store_C
+1889,2026-06-07,74,Pouch,Ube Crinkles,2,165.00,330.00,1663,GCash,Store_C
+1890,2026-06-08,17,Jar,Choco Butternut Crinkles,4,200.00,800.00,1453,GCash,Store_B
+1891,2026-06-09,84,Pouch,Chocolate Crinkles,6,165.00,990.00,1350,GCash,Store_C
+1892,2026-06-10,88,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1902,Cash,Store_A
+1893,2026-06-11,69,Pouch,Choco-Cashew Crinkles,10,165.00,1650.00,1952,GCash,Store_C
+1894,2026-06-12,34,Pouch,Strawberry Crinkles,3,165.00,495.00,1634,Cash,Store_B
+1895,2026-06-13,6,Pouch,Red Velvet Crinkles,3,165.00,495.00,1494,Cash,Store_A
+1896,2026-06-14,53,Pouch,Lemon Crinkles,10,165.00,1650.00,1620,GCash,Store_B
+1897,2026-06-15,66,Pouch,Melon Crinkles,6,165.00,990.00,1004,GCash,Store_A
+1898,2026-06-16,77,Pouch,Pandan Crinkles,3,165.00,495.00,1093,Cash,Store_A
+1899,2026-06-17,43,Pouch,Ube Crinkles,2,165.00,330.00,1919,GCash,Store_C
+1900,2026-06-18,75,Pouch,Chocolate Crinkles,8,165.00,1320.00,1006,Cash,Store_A
+1901,2026-06-19,23,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1288,Cash,Store_B
+1902,2026-06-20,55,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1618,Cash,Store_C
+1903,2026-06-21,80,Pouch,Strawberry Crinkles,3,165.00,495.00,1146,Cash,Store_B
+1904,2026-06-22,95,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1783,GCash,Store_A
+1905,2026-06-23,75,Pouch,Lemon Crinkles,8,165.00,1320.00,1424,GCash,Store_B
+1906,2026-06-24,16,Pouch,Melon Crinkles,4,165.00,660.00,1890,Cash,Store_B
+1907,2026-06-25,8,Pouch,Pandan Crinkles,7,165.00,1155.00,1608,GCash,Store_A
+1908,2026-06-26,4,Pouch,Ube Crinkles,10,165.00,1650.00,1457,Cash,Store_C
+1909,2026-06-27,4,Jar,Mango Crinkles,2,165.00,330.00,1741,GCash,Store_B
+1910,2026-06-28,56,Pouch,Chocolate Crinkles,7,165.00,1155.00,1202,Cash,Store_A
+1911,2026-06-29,25,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1212,GCash,Store_C
+1912,2026-06-30,67,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1006,Cash,Store_C
+1913,2026-07-01,96,Pouch,Strawberry Crinkles,6,165.00,990.00,1624,Cash,Store_C
+1914,2026-07-02,67,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1376,Cash,Store_B
+1915,2026-07-03,27,Pouch,Lemon Crinkles,6,165.00,990.00,1891,GCash,Store_B
+1916,2026-07-04,93,Pouch,Melon Crinkles,8,165.00,1320.00,1447,Cash,Store_B
+1917,2026-07-05,32,Pouch,Pandan Crinkles,7,165.00,1155.00,1835,GCash,Store_C
+1918,2026-07-06,50,Pouch,Ube Crinkles,9,165.00,1485.00,1106,Cash,Store_B
+1919,2026-07-07,61,Jar,Mango Crinkles,4,165.00,660.00,1651,Cash,Store_A
+1920,2026-07-08,51,Pouch,Chocolate Crinkles,2,165.00,330.00,1811,GCash,Store_B
+1921,2026-07-09,19,Pouch,Choco-Almond Crinkles,7,165.00,1155.00,1401,GCash,Store_B
+1922,2026-07-10,21,Pouch,Choco-Cashew Crinkles,6,165.00,990.00,1096,Cash,Store_C
+1923,2026-07-11,5,Pouch,Strawberry Crinkles,1,165.00,165.00,1388,GCash,Store_B
+1924,2026-07-12,82,Pouch,Red Velvet Crinkles,9,165.00,1485.00,1959,GCash,Store_A
+1925,2026-07-13,92,Pouch,Lemon Crinkles,9,165.00,1485.00,1452,GCash,Store_C
+1926,2026-07-14,42,Pouch,Melon Crinkles,2,165.00,330.00,1849,Cash,Store_A
+1927,2026-07-15,61,Pouch,Pandan Crinkles,3,165.00,495.00,1809,GCash,Store_C
+1928,2026-07-16,22,Pouch,Ube Crinkles,5,165.00,825.00,1979,Cash,Store_C
+1929,2026-07-17,21,Jar,Mango Crinkles,5,165.00,825.00,1901,Cash,Store_B
+1930,2026-07-18,70,Pouch,Chocolate Crinkles,1,165.00,165.00,1416,Cash,Store_A
+1931,2026-07-19,1,Pouch,Choco-Almond Crinkles,8,165.00,1320.00,1726,Cash,Store_C
+1932,2026-07-20,5,Pouch,Choco-Cashew Crinkles,8,165.00,1320.00,1504,Cash,Store_B
+1933,2026-07-21,12,Pouch,Strawberry Crinkles,4,165.00,660.00,1454,Cash,Store_C
+1934,2026-07-22,90,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1291,GCash,Store_C
+1935,2026-07-23,46,Pouch,Lemon Crinkles,10,165.00,1650.00,1534,Cash,Store_C
+1936,2026-07-24,34,Pouch,Melon Crinkles,3,165.00,495.00,1193,GCash,Store_C
+1937,2026-07-25,49,Pouch,Pandan Crinkles,6,165.00,990.00,1980,Cash,Store_C
+1938,2026-07-26,78,Pouch,Ube Crinkles,10,165.00,1650.00,1150,Cash,Store_C
+1939,2026-07-27,90,Jar,Mango Crinkles,10,165.00,1650.00,1880,Cash,Store_B
+1940,2026-07-28,45,Pouch,Chocolate Crinkles,9,165.00,1485.00,1759,GCash,Store_C
+1941,2026-07-29,27,Pouch,Choco-Almond Crinkles,1,165.00,165.00,1779,Cash,Store_A
+1942,2026-07-30,73,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1973,Cash,Store_B
+1943,2026-07-31,26,Pouch,Strawberry Crinkles,4,165.00,660.00,1763,GCash,Store_A
+1944,2026-08-01,47,Pouch,Red Velvet Crinkles,8,165.00,1320.00,1515,Cash,Store_C
+1945,2026-08-02,86,Pouch,Lemon Crinkles,1,165.00,165.00,1393,Cash,Store_A
+1946,2026-08-03,56,Pouch,Melon Crinkles,9,165.00,1485.00,1316,Cash,Store_C
+1947,2026-08-04,94,Pouch,Pandan Crinkles,6,165.00,990.00,1076,GCash,Store_C
+1948,2026-08-05,63,Pouch,Ube Crinkles,4,165.00,660.00,1599,GCash,Store_B
+1949,2026-08-06,48,Jar,Mango Crinkles,9,165.00,1485.00,1270,Cash,Store_B
+1950,2026-08-07,61,Pouch,Chocolate Crinkles,5,165.00,825.00,1225,GCash,Store_C
+1951,2026-08-08,81,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1530,GCash,Store_B
+1952,2026-08-09,26,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1113,Cash,Store_A
+1953,2026-08-10,36,Pouch,Strawberry Crinkles,1,165.00,165.00,1251,Cash,Store_B
+1954,2026-08-11,1,Pouch,Red Velvet Crinkles,1,165.00,165.00,1233,Cash,Store_B
+1955,2026-08-12,8,Pouch,Lemon Crinkles,8,165.00,1320.00,1841,Cash,Store_A
+1956,2026-08-13,99,Pouch,Melon Crinkles,8,165.00,1320.00,1791,Cash,Store_B
+1957,2026-08-14,52,Pouch,Pandan Crinkles,6,165.00,990.00,1714,Cash,Store_C
+1958,2026-08-15,79,Pouch,Ube Crinkles,4,165.00,660.00,1083,Cash,Store_A
+1959,2026-08-16,47,Jar,Mango Crinkles,2,165.00,330.00,1125,Cash,Store_C
+1960,2026-08-17,56,Pouch,Chocolate Crinkles,2,165.00,330.00,1175,Cash,Store_A
+1961,2026-08-18,86,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1069,Cash,Store_C
+1962,2026-08-19,14,Pouch,Choco-Cashew Crinkles,5,165.00,825.00,1047,Cash,Store_C
+1963,2026-08-20,90,Pouch,Strawberry Crinkles,4,165.00,660.00,1884,GCash,Store_B
+1964,2026-08-21,28,Pouch,Red Velvet Crinkles,10,165.00,1650.00,1256,Cash,Store_C
+1965,2026-08-22,87,Pouch,Lemon Crinkles,1,165.00,165.00,1727,Cash,Store_B
+1966,2026-08-23,78,Pouch,Melon Crinkles,7,165.00,1155.00,1030,Cash,Store_A
+1967,2026-08-24,88,Pouch,Pandan Crinkles,3,165.00,495.00,1281,Cash,Store_C
+1968,2026-08-25,2,Pouch,Ube Crinkles,6,165.00,990.00,1924,Cash,Store_C
+1969,2026-08-26,26,Jar,Mango Crinkles,5,165.00,825.00,1994,Cash,Store_A
+1970,2026-08-27,14,Pouch,Chocolate Crinkles,5,165.00,825.00,1237,Cash,Store_A
+1971,2026-08-28,59,Pouch,Choco-Almond Crinkles,5,165.00,825.00,1248,GCash,Store_C
+1972,2026-08-29,56,Pouch,Choco-Cashew Crinkles,1,165.00,165.00,1368,Cash,Store_A
+1973,2026-08-30,7,Pouch,Strawberry Crinkles,1,165.00,165.00,1495,GCash,Store_B
+1974,2026-08-31,3,Pouch,Red Velvet Crinkles,3,165.00,495.00,1025,Cash,Store_A
+1975,2026-09-01,23,Pouch,Lemon Crinkles,10,165.00,1650.00,1586,Cash,Store_A
+1976,2026-09-02,18,Pouch,Melon Crinkles,4,165.00,660.00,1718,Cash,Store_C
+1977,2026-09-03,38,Pouch,Pandan Crinkles,5,165.00,825.00,1490,Cash,Store_B
+1978,2026-09-04,99,Pouch,Ube Crinkles,2,165.00,330.00,1494,GCash,Store_A
+1979,2026-09-05,15,Jar,Mango Crinkles,8,165.00,1320.00,1314,Cash,Store_B
+1980,2026-09-06,64,Pouch,Chocolate Crinkles,2,165.00,330.00,1606,Cash,Store_B
+1981,2026-09-07,89,Pouch,Choco-Almond Crinkles,9,165.00,1485.00,1375,Cash,Store_B
+1982,2026-09-08,28,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1639,Cash,Store_C
+1983,2026-09-09,74,Pouch,Strawberry Crinkles,9,165.00,1485.00,1937,Cash,Store_A
+1984,2026-09-10,39,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1025,GCash,Store_C
+1985,2026-09-11,57,Pouch,Lemon Crinkles,8,165.00,1320.00,1334,GCash,Store_A
+1986,2026-09-12,17,Pouch,Melon Crinkles,2,165.00,330.00,1355,Cash,Store_A
+1987,2026-09-13,86,Pouch,Pandan Crinkles,7,165.00,1155.00,1116,Cash,Store_C
+1988,2026-09-14,90,Pouch,Ube Crinkles,6,165.00,990.00,1048,Cash,Store_B
+1989,2026-09-15,44,Jar,Mango Crinkles,4,165.00,660.00,1738,Cash,Store_B
+1990,2026-09-16,25,Pouch,Chocolate Crinkles,7,165.00,1155.00,1778,Cash,Store_A
+1991,2026-09-17,17,Pouch,Choco-Almond Crinkles,4,165.00,660.00,1099,Cash,Store_C
+1992,2026-09-18,13,Pouch,Choco-Cashew Crinkles,2,165.00,330.00,1459,GCash,Store_B
+1993,2026-09-19,84,Pouch,Strawberry Crinkles,10,165.00,1650.00,1523,Cash,Store_B
+1994,2026-09-20,25,Pouch,Red Velvet Crinkles,7,165.00,1155.00,1597,GCash,Store_A
+1995,2026-09-21,68,Pouch,Lemon Crinkles,8,165.00,1320.00,1405,GCash,Store_A
+1996,2026-09-22,10,Pouch,Melon Crinkles,2,165.00,330.00,1214,Cash,Store_C
+1997,2026-09-23,67,Pouch,Pandan Crinkles,5,165.00,825.00,1685,Cash,Store_A
+1998,2026-09-24,18,Pouch,Ube Crinkles,1,165.00,165.00,1903,Cash,Store_B
+1999,2026-09-25,100,Jar,Mango Crinkles,7,165.00,1155.00,1503,Cash,Store_B
+2000,2026-09-26,86,Pouch,Strawberry Crinkles,8,165.00,1320.00,1721,GCash,Store_B

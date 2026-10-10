@@ -1,0 +1,123 @@
+/* Origin-style button — pointer-origin circular fill (Kreezby brand palette) */
+:root {
+    --kreezby-yellow: #ffc107;
+    --kreezby-yellow-deep: #ffb300;
+    --kreezby-blue: #0078bd;
+    --kreezby-blue-dark: #004488;
+    --kreezby-red: #ed1c24;
+    --kreezby-orange: #ff9800;
+}
+
+.origin-btn {
+    --origin-fill: var(--kreezby-blue);
+    --origin-fill-text: #ffffff;
+    --origin-border: #b8d9ef;
+    --origin-bg: #ffffff;
+    --origin-fg: var(--kreezby-blue-dark);
+
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 12px;
+    padding: 0 32px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    border: 0.5px solid var(--origin-border);
+    background: var(--origin-bg);
+    color: var(--origin-fg);
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    text-decoration: none;
+    font-family: inherit;
+    transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
+}
+
+button.origin-btn {
+    appearance: none;
+}
+
+.origin-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(0, 120, 189, 0.35);
+}
+
+.origin-btn:disabled,
+.origin-btn[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.origin-btn[data-pressed="true"] {
+    transform: scale(0.985);
+}
+
+.origin-btn--active {
+    color: var(--origin-fill-text);
+}
+
+.origin-btn__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+    background: var(--origin-fill);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+}
+
+.origin-btn__label {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Primary — logo yellow with blue fill on hover */
+.origin-btn--primary {
+    --origin-fill: var(--kreezby-blue);
+    --origin-fill-text: #ffffff;
+    --origin-border: var(--kreezby-blue);
+    --origin-bg: var(--kreezby-yellow);
+    --origin-fg: var(--kreezby-blue-dark);
+    font-weight: 700;
+    min-height: 52px;
+    font-size: 16px;
+    box-shadow: 0 10px 24px -14px rgba(0, 72, 136, 0.45);
+}
+
+/* Secondary — white with blue outline, yellow fill on hover */
+.origin-btn--secondary {
+    --origin-fill: var(--kreezby-yellow);
+    --origin-fill-text: var(--kreezby-blue-dark);
+    --origin-border: var(--kreezby-blue);
+    --origin-bg: #ffffff;
+    --origin-fg: var(--kreezby-blue-dark);
+    font-weight: 600;
+}
+
+/* Ghost back */
+.origin-btn--ghost {
+    --origin-fill: rgba(0, 120, 189, 0.14);
+    --origin-fill-text: var(--kreezby-blue-dark);
+    --origin-border: transparent;
+    --origin-bg: transparent;
+    --origin-fg: var(--kreezby-blue);
+    width: auto;
+    min-height: 40px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}

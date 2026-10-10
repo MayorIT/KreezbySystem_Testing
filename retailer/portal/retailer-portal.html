@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Retailer</title>
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-portal.css">
+
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261008tables">
+    <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../../css/shared/kreezby-welcome-home.css?v=20261005layout">
+</head>
+<body class="kreezby-admin-home kreezby-retailer-home">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
+        <div class="user-dropdown">
+            <button class="user-dropdown-pill" type="button" id="user-dropdown-trigger">Retailer ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-portal.html" class="dropdown-item">Report Issue</a>
+                <a href="../../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="core-viewport-wrapper">
+    <aside class="sidebar-panel">
+        <div class="hamburger-row">☰</div>
+        <div class="panel-brand">Retailer</div>
+                <ul class="navigation-tree">
+            <li class="tree-node active"><a href="retailer-portal.html">Dashboard</a></li>
+            <li class="tree-node"><a href="bo-portal.html">Back Order</a></li>
+            <li class="tree-node"><a href="saleslist-portal.html">Sales List</a></li>
+            <li class="tree-node"><a href="inbox-portal.html" data-turbo="false" data-turbo-frame="_top">Inbox</a></li>
+        </ul>
+    </aside>
+
+    <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+        <div id="admin-dashboard-root">
+            <section class="admin-home" aria-label="Welcome">
+                    <div class="admin-home-stage">
+                        <div class="admin-home-copy">
+                            <p class="admin-home-kicker">The Crinkle Factory</p>
+                            <h2>Welcome, Retailer</h2>
+                            <p class="admin-home-tagline">Making your life sweeter!</p>
+                            <p class="admin-home-lead">Your home is ready. Back orders, sales, and inbox open from the menu.</p>
+                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
+                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
+                                <span class="admin-home-menu-btn__label">Open menu</span>
+                            </button>
+                        </div>
+                        <figure class="admin-home-photo">
+                            <img src="../../assets/home/kreezby-welcome.png" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
+                        </figure>
+                    </div>
+                </section>
+        </div>
+</main>
+        </turbo-frame>
+
+    <script src="../../js/kreezby-seed-portal-data.js?v=20261005rnote"></script>
+    <script src="../../js/sidebar-toggle.js?v=20261005rbell"></script>
+    <script src="../../js/retailer-nav.js?v=20261009acct"></script>
+    <script src="../../js/user-dropdown-nav.js?v=20261008tabs2"></script>
+    </body>
+</html>

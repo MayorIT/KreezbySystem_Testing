@@ -1,0 +1,414 @@
+/* From Uiverse.io by SachinKumar666 — Kreezby flavor product cards */
+.flavor-card {
+    --card-bg: #ffffff;
+    --card-accent: #7c3aed;
+    --card-text: #1e293b;
+    --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+
+    width: 100%;
+    min-height: 320px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.flavor-card__shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0) 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.flavor-card__glow {
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(
+        circle at 50% 0%,
+        rgba(124, 58, 237, 0.3) 0%,
+        rgba(124, 58, 237, 0) 70%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.flavor-card__content {
+    padding: 1.25em;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    position: relative;
+    z-index: 2;
+}
+
+.flavor-card__badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #10b981;
+    color: #ffffff;
+    padding: 0.25em 0.5em;
+    border-radius: 999px;
+    font-size: 0.7em;
+    font-weight: 600;
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.4s ease 0.1s;
+    z-index: 3;
+}
+
+.flavor-card__image {
+    width: 100%;
+    height: 160px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.flavor-card__image img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+}
+
+.flavor-card__image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 30%
+        ),
+        repeating-linear-gradient(
+            45deg,
+            rgba(139, 92, 246, 0.1) 0px,
+            rgba(139, 92, 246, 0.1) 2px,
+            transparent 2px,
+            transparent 4px
+        );
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.flavor-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    text-align: left;
+}
+
+.flavor-card__title {
+    color: var(--card-text);
+    font-size: 1.05em;
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.25;
+    transition: all 0.3s ease;
+}
+
+.flavor-card__description {
+    color: var(--card-text);
+    font-size: 0.75em;
+    margin: 0;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.flavor-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.flavor-card__price {
+    color: var(--card-text);
+    font-weight: 700;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.flavor-card__button {
+    width: 28px;
+    height: 28px;
+    background: var(--card-accent);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: scale(0.9);
+    flex-shrink: 0;
+}
+
+.flavor-card__button svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.flavor-card__button.is-favorite {
+    background: transparent;
+    color: #ef476f;
+    box-shadow: none;
+    border-color: rgba(239, 71, 111, 0.24);
+}
+
+.flavor-card__button.is-favorite svg {
+    fill: currentColor;
+}
+
+.flavor-card__button.is-storing {
+    background: #ef476f;
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 10px 22px rgba(239, 71, 111, 0.35);
+    animation: favorite-store-pop 0.34s ease;
+}
+
+.flavor-card__button.is-favorite.is-storing {
+    animation: favorite-store-pop 0.34s ease;
+}
+
+.flavor-card__button.is-storing svg {
+    fill: currentColor;
+}
+
+.flavor-card__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.flavor-card .counter-widget {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.flavor-card .counter-btn {
+    background-color: #ede9fe;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--card-accent);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.flavor-card .counter-btn:hover {
+    background-color: #ddd6fe;
+}
+
+.flavor-card .counter-value {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+    color: var(--card-text);
+}
+
+.flavor-card .add-cart-btn {
+    background: linear-gradient(135deg, #fbc02d, #f9a825);
+    border: none;
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    width: 100%;
+    color: #1e293b;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flavor-card .add-cart-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 168, 37, 0.35);
+}
+
+.flavor-card .guest-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.flavor-card .btn-view-only {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.flavor-card .btn-guest-action {
+    display: block;
+    text-align: center;
+    background: var(--card-accent);
+    color: #ffffff;
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.flavor-card .btn-guest-action:hover {
+    background: #6d28d9;
+}
+
+/* Hover effects */
+.flavor-card:hover {
+    transform: translateY(-10px);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(124, 58, 237, 0.2);
+}
+
+.flavor-card:hover .flavor-card__shine {
+    opacity: 1;
+    animation: flavor-card-shine 3s infinite;
+}
+
+.flavor-card:hover .flavor-card__glow {
+    opacity: 1;
+}
+
+.flavor-card:hover .flavor-card__badge {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.flavor-card:hover .flavor-card__image {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.flavor-card:hover .flavor-card__title {
+    color: var(--card-accent);
+    transform: translateX(2px);
+}
+
+.flavor-card:hover .flavor-card__description {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+.flavor-card:hover .flavor-card__price {
+    color: var(--card-accent);
+    transform: translateX(2px);
+}
+
+.flavor-card:hover .flavor-card__button {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
+}
+
+.flavor-card:hover .flavor-card__button.is-favorite {
+    box-shadow: 0 0 0 4px rgba(239, 71, 111, 0.12);
+}
+
+.flavor-card:hover .flavor-card__button svg {
+    animation: flavor-card-pulse 1.5s infinite;
+}
+
+.flavor-card:active {
+    transform: translateY(-5px) scale(0.98);
+}
+
+@keyframes flavor-card-shine {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes flavor-card-pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes favorite-store-pop {
+    0% {
+        transform: scale(0.9);
+    }
+    45% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flavor-card,
+    .flavor-card__image,
+    .flavor-card__title,
+    .flavor-card__description,
+    .flavor-card__price,
+    .flavor-card__button {
+        transition-duration: 0.01ms !important;
+    }
+
+    .flavor-card:hover .flavor-card__shine,
+    .flavor-card:hover .flavor-card__button svg {
+        animation: none !important;
+    }
+
+    .flavor-card__button.is-storing {
+        animation: none !important;
+    }
+}

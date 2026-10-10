@@ -1,0 +1,152 @@
+/* Facebook-style nav: persistent chrome, smooth main content */
+
+@view-transition {
+    navigation: auto;
+}
+
+html {
+    background-color: #f4f6f9;
+}
+
+/* Turbo frame must fill the flex row (replaces main as flex child) */
+.core-viewport-wrapper > turbo-frame#kreezby-main-content,
+.core-viewport-wrapper > .kreezby-turbo-main,
+.system-dashboard-wrapper > turbo-frame#kreezby-main-content,
+.system-dashboard-wrapper > .kreezby-turbo-main {
+    display: flex;
+    flex: 1 1 0%;
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+    width: auto;
+    max-width: none;
+    align-self: stretch;
+}
+
+turbo-frame#kreezby-main-content > main.workspace-view-canvas,
+.kreezby-turbo-main > main.workspace-view-canvas,
+#kreezby-main-content > main.workspace-view-canvas,
+turbo-frame#kreezby-main-content > main.workspace-canvas,
+.kreezby-turbo-main > main.workspace-canvas,
+#kreezby-main-content > main.workspace-canvas {
+    flex: 1 1 auto;
+    flex-grow: 1;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Full-width page content inside the frame */
+turbo-frame#kreezby-main-content main.workspace-view-canvas > *,
+.kreezby-turbo-main main.workspace-view-canvas > * {
+    max-width: 100%;
+}
+
+/* Persistent shell — no animation (Facebook keeps nav fixed) */
+.top-navbar-node {
+    view-transition-name: kreezby-top-nav;
+}
+
+aside.dark-sidebar-panel.kreezby-icon-sidebar,
+aside.dark-sidebar-panel,
+aside.sidebar-panel {
+    view-transition-name: kreezby-sidebar;
+}
+
+turbo-frame#kreezby-main-content,
+#kreezby-main-content {
+    view-transition-name: kreezby-main;
+}
+
+::view-transition-old(kreezby-top-nav),
+::view-transition-new(kreezby-top-nav),
+::view-transition-old(kreezby-sidebar),
+::view-transition-new(kreezby-sidebar) {
+    animation: none;
+    mix-blend-mode: normal;
+    height: 100%;
+}
+
+::view-transition-old(kreezby-main),
+::view-transition-new(kreezby-main) {
+    animation-duration: 0.2s;
+    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+::view-transition-old(kreezby-main) {
+    animation-name: kreezby-main-out;
+}
+
+::view-transition-new(kreezby-main) {
+    animation-name: kreezby-main-in;
+}
+
+@keyframes kreezby-main-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes kreezby-main-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Maintenance in-page tabs */
+#maintenance-grid-workspace-root {
+    transition: opacity 0.18s cubic-bezier(0.33, 1, 0.68, 1), transform 0.18s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+#maintenance-grid-workspace-root.is-fading {
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
+}
+
+.maintenance-tab-link {
+    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+/* Hide turbo progress bar — Facebook doesn't show one */
+.turbo-progress-bar {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+}
+
+/* Click feedback */
+button,
+[role="button"],
+.stat-card,
+.kreezby-sidebar-nav-item,
+.top-nav-item,
+.maintenance-tab-link,
+.po-order-tab,
+.bo-order-tab {
+    transition: transform 0.12s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+button:active:not(:disabled),
+.stat-card:active,
+.kreezby-sidebar-nav-item:active,
+.top-nav-item:active,
+.maintenance-tab-link:active,
+.po-order-tab:active,
+.bo-order-tab:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+
+    ::view-transition-old(kreezby-main),
+    ::view-transition-new(kreezby-main) {
+        animation: none !important;
+    }
+
+    #maintenance-grid-workspace-root {
+        transition: none;
+    }
+}

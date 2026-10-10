@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Customer Order Tracking (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-alert.css">
+    <link rel="stylesheet" href="../css/shared/order-tracking.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008anl">
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-tracking">
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <button type="button" class="notification-pill" aria-label="Notifications"></button>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">Head Admin ▾</button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas" data-order-tracking-page>
+
+            <div id="order-tracking-toast" class="kreezby-alert kreezby-alert--success kreezby-alert--light kreezby-alert--md" hidden role="status">
+                <div class="kreezby-alert__content"><div class="kreezby-alert__description">Saved.</div></div>
+            </div>
+
+            <div id="ot-master-list-panel">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Customer Order Tracking</h3>
+                            <span class="po-list-count" id="ot-orders-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <label class="po-page-size">Status
+                                <select id="ot-status-filter">
+                                    <option value="all">All</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </label>
+                            <label class="po-page-size">Show
+                                <select id="ot-page-size">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" id="ot-search" placeholder="Order #, PO code, customer, tracking ID">
+                            </div>
+                            <button type="button" class="btn-call-to-action" id="ot-create-btn">+ Create New</button>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="order-tracking-table">
+                                <colgroup>
+                                    <col class="ot-col-num">
+                                    <col class="ot-col-date">
+                                    <col class="ot-col-code">
+                                    <col class="ot-col-who">
+                                    <col class="ot-col-status">
+                                    <col class="ot-col-track">
+                                    <col class="ot-col-action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>J&amp;T Tracking</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-tracking-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line" id="ot-orders-footer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ot-details-panel" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Order tracking</p>
+                            <h3 id="ot-details-title">Details</h3>
+                        </div>
+                        <button type="button" class="po-details-back" id="ot-details-back-btn">Back to list</button>
+                    </div>
+                    <div class="po-details-scroll">
+                        <div id="order-tracking-detail"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        </turbo-frame>
+    </div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/order-tracking.js?v=20261008otk"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261008act"></script>
+    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+</body>
+</html>
