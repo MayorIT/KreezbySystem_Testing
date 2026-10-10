@@ -163,6 +163,8 @@
             if (footer) {
                 footer.querySelectorAll('button').forEach(function (btn) {
                     var label = (btn.textContent || '').toLowerCase();
+                    btn.type = 'button';
+                    btn.removeAttribute('onclick');
                     if (label.indexOf('print') >= 0) btn.id = 'recv-details-print-btn';
                     if (label.indexOf('edit') >= 0) btn.id = 'recv-details-edit-btn';
                     if (label.indexOf('back') >= 0) btn.id = 'recv-details-back-btn';
@@ -755,34 +757,86 @@
         showToast('Received supply saved: ' + supplier);
     }
 
-    function buildPrintHtml(receipt) {
-        var rows = (receipt.lineItems || []).map(function (it) {
-            return '<tr><td>' + formatMoney(it.qty) + '</td><td>' + it.unit + '</td>' +
-                '<td>' + it.name + (it.note ? ' (' + it.note + ')' : '') + '</td>' +
-                '<td style="text-align:right;">' + formatMoney(it.cost) + '</td>' +
-                '<td style="text-align:right;">' + formatMoney(it.total) + '</td></tr>';
-        }).join('');
-        if (!rows) rows = '<tr><td colspan="5" style="text-align:center;">No items.</td></tr>';
-        return '<div class="recv-print-sheet"><div class="recv-print-header"><h1>Kreezby Bakeshop</h1><p>Receiving Batch Sheet</p></div>' +
-            '<div class="recv-print-meta"><p><strong>Supplier:</strong> ' + receipt.supplier + '</p>' +
-            '<p><strong>Date Received:</strong> ' + receipt.dateDisplay + '</p>' +
-            '<p><strong>Status:</strong> ' + receipt.status + '</p>' +
-            '<p><strong>P.O. Origin:</strong> ' + receipt.poOrigin + '</p>' +
-            '<p><strong>Remarks:</strong> ' + receipt.remarks + '</p></div>' +
-            '<table class="recv-print-table"><thead><tr><th>Qty</th><th>Unit</th><th>Item</th><th>Unit Cost</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody>' +
-            '<tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;">Total Bill Value</td>' +
-            '<td style="text-align:right;font-weight:bold;">₱' + formatMoney(receipt.subTotal) + '</td></tr></tfoot></table>' +
-            '<p class="recv-print-verify">Verification: ' + receipt.status + ' — Printed ' + new Date().toLocaleString() + '</p></div>';
+    function ensureKreezbyPrintSheet() {
+        if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var url = scripts[i].getAttribute('src') || '';
+            if (/receive-admin\.js/i.test(url)) {
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                break;
+            }
+        }
+        var tag = document.createElement('script');
+        tag.id = 'kreezby-print-sheet-js';
+        tag.src = src;
+        document.head.appendChild(tag);
+    }
+
+    function whenKreezbyPrintSheet(done) {
+        if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+        ensureKreezbyPrintSheet();
+        var node = document.getElementById('kreezby-print-sheet-js');
+        if (!node) { done(null); return; }
+        var settled = false;
+        var finish = function (sheet) {
+            if (settled) return;
+            settled = true;
+            done(sheet || null);
+        };
+        node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+        node.addEventListener('error', function () { finish(null); });
+        setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+    }
+
+    function formatPrintQty(n) {
+        var num = Number(n || 0);
+        if (!isFinite(num)) return '0';
+        if (Math.abs(num - Math.round(num)) < 0.001) return String(Math.round(num));
+        return formatMoney(num);
     }
 
     function printBatchSheet(receiptId) {
         var receipt = RECEIPTS[receiptId || currentReceiptId];
         if (!receipt) return;
-        var root = document.getElementById('recv-print-root');
-        root.innerHTML = buildPrintHtml(receipt);
-        document.body.classList.add('recv-printing');
-        window.print();
-        setTimeout(function () { document.body.classList.remove('recv-printing'); root.innerHTML = ''; }, 500);
+        whenKreezbyPrintSheet(function (sheet) {
+            if (!sheet) return;
+            var status = statusMeta(receipt.statusClass);
+            sheet.print({
+                title: 'Receiving Batch Sheet',
+                docNo: receipt.id,
+                status: (status && status.label) || receipt.status,
+                totalLabel: 'Total bill value',
+                totalValue: '₱' + formatMoney(receipt.subTotal),
+                facts: [
+                    { label: 'Supplier', value: receipt.supplier },
+                    { label: 'Source', value: receipt.sourceType },
+                    { label: 'Type', value: receipt.type },
+                    { label: 'Date received', value: receipt.dateDisplay || receipt.dateReceived },
+                    { label: 'P.O. origin', value: receipt.poOrigin },
+                    { label: 'Reference', value: receipt.reference }
+                ],
+                note: { label: 'Remarks', text: receipt.remarks },
+                columns: [
+                    { label: 'Qty', align: 'right' },
+                    { label: 'Unit' },
+                    { label: 'Item' },
+                    { label: 'Unit cost', align: 'right' },
+                    { label: 'Total', align: 'right' }
+                ],
+                rows: (receipt.lineItems || []).map(function (it) {
+                    return [
+                        formatPrintQty(it.qty),
+                        it.unit,
+                        { text: it.name, sub: it.note },
+                        '₱' + formatMoney(it.cost),
+                        '₱' + formatMoney(it.total)
+                    ];
+                }),
+                signs: ['Received by', 'Verified by']
+            });
+        });
     }
 
     function handleAction(action, receiptId, statusClass) {
@@ -912,6 +966,7 @@
         }
         setupRetailerPage();
         injectPrintStyles();
+        ensureKreezbyPrintSheet();
         loadData();
         ensurePortalStatusChoices();
         renderTable();

@@ -382,21 +382,86 @@
         showToast('Status updated to ' + meta.label + '.');
     }
 
+    function ensureKreezbyPrintSheet() {
+        if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var url = scripts[i].getAttribute('src') || '';
+            if (/return-admin\.js/i.test(url)) {
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                break;
+            }
+        }
+        var tag = document.createElement('script');
+        tag.id = 'kreezby-print-sheet-js';
+        tag.src = src;
+        document.head.appendChild(tag);
+    }
+
+    function whenKreezbyPrintSheet(done) {
+        if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+        ensureKreezbyPrintSheet();
+        var node = document.getElementById('kreezby-print-sheet-js');
+        if (!node) { done(null); return; }
+        var settled = false;
+        var finish = function (sheet) {
+            if (settled) return;
+            settled = true;
+            done(sheet || null);
+        };
+        node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+        node.addEventListener('error', function () { finish(null); });
+        setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+    }
+
+    function formatPrintQty(n) {
+        var num = Number(n || 0);
+        if (!isFinite(num)) return '0';
+        if (Math.abs(num - Math.round(num)) < 0.001) return String(Math.round(num));
+        return formatMoney(num);
+    }
+
     function printReturnSlip(returnCode) {
         var record = RETURNS[returnCode];
         if (!record) return;
-        var root = document.getElementById('return-print-root');
-        if (!root) return;
-        root.innerHTML = '<div class="return-receipt-sheet"><h1>Kreezby Bakeshop</h1><h2>Return Slip</h2>' +
-            '<p><strong>Return Code:</strong> ' + record.code + '</p>' +
-            '<p><strong>P.O. Origin:</strong> ' + record.poOrigin + '</p>' +
-            '<p><strong>Entity:</strong> ' + record.entity + '</p>' +
-            '<p><strong>Status:</strong> ' + record.status + '</p>' +
-            '<p><strong>Reason:</strong> ' + (record.reason || '') + '</p>' +
-            '<p>Printed ' + new Date().toLocaleString() + '</p></div>';
-        document.body.classList.add('return-printing');
-        window.print();
-        setTimeout(function () { document.body.classList.remove('return-printing'); root.innerHTML = ''; }, 500);
+        whenKreezbyPrintSheet(function (sheet) {
+            if (!sheet) return;
+            var total = returnTotal(record);
+            var status = statusMeta(record.statusClass);
+            sheet.print({
+                title: 'Return Slip',
+                docNo: record.code,
+                status: status.label || record.status,
+                totalLabel: 'Return total',
+                totalValue: '₱' + formatMoney(total),
+                facts: [
+                    { label: 'Account', value: typeLabel(record.entityType) },
+                    { label: 'Party', value: record.entity },
+                    { label: 'P.O. origin', value: record.poOrigin },
+                    { label: 'Date', value: record.dateCreated },
+                    { label: 'Items', value: String((record.items || []).length) }
+                ],
+                note: { label: 'Reason for return', text: record.reason },
+                columns: [
+                    { label: 'Qty', align: 'right' },
+                    { label: 'Unit' },
+                    { label: 'Product' },
+                    { label: 'Unit cost', align: 'right' },
+                    { label: 'Total', align: 'right' }
+                ],
+                rows: (record.items || []).map(function (it) {
+                    return [
+                        formatPrintQty(it.qty),
+                        it.unit,
+                        { text: it.name, sub: it.note },
+                        '₱' + formatMoney(it.cost),
+                        '₱' + formatMoney(it.total)
+                    ];
+                }),
+                signs: ['Prepared by', 'Accepted by']
+            });
+        });
     }
 
     function esc(value) {
@@ -431,6 +496,7 @@
     }
 
     function setupPage() {
+        ensureKreezbyPrintSheet();
         if (/\/staff\//i.test(window.location.pathname)) {
             document.body.setAttribute('data-kreezby-portal', 'staff-return');
         } else {

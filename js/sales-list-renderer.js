@@ -5,6 +5,41 @@
 (function () {
   'use strict';
 
+  var activePrintDoc = null;
+
+  function ensureKreezbyPrintSheet() {
+    if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+    var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+      var url = scripts[i].getAttribute('src') || '';
+      if (/sales-list-renderer\.js/i.test(url)) {
+        src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+        break;
+      }
+    }
+    var tag = document.createElement('script');
+    tag.id = 'kreezby-print-sheet-js';
+    tag.src = src;
+    document.head.appendChild(tag);
+  }
+
+  function whenKreezbyPrintSheet(done) {
+    if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+    ensureKreezbyPrintSheet();
+    var node = document.getElementById('kreezby-print-sheet-js');
+    if (!node) { done(null); return; }
+    var settled = false;
+    var finish = function (sheet) {
+      if (settled) return;
+      settled = true;
+      done(sheet || null);
+    };
+    node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+    node.addEventListener('error', function () { finish(null); });
+    setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+  }
+
   function salesApi() {
     return window.KreezbySales;
   }
@@ -809,6 +844,57 @@
     setDetailText('bauan-detail-ar', 'Account Receivable:', row.accountReceivable ? api.formatMoney(row.accountReceivable) : '—');
     setDetailText('bauan-detail-total', 'Collected (this row):', api.formatMoney(row.totalPaid));
 
+    var sheetEntries = (report && report.entries) || [];
+    var sheetTotals = buildSheetTotals(sheetEntries);
+    function sheetPlain(value) {
+      if (value === 0) return '0';
+      if (value == null || value === '') return '—';
+      return String(value);
+    }
+    activePrintDoc = {
+      title: 'Official Receipt',
+      docNo: row.invoiceCode || (report ? report.areaLabel : 'Route sheet'),
+      status: row.reportDate || '',
+      totalLabel: 'Collected',
+      totalValue: api.formatMoney(sheetTotals.collected || row.totalPaid || 0),
+      facts: [
+        { label: 'Location', value: row.retailerName },
+        { label: 'Area', value: row.areaLabel },
+        { label: 'Date', value: row.reportDate },
+        { label: 'Account receivable', value: row.accountReceivable ? api.formatMoney(row.accountReceivable) : '—' },
+        { label: 'This row collected', value: api.formatMoney(row.totalPaid) }
+      ],
+      columns: [
+        { label: '#' },
+        { label: 'Location' },
+        { label: 'A/R', align: 'right' },
+        { label: 'Cons', align: 'right' },
+        { label: 'COD', align: 'right' },
+        { label: 'Staff', align: 'right' },
+        { label: 'Check', align: 'right' },
+        { label: 'F', align: 'right' },
+        { label: 'P.O', align: 'right' },
+        { label: 'R', align: 'right' },
+        { label: 'Collected', align: 'right' }
+      ],
+      rows: sheetEntries.map(function (entry, index) {
+        return [
+          String(index + 1),
+          entry.retailerName,
+          sheetPlain(entry.accountReceivable),
+          sheetPlain(entry.cons),
+          sheetPlain(entry.cod),
+          sheetPlain(entry.staff),
+          sheetPlain(entry.check),
+          sheetPlain(entry.f),
+          sheetPlain(entry.po),
+          sheetPlain(entry.replaced),
+          entry.collected ? api.formatMoney(entry.collected) : '—'
+        ];
+      }),
+      signs: ['Prepared by', 'Received by']
+    };
+
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost && report) {
       var sales = api.getSales()
@@ -947,14 +1033,31 @@
   };
 
   function bindSalesDetailButtons() {
+    var details = document.getElementById('saleslist-detailed-inspector-panel-view');
+    var footer = details ? details.querySelector('.details-action-footer-row') : null;
+    if (footer) {
+      footer.querySelectorAll('button').forEach(function (btn) {
+        var label = (btn.textContent || '').toLowerCase();
+        btn.type = 'button';
+        if (label.indexOf('print') >= 0) {
+          btn.id = 'sales-details-print-btn';
+          btn.removeAttribute('onclick');
+        }
+        if (label.indexOf('back') >= 0) {
+          btn.id = 'sales-details-back-btn';
+          btn.removeAttribute('onclick');
+        }
+      });
+    }
     var back = document.getElementById('sales-details-back-btn');
     var printBtn = document.getElementById('sales-details-print-btn');
     if (back) back.onclick = function () { window.switchToSalesMasterDirectoryListingView(); };
     if (printBtn) {
       printBtn.onclick = function () {
-        var original = window.print;
-        window.print = original;
-        original.call(window);
+        whenKreezbyPrintSheet(function (sheet) {
+          if (!sheet || !activePrintDoc) return;
+          sheet.print(activePrintDoc);
+        });
       };
     }
   }
@@ -995,6 +1098,20 @@
       sheetHost.innerHTML = '<div class="po-detail-hero"><p class="po-detail-kicker">Customer</p><h4>' +
         esc(row.customer || 'Customer') + '</h4></div>';
     }
+    activePrintDoc = {
+      title: 'Official Receipt',
+      docNo: row.invoice || 'Receipt',
+      status: row.status || '',
+      totalLabel: 'Total paid',
+      totalValue: row.total || '—',
+      facts: [
+        { label: 'Date', value: row.date },
+        { label: 'Customer', value: row.customer },
+        { label: 'Account', value: row.account }
+      ],
+      note: { label: 'Items', text: row.items },
+      signs: ['Cashier', 'Customer']
+    };
     window.switchToDetailedSalesTransactionInspector();
   }
 
@@ -1254,6 +1371,7 @@
   }
 
   function bindSalesPage() {
+    ensureKreezbyPrintSheet();
     ensureSalesTheme();
     bindSalesDetailButtons();
     initSalesViewSwitch();

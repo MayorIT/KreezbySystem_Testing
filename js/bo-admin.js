@@ -174,6 +174,8 @@
             if (footer) {
                 footer.querySelectorAll('button').forEach(function (btn) {
                     var label = (btn.textContent || '').toLowerCase();
+                    btn.type = 'button';
+                    btn.removeAttribute('onclick');
                     if (label.indexOf('print') >= 0) btn.id = 'bo-details-print-btn';
                     if (label.indexOf('edit') >= 0) btn.id = 'bo-details-edit-btn';
                     if (label.indexOf('back') >= 0) btn.id = 'bo-details-back-btn';
@@ -706,20 +708,93 @@
         showToast('Status updated to ' + meta.label + '.');
     }
 
+    function ensureKreezbyPrintSheet() {
+        if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var url = scripts[i].getAttribute('src') || '';
+            if (/bo-admin\.js/i.test(url)) {
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                break;
+            }
+        }
+        var tag = document.createElement('script');
+        tag.id = 'kreezby-print-sheet-js';
+        tag.src = src;
+        document.head.appendChild(tag);
+    }
+
+    function whenKreezbyPrintSheet(done) {
+        if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+        ensureKreezbyPrintSheet();
+        var node = document.getElementById('kreezby-print-sheet-js');
+        if (!node) { done(null); return; }
+        var settled = false;
+        var finish = function (sheet) {
+            if (settled) return;
+            settled = true;
+            done(sheet || null);
+        };
+        node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+        node.addEventListener('error', function () { finish(null); });
+        setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+    }
+
+    function formatPrintQty(n) {
+        var num = Number(n || 0);
+        if (!isFinite(num)) return '0';
+        if (Math.abs(num - Math.round(num)) < 0.001) return String(Math.round(num));
+        return formatMoney(num);
+    }
+
     function printReport(boCode) {
         var order = BO_ORDERS[boCode];
         if (!order) return;
-        var root = document.getElementById('bo-print-root');
-        if (!root) return;
-        root.innerHTML = '<div class="bo-receipt-sheet"><h1>Kreezby Bakeshop</h1><h2>Back Order Report</h2>' +
-            '<p><strong>Back Order:</strong> ' + order.code + '</p>' +
-            '<p><strong>P.O. Code:</strong> ' + order.poCode + '</p>' +
-            '<p><strong>Status:</strong> ' + order.status + '</p>' +
-            '<p><strong>Remarks:</strong> ' + (order.remarks || '') + '</p>' +
-            '<p>Printed ' + new Date().toLocaleString() + '</p></div>';
-        document.body.classList.add('bo-printing');
-        window.print();
-        setTimeout(function () { document.body.classList.remove('bo-printing'); root.innerHTML = ''; }, 500);
+        whenKreezbyPrintSheet(function (sheet) {
+            if (!sheet) return;
+            var total = boTotal(order);
+            var backQty = (order.items || []).reduce(function (sum, it) { return sum + (Number(it.backOrder) || 0); }, 0);
+            var status = statusMeta(order.statusClass);
+            sheet.print({
+                title: 'Back Order Report',
+                docNo: order.code,
+                status: status.label || order.status,
+                totalLabel: 'Back order total',
+                totalValue: '₱' + formatMoney(total),
+                facts: [
+                    { label: 'Account', value: accountLabel(order) },
+                    { label: 'Party', value: order.entity },
+                    { label: 'P.O. code', value: order.poCode },
+                    { label: 'Date created', value: order.dateCreated },
+                    { label: 'Supplier', value: order.supplier || SUPPLIER_LABEL },
+                    { label: 'Expected delivery', value: order.expectedDelivery },
+                    { label: 'Back ordered qty', value: formatPrintQty(backQty) }
+                ],
+                note: { label: 'Remarks', text: order.remarks },
+                columns: [
+                    { label: 'Item' },
+                    { label: 'Unit' },
+                    { label: 'Ordered', align: 'right' },
+                    { label: 'Received', align: 'right' },
+                    { label: 'Back order', align: 'right' },
+                    { label: 'Unit cost', align: 'right' },
+                    { label: 'Total', align: 'right' }
+                ],
+                rows: (order.items || []).map(function (it) {
+                    return [
+                        { text: it.name, sub: it.note },
+                        it.unit,
+                        formatPrintQty(it.ordered),
+                        formatPrintQty(it.received),
+                        formatPrintQty(it.backOrder),
+                        '₱' + formatMoney(it.cost),
+                        '₱' + formatMoney(it.total)
+                    ];
+                }),
+                signs: ['Prepared by', 'Received by']
+            });
+        });
     }
 
     function esc(value) {
@@ -920,6 +995,7 @@
         if (PAGE_MODE === 'retailer') setupRetailerPage();
         else setupAdminPage();
         injectPrintStyles();
+        ensureKreezbyPrintSheet();
         loadData();
         refreshTables();
         bindEvents();

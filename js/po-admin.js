@@ -143,6 +143,8 @@
             if (footer) {
                 footer.querySelectorAll('button').forEach(function (btn) {
                     var label = (btn.textContent || '').toLowerCase();
+                    btn.type = 'button';
+                    btn.removeAttribute('onclick');
                     if (label.indexOf('print') >= 0) btn.id = 'po-details-print-btn';
                     if (label.indexOf('edit') >= 0) btn.id = 'po-details-edit-btn';
                     if (label.indexOf('back') >= 0) btn.id = 'po-details-back-btn';
@@ -1852,34 +1854,101 @@
             '.po-receipt-foot{margin:18px 0 0;font-size:12px;text-align:center}';
     }
 
+    function ensureKreezbyPrintSheet() {
+        if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var url = scripts[i].getAttribute('src') || '';
+            if (/po-admin\.js/i.test(url)) {
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                break;
+            }
+        }
+        var tag = document.createElement('script');
+        tag.id = 'kreezby-print-sheet-js';
+        tag.src = src;
+        document.head.appendChild(tag);
+    }
+
+    function whenKreezbyPrintSheet(done) {
+        if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+        ensureKreezbyPrintSheet();
+        var node = document.getElementById('kreezby-print-sheet-js');
+        if (!node) { done(null); return; }
+        var settled = false;
+        var finish = function (sheet) {
+            if (settled) return;
+            settled = true;
+            done(sheet || null);
+        };
+        node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+        node.addEventListener('error', function () { finish(null); });
+        setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+    }
+
+    function printPayLine(on, label) {
+        return '<p><span class="ksheet-box">' + (on ? 'X' : '') + '</span> ' + label + '</p>';
+    }
+
     function printReceipt(poCode) {
         var order = PO_ORDERS[poCode];
         if (!order) return;
-        var frame = document.getElementById('po-print-frame');
-        if (!frame) {
-            frame = document.createElement('iframe');
-            frame.id = 'po-print-frame';
-            frame.setAttribute('aria-hidden', 'true');
-            frame.style.cssText = 'position:fixed;left:0;top:-10000px;width:210mm;height:297mm;border:0;';
-            document.body.appendChild(frame);
-        }
-        var doc = frame.contentWindow.document;
-        doc.open();
-        doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales Receipt</title><style>' +
-            receiptPrintCss() + '</style></head><body>' + buildPrintReceiptHtml(order) + '</body></html>');
-        doc.close();
-        var win = frame.contentWindow;
-        var logo = doc.querySelector('.po-receipt-logo');
-        var go = function () {
-            win.focus();
-            win.print();
-        };
-        if (logo && !logo.complete) {
-            logo.addEventListener('load', function () { setTimeout(go, 40); }, { once: true });
-            logo.addEventListener('error', function () { setTimeout(go, 40); }, { once: true });
-        } else {
-            setTimeout(go, 80);
-        }
+        whenKreezbyPrintSheet(function (sheet) {
+            if (!sheet) return;
+            var subtotal = orderTotal(order);
+            var tax = Number(order.tax) || 0;
+            var total = subtotal + tax;
+            var pay = receiptPayMarks(order);
+            var payHtml = '<div class="ksheet-extra ksheet-pay"><p class="ksheet-pay-title">Sale made with</p>' +
+                (order.entityType === 'retailer'
+                    ? printPayLine(pay.consignment, 'Consignment') +
+                        printPayLine(pay.cod, 'Cash on delivery') +
+                        printPayLine(pay.check, 'Check' + (pay.checkNo ? ', No. ' + sheet.esc(pay.checkNo) : ''))
+                    : printPayLine(pay.cash, 'Cash') +
+                        printPayLine(pay.gcash, 'GCash') +
+                        printPayLine(pay.check, 'Check' + (pay.checkNo ? ', No. ' + sheet.esc(pay.checkNo) : '')) +
+                        printPayLine(pay.other, 'Other' + (pay.otherText ? ' — ' + sheet.esc(pay.otherText) : ''))) +
+                '</div>';
+            var paymentNote = '';
+            if (order.paymongo && order.paymongo.paymentIntentId) paymentNote = 'PayMongo ' + order.paymongo.paymentIntentId;
+            else if (order.entityType !== 'retailer') {
+                var snap = customerPaymentSnapshot(order);
+                if (snap && snap.reference) paymentNote = 'GCash ref ' + snap.reference;
+            }
+            sheet.print({
+                title: 'Sales Receipt',
+                docNo: order.code,
+                status: (order.status || '').toUpperCase(),
+                totalLabel: 'Total',
+                totalValue: '₱' + formatMoney(total),
+                facts: [
+                    { label: 'Sold to', value: order.entity },
+                    { label: 'Account', value: order.entityType === 'customer' ? 'Customer' : 'Retailer' },
+                    { label: 'Date', value: formatReceiptWhen(order.dateCreated) },
+                    { label: 'Subtotal', value: '₱' + formatMoney(subtotal) },
+                    { label: 'Tax', value: '₱' + formatMoney(tax) },
+                    { label: 'Payment', value: paymentNote }
+                ],
+                note: { label: 'Remarks', text: order.remarks },
+                columns: [
+                    { label: 'Qty', align: 'right' },
+                    { label: 'Description' },
+                    { label: 'Price', align: 'right' },
+                    { label: 'Amount', align: 'right' }
+                ],
+                rows: (order.items || []).map(function (it) {
+                    return [
+                        formatQty(it.qty),
+                        { text: it.name, sub: it.note },
+                        '₱' + formatMoney(it.cost),
+                        '₱' + formatMoney(it.total)
+                    ];
+                }),
+                extraHtml: payHtml,
+                signs: ['Sold by', 'Received by']
+            });
+        });
     }
 
     function switchTab(tabName) {
@@ -2360,6 +2429,7 @@
         }
         setupRetailerPage();
         injectPrintStyles();
+        ensureKreezbyPrintSheet();
         loadData();
         refreshTables();
         attachDatabaseProcurement();
