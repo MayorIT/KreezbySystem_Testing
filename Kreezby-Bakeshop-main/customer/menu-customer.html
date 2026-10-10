@@ -8,7 +8,7 @@
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">
     <title>Kreezby Crinkles - Menu</title>
-    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010feedback3">
+    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010blur">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010feedback">
@@ -25,6 +25,12 @@
             <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
         </a>
         <nav class="nav-actions" aria-label="Customer account">
+            <a class="nav-btn" data-nav="home" href="customer.html">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+                </span>
+                <span class="nav-btn__label">Home</span>
+            </a>
             <button class="nav-btn notifications-trigger-btn" data-nav="favorites" onclick="openModal('favorites-modal')">
                 <span class="nav-btn__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>
@@ -38,12 +44,6 @@
                 </span>
                 <span class="nav-btn__label">Order Notification</span>
                 <span class="notifications-trigger-badge" id="orders-trigger-badge" hidden>0</span>
-            </button>
-            <button class="nav-btn" type="button" data-nav="feedback" onclick="openModal('feedback-modal')" aria-label="Customer Feedback">
-                <span class="nav-btn__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6L22 9.3l-5 4.4 1.5 6.8L12 17.3 5.5 20.5 7 13.7 2 9.3l7.1-.7L12 2z"/></svg>
-                </span>
-                <span class="nav-btn__label">Feedback</span>
             </button>
             <button class="nav-btn profile-trigger-btn" data-nav="profile" onclick="openModal('profile-settings-modal')">
                 <span class="nav-btn__icon" aria-hidden="true">
@@ -888,10 +888,12 @@
             document.body.classList.toggle('cart-sidebar-open', Boolean(shouldOpen));
             if (shouldOpen) {
                 closeCustomerDropdown();
-                document.getElementById('global-modal-overlay-context').classList.remove('active');
-                setActiveHeaderNav(null);
+                document.querySelectorAll('.modal-box').forEach((box) => box.classList.remove('active'));
+                document.getElementById('global-modal-overlay-context').classList.add('active');
+                setActiveHeaderNav('cart');
                 pulseHeaderNav('cart');
-            } else if (!document.getElementById('global-modal-overlay-context').classList.contains('active')) {
+            } else if (!document.querySelector('.modal-box.active')) {
+                document.getElementById('global-modal-overlay-context').classList.remove('active');
                 setActiveHeaderNav(null);
             }
         }
@@ -1068,6 +1070,7 @@
 
         function closeAllSystemModals(event) {
             if (event.target.id === 'global-modal-overlay-context') {
+                setCartSidebarOpen(false);
                 closeCurrentModal();
             }
         }

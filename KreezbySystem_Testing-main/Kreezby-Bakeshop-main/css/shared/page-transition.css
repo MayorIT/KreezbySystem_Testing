@@ -1,0 +1,75 @@
+/* Smooth navigation (browser-native) + click feedback — no JS link interception */
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.22s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+    background-color: #f4f6f9;
+}
+
+a,
+.kreezby-sidebar-nav-item,
+.stat-card,
+.top-nav-item {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+.btn-call-to-action,
+.btn-submit-pill,
+.checkout-btn,
+.auth-btn,
+.payment-method-selector__item,
+.payment-method-selector__action,
+.stat-card,
+.kreezby-sidebar-nav-item,
+.top-nav-item,
+.notification-popover-btn,
+.hamburger-toggle,
+.user-dropdown-pill,
+.back-btn {
+    transition:
+        transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        color 0.2s ease,
+        opacity 0.2s ease;
+}
+
+button:active:not(:disabled):not(.expanding-tab):not(.expandable-nav-tab):not(.po-order-tab):not(.bo-order-tab):not(.auth-tab),
+[role="button"]:active:not(:disabled):not(.expanding-tab):not(.expandable-nav-tab):not(.po-order-tab):not(.bo-order-tab):not(.auth-tab),
+.btn-call-to-action:active,
+.btn-submit-pill:active,
+.checkout-btn:active:not(:disabled),
+.auth-btn:active,
+.stat-card:active,
+.kreezby-sidebar-nav-item:active,
+.top-nav-item:active,
+.notification-popover-btn:active,
+.hamburger-toggle:active,
+.user-dropdown-pill:active,
+.back-btn:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+
+    button:active:not(:disabled),
+    [role="button"]:active:not(:disabled),
+    .stat-card:active,
+    .kreezby-sidebar-nav-item:active {
+        transform: none;
+    }
+}

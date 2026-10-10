@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Crinkles - Browse Our Selection</title>
+    <link rel="stylesheet" href="../css/pages/customer/customer_guest.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
+    <link rel="stylesheet" href="../css/shared/testimonial.css">
+    <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
+    <link rel="stylesheet" href="../css/pages/customer/coverflow-home.css?v=20261009ube">
+</head>
+<body>
+
+    <a class="skip-link" href="menu-guest.html">Skip to catalog</a>
+
+    <header class="site-header">
+        <a href="../auth/start.html" class="logo-area">
+            <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        </a>
+    </header>
+
+    <section id="coverflow-home" class="coverflow-home" data-menu="menu-guest.html" aria-label="Featured Kreezby flavors"></section>
+
+    <div class="main-layout">
+        <main class="content-workspace" id="guest-main">
+            <section class="guest-hero" aria-labelledby="guest-hero-title">
+                <div class="guest-hero__copy">
+                    <p class="guest-hero__eyebrow">Guest preview</p>
+                    <h1 class="guest-hero__title" id="guest-hero-title">Browse our fresh crinkles</h1>
+                    <p class="guest-hero__text">Look through every flavor in the collection. Log in or create an account when you are ready to place an order.</p>
+                </div>
+                <div class="guest-hero__actions">
+                    <a href="../auth/log_in.html" class="banner-btn banner-btn-secondary">Log In</a>
+                    <a href="../auth/sign_up.html" class="banner-btn banner-btn-primary">Create Account</a>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="../js/customer-shop-cards.js?v=20261010catalog"></script>
+    <script src="../js/coverflow-home.js?v=20261009ube"></script>
+    <script>
+        const productFlavorsCatalog = [
+            { id: "flavor-choc", name: "Chocolate Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/chocolate.jpg" },
+            { id: "flavor-almond", name: "Choco-Almond Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/choco-almond.jpg" },
+            { id: "flavor-cashew", name: "Choco-Cashew Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/choco-cashew.jpg" },
+            { id: "flavor-straw", name: "Strawberry Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/strawberry.jpg" },
+            { id: "flavor-velvet", name: "Red Velvet Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/redvelvet.jpg" },
+            { id: "flavor-lemon", name: "Lemon Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/lemon.jpg" },
+            { id: "flavor-melon", name: "Melon Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/melon.jpg" },
+            { id: "flavor-pandan", name: "Pandan Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/pandan.jpg" },
+            { id: "flavor-ube", name: "Ube Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/ube.jpg" },
+            { id: "flavor-assorted", name: "Assorted Crinkles", variant: "Pouch (250g)", cost: 165, img: "flavors/assorted.jpg" },
+            { id: "flavor-mango", name: "Mango Crinkles", variant: "Jar (250g Container)", cost: 165, img: "flavors/mango.jpg" },
+            { id: "flavor-butternut", name: "Choco Butternut Crinkles", variant: "Jar (250g Container)", cost: 200, img: "flavors/chocobutternut.jpg" }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.KreezbyCoverflow) {
+                window.KreezbyCoverflow.mount(document.getElementById('coverflow-home'));
+            }
+            KreezbyFlavorCards.render(productFlavorsCatalog, 'shop-menu-container', { guest: true });
+        });
+    </script>
+    <script src="../js/customer-phone-shop.js?v=20261009acct"></script>
+</body>
+</html>

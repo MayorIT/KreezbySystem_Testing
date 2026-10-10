@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta name="turbo-visit-control" content="reload">
+    <meta name="turbo-cache-control" content="no-cache">
+    <title>Kreezby Crinkles - Menu</title>
+    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010feedback3">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
+    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010feedback">
+    <link rel="stylesheet" href="../css/shared/order-stepper.css">
+    <link rel="stylesheet" href="../css/shared/order-tracking.css">
+    <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
+
+    
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="customer.html" class="logo-area">
+            <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        </a>
+        <nav class="nav-actions" aria-label="Customer account">
+            <button class="nav-btn notifications-trigger-btn" data-nav="favorites" onclick="openModal('favorites-modal')">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>
+                </span>
+                <span class="nav-btn__label">Favorites</span>
+                <span class="notifications-trigger-badge" id="favorites-trigger-badge" hidden>0</span>
+            </button>
+            <button class="nav-btn orders-trigger-btn" data-nav="orders" onclick="openModal('orders-tracker-modal')" aria-label="Order Notification">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 22a2.2 2.2 0 0 0 2.2-2.2H9.8A2.2 2.2 0 0 0 12 22zm7-5.5V11a7 7 0 1 0-14 0v5.5L3 18v1h18v-1l-2-1.5z"/></svg>
+                </span>
+                <span class="nav-btn__label">Order Notification</span>
+                <span class="notifications-trigger-badge" id="orders-trigger-badge" hidden>0</span>
+            </button>
+            <button class="nav-btn" type="button" data-nav="feedback" onclick="openModal('feedback-modal')" aria-label="Customer Feedback">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6L22 9.3l-5 4.4 1.5 6.8L12 17.3 5.5 20.5 7 13.7 2 9.3l7.1-.7L12 2z"/></svg>
+                </span>
+                <span class="nav-btn__label">Feedback</span>
+            </button>
+            <button class="nav-btn profile-trigger-btn" data-nav="profile" onclick="openModal('profile-settings-modal')">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12zm0 2.2c-3.5 0-8.2 1.7-8.2 5.1V21h16.4v-1.7c0-3.4-4.7-5.1-8.2-5.1z"/></svg>
+                </span>
+                <span class="nav-btn__label">My Profile</span>
+            </button>
+            <button class="nav-btn cart-toggle-btn" data-nav="cart" onclick="toggleCartSidebar()" aria-label="Cart">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1.5 13H5.5L4 7h3zm2 0h6V6a3 3 0 0 0-6 0v1z"/></svg>
+                </span>
+                <span class="nav-btn__label">Cart</span>
+                <span class="notifications-trigger-badge" id="global-cart-count" hidden>0</span>
+            </button>
+            <div class="user-dropdown-wrapper">
+                <button class="nav-btn" type="button" id="user-dropdown-trigger" data-nav="customer">
+                    <span class="nav-btn__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 12.2a7.2 7.2 0 0 1-5.4-2.4 5.5 5.5 0 0 1 10.8 0A7.2 7.2 0 0 1 12 19.2z"/></svg>
+                    </span>
+                    <span class="nav-btn__label">Customer</span>
+                    <span class="nav-btn__caret" aria-hidden="true">▾</span>
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="inbox-customer.html" class="dropdown-item">Help Center</a>
+                    <a href="report_issue-customer.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="pricing-banner" role="note">
+        <span class="pricing-banner__label">Simple pricing</span>
+        <div class="pricing-chips">
+            <span class="pricing-chip">₱165 standard pouches</span>
+            <span class="pricing-chip pricing-chip--specialty">₱200 Choco Butternut jars</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="content-workspace">
+            <section class="catalog-section" aria-labelledby="catalog-heading">
+            <div class="section-heading">
+                <h2 class="menu-section-title" id="catalog-heading">Explore Our Fresh Crinkles</h2>
+                <p class="section-heading__hint">Pouches for everyday favorites, jars for sharing and gifts.</p>
+            </div>
+            
+            <div id="shop-menu-container"></div>
+            </section>
+        </div>
+
+        <div class="cart-sidebar" id="interactive-cart-sidebar">
+            <div class="cart-header">
+                <div class="cart-header-copy">
+                    <span class="cart-title">My Cart Orders</span>
+                    <span class="cart-subtitle">Review items before checkout.</span>
+                    <span class="cart-header-pill" id="cart-panel-count-pill">0 items</span>
+                </div>
+                <button class="cart-close-btn" type="button" onclick="toggleCartSidebar()">✕ Close</button>
+            </div>
+            
+            <div class="cart-items-container" id="cart-rows-injector">
+                </div>
+
+            <div class="cart-footer">
+                <div class="summary-line">
+                    <span>Total Item/s:</span>
+                    <span id="summary-items-count">0</span>
+                </div>
+                <div class="summary-line summary-total">
+                    <span>Total Bill Amount:</span>
+                    <span id="summary-bill-total">₱0.00</span>
+                </div>
+                <button class="checkout-btn" onclick="processCartCheckoutSubmission()">Proceed To Checkout</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="global-modal-overlay-context" onclick="closeAllSystemModals(event)">
+        
+        <div class="modal-box" id="profile-settings-modal">
+            <div class="modal-header">
+                <h2>Account Settings</h2>
+                <button class="nav-btn" onclick="closeCurrentModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-tabs">
+                    <div class="tab-link active" role="button" tabindex="0" onclick="switchModalSubTab(this, 'profile-tab')">Profile Information</div>
+                    <div class="tab-link" role="button" tabindex="0" onclick="switchModalSubTab(this, 'addresses-tab')">Addresses</div>
+                    <div class="tab-link" role="button" tabindex="0" onclick="switchModalSubTab(this, 'security-tab')">Change Password</div>
+                </div>
+
+                <div class="tab-content-panel active" id="profile-tab">
+                    <div id="profile-status-pane" class="profile-status-pane">
+                        <div class="profile-status-header">
+                            <div class="avatar-preview-box" id="profile-status-avatar"></div>
+                            <div class="profile-status-id">
+                                <h3 id="profile-status-full-name">-</h3>
+                                <p id="profile-status-username">@-</p>
+                            </div>
+                        </div>
+                        <div class="profile-status-grid">
+                            <div class="status-field">
+                                <span>Contact Number</span>
+                                <strong id="profile-status-contact">-</strong>
+                            </div>
+                            <div class="status-field">
+                                <span>Email Address</span>
+                                <strong id="profile-status-email">-</strong>
+                            </div>
+                            <div class="status-field status-field-wide">
+                                <span>Default Shipping Address</span>
+                                <strong id="profile-status-address">-</strong>
+                            </div>
+                        </div>
+                        <div class="profile-status-actions">
+                            <button class="btn-action-primary" type="button" onclick="switchProfileEditMode('edit')">Edit Profile Information</button>
+                        </div>
+                    </div>
+
+                    <div id="profile-edit-pane" style="display:none;">
+                        <div class="profile-row">
+                            <div class="profile-inputs-pane">
+                                <div class="form-control-group">
+                                    <label>Username</label>
+                                    <input type="text" id="profile-username" value="bryle_atienza" disabled>
+                                    <small style="color:var(--text-muted); font-size:11px;">Usernames can only be updated once.</small>
+                                </div>
+                                <div class="form-control-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="profile-full-name" value="Bryle Atienza">
+                                </div>
+                                <div class="form-control-group">
+                                    <label>Contact Number</label>
+                                    <input type="text" id="profile-contact-number" placeholder="09123456789">
+                                </div>
+                                <div class="form-control-group">
+                                    <label>Email Address</label>
+                                    <input type="text" id="profile-email" value="br***********@gmail.com">
+                                </div>
+                                <div class="form-control-group">
+                                    <label>Default Shipping Address</label>
+                                    <textarea id="profile-default-address" rows="3" placeholder="House No., Street, Barangay, City"></textarea>
+                                </div>
+                                <p id="profile-save-status" class="settings-status" aria-live="polite"></p>
+                            </div>
+                            <div class="profile-avatar-pane">
+                                <div class="avatar-preview-box" id="profile-avatar-preview"></div>
+                                <input type="file" id="profile-avatar-input" accept="image/*,.heic,.heif" style="display:none;" aria-label="Choose profile photo from gallery">
+                                <button class="nav-btn" style="font-size:12px;" type="button" onclick="triggerAvatarUpload()">Choose From Gallery</button>
+                                <p style="font-size:10px; color:var(--text-muted); margin-top:8px;">Select from your photos gallery. Max: 1 MB.</p>
+                            </div>
+                        </div>
+                        <button class="btn-action-primary" style="margin-top:20px;" type="button" onclick="saveProfileSettings()">Save Profile Parameters</button>
+                    </div>
+                </div>
+
+                <div class="tab-content-panel" id="addresses-tab" style="display:none;">
+                    <div class="address-layout">
+                        <div class="address-editor-card">
+                            <div class="form-control-group">
+                                <label>Address Label</label>
+                                <select id="address-label-select" onchange="updateAddressLabelInputState()">
+                                    <option value="Home">Home</option>
+                                    <option value="Work">Work</option>
+                                    <option value="Office">Office</option>
+                                    <option value="Other">Other (Specify)</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group" id="address-label-other-group" style="display:none;">
+                                <label>Specify Label</label>
+                                <input type="text" id="address-label-other-input" placeholder="e.g. Apartment, Parents House">
+                            </div>
+                            <div class="form-control-group">
+                                <label>Delivery Address</label>
+                                <textarea id="address-line-input" rows="3" placeholder="Full address for delivery"></textarea>
+                            </div>
+                            <button class="btn-action-primary" type="button" onclick="addDeliveryAddress()">+ Add New Delivery Address</button>
+                            <p id="address-save-status" class="settings-status" aria-live="polite"></p>
+                        </div>
+
+                        <div class="address-saved-card">
+                            <h4 class="saved-addresses-title">Saved Delivery Addresses</h4>
+                            <div id="saved-addresses-list" class="saved-addresses-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content-panel" id="security-tab" style="display:none;">
+                    <div class="security-layout">
+                        <div class="security-card">
+                            <div class="form-control-group">
+                                <label>Current Password</label>
+                                <input type="password" id="security-current-password" placeholder="••••••••">
+                            </div>
+                            <div class="form-control-group">
+                                <label>New Password</label>
+                                <input type="password" id="security-new-password" placeholder="At least 6 characters">
+                            </div>
+                            <div class="form-control-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="security-confirm-password" placeholder="Retype your new password">
+                            </div>
+                            <button class="btn-action-primary" style="margin-top:10px;" type="button" onclick="updatePasswordSettings()">Update Password Verification</button>
+                            <p id="security-save-status" class="settings-status" aria-live="polite"></p>
+                        </div>
+
+                        <div class="security-helper-card">
+                            <h4>Password Security Tips</h4>
+                            <ul class="security-tips-list">
+                                <li>Use at least 8 characters when possible.</li>
+                                <li>Use a mix of letters and numbers.</li>
+                                <li>Avoid using your name or birthday.</li>
+                            </ul>
+                            <p class="security-updated-text" id="security-last-updated">Last updated: Never</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-box orders-modal" id="orders-tracker-modal">
+            <div class="modal-header">
+                <div class="orders-modal-header-left">
+                    <button type="button" class="orders-back-btn" id="orders-back-btn" style="display:none;" aria-label="Back to orders">←</button>
+                    <h2 id="orders-modal-title">Order Notification</h2>
+                </div>
+                <button class="nav-btn" onclick="closeCurrentModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="orders-list-view">
+                    <div class="modal-tabs">
+                        <div class="tab-link active" onclick="filterOrders('all', this)">All Orders</div>
+                        <div class="tab-link" onclick="filterOrders('processing', this)">Processing</div>
+                        <div class="tab-link" onclick="filterOrders('shipped', this)">Shipped</div>
+                        <div class="tab-link" onclick="filterOrders('completed', this)">Completed</div>
+                        <div class="tab-link" onclick="filterOrders('to-review', this)">To Review</div>
+                    </div>
+                    <div id="orders-container"></div>
+                </div>
+                <div id="orders-detail-view" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="modal-box notifications-modal" id="favorites-modal">
+            <div class="modal-header notifications-modal-header">
+                <div class="notifications-title-wrap">
+                    <h2>Favorites</h2>
+                    <p>Your saved Kreezby picks in one place.</p>
+                </div>
+                <button class="nav-btn" onclick="closeCurrentModal()">✕</button>
+            </div>
+            <div class="modal-body notifications-modal-body">
+                <div class="notifications-toolbar">
+                    <div class="notifications-filter-group" id="favorites-filter-group">
+                        <button type="button" class="notification-filter-btn active" data-filter="crinkle">Saved Picks</button>
+                    </div>
+                </div>
+
+                <div class="notifications-feed" id="favorites-feed" aria-live="polite"></div>
+            </div>
+        </div>
+
+
+        <div class="modal-box orders-modal feedback-modal" id="feedback-modal">
+            <div class="modal-header">
+                <h2>Customer Feedback</h2>
+                <button class="nav-btn" type="button" onclick="closeCurrentModal()" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="section-heading__hint">Ratings, feedback, and comments from customers.</p>
+                <div class="review-star-filters" role="group" aria-label="Filter reviews by star rating">
+                    <button type="button" class="review-star-filter is-active" data-stars="0" onclick="filterTestimonials(0, this)">All</button>
+                    <button type="button" class="review-star-filter" data-stars="5" onclick="filterTestimonials(5, this)">5 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="4" onclick="filterTestimonials(4, this)">4 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="3" onclick="filterTestimonials(3, this)">3 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="2" onclick="filterTestimonials(2, this)">2 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="1" onclick="filterTestimonials(1, this)">1 Star</button>
+                </div>
+                <p id="testimonials-filter-empty" class="testimonials-filter-empty" hidden>No reviews with that star rating yet.</p>
+                <div class="testimonials-grid" id="customer-testimonials-grid">
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">napakasarp nakakaddict eh...alah eh sinsay mna kau sa kreezby at talagang pagkakasarap😘😘😘</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">J••••• S•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Their fresh milk are the best in the city. Real milk! Real taste!</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">C••••• A•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">super yummy ng krinckles! addictive talaga..🥰🥰</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">A•••• H••••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Ang sarap mo syet 😂</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">E•• S•••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
+    <script src="../js/notification-store.js"></script>
+    <script src="../js/customer-orders.js?v=20261010review"></script>
+    <script src="../js/customer-shop-cards.js?v=20261010catalog"></script>
+    <script src="../js/expanding-tabs.js?v=20260925sm"></script>
+    <script>
+        function toggleCategoryFeedback() {
+            var btn = document.getElementById('category-feedback-btn');
+            var panel = document.getElementById('category-feedback-panel');
+            if (!btn || !panel) return;
+            var open = panel.hasAttribute('hidden');
+            if (open) panel.removeAttribute('hidden');
+            else panel.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.classList.toggle('is-open', open);
+            if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        var CUSTOMER_FEEDBACK_KEY = 'kreezbyCustomerCreatedFeedbackV1';
+
+        function escapeFeedbackText(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function feedbackStarMarkup(count) {
+            var star = '<svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+            var muted = '<svg class="testimonial__star testimonial__star--muted" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+            var html = '';
+            for (var i = 1; i <= 5; i++) html += i <= count ? star : muted;
+            return '<div class="testimonial__stars" aria-label="' + count + ' out of 5 stars">' + html + '</div>';
+        }
+
+        var feedbackStarFilter = 0;
+
+        function filterTestimonials(stars, button) {
+            feedbackStarFilter = Number(stars) || 0;
+            document.querySelectorAll('.review-star-filter').forEach(function (filterButton) {
+                filterButton.classList.toggle('is-active', filterButton === button);
+            });
+            var grid = document.getElementById('customer-testimonials-grid');
+            var empty = document.getElementById('testimonials-filter-empty');
+            var visible = 0;
+            if (grid) {
+                grid.querySelectorAll('.testimonial').forEach(function (card) {
+                    var rating = Number(card.getAttribute('data-rating') || 5);
+                    var show = !feedbackStarFilter || rating === feedbackStarFilter;
+                    card.hidden = !show;
+                    if (show) visible += 1;
+                });
+            }
+            if (empty) empty.hidden = visible > 0;
+        }
+
+        function publishFeedbackCard(entry) {
+            var grid = document.getElementById('customer-testimonials-grid');
+            if (!grid || !entry) return;
+            var wrap = document.createElement('div');
+            wrap.innerHTML = feedbackCardMarkup(entry);
+            var card = wrap.firstChild;
+            grid.insertBefore(card, grid.firstChild);
+            var allButton = document.querySelector('.review-star-filter[data-stars="0"]');
+            filterTestimonials(0, allButton);
+            if (typeof openModal === 'function') openModal('feedback-modal');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function feedbackCardMarkup(entry) {
+            return '<article class="testimonial" data-rating="' + Number(entry.rating || 5) + '" data-created-feedback="1">' +
+                '<span class="testimonial__quote-mark" aria-hidden="true">"</span>' +
+                '<div class="testimonial__body">' +
+                    feedbackStarMarkup(entry.rating) +
+                    '<p class="testimonial__text">' + escapeFeedbackText(entry.comment) + '</p>' +
+                    '<div class="testimonial__author">' +
+                        '<div class="testimonial__avatar" aria-hidden="true">•</div>' +
+                        '<div>' +
+                            '<h3 class="testimonial__name">' + escapeFeedbackText(entry.name) + '</h3>' +
+                            '<p class="testimonial__role">Customer @ Kreezby Philippines</p>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</article>';
+        }
+
+        function readCreatedFeedback() {
+            try {
+                var saved = JSON.parse(localStorage.getItem(CUSTOMER_FEEDBACK_KEY) || '[]');
+                return Array.isArray(saved) ? saved : [];
+            } catch (err) {
+                return [];
+            }
+        }
+
+        function renderCreatedFeedback() {
+            var grid = document.getElementById('customer-testimonials-grid');
+            if (!grid || grid.querySelector('[data-created-feedback]')) return;
+            var items = readCreatedFeedback();
+            if (!items.length) return;
+            for (var i = items.length - 1; i >= 0; i--) {
+                var wrap = document.createElement('div');
+                wrap.innerHTML = feedbackCardMarkup(items[i]);
+                var card = wrap.firstChild;
+                grid.insertBefore(card, grid.firstChild);
+            }
+        }
+
+        renderCreatedFeedback();
+        document.addEventListener('kreezby:customer-feedback', function (event) {
+            publishFeedbackCard(event.detail);
+        });
+
+        // System Data Matrix Catalog Initialization Structures 
+        const productFlavorsCatalog = [
+            { id: "flavor-choc", name: "Chocolate Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/chocolate.jpg" },
+            { id: "flavor-almond", name: "Choco-Almond Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/choco-almond.jpg" },
+            { id: "flavor-cashew", name: "Choco-Cashew Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/choco-cashew.jpg" },
+            { id: "flavor-straw", name: "Strawberry Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/strawberry.jpg" },
+            { id: "flavor-velvet", name: "Red Velvet Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/redvelvet.jpg" },
+            { id: "flavor-lemon", name: "Lemon Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/lemon.jpg" },
+            { id: "flavor-melon", name: "Melon Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/melon.jpg" },
+            { id: "flavor-pandan", name: "Pandan Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/pandan.jpg" },
+            { id: "flavor-ube", name: "Ube Crinkles", variant: "Pouch (8 Pcs)", cost: 165, img: "flavors/ube.jpg" },
+            { id: "flavor-assorted", name: "Assorted Crinkles", variant: "Pouch (250g)", cost: 165, img: "flavors/assorted.jpg" },
+            { id: "flavor-mango", name: "Mango Crinkles", variant: "Jar (250g Container)", cost: 165, img: "flavors/mango.jpg" },
+            { id: "flavor-butternut", name: "Choco Butternut Crinkles", variant: "Jar (250g Container)", cost: 200, img: "flavors/chocobutternut.jpg" }
+        ];
+
+        const FAVORITES_STORAGE_KEY = 'kreezbyCustomerFavoritesV1';
+        let activeFavoritesFilter = 'crinkle';
+        let shoppingCartStateMap = {};
+
+        function readFavoriteProductIds() {
+            const stored = safelyReadJson(FAVORITES_STORAGE_KEY, []);
+            return Array.isArray(stored) ? stored.filter(Boolean) : [];
+        }
+
+        function writeFavoriteProductIds(ids) {
+            safelyWriteJson(FAVORITES_STORAGE_KEY, ids);
+        }
+
+        function updateFavoritesTriggerState() {
+            const badge = document.getElementById('favorites-trigger-badge');
+            const trigger = document.querySelector('.notifications-trigger-btn');
+            const count = readFavoriteProductIds().length;
+            if (badge) {
+                badge.hidden = count <= 0;
+                badge.textContent = String(count);
+            }
+            if (trigger) {
+                trigger.setAttribute('aria-label', count > 0 ? 'Favorites, ' + count + ' saved items' : 'Favorites');
+            }
+        }
+
+        function getFavoriteProducts() {
+            return readFavoriteProductIds()
+                .map((id) => productFlavorsCatalog.find((item) => item.id === id))
+                .filter(Boolean);
+        }
+
+        function isFavoriteProduct(prodId) {
+            return readFavoriteProductIds().includes(prodId);
+        }
+
+        function renderCatalogCards() {
+            if (!window.KreezbyFlavorCards || typeof window.KreezbyFlavorCards.render !== 'function') return;
+            window.KreezbyFlavorCards.render(productFlavorsCatalog, 'shop-menu-container');
+        }
+
+        function bootCustomerShop() {
+            try { renderCatalogCards(); } catch (err) {}
+            try { updateFavoritesTriggerState(); } catch (err) {}
+            try { loadPersistedCart(); } catch (err) {}
+            try {
+                if (typeof refreshGlobalCartInterfaceState === 'function') {
+                    refreshGlobalCartInterfaceState();
+                }
+            } catch (err) {}
+            try {
+                if (window.KreezbyCustomerOrders) {
+                    if (typeof window.KreezbyCustomerOrders.refreshTrigger === 'function') {
+                        window.KreezbyCustomerOrders.refreshTrigger();
+                    }
+                    if (typeof window.KreezbyCustomerOrders.renderOrders === 'function') {
+                        window.KreezbyCustomerOrders.renderOrders('all');
+                    }
+                }
+            } catch (err) {}
+            try { openOrdersIfReturningFromCheckout(); } catch (err) {}
+        }
+
+        renderCatalogCards();
+
+        function openOrdersIfReturningFromCheckout() {
+            try {
+                if (localStorage.getItem('kreezbyOpenOrdersAfterCheckout') !== '1') return;
+                localStorage.removeItem('kreezbyOpenOrdersAfterCheckout');
+            } catch (err) {
+                return;
+            }
+            if (typeof openModal === 'function') {
+                openModal('orders-tracker-modal');
+            }
+        }
+
+        function favoriteCategoryOf() {
+            return 'crinkle';
+        }
+
+        function filterFavoriteProducts(products) {
+            if (activeFavoritesFilter !== 'crinkle' && activeFavoritesFilter !== 'jar') {
+                activeFavoritesFilter = 'crinkle';
+            }
+            return products.filter((product) => favoriteCategoryOf(product) === activeFavoritesFilter);
+        }
+
+        function setFavoritesFilter(filterName) {
+            activeFavoritesFilter = filterName;
+            const group = document.getElementById('favorites-filter-group');
+            if (group) {
+                group.querySelectorAll('.notification-filter-btn').forEach((btn) => {
+                    const isActive = btn.dataset.filter === filterName;
+                    btn.classList.toggle('active', isActive);
+                });
+            }
+            renderFavoritesPanel();
+        }
+
+        function bindFavoritesFilterTabs() {
+            const group = document.getElementById('favorites-filter-group');
+            if (!group || group.dataset.bound === '1') return;
+            group.dataset.bound = '1';
+
+            group.querySelectorAll('.notification-filter-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    setFavoritesFilter(btn.dataset.filter || 'crinkle');
+                });
+            });
+        }
+
+        function favoriteCardMarkup(product) {
+            return `
+                <article class="notification-log-item type-information favorite-log-item" data-favorite-product-id="${product.id}">
+                    <div class="favorite-card-media-wrap">
+                        <img class="favorite-card-media" src="${product.img}" alt="${product.name}" loading="lazy">
+                    </div>
+                    <div class="notification-log-header favorite-card-header">
+                        <div class="notification-log-title-wrap favorite-card-title-wrap">
+                            <span class="notification-log-pill">${activeFavoritesFilter === 'jar' ? 'jar special' : 'crinkle picks'}</span>
+                            <h3 class="notification-log-title">${product.name}</h3>
+                        </div>
+                        <time class="notification-log-time">₱${product.cost.toFixed(2)}</time>
+                    </div>
+                    <p class="notification-log-message">Ready for reorder anytime from your Favorites.</p>
+                    <div class="notification-log-footer">
+                        <span class="notification-log-source">${product.variant}</span>
+                        <button type="button" class="notification-log-read-btn" onclick="commitItemToCartState('${product.id}')">Reorder now</button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderFavoritesPanel(focusProductId) {
+            const feed = document.getElementById('favorites-feed');
+            if (!feed) return;
+
+            const products = filterFavoriteProducts(getFavoriteProducts());
+            updateFavoritesTriggerState();
+            if (!products.length) {
+                feed.innerHTML = '<div class="notification-empty-state"><strong>No saved orders in this tab</strong><span>Tap the heart icon beside any price to save an order for fast reorder.</span></div>';
+                return;
+            }
+
+            feed.innerHTML = products.map((product) => favoriteCardMarkup(product)).join('');
+
+            if (focusProductId) {
+                const favoriteCard = feed.querySelector('[data-favorite-product-id="' + focusProductId + '"]');
+                if (favoriteCard) {
+                    favoriteCard.classList.add('favorite-log-item--incoming');
+                    favoriteCard.addEventListener('animationend', () => {
+                        favoriteCard.classList.remove('favorite-log-item--incoming');
+                    }, { once: true });
+                }
+            }
+        }
+
+        function pulseFavoritesTrigger() {
+            const trigger = document.querySelector('.notifications-trigger-btn');
+            if (!trigger) return;
+            trigger.classList.remove('favorites-trigger--pulse');
+            void trigger.offsetWidth;
+            trigger.classList.add('favorites-trigger--pulse');
+        }
+
+        function animateFavoriteFlight(triggerButton) {
+            const destination = document.querySelector('.notifications-trigger-btn');
+            if (!triggerButton || !destination || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return Promise.resolve();
+            }
+
+            const sourceRect = triggerButton.getBoundingClientRect();
+            const destinationRect = destination.getBoundingClientRect();
+            const flyer = document.createElement('div');
+            flyer.className = 'favorite-flight-heart';
+            flyer.innerHTML = '♥';
+            flyer.style.left = sourceRect.left + sourceRect.width / 2 - 16 + 'px';
+            flyer.style.top = sourceRect.top + sourceRect.height / 2 - 16 + 'px';
+            document.body.appendChild(flyer);
+
+            const trail = document.createElement('div');
+            trail.className = 'favorite-flight-trail';
+            trail.style.left = sourceRect.left + sourceRect.width / 2 - 6 + 'px';
+            trail.style.top = sourceRect.top + sourceRect.height / 2 - 6 + 'px';
+            document.body.appendChild(trail);
+
+            const deltaX = destinationRect.left + destinationRect.width / 2 - (sourceRect.left + sourceRect.width / 2);
+            const deltaY = destinationRect.top + destinationRect.height / 2 - (sourceRect.top + sourceRect.height / 2);
+
+            const animation = flyer.animate([
+                {
+                    transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)',
+                    opacity: 0.96
+                },
+                {
+                    transform: 'translate3d(' + Math.round(deltaX * 0.38) + 'px, ' + Math.round(deltaY - 58) + 'px, 0) scale(1.15) rotate(-10deg)',
+                    opacity: 1,
+                    offset: 0.46
+                },
+                {
+                    transform: 'translate3d(' + Math.round(deltaX * 0.78) + 'px, ' + Math.round(deltaY - 16) + 'px, 0) scale(0.92) rotate(8deg)',
+                    opacity: 0.9,
+                    offset: 0.82
+                },
+                {
+                    transform: 'translate3d(' + Math.round(deltaX) + 'px, ' + Math.round(deltaY) + 'px, 0) scale(0.25) rotate(0deg)',
+                    opacity: 0.08
+                }
+            ], {
+                duration: 680,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
+            });
+
+            const trailAnimation = trail.animate([
+                {
+                    transform: 'translate3d(0, 0, 0) scale(1)',
+                    opacity: 0.45
+                },
+                {
+                    transform: 'translate3d(' + Math.round(deltaX * 0.52) + 'px, ' + Math.round(deltaY - 36) + 'px, 0) scale(2)',
+                    opacity: 0.18,
+                    offset: 0.65
+                },
+                {
+                    transform: 'translate3d(' + Math.round(deltaX) + 'px, ' + Math.round(deltaY) + 'px, 0) scale(0.25)',
+                    opacity: 0
+                }
+            ], {
+                duration: 680,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
+            });
+
+            return Promise.all([
+                animation.finished.catch(() => {}),
+                trailAnimation.finished.catch(() => {})
+            ]).then(() => {
+                flyer.remove();
+                trail.remove();
+            });
+        }
+
+        function toggleFavoriteProduct(prodId, triggerButton) {
+            const product = productFlavorsCatalog.find((item) => item.id === prodId);
+            if (!product) return;
+
+            const currentIds = readFavoriteProductIds();
+            const isSaved = currentIds.includes(prodId);
+            const applyFavoriteChange = () => {
+                const nextIds = isSaved
+                    ? currentIds.filter((id) => id !== prodId)
+                    : [prodId].concat(currentIds.filter((id) => id !== prodId));
+
+                writeFavoriteProductIds(nextIds);
+                renderCatalogCards();
+                renderFavoritesPanel(isSaved ? '' : prodId);
+                if (!isSaved) pulseFavoritesTrigger();
+                pushRealtimeNotification(
+                    isSaved ? 'Removed from Favorites' : 'Added to Favorites',
+                    product.name + (isSaved ? ' was removed from your quick reorder list.' : ' is now saved in your Favorites for quick reorder.'),
+                    'information'
+                );
+            };
+
+            if (!isSaved && triggerButton) {
+                triggerButton.classList.add('is-storing');
+                animateFavoriteFlight(triggerButton).then(() => {
+                    applyFavoriteChange();
+                });
+                return;
+            }
+
+            applyFavoriteChange();
+        }
+
+        function initFavoritesPanel() {
+            bindFavoritesFilterTabs();
+            renderFavoritesPanel();
+            window.addEventListener('storage', (event) => {
+                if (event.key === FAVORITES_STORAGE_KEY) {
+                    renderCatalogCards();
+                    renderFavoritesPanel();
+                }
+            });
+        }
+
+        // Window Init Execution hook lifecycle bindings
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', bootCustomerShop);
+        } else {
+            bootCustomerShop();
+        }
+        window.bootCustomerShop = bootCustomerShop;
+        window.addEventListener('pageshow', bootCustomerShop);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) bootCustomerShop();
+        });
+        document.addEventListener('turbo:load', bootCustomerShop);
+        document.addEventListener('turbo:render', bootCustomerShop);
+        document.addEventListener('kreezby:page-load', bootCustomerShop);
+
+        function adjustCardWidgetQtyState(prodId, modifierValue) {
+            const targetLabel = document.getElementById(`qty-val-${prodId}`);
+            let currentVal = parseInt(targetLabel.textContent) || 1;
+            currentVal += modifierValue;
+            if (currentVal < 1) currentVal = 1;
+            targetLabel.textContent = currentVal;
+        }
+
+        // Cart core functions execution matrix blocks
+        function pulseHeaderNav(navKey) {
+            const btn = document.querySelector('.nav-actions .nav-btn[data-nav="' + navKey + '"]');
+            if (!btn) return;
+            btn.classList.remove('is-tapped');
+            void btn.offsetWidth;
+            btn.classList.add('is-tapped');
+        }
+
+        function setActiveHeaderNav(navKey) {
+            document.querySelectorAll('.nav-actions .nav-btn[data-nav]').forEach((btn) => {
+                const isActive = Boolean(navKey) && navKey !== 'cart' && btn.dataset.nav === navKey;
+                btn.classList.toggle('is-active', isActive);
+            });
+            if (navKey) pulseHeaderNav(navKey);
+        }
+
+        function closeCustomerDropdown() {
+            const dropdownMenu = document.getElementById('user-dropdown-menu');
+            if (dropdownMenu) dropdownMenu.classList.remove('active');
+        }
+
+        function setCartSidebarOpen(shouldOpen) {
+            const sidePanel = document.getElementById('interactive-cart-sidebar');
+            if (!sidePanel) return;
+
+            sidePanel.classList.toggle('open', Boolean(shouldOpen));
+            document.body.classList.toggle('cart-sidebar-open', Boolean(shouldOpen));
+            if (shouldOpen) {
+                closeCustomerDropdown();
+                document.getElementById('global-modal-overlay-context').classList.remove('active');
+                setActiveHeaderNav(null);
+                pulseHeaderNav('cart');
+            } else if (!document.getElementById('global-modal-overlay-context').classList.contains('active')) {
+                setActiveHeaderNav(null);
+            }
+        }
+
+        function toggleCartSidebar() {
+            const sidePanel = document.getElementById('interactive-cart-sidebar');
+            if (!sidePanel) return;
+            const willOpen = !sidePanel.classList.contains('open');
+            if (!willOpen) pulseHeaderNav('cart');
+            setCartSidebarOpen(willOpen);
+        }
+
+        function loadPersistedCart() {
+            const stored = safelyReadJson('kreezbyCart', {});
+            if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+                shoppingCartStateMap = stored;
+            }
+        }
+
+        function commitItemToCartState(prodId) {
+            const itemConfig = productFlavorsCatalog.find(f => f.id === prodId);
+            const inputQtyVal = parseInt(document.getElementById(`qty-val-${prodId}`).textContent) || 1;
+
+            if (shoppingCartStateMap[prodId]) {
+                shoppingCartStateMap[prodId].qty += inputQtyVal;
+            } else {
+                shoppingCartStateMap[prodId] = {
+                    name: itemConfig.name,
+                    cost: itemConfig.cost,
+                    variant: itemConfig.variant,
+                    img: itemConfig.img,
+                    qty: inputQtyVal
+                };
+            }
+            
+            // Reset quantity to 1 for convenience
+            document.getElementById(`qty-val-${prodId}`).textContent = "1";
+            refreshGlobalCartInterfaceState();
+            setCartSidebarOpen(true);
+            if (itemConfig) {
+                pushRealtimeNotification(
+                    'Added to Cart',
+                    inputQtyVal + ' x ' + itemConfig.name + ' added to your cart bag.',
+                    'cart'
+                );
+            }
+        }
+
+        function changeCartLineQty(prodId, explicitDelta) {
+            if (!shoppingCartStateMap[prodId]) return;
+            shoppingCartStateMap[prodId].qty += explicitDelta;
+            if (shoppingCartStateMap[prodId].qty <= 0) {
+                delete shoppingCartStateMap[prodId];
+            }
+            refreshGlobalCartInterfaceState();
+
+            if (Object.keys(shoppingCartStateMap).length === 0) {
+                setCartSidebarOpen(false);
+            }
+        }
+
+        function refreshGlobalCartInterfaceState() {
+            const rowsContainer = document.getElementById('cart-rows-injector');
+            const keys = Object.keys(shoppingCartStateMap);
+            
+            let accumulatedItemsCount = 0;
+            let computedBillTotal = 0;
+
+            if (keys.length === 0) {
+                if (rowsContainer) {
+                    rowsContainer.innerHTML = `<div class="cart-empty-state"><strong>Your shopping cart is empty.</strong><span>Add crinkles to see them here instantly.</span></div>`;
+                }
+            } else {
+                keys.forEach((key) => {
+                    const line = shoppingCartStateMap[key];
+                    accumulatedItemsCount += Number(line && line.qty) || 0;
+                    computedBillTotal += (Number(line && line.cost) || 0) * (Number(line && line.qty) || 0);
+                });
+                if (rowsContainer) {
+                    rowsContainer.innerHTML = keys.map(key => {
+                        const line = shoppingCartStateMap[key];
+                        const lineCostTotal = line.cost * line.qty;
+                        return `
+                        <div class="cart-item-row">
+                            <div class="cart-item-details">
+                                <div class="cart-item-name">${line.name}</div>
+                                <div class="cart-item-meta">${line.variant || 'Kreezby Item'} • ₱${line.cost.toFixed(2)} each</div>
+                                <div class="cart-item-price">Line total: ₱${lineCostTotal.toFixed(2)}</div>
+                            </div>
+                            <div class="cart-item-controls">
+                                <div class="cart-qty-label">Qty</div>
+                                <div class="cart-counter-widget">
+                                    <button class="cart-counter-btn" type="button" onclick="changeCartLineQty('${key}', -1)">-</button>
+                                    <span class="cart-counter-value">${line.qty}</span>
+                                    <button class="cart-counter-btn" type="button" onclick="changeCartLineQty('${key}', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+                }
+            }
+
+            const cartCountBadge = document.getElementById('global-cart-count');
+            if (cartCountBadge) {
+                cartCountBadge.hidden = accumulatedItemsCount <= 0;
+                cartCountBadge.textContent = String(accumulatedItemsCount);
+            }
+            const summaryCount = document.getElementById('summary-items-count');
+            if (summaryCount) summaryCount.textContent = accumulatedItemsCount;
+            const summaryTotal = document.getElementById('summary-bill-total');
+            if (summaryTotal) summaryTotal.textContent = `₱${computedBillTotal.toFixed(2)}`;
+            const cartPanelCountPill = document.getElementById('cart-panel-count-pill');
+            if (cartPanelCountPill) {
+                cartPanelCountPill.textContent = `${accumulatedItemsCount} item${accumulatedItemsCount === 1 ? '' : 's'}`;
+            }
+        }
+
+        function processCartCheckoutSubmission() {
+            if (Object.keys(shoppingCartStateMap).length === 0) {
+                alert("Please add items to your shopping cart before attempting to proceed with checkout payment channels.");
+                return;
+            }
+            localStorage.setItem('kreezbyCart', JSON.stringify(shoppingCartStateMap));
+            const cartItems = Object.values(shoppingCartStateMap);
+            const totalUnits = cartItems.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+            const itemLabel = cartItems[0] ? cartItems[0].name : 'Kreezby order';
+            pushRealtimeNotification(
+                'Checkout Started',
+                'You are checking out ' + totalUnits + ' item' + (totalUnits === 1 ? '' : 's') + ', starting with ' + itemLabel + '.',
+                'checkout'
+            );
+            window.location.href='checkout-customer.html';
+        }
+
+        // Central overlay modals controllers systems logic block
+        function openModal(modalBoxId) {
+            document.getElementById('global-modal-overlay-context').classList.add('active');
+            
+            const boxes = document.querySelectorAll('.modal-box');
+            boxes.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(modalBoxId).classList.add('active');
+            setCartSidebarOpen(false);
+            closeCustomerDropdown();
+
+            const navByModal = {
+                'favorites-modal': 'favorites',
+                'orders-tracker-modal': 'orders',
+                'profile-settings-modal': 'profile',
+                'feedback-modal': 'feedback'
+            };
+            setActiveHeaderNav(navByModal[modalBoxId] || null);
+            if (modalBoxId === 'orders-tracker-modal' && window.KreezbyCustomerOrders) {
+                window.KreezbyCustomerOrders.onOrdersModalOpen();
+            }
+            if (modalBoxId === 'profile-settings-modal') {
+                resetAccountSettingsModal();
+            }
+            if (modalBoxId === 'favorites-modal') {
+                renderFavoritesPanel();
+            }
+        }
+
+        function closeCurrentModal() {
+            document.getElementById('global-modal-overlay-context').classList.remove('active');
+            const dropdownMenu = document.getElementById('user-dropdown-menu');
+            if (dropdownMenu && dropdownMenu.classList.contains('active')) {
+                setActiveHeaderNav('customer');
+            } else {
+                setActiveHeaderNav(null);
+            }
+        }
+
+        function closeAllSystemModals(event) {
+            if (event.target.id === 'global-modal-overlay-context') {
+                closeCurrentModal();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const dropdownTrigger = document.getElementById('user-dropdown-trigger');
+            const dropdownMenu = document.getElementById('user-dropdown-menu');
+
+            if (dropdownTrigger && dropdownMenu) {
+                dropdownTrigger.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const willOpen = !dropdownMenu.classList.contains('active');
+                    dropdownMenu.classList.toggle('active', willOpen);
+                    if (willOpen) {
+                        document.getElementById('global-modal-overlay-context').classList.remove('active');
+                        setCartSidebarOpen(false);
+                        setActiveHeaderNav('customer');
+                    } else {
+                        setActiveHeaderNav(null);
+                    }
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!dropdownMenu.contains(event.target) && event.target !== dropdownTrigger) {
+                        dropdownMenu.classList.remove('active');
+                        if (!document.getElementById('global-modal-overlay-context').classList.contains('active')) {
+                            const sidePanel = document.getElementById('interactive-cart-sidebar');
+                            if (!sidePanel || !sidePanel.classList.contains('open')) {
+                                setActiveHeaderNav(null);
+                            }
+                        }
+                    }
+                });
+            }
+
+            initAccountSettings();
+            initFavoritesPanel();
+
+            const openPanel = new URLSearchParams(window.location.search).get('open');
+            if (openPanel === 'favorites') openModal('favorites-modal');
+            else if (openPanel === 'orders') openModal('orders-tracker-modal');
+            else if (openPanel === 'profile') openModal('profile-settings-modal');
+            else if (openPanel === 'cart') toggleCartSidebar();
+        });
+
+        function switchModalSubTab(elementNode, displayPanelId) {
+            const tabsContainer = elementNode.parentElement;
+            tabsContainer.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+            elementNode.classList.add('active');
+
+            const bodyContentFrame = tabsContainer.parentElement;
+            bodyContentFrame.querySelectorAll('.tab-content-panel').forEach(p => p.style.display = 'none');
+            document.getElementById(displayPanelId).style.display = 'block';
+        }
+
+        function isValidEmailAddress(email) {
+            if (!email) return true;
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function normalizeContactNumber(rawContact) {
+            return String(rawContact || '').replace(/\s+/g, '').replace(/[^0-9+]/g, '');
+        }
+
+        const CUSTOMER_PROFILE_KEY = 'kreezbyCustomerProfile';
+        const CUSTOMER_SECURITY_KEY = 'kreezbyCustomerSecurity';
+        const AUTH_CREDENTIALS_KEY = 'kreezbyAuthCredentials';
+
+        function readStoredJson(key, fallbackValue) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallbackValue;
+            } catch (e) {
+                return fallbackValue;
+            }
+        }
+
+        function writeStoredJson(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {}
+        }
+
+        function normalizeLoginIdentityKey(identity) {
+            return String(identity || '').trim().toLowerCase().replace(/[\s._-]+/g, '');
+        }
+
+        function syncCustomerAuthCredentials(profile, nextPassword) {
+            const security = readStoredJson(CUSTOMER_SECURITY_KEY, {});
+            const password = String(nextPassword || security.password || '').trim();
+            if (!password) return;
+
+            const creds = readStoredJson(AUTH_CREDENTIALS_KEY, {});
+            const aliases = [
+                'customer',
+                'customer1',
+                'maria.santos@email.com',
+                'Maria Santos',
+                profile && profile.username,
+                profile && profile.email,
+                profile && profile.fullName
+            ]
+                .filter(Boolean)
+                .map(normalizeLoginIdentityKey)
+                .filter(Boolean);
+
+            aliases.forEach((key) => {
+                creds[key] = {
+                    password,
+                    accountType: 'Customer',
+                    updatedAt: new Date().toISOString()
+                };
+            });
+
+            writeStoredJson(AUTH_CREDENTIALS_KEY, creds);
+        }
+
+        function resolveStoredCustomerPassword() {
+            const security = readStoredJson(CUSTOMER_SECURITY_KEY, {});
+            if (security && security.password) {
+                return String(security.password).trim();
+            }
+
+            const profile = loadCustomerProfile();
+            const creds = readStoredJson(AUTH_CREDENTIALS_KEY, {});
+            const lookupKeys = [
+                'customer',
+                'customer1',
+                'maria.santos@email.com',
+                'Maria Santos',
+                profile && profile.username,
+                profile && profile.email,
+                profile && profile.fullName
+            ]
+                .filter(Boolean)
+                .map(normalizeLoginIdentityKey)
+                .filter(Boolean);
+
+            for (let i = 0; i < lookupKeys.length; i += 1) {
+                const key = lookupKeys[i];
+                if (creds[key] && creds[key].password) {
+                    return String(creds[key].password).trim();
+                }
+            }
+
+            return 'kreezby123';
+        }
+
+        function refreshSecurityUpdatedLabel() {
+            const statusNode = document.getElementById('security-last-updated');
+            if (!statusNode) return;
+
+            const security = readStoredJson(CUSTOMER_SECURITY_KEY, {});
+            if (!security.updatedAt) {
+                statusNode.textContent = 'Last updated: Never';
+                return;
+            }
+
+            const dt = new Date(security.updatedAt);
+            if (Number.isNaN(dt.getTime())) {
+                statusNode.textContent = 'Last updated: Recently';
+                return;
+            }
+
+            statusNode.textContent = 'Last updated: ' + dt.toLocaleString('en-PH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function defaultCustomerProfile() {
+            return {
+                username: 'maria_santos',
+                fullName: 'Maria Santos',
+                email: 'maria.santos@email.com',
+                contactNumber: '09171234567',
+                defaultAddress: '18 Dolorosa St., Poblacion, Batangas City',
+                addresses: [
+                    { id: 'addr-ms-home', label: 'Home', address: '18 Dolorosa St., Poblacion, Batangas City' }
+                ],
+                avatarDataUrl: ''
+            };
+        }
+
+        function loadCustomerProfile() {
+            const fallback = defaultCustomerProfile();
+            const saved = readStoredJson(CUSTOMER_PROFILE_KEY, {});
+            return {
+                ...fallback,
+                ...saved,
+                addresses: Array.isArray(saved.addresses) ? saved.addresses : []
+            };
+        }
+
+        function saveCustomerProfile(profile) {
+            writeStoredJson(CUSTOMER_PROFILE_KEY, profile);
+        }
+
+        function setStatusText(nodeId, message, isError) {
+            const node = document.getElementById(nodeId);
+            if (!node) return;
+            node.textContent = message || '';
+            node.classList.toggle('is-error', Boolean(isError));
+        }
+
+        function renderSavedAddresses() {
+            const profile = loadCustomerProfile();
+            const wrap = document.getElementById('saved-addresses-list');
+            if (!wrap) return;
+
+            if (!profile.addresses.length) {
+                wrap.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">You do not have saved delivery addresses yet.</p>';
+                return;
+            }
+
+            wrap.innerHTML = profile.addresses.map((entry) => {
+                const isDefault = entry.address === profile.defaultAddress;
+                return `
+                    <div class="saved-address-item ${isDefault ? 'is-default' : ''}">
+                        <div class="saved-address-title">${entry.label || 'Address'}</div>
+                        <div class="saved-address-line">${entry.address || ''}</div>
+                        <div class="saved-address-actions">
+                            <button type="button" class="address-mini-btn" onclick="setDefaultDeliveryAddress('${entry.id}')">${isDefault ? 'Default' : 'Set Default'}</button>
+                            <button type="button" class="address-mini-btn" onclick="removeDeliveryAddress('${entry.id}')">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function refreshProfileForm() {
+            const profile = loadCustomerProfile();
+            const username = document.getElementById('profile-username');
+            const fullName = document.getElementById('profile-full-name');
+            const email = document.getElementById('profile-email');
+            const contact = document.getElementById('profile-contact-number');
+            const defaultAddress = document.getElementById('profile-default-address');
+            const avatar = document.getElementById('profile-avatar-preview');
+            const statusName = document.getElementById('profile-status-full-name');
+            const statusUsername = document.getElementById('profile-status-username');
+            const statusContact = document.getElementById('profile-status-contact');
+            const statusEmail = document.getElementById('profile-status-email');
+            const statusAddress = document.getElementById('profile-status-address');
+            const statusAvatar = document.getElementById('profile-status-avatar');
+            if (username) username.value = profile.username || defaultCustomerProfile().username;
+            if (fullName) fullName.value = profile.fullName || '';
+            if (email) email.value = profile.email || '';
+            if (contact) contact.value = profile.contactNumber || '';
+            if (defaultAddress) defaultAddress.value = profile.defaultAddress || '';
+
+            if (statusName) statusName.textContent = profile.fullName || 'No full name set';
+            if (statusUsername) statusUsername.textContent = '@' + (profile.username || defaultCustomerProfile().username);
+            if (statusContact) statusContact.textContent = profile.contactNumber || 'No contact number set';
+            if (statusEmail) statusEmail.textContent = profile.email || 'No email set';
+            if (statusAddress) statusAddress.textContent = profile.defaultAddress || 'No default address set';
+
+            if (avatar) {
+                if (profile.avatarDataUrl) {
+                    avatar.style.backgroundImage = `url('${profile.avatarDataUrl}')`;
+                    avatar.style.backgroundSize = 'cover';
+                    avatar.style.backgroundPosition = 'center';
+                } else {
+                    avatar.style.backgroundImage = 'none';
+                }
+            }
+
+            if (statusAvatar) {
+                if (profile.avatarDataUrl) {
+                    statusAvatar.style.backgroundImage = `url('${profile.avatarDataUrl}')`;
+                    statusAvatar.style.backgroundSize = 'cover';
+                    statusAvatar.style.backgroundPosition = 'center';
+                } else {
+                    statusAvatar.style.backgroundImage = 'none';
+                }
+            }
+
+            renderSavedAddresses();
+        }
+
+        function switchProfileEditMode(mode) {
+            const statusPane = document.getElementById('profile-status-pane');
+            const editPane = document.getElementById('profile-edit-pane');
+            const isEdit = mode === 'edit';
+            if (statusPane) statusPane.style.display = isEdit ? 'none' : 'block';
+            if (editPane) editPane.style.display = isEdit ? 'block' : 'none';
+        }
+
+        function ensurePrimaryAddressEntry(profile) {
+            const addr = String(profile.defaultAddress || '').trim();
+            if (!addr) return profile;
+
+            const exists = profile.addresses.some((entry) => String(entry.address || '').trim() === addr);
+            if (!exists) {
+                profile.addresses.unshift({
+                    id: 'addr-' + Date.now(),
+                    label: 'Primary Address',
+                    address: addr
+                });
+            }
+            return profile;
+        }
+
+        function saveProfileSettings() {
+            const profile = loadCustomerProfile();
+            const previousProfile = Object.assign({}, profile);
+            const fullName = document.getElementById('profile-full-name').value.trim();
+            const email = document.getElementById('profile-email').value.trim();
+            const contactNumber = normalizeContactNumber(document.getElementById('profile-contact-number').value.trim());
+            const defaultAddress = document.getElementById('profile-default-address').value.trim();
+
+            if (!fullName) {
+                setStatusText('profile-save-status', 'Full name is required.', true);
+                return;
+            }
+
+            if (!contactNumber) {
+                setStatusText('profile-save-status', 'Contact number is required.', true);
+                return;
+            }
+
+            if (!/^\+?\d{10,15}$/.test(contactNumber)) {
+                setStatusText('profile-save-status', 'Enter a valid contact number (10-15 digits).', true);
+                return;
+            }
+
+            if (!isValidEmailAddress(email)) {
+                setStatusText('profile-save-status', 'Enter a valid email address.', true);
+                return;
+            }
+
+            profile.fullName = fullName;
+            profile.email = email;
+            profile.contactNumber = contactNumber;
+            profile.defaultAddress = defaultAddress;
+
+            ensurePrimaryAddressEntry(profile);
+            saveCustomerProfile(profile);
+            syncCustomerAuthCredentials(profile);
+            refreshProfileForm();
+            setStatusText('profile-save-status', 'Profile saved. Checkout shipping details are now updated.', false);
+            switchProfileEditMode('status');
+
+            const changeParts = [];
+            if (fullName !== previousProfile.fullName) changeParts.push('full name');
+            if (email !== previousProfile.email) changeParts.push('email address');
+            if (contactNumber !== previousProfile.contactNumber) changeParts.push('contact number');
+            if (defaultAddress !== previousProfile.defaultAddress) changeParts.push('default shipping address');
+
+            pushRealtimeNotification(
+                'Profile Updated',
+                changeParts.length
+                    ? 'Updated ' + changeParts.join(', ') + ' in your customer profile.'
+                    : 'Your customer profile settings were saved successfully.',
+                'information'
+            );
+        }
+
+        function addDeliveryAddress() {
+            const labelSelect = document.getElementById('address-label-select');
+            const labelOtherNode = document.getElementById('address-label-other-input');
+            const lineNode = document.getElementById('address-line-input');
+            const selectedLabel = labelSelect ? String(labelSelect.value || 'Home').trim() : 'Home';
+            const otherLabel = labelOtherNode ? labelOtherNode.value.trim() : '';
+            const label = selectedLabel === 'Other' ? otherLabel : selectedLabel;
+            const addressLine = lineNode.value.trim();
+
+            if (selectedLabel === 'Other' && !label) {
+                setStatusText('address-save-status', 'Please specify the address label.', true);
+                return;
+            }
+
+            if (!addressLine) {
+                setStatusText('address-save-status', 'Please enter a delivery address.', true);
+                return;
+            }
+
+            const profile = loadCustomerProfile();
+            const exists = profile.addresses.some((entry) => String(entry.address || '').trim().toLowerCase() === addressLine.toLowerCase());
+            if (exists) {
+                setStatusText('address-save-status', 'This delivery address is already saved.', true);
+                return;
+            }
+
+            profile.addresses.unshift({
+                id: 'addr-' + Date.now(),
+                label: label || 'Address',
+                address: addressLine
+            });
+
+            if (!profile.defaultAddress) {
+                profile.defaultAddress = addressLine;
+            }
+
+            saveCustomerProfile(profile);
+            refreshProfileForm();
+            if (labelSelect) labelSelect.value = 'Home';
+            if (labelOtherNode) labelOtherNode.value = '';
+            updateAddressLabelInputState();
+            lineNode.value = '';
+            setStatusText('address-save-status', 'Delivery address saved.', false);
+            pushRealtimeNotification(
+                'Delivery Address Saved',
+                (label || 'Address') + ' address is now available for your next checkout.',
+                'information'
+            );
+        }
+
+        function updateAddressLabelInputState() {
+            const labelSelect = document.getElementById('address-label-select');
+            const otherWrap = document.getElementById('address-label-other-group');
+            if (!labelSelect || !otherWrap) return;
+            const isOther = String(labelSelect.value || '') === 'Other';
+            otherWrap.style.display = isOther ? 'block' : 'none';
+        }
+
+        function setDefaultDeliveryAddress(addressId) {
+            const profile = loadCustomerProfile();
+            const match = profile.addresses.find((entry) => entry.id === addressId);
+            if (!match) return;
+            profile.defaultAddress = match.address;
+            saveCustomerProfile(profile);
+            refreshProfileForm();
+            setStatusText('address-save-status', 'Default shipping address updated.', false);
+            setStatusText('profile-save-status', 'Default shipping address updated from saved addresses.', false);
+            pushRealtimeNotification(
+                'Default Address Updated',
+                (match.label || 'Selected') + ' is now your active delivery address.',
+                'information'
+            );
+        }
+
+        function removeDeliveryAddress(addressId) {
+            const profile = loadCustomerProfile();
+            const removeIndex = profile.addresses.findIndex((entry) => entry.id === addressId);
+            if (removeIndex < 0) return;
+
+            const removed = profile.addresses.splice(removeIndex, 1)[0];
+            if (removed && removed.address === profile.defaultAddress) {
+                profile.defaultAddress = profile.addresses[0] ? profile.addresses[0].address : '';
+            }
+
+            saveCustomerProfile(profile);
+            refreshProfileForm();
+            setStatusText('address-save-status', 'Address removed.', false);
+            pushRealtimeNotification(
+                'Saved Address Removed',
+                (removed && removed.label ? removed.label : 'A saved address') + ' was removed from your address book.',
+                'information'
+            );
+        }
+
+        function updatePasswordSettings() {
+            const currentNode = document.getElementById('security-current-password');
+            const newNode = document.getElementById('security-new-password');
+            const confirmNode = document.getElementById('security-confirm-password');
+
+            const currentPassword = String(currentNode.value || '').trim();
+            const newPassword = String(newNode.value || '').trim();
+            const confirmPassword = String(confirmNode.value || '').trim();
+            const expectedCurrentPassword = resolveStoredCustomerPassword();
+
+            if (!currentPassword) {
+                setStatusText('security-save-status', 'Please enter your current password.', true);
+                return;
+            }
+
+            if (currentPassword !== expectedCurrentPassword) {
+                setStatusText('security-save-status', 'Current password is incorrect.', true);
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                setStatusText('security-save-status', 'New password must be at least 6 characters.', true);
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                setStatusText('security-save-status', 'New password and confirm password do not match.', true);
+                return;
+            }
+
+            if (newPassword === expectedCurrentPassword) {
+                setStatusText('security-save-status', 'New password must be different from current password.', true);
+                return;
+            }
+
+            writeStoredJson(CUSTOMER_SECURITY_KEY, { password: newPassword, updatedAt: new Date().toISOString() });
+            syncCustomerAuthCredentials(loadCustomerProfile(), newPassword);
+            currentNode.value = '';
+            newNode.value = '';
+            confirmNode.value = '';
+            setStatusText('security-save-status', 'Password updated successfully.', false);
+            refreshSecurityUpdatedLabel();
+            pushRealtimeNotification(
+                'Security Update Applied',
+                'Your account password was changed successfully. Keep your new credentials secure.',
+                'system'
+            );
+        }
+
+        function triggerAvatarUpload() {
+            const picker = document.getElementById('profile-avatar-input');
+            if (picker) picker.click();
+        }
+
+        function bindAvatarUploader() {
+            const picker = document.getElementById('profile-avatar-input');
+            if (!picker || picker.dataset.bound === '1') return;
+
+            picker.dataset.bound = '1';
+            picker.addEventListener('change', (event) => {
+                const file = event.target.files && event.target.files[0];
+                if (!file) return;
+                const isImageMime = /^image\//.test(file.type || '');
+                const fileName = String(file.name || '').toLowerCase();
+                const isKnownPhotoExt = /(\.png|\.jpe?g|\.webp|\.gif|\.bmp|\.heic|\.heif)$/.test(fileName);
+                if (!isImageMime && !isKnownPhotoExt) {
+                    setStatusText('profile-save-status', 'Please choose a valid photo from your gallery.', true);
+                    picker.value = '';
+                    return;
+                }
+                if (file.size > 1024 * 1024) {
+                    setStatusText('profile-save-status', 'Image exceeds 1 MB limit.', true);
+                    picker.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const profile = loadCustomerProfile();
+                    profile.avatarDataUrl = String(reader.result || '');
+                    saveCustomerProfile(profile);
+                    refreshProfileForm();
+                    setStatusText('profile-save-status', 'Profile photo selected from gallery.', false);
+                    picker.value = '';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function initAccountSettings() {
+            refreshProfileForm();
+            bindAvatarUploader();
+            switchProfileEditMode('status');
+            updateAddressLabelInputState();
+            refreshSecurityUpdatedLabel();
+
+            const tabs = document.querySelectorAll('#profile-settings-modal .modal-tabs .tab-link');
+            tabs.forEach((tab) => {
+                if (tab.dataset.keyBound === '1') return;
+                tab.dataset.keyBound = '1';
+                tab.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        tab.click();
+                    }
+                });
+            });
+
+            const profileInputs = ['profile-full-name', 'profile-contact-number', 'profile-email'];
+            profileInputs.forEach((inputId) => {
+                const node = document.getElementById(inputId);
+                if (!node || node.dataset.submitBound === '1') return;
+                node.dataset.submitBound = '1';
+                node.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        saveProfileSettings();
+                    }
+                });
+            });
+
+            const addressNodes = [
+                document.getElementById('address-label-select'),
+                document.getElementById('address-label-other-input'),
+                document.getElementById('address-line-input')
+            ];
+            addressNodes.forEach((node) => {
+                if (!node || node.dataset.submitBound === '1') return;
+                node.dataset.submitBound = '1';
+                node.addEventListener('keydown', (event) => {
+                    if (event.key !== 'Enter') return;
+                    if (event.target && event.target.tagName === 'TEXTAREA' && !event.ctrlKey && !event.metaKey) return;
+                    event.preventDefault();
+                    addDeliveryAddress();
+                });
+            });
+
+            const securityNodes = [
+                document.getElementById('security-current-password'),
+                document.getElementById('security-new-password'),
+                document.getElementById('security-confirm-password')
+            ];
+            securityNodes.forEach((node) => {
+                if (!node || node.dataset.submitBound === '1') return;
+                node.dataset.submitBound = '1';
+                node.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        updatePasswordSettings();
+                    }
+                });
+            });
+        }
+
+        function resetAccountSettingsModal() {
+            const modal = document.getElementById('profile-settings-modal');
+            if (!modal) return;
+
+            const tabs = modal.querySelectorAll('.modal-tabs .tab-link');
+            const panels = modal.querySelectorAll('.tab-content-panel');
+            tabs.forEach((tab, index) => tab.classList.toggle('active', index === 0));
+            panels.forEach((panel, index) => panel.style.display = index === 0 ? 'block' : 'none');
+
+            setStatusText('profile-save-status', '', false);
+            setStatusText('address-save-status', '', false);
+            setStatusText('security-save-status', '', false);
+            refreshProfileForm();
+            switchProfileEditMode('status');
+            updateAddressLabelInputState();
+            refreshSecurityUpdatedLabel();
+        }
+
+        const ORDER_STATUS_SNAPSHOT_KEY = 'kreezbyCustomerOrderStatusSnapshotV1';
+        const RECEIPT_SNAPSHOT_KEY = 'kreezbyCustomerReceiptSnapshotV1';
+        const REVIEW_SNAPSHOT_KEY = 'kreezbyCustomerReviewSnapshotV1';
+        const NOTIFICATION_SEED_KEY = 'kreezbyCustomerNotificationSeededAt';
+        let activeNotificationFilter = 'all';
+        let notificationRefreshTimer = null;
+        let orderStatusPollTimer = null;
+
+        function pushRealtimeNotification(title, description, source) {
+            if (!window.KreezbyNotifications) return;
+            window.KreezbyNotifications.push({
+                title,
+                description,
+                source
+            });
+        }
+
+        function inferNotificationType(entry) {
+            const source = String((entry && entry.source) || '').toLowerCase();
+            const title = String((entry && entry.title) || '').toLowerCase();
+
+            if (source.includes('order') || source.includes('delivery') || source.includes('ship') || source.includes('cart') || source.includes('checkout') || source.includes('receipt') || title.includes('order')) {
+                return 'order-status';
+            }
+            if (source.includes('system') || source.includes('security') || source.includes('admin')) {
+                return 'system';
+            }
+            return 'information';
+        }
+
+        function formatNotificationTime(value) {
+            const dt = value instanceof Date ? value : new Date(value);
+            if (Number.isNaN(dt.getTime())) return 'Unknown time';
+
+            const now = Date.now();
+            const diffMs = now - dt.getTime();
+            const mins = Math.floor(diffMs / 60000);
+            if (mins < 1) return 'Just now';
+            if (mins < 60) return mins + ' minute' + (mins === 1 ? '' : 's') + ' ago';
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
+            const days = Math.floor(hours / 24);
+            if (days < 7) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+
+            return dt.toLocaleString('en-PH', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function safelyReadJson(key, fallbackValue) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallbackValue;
+            } catch (e) {
+                return fallbackValue;
+            }
+        }
+
+        function safelyWriteJson(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {}
+        }
+
+        function buildOrderStatusSnapshot() {
+            const orders = safelyReadJson('kreezbyOrders', []);
+            const snapshot = {};
+            orders.forEach((order) => {
+                if (!order || !order.orderNumber) return;
+                snapshot[String(order.orderNumber)] = String(order.status || order.orderStatus || 'Processing');
+            });
+            return snapshot;
+        }
+
+        function buildReceiptSnapshot() {
+            const receipts = safelyReadJson('kreezbyCustomerReceipts', []);
+            const snapshot = {};
+            receipts.forEach((receipt) => {
+                if (!receipt || !receipt.orderNumber) return;
+                snapshot[String(receipt.orderNumber)] = {
+                    receiptNumber: String(receipt.receiptNumber || ''),
+                    issuedAt: String(receipt.issuedAt || '')
+                };
+            });
+            return snapshot;
+        }
+
+        function buildReviewSnapshot() {
+            const reviews = safelyReadJson('kreezbyCustomerReviews', []);
+            const snapshot = {};
+            reviews.forEach((review) => {
+                if (!review || !review.orderNumber) return;
+                snapshot[String(review.orderNumber)] = {
+                    rating: Number(review.rating) || 0,
+                    productName: String(review.productName || 'Kreezby order')
+                };
+            });
+            return snapshot;
+        }
+
+        function seedCustomerNotificationsIfNeeded() {
+            if (!window.KreezbyNotifications) return;
+            const seededAt = localStorage.getItem(NOTIFICATION_SEED_KEY);
+            if (seededAt) return;
+
+            window.KreezbyNotifications.push({
+                title: 'Portal Session Started',
+                description: 'Customer notification center is now monitoring your account activities in real time.',
+                source: 'system'
+            });
+            window.KreezbyNotifications.push({
+                title: 'Information Feed Enabled',
+                description: 'You will receive updates for order movement, payment confirmations, and delivery milestones.',
+                source: 'information'
+            });
+
+            localStorage.setItem(NOTIFICATION_SEED_KEY, new Date().toISOString());
+        }
+
+        function updateNotificationTriggerBadge() {
+            const badge = document.getElementById('notifications-trigger-badge');
+            if (!badge || !window.KreezbyNotifications) return;
+            const unread = window.KreezbyNotifications.getUnreadCount();
+            badge.hidden = unread <= 0;
+            badge.textContent = String(unread);
+        }
+
+        function renderNotificationFeed() {
+            const feed = document.getElementById('notifications-feed');
+            const tpl = document.getElementById('notification-item-template');
+            if (!feed || !tpl || !window.KreezbyNotifications) return;
+
+            const entries = window.KreezbyNotifications.getAll().map((entry) => ({
+                ...entry,
+                notificationType: inferNotificationType(entry)
+            }));
+
+            const visibleEntries = activeNotificationFilter === 'all'
+                ? entries
+                : entries.filter((entry) => entry.notificationType === activeNotificationFilter);
+
+            if (!visibleEntries.length) {
+                feed.innerHTML = '<div class="notification-empty-state"><strong>No notifications yet</strong><span>New logs will appear here the moment they are detected.</span></div>';
+                updateNotificationTriggerBadge();
+                return;
+            }
+
+            feed.innerHTML = '';
+            visibleEntries.forEach((entry) => {
+                const fragment = tpl.content.cloneNode(true);
+                const card = fragment.querySelector('.notification-log-item');
+                const pill = fragment.querySelector('.notification-log-pill');
+                const title = fragment.querySelector('.notification-log-title');
+                const time = fragment.querySelector('.notification-log-time');
+                const message = fragment.querySelector('.notification-log-message');
+                const source = fragment.querySelector('.notification-log-source');
+                const readBtn = fragment.querySelector('.notification-log-read-btn');
+
+                card.classList.toggle('is-read', Boolean(entry.read));
+                card.classList.add('type-' + entry.notificationType);
+                card.dataset.notificationId = entry.id;
+
+                pill.textContent = entry.notificationType.replace('-', ' ');
+                title.textContent = entry.title || 'Notification';
+                time.textContent = formatNotificationTime(entry.timestamp);
+                message.textContent = entry.description || 'No additional details were provided.';
+                source.textContent = (entry.source || 'system').toUpperCase();
+
+                if (entry.read) {
+                    readBtn.disabled = true;
+                    readBtn.textContent = 'Read';
+                } else {
+                    readBtn.addEventListener('click', () => {
+                        window.KreezbyNotifications.markRead(entry.id);
+                        renderNotificationFeed();
+                    });
+                }
+
+                feed.appendChild(fragment);
+            });
+
+            updateNotificationTriggerBadge();
+        }
+
+        function extractOrderName(order) {
+            if (!order || !order.items) return 'your Kreezby order';
+            const items = Object.values(order.items).filter(Boolean);
+            if (!items.length) return 'your Kreezby order';
+            const firstName = String(items[0].name || 'Kreezby order').trim();
+            return items.length > 1 ? firstName + ' +' + (items.length - 1) + ' more' : firstName;
+        }
+
+        function bindNotificationFilterButtons() {
+            const filterGroup = document.getElementById('notification-filter-group');
+            if (!filterGroup || filterGroup.dataset.bound === '1') return;
+
+            filterGroup.dataset.bound = '1';
+            filterGroup.querySelectorAll('.notification-filter-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    activeNotificationFilter = String(button.dataset.filter || 'all');
+                    filterGroup.querySelectorAll('.notification-filter-btn').forEach((btn) => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderNotificationFeed();
+                });
+            });
+        }
+
+        function bindNotificationActions() {
+            const markAllBtn = document.getElementById('notifications-mark-all-btn');
+            if (markAllBtn && markAllBtn.dataset.bound !== '1') {
+                markAllBtn.dataset.bound = '1';
+                markAllBtn.addEventListener('click', () => {
+                    if (!window.KreezbyNotifications) return;
+                    window.KreezbyNotifications.markAllRead();
+                    renderNotificationFeed();
+                });
+            }
+        }
+
+        function pollOrderStatusChanges() {
+            if (!window.KreezbyNotifications) return;
+
+            const currentSnapshot = buildOrderStatusSnapshot();
+            const previousSnapshot = safelyReadJson(ORDER_STATUS_SNAPSHOT_KEY, null);
+
+            if (!previousSnapshot) {
+                safelyWriteJson(ORDER_STATUS_SNAPSHOT_KEY, currentSnapshot);
+                return;
+            }
+
+            Object.keys(currentSnapshot).forEach((orderNumber) => {
+                const latestStatus = currentSnapshot[orderNumber];
+                const previousStatus = previousSnapshot[orderNumber];
+
+                if (!previousStatus) {
+                    window.KreezbyNotifications.push({
+                        title: 'Order Logged: ' + orderNumber,
+                        description: 'Your order has been registered with status "' + latestStatus + '".',
+                        source: 'order-status'
+                    });
+                    return;
+                }
+
+                if (latestStatus !== previousStatus) {
+                    window.KreezbyNotifications.push({
+                        title: 'Order Status Updated: ' + orderNumber,
+                        description: 'Status changed from "' + previousStatus + '" to "' + latestStatus + '".',
+                        source: 'order-status'
+                    });
+                }
+            });
+
+            safelyWriteJson(ORDER_STATUS_SNAPSHOT_KEY, currentSnapshot);
+        }
+
+        function pollReceiptChanges() {
+            if (!window.KreezbyNotifications) return;
+
+            const currentSnapshot = buildReceiptSnapshot();
+            const previousSnapshot = safelyReadJson(RECEIPT_SNAPSHOT_KEY, null);
+
+            if (!previousSnapshot) {
+                safelyWriteJson(RECEIPT_SNAPSHOT_KEY, currentSnapshot);
+                return;
+            }
+
+            Object.keys(currentSnapshot).forEach((orderNumber) => {
+                if (previousSnapshot[orderNumber]) return;
+                const receipt = currentSnapshot[orderNumber];
+                pushRealtimeNotification(
+                    'Receipt Ready: ' + orderNumber,
+                    'Official receipt ' + (receipt.receiptNumber || 'generated') + ' is now available for your completed order.',
+                    'receipt'
+                );
+            });
+
+            safelyWriteJson(RECEIPT_SNAPSHOT_KEY, currentSnapshot);
+        }
+
+        function pollReviewChanges() {
+            if (!window.KreezbyNotifications) return;
+
+            const currentSnapshot = buildReviewSnapshot();
+            const previousSnapshot = safelyReadJson(REVIEW_SNAPSHOT_KEY, null);
+
+            if (!previousSnapshot) {
+                safelyWriteJson(REVIEW_SNAPSHOT_KEY, currentSnapshot);
+                return;
+            }
+
+            Object.keys(currentSnapshot).forEach((orderNumber) => {
+                if (previousSnapshot[orderNumber]) return;
+                const review = currentSnapshot[orderNumber];
+                pushRealtimeNotification(
+                    'Review Submitted: ' + orderNumber,
+                    'Your ' + (review.productName || 'Kreezby order') + ' review with ' + (review.rating || 0) + ' star' + ((review.rating || 0) === 1 ? '' : 's') + ' has been posted.',
+                    'information'
+                );
+            });
+
+            safelyWriteJson(REVIEW_SNAPSHOT_KEY, currentSnapshot);
+        }
+
+        function initNotificationCenter() {
+            if (!window.KreezbyNotifications) return;
+
+            seedCustomerNotificationsIfNeeded();
+            bindNotificationFilterButtons();
+            bindNotificationActions();
+            pollOrderStatusChanges();
+            pollReceiptChanges();
+            pollReviewChanges();
+            renderNotificationFeed();
+
+            if (typeof window.KreezbyNotifications.subscribe === 'function') {
+                window.KreezbyNotifications.subscribe(() => {
+                    renderNotificationFeed();
+                });
+            }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'kreezbyOrders') {
+                    pollOrderStatusChanges();
+                    renderNotificationFeed();
+                    return;
+                }
+                if (event.key === 'kreezbyCustomerReceipts') {
+                    pollReceiptChanges();
+                    renderNotificationFeed();
+                    return;
+                }
+                if (event.key === 'kreezbyCustomerReviews') {
+                    pollReviewChanges();
+                    renderNotificationFeed();
+                }
+            });
+
+            if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+            notificationRefreshTimer = setInterval(renderNotificationFeed, 30000);
+
+            if (orderStatusPollTimer) clearInterval(orderStatusPollTimer);
+            orderStatusPollTimer = setInterval(() => {
+                pollOrderStatusChanges();
+                pollReceiptChanges();
+                pollReviewChanges();
+                renderNotificationFeed();
+            }, 5000);
+        }
+
+        window.saveProfileSettings = saveProfileSettings;
+        window.addDeliveryAddress = addDeliveryAddress;
+        window.setDefaultDeliveryAddress = setDefaultDeliveryAddress;
+        window.removeDeliveryAddress = removeDeliveryAddress;
+        window.updatePasswordSettings = updatePasswordSettings;
+        window.triggerAvatarUpload = triggerAvatarUpload;
+        window.switchProfileEditMode = switchProfileEditMode;
+        window.updateAddressLabelInputState = updateAddressLabelInputState;
+
+        bootCustomerShop();
+    </script>
+    <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>
+</body>
+</html>

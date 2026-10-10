@@ -1,0 +1,207 @@
+/* Notification popover — dark glass style */
+.notification-popover-root {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.top-nav-links-right:has(.notification-popover-root) > .notification-pill {
+    display: none !important;
+}
+
+.notification-popover-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: #111111 !important;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    color: #ffffff !important;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.notification-popover-btn:hover {
+    background: #111111 !important;
+}
+
+.notification-popover-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #ffffff !important;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.notification-popover-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.notification-popover-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(420px, calc(100vh - 96px));
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    background: #1c1c1c;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    z-index: 1200;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.notification-popover-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.notification-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.notification-popover-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.notification-popover-mark-all {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+}
+
+.notification-popover-mark-all:hover {
+    color: #fff;
+}
+
+.notification-popover-list {
+    overflow-y: auto;
+    max-height: 340px;
+}
+
+.notification-popover-item {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.notification-popover-item:last-child {
+    border-bottom: none;
+}
+
+.notification-popover-item:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.notification-popover-item.is-read {
+    opacity: 0.72;
+}
+
+.notification-popover-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.notification-popover-item-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+}
+
+.notification-popover-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.notification-popover-item.is-read .notification-popover-dot {
+    display: none;
+}
+
+.notification-popover-item-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.notification-popover-item-desc {
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.notification-popover-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+/* Hide legacy full-screen modal when popover is active */
+body.kreezby-notification-popover-active .notification-modal-overlay {
+    display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notification-popover-panel,
+    .notification-popover-btn {
+        transition-duration: 0.01ms !important;
+    }
+}

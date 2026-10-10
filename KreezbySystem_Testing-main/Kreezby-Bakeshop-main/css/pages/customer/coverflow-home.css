@@ -1,0 +1,275 @@
+/* Customer homepage coverflow. The full product list stays closed until View Menu. */
+
+.shop-full-menu.is-closed {
+    display: none !important;
+}
+
+#catalog-heading {
+    scroll-margin-top: 88px;
+}
+
+.coverflow-home {
+    position: relative;
+    width: 100%;
+    min-height: 680px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 36px 0 28px;
+    color: #fff;
+    background: #0c0a09;
+    user-select: none;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.coverflow-home * {
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.coverflow-ambience {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.coverflow-ambience img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    filter: brightness(0.22) blur(32px);
+    transform: scale(1.15);
+}
+
+.coverflow-ambience__shade {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(12, 10, 9, 0.3) 0%, rgba(12, 10, 9, 0.92) 100%);
+}
+
+.coverflow-inner {
+    position: relative;
+    z-index: 1;
+    width: min(1100px, 100%);
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.coverflow-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 22px;
+}
+
+.coverflow-label span {
+    width: 36px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c5a880);
+}
+
+.coverflow-label span:last-child {
+    background: linear-gradient(90deg, #c5a880, transparent);
+}
+
+.coverflow-label h2 {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #c5a880;
+}
+
+.coverflow-stage {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 18px;
+    perspective: 1400px;
+}
+
+.coverflow-card {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    appearance: none;
+    width: var(--cf-w, 330px);
+    height: var(--cf-h, 500px);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #171311;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transform-origin: center center;
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease, filter 220ms ease;
+}
+
+.coverflow-card img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+}
+
+.coverflow-card__shade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0.68) 60%, rgba(0, 0, 0, 0.96) 100%);
+}
+
+.coverflow-card__body {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 20px 18px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.coverflow-card__tag {
+    align-self: flex-end;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.coverflow-card__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-top: auto;
+}
+
+.coverflow-card__copy h3 {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    color: #fff;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.95);
+}
+
+.coverflow-card__copy strong {
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #f3f0ea;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+}
+
+.coverflow-card__rule {
+    width: 34px;
+    height: 2px;
+    margin: 6px auto 4px;
+    border-radius: 2px;
+    background: #c5a880;
+    box-shadow: 0 0 8px rgba(197, 168, 128, 0.7);
+}
+
+.coverflow-card__copy p {
+    max-width: 280px;
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    font-style: italic;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.coverflow-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #c5a880 0%, #a48256 100%);
+    color: #110d0c;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 15px rgba(197, 168, 128, 0.3);
+}
+
+.coverflow-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    width: 46px;
+    height: 46px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transform: translateY(-50%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.coverflow-arrow--prev { left: 18px; }
+.coverflow-arrow--next { right: 18px; }
+
+.coverflow-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 3;
+}
+
+.coverflow-dot {
+    height: 8px;
+    width: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    transition: width 300ms ease, background 300ms ease;
+}
+
+.coverflow-dot.is-active {
+    width: 28px;
+    background: #c5a880;
+    box-shadow: 0 0 10px rgba(197, 168, 128, 0.7);
+}
+
+@media (max-width: 800px) {
+    .coverflow-home { min-height: 560px; padding-top: 24px; }
+    .coverflow-stage { height: 420px; }
+    .coverflow-card__copy h3 { font-size: 1.25rem; }
+    .coverflow-arrow { width: 38px; height: 38px; }
+}

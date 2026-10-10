@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Insights (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_salesanalysis-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008lay2">
+
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-analysis">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div id="sales-analysis-master" class="panel-data-card po-tabbed-card">
+                <div class="po-order-tabs ai-filter-pills" id="ai-filter-pills" role="tablist">
+                    <a class="pill po-order-tab" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis" role="tab">Sales Analysis</a>
+                    <a class="pill po-order-tab active" href="forecast-headadmin.html" data-key="forecast" role="tab">Moving Average Computation Forecast</a>
+                    <a class="pill po-order-tab" href="insight-headadmin.html" data-key="management-insight" role="tab">Management Insight</a>
+                </div>
+                <div class="po-list-toolbar">
+                    <div class="po-list-toolbar-title">
+                        <h3>Moving Average Computation Forecast</h3>
+                    </div>
+                </div>
+                <div class="card-body-padded po-list-body">
+                    <div class="po-table-scroll-wrap">
+                        <div id="reorder-recommendation"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        <script>
+        (function () {
+            document.body.classList.add('po-admin-page');
+            var theme = document.getElementById('po-theme-sheet');
+            if (!theme) {
+                theme = document.createElement('link');
+                theme.id = 'po-theme-sheet';
+                theme.rel = 'stylesheet';
+                theme.setAttribute('data-po-owned', '1');
+                document.head.appendChild(theme);
+            }
+            theme.disabled = false;
+            if (theme.href.indexOf('20261008lay') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261008lay2';
+            if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.boot) {
+                try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
+            }
+        })();
+        </script>
+</turbo-frame>
+</div>
+
+    <script src="../js/aiforecast-pills.js?v=20261008lay"></script>
+    <script src="../js/delivery-schedule.js?v=20260930areas"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261008lay"></script>
+    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/management-insight.js?v=20261005insight"></script>
+</body>
+</html>

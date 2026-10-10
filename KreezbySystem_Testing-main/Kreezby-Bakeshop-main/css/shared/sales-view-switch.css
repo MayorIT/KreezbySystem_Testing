@@ -1,0 +1,87 @@
+.sales-view-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(280px, 100%);
+  margin: 0 0 16px;
+  padding: 4px;
+  background: #efe8e4;
+  border: 1px solid #e0d5cf;
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+
+.sales-view-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: #5d4037;
+  border-radius: 999px;
+  transition: transform 0.22s ease;
+  pointer-events: none;
+}
+
+.sales-view-switch.is-customer .sales-view-thumb {
+  transform: translateX(100%);
+}
+
+.sales-view-option {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5d4037;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.sales-view-option.is-active {
+  color: #fff;
+}
+
+.sales-view-option:focus-visible {
+  outline: 2px solid #fbc02d;
+  outline-offset: 2px;
+}
+
+.sales-ledger-stack.sales-view-single {
+  display: block;
+  width: 100%;
+  max-width: none;
+  grid-template-columns: 1fr;
+}
+
+.sales-ledger-stack.sales-view-single > .panel-data-card[hidden] {
+  display: none !important;
+}
+
+.sales-ledger-stack.sales-view-single > .panel-data-card {
+  width: 100%;
+  max-width: none;
+}
+
+@keyframes salesViewFromLeft {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes salesViewFromRight {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+.sales-view-switch:not(.is-customer) ~ .sales-ledger-stack .sales-view-enter {
+  animation: salesViewFromLeft 0.22s ease;
+}
+
+.sales-view-switch.is-customer ~ .sales-ledger-stack .sales-view-enter {
+  animation: salesViewFromRight 0.22s ease;
+}

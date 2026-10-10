@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Welcome</title>
+    <link rel="stylesheet" href="../css/pages/start.css?v=20260929fill">
+    <link rel="stylesheet" href="../css/shared/origin-button.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260927row">
+</head>
+<body>
+
+    <div class="splash-card">
+
+        <div class="splash-slide" id="splashSlide">
+        <div class="splash-slide__track">
+        <div class="main-choice-container" id="mainChoiceScreen">
+            <img class="brand-logo-large" src="../assets/logo/kreezby-logo.png" alt="Kreezby">
+            <div class="screen-choice-prompt">How are you visiting us today?</div>
+            <div class="button-group-main">
+                <button type="button" class="origin-btn origin-btn--primary" onclick="showGuestOptions()">
+                    Guest
+                </button>
+            </div>
+        </div>
+
+        <div class="guest-choice-container" id="guestChoiceScreen">
+            <div class="guest-subtitle">Guest Access</div>
+            <div class="guest-info-text">
+                You can browse as a guest or create an account to unlock all features.
+            </div>
+            <div class="button-group-main button-group-origin">
+                <a href="log_in.html" class="origin-btn origin-btn--secondary">Log In with Account</a>
+                <a href="sign_up.html" class="origin-btn origin-btn--secondary">Create New Account</a>
+                <a href="../customer/customer_guest.html" class="origin-btn origin-btn--secondary">Browse as Guest</a>
+            </div>
+            <div class="back-button-container">
+                <button type="button" class="origin-btn origin-btn--ghost" onclick="backToMainChoice()">← Back</button>
+            </div>
+        </div>
+        </div>
+        </div>
+
+    </div>
+
+    <script>
+        function sizeSplash() {
+            const slide = document.getElementById('splashSlide');
+            const panel = slide.classList.contains('is-guest')
+                ? document.getElementById('guestChoiceScreen')
+                : document.getElementById('mainChoiceScreen');
+            slide.style.height = panel.scrollHeight + 'px';
+        }
+
+        function showGuestOptions() {
+            const mainChoice = document.getElementById('mainChoiceScreen');
+            const guestChoice = document.getElementById('guestChoiceScreen');
+            const slide = document.getElementById('splashSlide');
+
+            slide.classList.add('is-guest');
+            mainChoice.classList.add('hidden');
+            guestChoice.classList.add('active');
+            sizeSplash();
+        }
+
+        function backToMainChoice() {
+            const mainChoice = document.getElementById('mainChoiceScreen');
+            const guestChoice = document.getElementById('guestChoiceScreen');
+            const slide = document.getElementById('splashSlide');
+
+            slide.classList.remove('is-guest');
+            mainChoice.classList.remove('hidden');
+            guestChoice.classList.remove('active');
+            sizeSplash();
+        }
+
+        window.addEventListener('load', sizeSplash);
+        window.addEventListener('resize', sizeSplash);
+    </script>
+    <script src="../js/origin-button.js"></script>
+
+</body>
+</html>

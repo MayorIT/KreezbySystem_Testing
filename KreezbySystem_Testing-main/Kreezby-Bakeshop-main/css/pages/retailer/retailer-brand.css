@@ -1,0 +1,88 @@
+/* Retailer tables use the head admin list colors: brown header, gold line, cream rows. */
+.data-display-table thead th,
+.data-display-table thead tr,
+table.manual-sheet-table thead th,
+table.manual-sheet-table .manual-sheet-group-row th,
+table.manual-sheet-table .manual-sheet-subhead th {
+    background: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+.data-display-table td {
+    background: #fff;
+    color: #3e2723;
+    border-bottom-color: #f0e6d8;
+}
+
+.data-display-table tbody tr:nth-child(even) td {
+    background: #fbf6ee;
+}
+
+.data-display-table tbody tr:hover td {
+    background: #fff6d8;
+}
+
+table.manual-sheet-table tbody tr:nth-child(even) td {
+    background: #fbf6ee;
+}
+
+table.manual-sheet-table tbody tr:hover td {
+    background: #fff6d8;
+}
+
+/* Retailer nav — Kreezby logo only, same size as the other portals. */
+.brand-logo-panel img.brand-kreezby-logo {
+    display: block;
+    height: 38px;
+    width: auto;
+    max-width: 104px;
+    object-fit: contain;
+    object-position: center;
+    flex-shrink: 0;
+}
+
+/* Retailer pages open on the finished layout. The shared nav stylesheet
+   opts every portal into a cross-document view transition, which holds the
+   raw sidebar and empty list on screen until scripts replace them. */
+@view-transition {
+    navigation: none;
+}
+
+html.kreezby-retailer-account .top-navbar-node,
+html.kreezby-retailer-account aside.sidebar-panel,
+html.kreezby-retailer-account turbo-frame#kreezby-main-content,
+html.kreezby-retailer-account #kreezby-main-content {
+    view-transition-name: none !important;
+}
+
+html.kreezby-retailer-account aside.sidebar-panel:not(.kreezby-icon-sidebar) {
+    position: fixed !important;
+    left: 0 !important;
+    top: var(--kreezby-admin-header-height, 60px) !important;
+    width: 256px !important;
+    min-width: 0 !important;
+    max-width: 256px !important;
+    height: calc(100vh - var(--kreezby-admin-header-height, 60px)) !important;
+    margin: 0 !important;
+    transform: translateX(-110%) !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    transition: none !important;
+}
+
+html.kreezby-retailer-account aside.sidebar-panel,
+html.kreezby-retailer-account main.workspace-canvas,
+html.kreezby-retailer-account main.workspace-view-canvas {
+    transition: none !important;
+}
+
+html.kreezby-retailer-account #bo-retailer-dashboard-view {
+    visibility: hidden;
+}
+
+html.kreezby-retailer-account.kreezby-module-ready #bo-retailer-dashboard-view {
+    visibility: visible;
+}

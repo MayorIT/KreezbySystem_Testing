@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Insights (Head Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_salesanalysis-admin.css">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008layword">
+
+</head>
+<body class="po-admin-page" data-kreezby-portal="admin-analysis">
+
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="head_admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
+                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
+                    Admin ▾
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
+
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            
+            <div id="sales-analysis-master" class="panel-data-card po-tabbed-card">
+                <div class="po-order-tabs ai-filter-pills" id="ai-filter-pills" role="tablist">
+                    <a class="pill po-order-tab active" href="aiforecast_salesanalysis-headadmin.html" data-key="sales-analysis" role="tab">Sales Analysis</a>
+                    <a class="pill po-order-tab" href="aiforecast_salesanalysis-headadmin.html?tab=forecast" data-key="forecast" role="tab">Moving Average Computation Forecast</a>
+                    <a class="pill po-order-tab" href="aiforecast_salesanalysis-headadmin.html?tab=management-insight" data-key="management-insight" role="tab">Management Insight</a>
+                </div>
+                <div class="insights-panel is-active" data-insights-panel="sales-analysis">
+                <div class="po-list-toolbar">
+                    <div class="po-list-toolbar-title">
+                        <h3>Sales Analysis</h3>
+                        <span class="po-list-count" id="sales-analysis-count"></span>
+                    </div>
+                    <div class="po-list-toolbar-tools">
+                        <label class="po-page-size">Show
+                            <select id="entries-limiter" class="insights-show">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </label>
+                        <div class="search-field-wrap">
+                            <input type="text" id="sales-analysis-search" class="insights-search" placeholder="Filter flavor text...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-padded po-list-body">
+                    <div class="po-table-scroll-wrap">
+                        <table class="data-display-table" id="sales-analysis-table">
+                            <colgroup>
+                                <col class="sa-col-num">
+                                <col class="sa-col-flavor">
+                                <col class="sa-col-stock">
+                                <col class="sa-col-sales">
+                                <col class="sa-col-forecast">
+                                <col class="sa-col-var">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Flavor</th>
+                                    <th>In Stock Qty</th>
+                                    <th>Sales Volume</th>
+                                    <th>AI Forecasted Demand</th>
+                                    <th>Variance Deviation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-stock="210" data-sales="1420" data-forecast="1350">
+                                    <td class="po-col-num">1</td>
+                                    <td class="sa-flavor"><strong>Choco Butternut</strong></td>
+                                    <td class="sa-num">210</td>
+                                    <td class="sa-num">1,420</td>
+                                    <td class="sa-num">1,350</td>
+                                    <td class="sa-num variance-text positive">+5.1% Growth</td>
+                                </tr>
+                                <tr data-stock="450" data-sales="1150" data-forecast="1200">
+                                    <td class="po-col-num">2</td>
+                                    <td class="sa-flavor"><strong>Chocolate Crinkles</strong></td>
+                                    <td class="sa-num">450</td>
+                                    <td class="sa-num">1,150</td>
+                                    <td class="sa-num">1,200</td>
+                                    <td class="sa-num variance-text negative">-4.1% Short</td>
+                                </tr>
+                                <tr data-stock="320" data-sales="890" data-forecast="850">
+                                    <td class="po-col-num">3</td>
+                                    <td class="sa-flavor"><strong>Choco-Almond</strong></td>
+                                    <td class="sa-num">320</td>
+                                    <td class="sa-num">890</td>
+                                    <td class="sa-num">850</td>
+                                    <td class="sa-num variance-text positive">+4.7% Growth</td>
+                                </tr>
+                                <tr data-stock="180" data-sales="710" data-forecast="700">
+                                    <td class="po-col-num">4</td>
+                                    <td class="sa-flavor"><strong>Ube Crinkles</strong></td>
+                                    <td class="sa-num">180</td>
+                                    <td class="sa-num">710</td>
+                                    <td class="sa-num">700</td>
+                                    <td class="sa-num variance-text positive">+1.4% Growth</td>
+                                </tr>
+                                <tr data-stock="85" data-sales="420" data-forecast="450">
+                                    <td class="po-col-num">5</td>
+                                    <td class="sa-flavor"><strong>Lemon Crinkles</strong></td>
+                                    <td class="sa-num">85</td>
+                                    <td class="sa-num">420</td>
+                                    <td class="sa-num">450</td>
+                                    <td class="sa-num variance-text negative">-6.6% Short</td>
+                                </tr>
+                                <tr data-stock="45" data-sales="290" data-forecast="310">
+                                    <td class="po-col-num">6</td>
+                                    <td class="sa-flavor"><strong>Mango Crinkles</strong></td>
+                                    <td class="sa-num">45</td>
+                                    <td class="sa-num">290</td>
+                                    <td class="sa-num">310</td>
+                                    <td class="sa-num variance-text negative">-6.4% Short</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="datatable-footer-line" id="sales-analysis-footer">
+                        <span>Total Aggregated Inventory / Sales</span>
+                        <span id="sales-analysis-totals">1,290 stock · 4,880 sales · 4,860 forecast · +0.4% net variance</span>
+                    </div>
+                </div>
+                </div>
+
+                <div class="insights-panel" data-insights-panel="forecast" hidden>
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Moving Average Computation Forecast</h3>
+                            <span class="po-list-count insights-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <label class="po-page-size">Show
+                                <select class="insights-show">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" class="insights-search" placeholder="Filter flavor text...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table insights-table" id="forecast-table">
+                                <colgroup>
+                                    <col class="fc-col-num">
+                                    <col class="fc-col-flavor">
+                                    <col class="fc-col-recent">
+                                    <col class="fc-col-avg">
+                                    <col class="fc-col-date">
+                                    <col class="fc-col-action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>#</th><th>Flavor</th><th>Recent Sales</th><th>Moving Average</th><th>Forecast Date</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="po-col-num">1</td><td class="sa-flavor"><strong>Choco Butternut</strong></td><td class="sa-num">200, 220, 210, 220</td><td class="sa-num">213</td><td>2026-09-27</td><td class="sa-num">Covered</td></tr>
+                                    <tr><td class="po-col-num">2</td><td class="sa-flavor"><strong>Chocolate Crinkles</strong></td><td class="sa-num">180, 200, 190, 210</td><td class="sa-num">195</td><td>2026-09-27</td><td class="sa-num">Covered</td></tr>
+                                    <tr><td class="po-col-num">3</td><td class="sa-flavor"><strong>Choco-Almond</strong></td><td class="sa-num">140, 150, 145, 155</td><td class="sa-num">148</td><td>2026-09-27</td><td class="sa-num">Covered</td></tr>
+                                    <tr><td class="po-col-num">4</td><td class="sa-flavor"><strong>Ube Crinkles</strong></td><td class="sa-num">110, 120, 115, 125</td><td class="sa-num">118</td><td>2026-09-27</td><td class="sa-num">Covered</td></tr>
+                                    <tr><td class="po-col-num">5</td><td class="sa-flavor"><strong>Lemon Crinkles</strong></td><td class="sa-num">70, 80, 65, 75</td><td class="sa-num">73</td><td>2026-09-27</td><td><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-headadmin.html">Reorder 115</a></td></tr>
+                                    <tr><td class="po-col-num">6</td><td class="sa-flavor"><strong>Mango Crinkles</strong></td><td class="sa-num">40, 50, 45, 48</td><td class="sa-num">46</td><td>2026-09-27</td><td><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-headadmin.html">Reorder 30</a></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line">
+                            <span>Moving average window</span>
+                            <span class="insights-totals">6 flavors · average of the last 4 sales</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insights-panel" data-insights-panel="management-insight" hidden>
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Management Insight</h3>
+                            <span class="po-list-count insights-count"></span>
+                        </div>
+                        <div class="po-list-toolbar-tools">
+                            <label class="po-page-size">Show
+                                <select class="insights-show">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" class="insights-search" placeholder="Filter flavor text...">
+                            </div>
+                            <button type="button" class="btn-call-to-action" id="management-insight-refresh">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table insights-table">
+                                <colgroup>
+                                    <col class="sa-col-num"><col class="sa-col-flavor"><col class="sa-col-forecast"><col class="sa-col-var">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>#</th><th>Flavor</th><th>Insight</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="po-col-num">1</td><td class="sa-flavor"><strong>Choco Butternut</strong></td><td>Sales are ahead of the forecast. Keep the current batch.</td><td class="sa-num variance-text positive">Hold</td></tr>
+                                    <tr><td class="po-col-num">2</td><td class="sa-flavor"><strong>Chocolate Crinkles</strong></td><td>Forecast is slightly above recent sales. Watch the next route.</td><td class="sa-num variance-text negative">Watch</td></tr>
+                                    <tr><td class="po-col-num">3</td><td class="sa-flavor"><strong>Choco-Almond</strong></td><td>Stock covers the forecast. No extra bake is needed.</td><td class="sa-num variance-text positive">Hold</td></tr>
+                                    <tr><td class="po-col-num">4</td><td class="sa-flavor"><strong>Ube Crinkles</strong></td><td>Demand and stock are close. Keep the regular batch.</td><td class="sa-num variance-text positive">Hold</td></tr>
+                                    <tr><td class="po-col-num">5</td><td class="sa-flavor"><strong>Lemon Crinkles</strong></td><td>Stock 85 is below the recommended 200. Reorder before the next delivery.</td><td><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-headadmin.html">Reorder 115</a></td></tr>
+                                    <tr><td class="po-col-num">6</td><td class="sa-flavor"><strong>Mango Crinkles</strong></td><td>Stock 45 is below the forecast. Reorder before the flavor runs out.</td><td><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-headadmin.html">Reorder 30</a></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line">
+                            <span>Owner note</span>
+                            <span class="insights-totals" id="management-insight-body">Lemon and Mango need a reorder. The other flavors are covered.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        <script>
+        (function () {
+            document.body.classList.add('po-admin-page');
+            var theme = document.getElementById('po-theme-sheet');
+            if (!theme) {
+                theme = document.createElement('link');
+                theme.id = 'po-theme-sheet';
+                theme.rel = 'stylesheet';
+                theme.setAttribute('data-po-owned', '1');
+                document.head.appendChild(theme);
+            }
+            theme.disabled = false;
+            if (theme.href.indexOf('20261008lay') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261008lay2';
+            if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.boot) {
+                try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
+            }
+        })();
+        </script>
+</turbo-frame>
+</div>
+    <script src="../js/aiforecast-pills.js?v=20261008word"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261008lay"></script>
+    <script src="../js/admin-sidebar.js?v=20261008tab"></script>
+    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/management-insight.js?v=20261005insight"></script>
+</body>
+</html>

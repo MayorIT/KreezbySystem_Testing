@@ -1,0 +1,173 @@
+/* AnimatedList + notification cards (shadcn-style) */
+
+/* Floating activity feed removed — notifications are event-driven only */
+.admin-activity-feed {
+    display: none !important;
+}
+
+.admin-activity-feed__card {
+    pointer-events: auto;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+.admin-activity-feed__scene {
+    position: relative;
+    height: 24rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 8px;
+}
+
+.animated-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.animated-list-item {
+    width: 100%;
+    transform: scale(0);
+    opacity: 0;
+    transform-origin: top center;
+    transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.35s ease;
+}
+
+.animated-list-item.is-visible {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.animated-list-notification {
+    position: relative;
+    width: 100%;
+    min-height: fit-content;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.animated-list-notification:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.animated-list-notification__row {
+    display: flex;
+    align-items: center;
+}
+
+.animated-list-notification__avatar {
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.animated-list-notification__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.animated-list-notification__body {
+    padding-left: 1rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.animated-list-notification__title {
+    margin: 0 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.animated-list-notification__subtitle {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.animated-list-fade {
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 25%;
+    background: linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Animated list inside notification popover (admin) */
+.notification-popover-list--animated {
+    position: relative;
+    padding: 12px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+.notification-popover-list--animated .animated-list {
+    gap: 0.75rem;
+}
+
+.notification-popover-list--animated .animated-list-notification {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.notification-popover-list--animated .animated-list-notification__title {
+    color: #f9fafb;
+}
+
+.notification-popover-list--animated .animated-list-notification__subtitle {
+    color: #9ca3af;
+}
+
+.notification-popover-list--animated .animated-list-fade {
+    background: linear-gradient(to top, rgba(17, 17, 17, 0.95) 0%, rgba(17, 17, 17, 0) 100%);
+}
+
+@media (max-width: 768px) {
+    .admin-activity-feed {
+        right: 12px;
+        bottom: 12px;
+        width: min(300px, calc(100vw - 24px));
+    }
+
+    .admin-activity-feed__scene {
+        height: 18rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animated-list-item {
+        transition-duration: 0.01ms !important;
+        transform: scale(1) !important;
+        opacity: 1 !important;
+    }
+}

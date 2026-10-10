@@ -1,0 +1,181 @@
+/* Dashboard stat card icons — matches sidebar icon set */
+a.stat-card.has-stat-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.stat-card-icon svg,
+.stat-card-icon svg * {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.stat-card.has-stat-icon .stat-title {
+    margin: 0;
+}
+
+.stat-card.has-stat-icon .stat-value {
+    margin-top: auto;
+}
+
+.stat-card[data-stat-icon="cart"] .stat-card-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.stat-card[data-stat-icon="package"] .stat-card-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-card[data-stat-icon="layers"] .stat-card-icon {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.stat-card[data-stat-icon="return"] .stat-card-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stat-card[data-stat-icon="boxes"] .stat-card-icon {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+.stat-card[data-stat-icon="sales"] .stat-card-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.stat-card[data-stat-icon="calendar"] .stat-card-icon {
+    background: #cffafe;
+    color: #0891b2;
+}
+
+.stat-card[data-stat-icon="chart"] .stat-card-icon {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.stat-card[data-stat-icon="bell"] .stat-card-icon {
+    background: #fce7f3;
+    color: #db2777;
+}
+
+.stat-card[data-stat-icon="activity"] .stat-card-icon {
+    background: #ccfbf1;
+    color: #0d9488;
+}
+
+.stat-card[data-stat-icon="mail"] .stat-card-icon {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.stat-card[data-stat-icon="report"] .stat-card-icon {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.stat-card[data-stat-icon="truck"] .stat-card-icon {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.stat-card[data-stat-icon="home"] .stat-card-icon {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* Colored accent border on every dashboard card — matches icon theme */
+a.stat-card.has-stat-icon {
+    border-top: 4px solid #d1d5db !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="cart"] {
+    border-top-color: #d97706 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="package"] {
+    border-top-color: #2563eb !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="layers"] {
+    border-top-color: #7c3aed !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="return"] {
+    border-top-color: #dc2626 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="boxes"] {
+    border-top-color: #ea580c !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="sales"] {
+    border-top-color: #16a34a !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="calendar"] {
+    border-top-color: #0891b2 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="chart"] {
+    border-top-color: #4f46e5 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="bell"] {
+    border-top-color: #db2777 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="activity"] {
+    border-top-color: #0d9488 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="mail"] {
+    border-top-color: #1d4ed8 !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="report"] {
+    border-top-color: #9333ea !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="truck"] {
+    border-top-color: #c2410c !important;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="home"] {
+    border-top-color: #6b7280 !important;
+}
+
+.stat-card[data-stat-icon="inquiry"] .stat-card-icon {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+.stat-card.has-stat-icon[data-stat-icon="inquiry"] {
+    border-top-color: #0f766e !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .stat-card.has-stat-icon {
+        transition-duration: 0.01ms !important;
+    }
+}

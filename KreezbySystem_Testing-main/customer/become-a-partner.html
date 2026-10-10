@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner with Kreezby</title>
+    <link rel="stylesheet" href="../css/pages/customer/become-a-partner.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
+    <link rel="stylesheet" href="../css/shared/customer-site-header.css?v=20261005brand">
+</head>
+<body>
+<header class="site-header">
+    <a class="logo-area" href="customer.html">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+    </a>
+    <nav class="nav-actions" aria-label="Customer account">
+        <a class="nav-btn notifications-trigger-btn" data-nav="favorites" href="customer.html?open=favorites">
+            <span class="nav-btn__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>
+            </span>
+            <span class="nav-btn__label">Favorites</span>
+            <span class="notifications-trigger-badge" id="favorites-trigger-badge" hidden>0</span>
+        </a>
+        <a class="nav-btn orders-trigger-btn" data-nav="orders" href="customer.html?open=orders" aria-label="Order Notification">
+            <span class="nav-btn__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 22a2.2 2.2 0 0 0 2.2-2.2H9.8A2.2 2.2 0 0 0 12 22zm7-5.5V11a7 7 0 1 0-14 0v5.5L3 18v1h18v-1l-2-1.5z"/></svg>
+            </span>
+            <span class="nav-btn__label">Order Notification</span>
+            <span class="notifications-trigger-badge" id="orders-trigger-badge" hidden>0</span>
+        </a>
+        <a class="nav-btn profile-trigger-btn" data-nav="profile" href="customer.html?open=profile">
+            <span class="nav-btn__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12zm0 2.2c-3.5 0-8.2 1.7-8.2 5.1V21h16.4v-1.7c0-3.4-4.7-5.1-8.2-5.1z"/></svg>
+            </span>
+            <span class="nav-btn__label">My Profile</span>
+        </a>
+        <a class="nav-btn cart-toggle-btn" data-nav="cart" href="customer.html?open=cart" aria-label="Cart">
+            <span class="nav-btn__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1.5 13H5.5L4 7h3zm2 0h6V6a3 3 0 0 0-6 0v1z"/></svg>
+            </span>
+            <span class="nav-btn__label">Cart</span>
+            <span class="notifications-trigger-badge" id="global-cart-count" hidden>0</span>
+        </a>
+        <div class="user-dropdown-wrapper">
+            <button class="nav-btn" type="button" id="user-dropdown-trigger" data-nav="customer">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 12.2a7.2 7.2 0 0 1-5.4-2.4 5.5 5.5 0 0 1 10.8 0A7.2 7.2 0 0 1 12 19.2z"/></svg>
+                </span>
+                <span class="nav-btn__label">Customer</span>
+                <span class="nav-btn__caret" aria-hidden="true">▾</span>
+            </button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="inbox-customer.html" class="dropdown-item">Help Center</a>
+                <a href="report_issue-customer.html" class="dropdown-item">Report Issue</a>
+                <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="page-shell">
+    <div class="report-panel">
+        <div class="report-header">
+            <span class="report-kicker">Retail Partnerships</span>
+            <h1>Want to carry Kreezby crinkles?</h1>
+            <p>Kreezby Bakeshop is The Crinkle Factory — premium crinkle cookies in pouches and jars, made for shops that want a flavor people come back for. Inquire here to learn more about the business and the products, or contact us about a partnership.</p>
+        </div>
+
+        <div class="report-body">
+            <h2 class="section-title">About the business</h2>
+            <div class="about-grid">
+                <article class="about-card">
+                    <h3>What we bake</h3>
+                    <p>Soft chocolate crinkles in classic and seasonal flavors. Packed as 8-piece pouches or 250g jars for retail shelves and pasalubong counters.</p>
+                </article>
+                <article class="about-card">
+                    <h3>Who we partner with</h3>
+                    <p>Retailers and cooperatives across Batangas, Lipa, Lucena, Manila, Tagaytay, and nearby hubs. Simple pricing, repeatable orders.</p>
+                </article>
+                <article class="about-card">
+                    <h3>How it works</h3>
+                    <p>Send us an inquiry. We review your store or distribution area, then follow up on pricing, MOQ, and delivery.</p>
+                </article>
+            </div>
+
+            <h2 class="section-title">Products</h2>
+            <div class="flavor-grid">
+                <article class="flavor-card"><h3>Chocolate</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Choco-Cashew</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Strawberry</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Red Velvet</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Lemon</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Melon</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Pandan</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Ube</h3><p>Pouch · 8 pcs</p></article>
+                <article class="flavor-card"><h3>Mango</h3><p>Jar · 250g</p></article>
+                <article class="flavor-card"><h3>Choco Butternut</h3><p>Jar · 250g</p></article>
+            </div>
+
+            <div class="report-layout">
+                <form class="report-form" id="partner-inquiry-form" novalidate>
+                    <div class="form-section-head">
+                        <h2>Contact us</h2>
+                        <p>Tell us about your store or distribution area. We’ll get back to you about partnership, pricing, and next steps.</p>
+                    </div>
+                    <p class="form-status" id="partner-inquiry-success" hidden>Inquiry sent. We’ll review it and get back to you.</p>
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="partner-name">Full Name</label>
+                            <input id="partner-name" name="fullName" type="text" placeholder="Your full name" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="partner-contact">Email or Phone</label>
+                            <input id="partner-contact" name="contact" type="text" placeholder="you@example.com or 0917 123 4567" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="partner-business">Business / Store Name</label>
+                            <input id="partner-business" name="businessName" type="text" placeholder="e.g. SIDC Bauan">
+                        </div>
+                        <div class="form-row">
+                            <label for="partner-interest">I want to</label>
+                            <select id="partner-interest" name="interest" required>
+                                <option value="Retailer">Become a retailer</option>
+                                <option value="Other">Ask about the products</option>
+                            </select>
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="partner-area">Area / Location</label>
+                            <input id="partner-area" name="area" type="text" placeholder="City or municipality">
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="partner-message">Message</label>
+                            <textarea id="partner-message" name="message" placeholder="Tell us about your store, expected volume, or questions about flavors and pricing." required></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="partner-submit">Send inquiry</button>
+                </form>
+
+                <aside class="support-card" aria-label="Contact us">
+                    <span class="support-card-kicker">Contact us</span>
+                    <h3>Kreezby Bakeshop</h3>
+                    <p>Partnership, pricing, and new retailer requests.</p>
+                    <p><strong>Email:</strong> <a href="mailto:brent@kreezby.ph">brent@kreezby.ph</a></p>
+                    <p><strong>Phone:</strong> <a href="tel:+639170000000">0917 000 0000</a></p>
+                    <p>Office hours: Mon–Sat, 8:00 AM – 5:00 PM</p>
+                </aside>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="../js/kreezby-partner-inquiries.js"></script>
+<script>
+(function () {
+    var form = document.getElementById('partner-inquiry-form');
+    var success = document.getElementById('partner-inquiry-success');
+    if (!form) return;
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        if (!window.KreezbyPartnerInquiries) return;
+        KreezbyPartnerInquiries.add({
+            submittedBy: document.getElementById('partner-name').value.trim(),
+            contact: document.getElementById('partner-contact').value.trim(),
+            businessName: document.getElementById('partner-business').value.trim(),
+            interest: document.getElementById('partner-interest').value,
+            area: document.getElementById('partner-area').value.trim(),
+            message: document.getElementById('partner-message').value.trim()
+        });
+        form.reset();
+        if (success) success.hidden = false;
+    });
+})();
+</script>
+<script src="../js/customer-orders.js?v=20260929webpay"></script>
+<script src="../js/customer-site-header.js?v=20260928hdr"></script>
+<script src="../js/user-dropdown-nav.js?v=20260929title"></script>
+<script src="../js/customer-phone-shop.js?v=20261009acct"></script>
+</body>
+</html>

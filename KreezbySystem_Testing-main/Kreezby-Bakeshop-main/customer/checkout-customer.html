@@ -1,0 +1,191 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreezby Bakeshop - Checkout</title>
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261005qr">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
+    <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
+    <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
+    <link rel="stylesheet" href="../css/shared/payment-summary.css">
+    <link rel="stylesheet" href="../css/shared/customer-site-header.css?v=20261005brand">
+</head>
+<body>
+    <header class="site-header">
+        <a class="logo-area" href="customer.html">
+            <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
+        </a>
+        <nav class="nav-actions" aria-label="Customer account">
+            <a class="nav-btn notifications-trigger-btn" data-nav="favorites" href="customer.html?open=favorites">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>
+                </span>
+                <span class="nav-btn__label">Favorites</span>
+                <span class="notifications-trigger-badge" id="favorites-trigger-badge" hidden>0</span>
+            </a>
+            <a class="nav-btn orders-trigger-btn" data-nav="orders" href="customer.html?open=orders" aria-label="Order Notification">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 22a2.2 2.2 0 0 0 2.2-2.2H9.8A2.2 2.2 0 0 0 12 22zm7-5.5V11a7 7 0 1 0-14 0v5.5L3 18v1h18v-1l-2-1.5z"/></svg>
+                </span>
+                <span class="nav-btn__label">Order Notification</span>
+                <span class="notifications-trigger-badge" id="orders-trigger-badge" hidden>0</span>
+            </a>
+            <a class="nav-btn profile-trigger-btn" data-nav="profile" href="customer.html?open=profile">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12zm0 2.2c-3.5 0-8.2 1.7-8.2 5.1V21h16.4v-1.7c0-3.4-4.7-5.1-8.2-5.1z"/></svg>
+                </span>
+                <span class="nav-btn__label">My Profile</span>
+            </a>
+            <a class="nav-btn cart-toggle-btn" data-nav="cart" href="customer.html?open=cart" aria-label="Cart">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1.5 13H5.5L4 7h3zm2 0h6V6a3 3 0 0 0-6 0v1z"/></svg>
+                </span>
+                <span class="nav-btn__label">Cart</span>
+                <span class="notifications-trigger-badge" id="global-cart-count" hidden>0</span>
+            </a>
+            <div class="user-dropdown-wrapper">
+                <button class="nav-btn" type="button" id="user-dropdown-trigger" data-nav="customer">
+                    <span class="nav-btn__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 12.2a7.2 7.2 0 0 1-5.4-2.4 5.5 5.5 0 0 1 10.8 0A7.2 7.2 0 0 1 12 19.2z"/></svg>
+                    </span>
+                    <span class="nav-btn__label">Customer</span>
+                    <span class="nav-btn__caret" aria-hidden="true">▾</span>
+                </button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="inbox-customer.html" class="dropdown-item">Help Center</a>
+                    <a href="report_issue-customer.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="checkout-container">
+        <div class="checkout-main">
+            <div class="checkout-section">
+                <h2 class="section-title">Shipping Information</h2>
+                <div class="shipping-grid">
+                    <div class="form-group">
+                        <label for="full-name">Full Name</label>
+                        <input type="text" id="full-name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="09XX XXX XXXX" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="address">Delivery Address</label>
+                    <textarea id="address" rows="3" placeholder="Enter your complete delivery address" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Delivery Notes (Optional)</label>
+                    <textarea id="notes" rows="2" placeholder="Any special instructions for delivery"></textarea>
+                </div>
+            </div>
+
+            <div class="checkout-section checkout-section--payment">
+                <div class="payment-method-selector" id="payment-selector" data-payment-selector data-default-id="paymongo">
+                    <div class="payment-method-selector__header">
+                        <h3 class="payment-method-selector__title">Payment Method</h3>
+                    </div>
+
+                    <div class="payment-method-selector__list" role="radiogroup" aria-label="Payment method">
+                        <div class="payment-method-selector__item is-selected" data-payment-id="paymongo" tabindex="0" aria-checked="true">
+                            <div class="payment-method-selector__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00a3a1"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+                            </div>
+                            <div class="payment-method-selector__body">
+                                <p class="payment-method-selector__label">PayMongo</p>
+                            </div>
+                            <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
+                        </div>
+                        <div class="payment-method-selector__item" data-payment-id="cash_on_delivery" tabindex="-1" aria-checked="false">
+                            <div class="payment-method-selector__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#5d4037"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+                            </div>
+                            <div class="payment-method-selector__body">
+                                <p class="payment-method-selector__label">Cash On Delivery</p>
+                            </div>
+                            <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-section gcash-pay-panel" id="paymongo-section">
+                    <h3 class="qr-title">PayMongo</h3>
+                    <p class="gcash-pay-lead">Scan the QR code with your phone. It opens a PayMongo link like secure-authentication.paymongo.com/sources?id=src_… Complete the payment there. This page checks every 5 seconds.</p>
+                    <div class="form-group">
+                        <label for="paymongo-email">Email for the receipt</label>
+                        <input type="email" id="paymongo-email" placeholder="name@email.com" autocomplete="email">
+                    </div>
+                    <div class="paymongo-wallets" role="radiogroup" aria-label="PayMongo e-wallet">
+                        <label><input type="radio" name="paymongo-wallet" value="gcash" checked> GCash</label>
+                        <label><input type="radio" name="paymongo-wallet" value="paymaya"> Maya</label>
+                    </div>
+                    <img id="paymongo-qr" class="paymongo-qr" alt="PayMongo QR code" hidden>
+                    <p class="qr-instructions" id="paymongo-status">Enter your email, then show the QR code.</p>
+                    <button type="button" class="checkout-btn" id="paymongo-pay-btn">Show QR code</button>
+                </div>
+
+                <div class="qr-section gcash-pay-panel" id="cod-section">
+                    <h3 class="qr-title">Cash on delivery</h3>
+                    <p class="gcash-pay-lead">Pay the order total in cash when the parcel arrives. Kreezby verifies the payment after the cash is collected.</p>
+                    <p class="qr-instructions">
+                        1. Place the order with cash on delivery selected<br>
+                        2. Prepare the exact amount: <strong id="cod-amount">₱0.00</strong><br>
+                        3. Hand the cash to the courier or the shop on delivery<br>
+                        4. Admin, head admin, or staff mark the payment verified
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-sidebar">
+            <div class="checkout-ad-banner">
+                <a class="checkout-ad-link" href="become-a-partner.html" aria-label="Learn more about partnering with Kreezby. Opens partnership inquiry page.">
+                    <img src="ad/ad-customer.jpg" alt="Want to carry our chocolate crinkles? Become a Kreezby retailer today.">
+                    <span class="checkout-ad-cta">Interested? Learn more &amp; contact us</span>
+                </a>
+            </div>
+            <div class="payment-summary" id="payment-summary" data-payment-summary>
+                <div class="payment-summary__header">
+                    <h3 class="payment-summary__title" data-ps-title>Order Summary</h3>
+                </div>
+                <div class="payment-summary__body">
+                    <div class="payment-summary__list">
+                        <div class="payment-summary__row payment-summary__row--method">
+                            <span class="payment-summary__label">Payment Method</span>
+                            <div class="payment-summary__method">
+                                <span class="payment-summary__method-icon" data-ps-payment-icon aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00a3a1"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+                                <span class="payment-summary__method-name" data-ps-payment-name>PayMongo</span>
+                            </div>
+                        </div>
+                        <div data-ps-items></div>
+                        <div class="payment-summary__separator" aria-hidden="true"></div>
+                        <div class="payment-summary__row payment-summary__row--total">
+                            <span class="payment-summary__total-label" data-ps-total-label>Total</span>
+                            <span class="payment-summary__total-value" data-ps-total-value id="total-amount">?0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="payment-summary__actions">
+                    <button type="button" class="checkout-btn" id="place-order-btn" onclick="placeOrder()" disabled>
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/payment-summary.js?v=20260929pay"></script>
+    <script src="../js/payment-method-selector.js"></script>
+    <script src="../js/checkout-customer.js?v=20261005srv"></script>
+    <script src="../js/customer-orders.js?v=20260929webpay"></script>
+    <script src="../js/customer-site-header.js?v=20260928hdr"></script>
+    <script src="../js/user-dropdown-nav.js?v=20260929title"></script>
+    <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>
+</body>
+</html>
