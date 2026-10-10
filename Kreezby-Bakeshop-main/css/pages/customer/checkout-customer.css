@@ -1232,17 +1232,124 @@ main.workspace-canvas {
             text-align: left;
         }
 
+        .checkout-section--payment .payment-method-selector__item {
+            position: relative;
+            border-radius: 14px;
+            padding: 14px 52px 14px 14px;
+        }
+
+        .checkout-section--payment .payment-method-selector__icon {
+            width: 148px;
+            height: 52px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee7d6;
+        }
+
+        .payment-summary__method-icon:has(img) {
+            width: auto;
+            height: 22px;
+        }
+
+        .payment-summary__method-icon img {
+            display: block;
+            height: 18px;
+            width: auto;
+            max-width: 92px;
+            object-fit: contain;
+        }
+
+        .checkout-section--payment .payment-method-selector__icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .checkout-section--payment .payment-method-selector__radio {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            margin: 0;
+            transform: translateY(-50%);
+        }
+
         .paymongo-wallets {
-            display: flex;
-            gap: 16px;
+            display: block;
             margin: 0 0 16px;
         }
 
-        .paymongo-wallets label {
-            display: inline-flex;
+        .paymongo-wallets-label {
+            margin: 14px 0 8px;
+            color: #8a8172;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .paymongo-wallets-label:first-child {
+            margin-top: 0;
+        }
+
+        .paymongo-wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .paymongo-wallet-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 8px;
-            font-weight: 600;
+            margin: 0;
+            padding: 10px;
+            border: 1px solid #e6e6e6;
+            border-radius: 14px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .paymongo-wallet-card input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: 0;
+            opacity: 0;
+        }
+
+        .paymongo-wallet-card:has(input:checked) {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 2px var(--primary-blue);
+        }
+
+        .paymongo-wallet-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 52px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: #f7f7f8;
+        }
+
+        .paymongo-wallet-logo--dark {
+            background: #111111;
+        }
+
+        .paymongo-wallet-logo img {
+            max-width: 100%;
+            max-height: 36px;
+            object-fit: contain;
+        }
+
+        .paymongo-wallet-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
         }
 
         #paymongo-pay-btn {
@@ -1252,15 +1359,15 @@ main.workspace-canvas {
 
         .paymongo-qr {
             display: block;
-            width: 590px;
+            width: 220px;
             max-width: 100%;
             height: auto;
-            margin: 12px auto 16px;
-            padding: 0;
+            margin: 8px auto 16px;
+            padding: 10px;
             background: #fff;
-            border: 0;
-            border-radius: 0;
-            image-rendering: crisp-edges;
+            border: 1px solid #e6e6e6;
+            border-radius: 12px;
+            image-rendering: auto;
         }
 
         .paymongo-qr[hidden] {
@@ -1556,6 +1663,115 @@ main.workspace-canvas {
 
         .checkout-alert-btn:hover {
             background: var(--dark-blue);
+        }
+
+        .checkout-alert-dialog.has-details {
+            width: min(100%, 420px);
+            padding: 28px 24px 22px;
+            border: none;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .checkout-alert-dialog.has-details .checkout-alert-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 14px;
+            font-size: 26px;
+            box-shadow: inset 0 0 0 8px #f0fdf4;
+        }
+
+        .checkout-alert-dialog.has-details .checkout-alert-title {
+            margin-bottom: 6px;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .checkout-alert-dialog.has-details .checkout-alert-message {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .checkout-alert-details {
+            margin: 18px 0 0;
+            padding: 4px 14px;
+            border: 1px solid #eee7d6;
+            border-radius: 14px;
+            background: #fffdf8;
+            text-align: left;
+        }
+
+        .checkout-alert-row {
+            display: grid;
+            grid-template-columns: 118px minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+            padding: 11px 0;
+            border-bottom: 1px solid #f1eadc;
+        }
+
+        .checkout-alert-row:last-child {
+            border-bottom: none;
+        }
+
+        .checkout-alert-row dt {
+            margin: 0;
+            color: #8a8172;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .checkout-alert-row dd {
+            margin: 0;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.35;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .checkout-alert-row.is-emphasis dd {
+            color: #111827;
+            font-size: 18px;
+        }
+
+        .checkout-alert-row.is-mono {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .checkout-alert-row.is-mono dd {
+            text-align: left;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            font-weight: 650;
+            letter-spacing: 0;
+        }
+
+        .checkout-alert-dialog.has-details .checkout-alert-actions {
+            margin-top: 18px;
+        }
+
+        .checkout-alert-dialog.has-details .checkout-alert-btn {
+            width: 100%;
+            min-height: 46px;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        @media (max-width: 420px) {
+            .checkout-alert-row {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+
+            .checkout-alert-row dd {
+                text-align: left;
+            }
         }
 
         @media (max-width: 768px) {

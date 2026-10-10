@@ -25,6 +25,7 @@ function ensureCheckoutDialog() {
         '<div class="checkout-alert-icon" id="checkout-alert-icon" aria-hidden="true">!</div>',
         '<h3 class="checkout-alert-title" id="checkout-alert-title">Notice</h3>',
         '<p class="checkout-alert-message" id="checkout-alert-message"></p>',
+        '<dl class="checkout-alert-details" id="checkout-alert-details" hidden></dl>',
         '<div class="checkout-alert-actions">',
         '<button type="button" class="checkout-alert-btn" id="checkout-alert-ok-btn">OK</button>',
         '</div>',
@@ -65,13 +66,23 @@ function showCheckoutDialog(message, options) {
     const iconEl = overlay.querySelector('#checkout-alert-icon');
     const titleEl = overlay.querySelector('#checkout-alert-title');
     const messageEl = overlay.querySelector('#checkout-alert-message');
+    const detailsEl = overlay.querySelector('#checkout-alert-details');
     const okBtn = overlay.querySelector('#checkout-alert-ok-btn');
+    const details = Array.isArray(opts.details) ? opts.details.filter(function (row) {
+        return row && row.label && row.value;
+    }) : [];
 
-    dialog.classList.remove('is-warning', 'is-success', 'is-info');
+    dialog.classList.remove('is-warning', 'is-success', 'is-info', 'has-details');
     dialog.classList.add('is-' + type);
+    if (details.length) dialog.classList.add('has-details');
     iconEl.textContent = iconMap[type] || '!';
     titleEl.textContent = title;
     messageEl.textContent = message || '';
+    messageEl.hidden = !message;
+    detailsEl.hidden = details.length === 0;
+    detailsEl.innerHTML = details.map(function (row) {
+        return '<div class="checkout-alert-row' + (row.emphasis ? ' is-emphasis' : '') + (row.mono ? ' is-mono' : '') + '"><dt>' + escapeHtml(row.label) + '</dt><dd>' + escapeHtml(row.value) + '</dd></div>';
+    }).join('');
     okBtn.textContent = opts.buttonText || 'OK';
 
     overlay.removeAttribute('hidden');
@@ -668,7 +679,17 @@ function checkoutTotalAmount() {
 
 function selectedPaymongoWallet() {
     const picked = document.querySelector('input[name="paymongo-wallet"]:checked');
-    return picked && picked.value === 'paymaya' ? 'paymaya' : 'gcash';
+    const value = picked ? picked.value : 'gcash';
+    return paymongoWalletLabel(value) ? value : 'gcash';
+}
+
+function paymongoWalletLabel(wallet) {
+    const labels = {
+        gcash: 'GCash',
+        paymaya: 'Maya',
+        metrobank: 'Metrobank'
+    };
+    return labels[wallet] || '';
 }
 
 function showPaymongoQr(image) {
@@ -951,7 +972,7 @@ function placeOrder() {
     const accountArea = (accountType === 'Regular Customer')
         ? fields.address
         : (session.accountArea || fields.address);
-    const walletLabel = paymongoPayment && paymongoPayment.wallet === 'paymaya' ? 'Maya' : 'GCash';
+    const walletLabel = paymongoWalletLabel(paymongoPayment && paymongoPayment.wallet) || 'PayMongo';
 
     const order = {
         orderNumber: orderNumber,
@@ -1032,9 +1053,20 @@ function placeOrder() {
 
     showCheckoutDialog(
         payingWithPaymongo
-            ? `Order placed. Order Number: ${orderNumber}. PayMongo ${walletLabel} payment succeeded. Payment intent ${paymongoPayment.paymentIntentId}. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`
-            : `Order placed. Order Number: ${orderNumber}. Cash on delivery is waiting for Kreezby to verify after the cash is collected. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`,
-        { type: 'success', title: 'Order Confirmed', buttonText: 'Go To Shop' }
+            ? 'Your payment went through. Keep this receipt for the order.'
+            : 'Cash on delivery is waiting for Kreezby to verify after the cash is collected.',
+        {
+            type: 'success',
+            title: 'Order Confirmed',
+            buttonText: 'Go To Shop',
+            details: [
+                { label: 'Order number', value: orderNumber },
+                { label: 'Payment', value: payingWithPaymongo ? ('PayMongo · ' + walletLabel) : 'Cash on delivery' },
+                payingWithPaymongo ? { label: 'Payment intent', value: paymongoPayment.paymentIntentId, mono: true } : null,
+                { label: 'Receipt', value: order.receiptNumber },
+                { label: 'Total', value: order.total, emphasis: true }
+            ]
+        }
     ).then(function () {
         localStorage.setItem('kreezbyOpenOrdersAfterCheckout', '1');
         localStorage.setItem('kreezbyLatestOrderNumber', orderNumber);
