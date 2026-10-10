@@ -5,7 +5,7 @@
 (function () {
     'use strict';
 
-    var STORAGE_KEY = 'kreezbyHelpChatV3';
+    var STORAGE_KEY = 'kreezbyHelpChatV4';
     var ORDERS_KEY = 'kreezbyOrders';
     var JNT_TRACK = 'https://www.jtexpress.ph/track-and-trace?billCodes=';
 
@@ -517,12 +517,20 @@
                 menu.className = 'help-menu';
                 menu.innerHTML = '<p class="help-menu__title">' + escapeHtml(block.title || 'Choose a topic') + '</p>';
                 MENU.forEach(function (item) {
+                    var acc = document.createElement('div');
+                    acc.className = 'help-acc';
                     var btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'help-menu__btn';
-                    btn.setAttribute('data-prompt', item.prompt);
-                    btn.innerHTML = '<span>' + escapeHtml(item.label) + '</span><span aria-hidden="true">›</span>';
-                    menu.appendChild(btn);
+                    btn.setAttribute('data-acc', item.prompt);
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.innerHTML = '<span>' + escapeHtml(item.label) + '</span><span class="help-menu__chev" aria-hidden="true">›</span>';
+                    var panel = document.createElement('div');
+                    panel.className = 'help-acc__panel';
+                    panel.hidden = true;
+                    acc.appendChild(btn);
+                    acc.appendChild(panel);
+                    menu.appendChild(acc);
                 });
                 host.appendChild(menu);
             }
@@ -530,6 +538,8 @@
                 var list = document.createElement('div');
                 list.className = 'help-orders';
                 (block.orders || []).forEach(function (order) {
+                    var nest = document.createElement('div');
+                    nest.className = 'help-nest';
                     var btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'help-order';
@@ -540,7 +550,12 @@
                         '<span class="help-order__items">' + escapeHtml(items || 'Crinkle order') + '</span>' +
                         '<span class="help-order__meta">' + escapeHtml(orderTotal(order)) +
                         (order.trackingNumber ? ' · ' + escapeHtml(order.trackingNumber) : '') + '</span>';
-                    list.appendChild(btn);
+                    var slot = document.createElement('div');
+                    slot.className = 'help-inline';
+                    slot.hidden = true;
+                    nest.appendChild(btn);
+                    nest.appendChild(slot);
+                    list.appendChild(nest);
                 });
                 host.appendChild(list);
             }
@@ -548,6 +563,8 @@
                 var products = document.createElement('div');
                 products.className = 'help-products';
                 (block.items || []).forEach(function (item) {
+                    var nest = document.createElement('div');
+                    nest.className = 'help-nest';
                     var row = document.createElement('button');
                     row.type = 'button';
                     row.className = 'help-product';
@@ -555,7 +572,12 @@
                     row.innerHTML =
                         '<span><strong>' + escapeHtml(item.name) + '</strong><small>' + escapeHtml(item.variant) + '</small></span>' +
                         '<em>' + escapeHtml(money(item.cost)) + '</em>';
-                    products.appendChild(row);
+                    var slot = document.createElement('div');
+                    slot.className = 'help-inline';
+                    slot.hidden = true;
+                    nest.appendChild(row);
+                    nest.appendChild(slot);
+                    products.appendChild(nest);
                 });
                 host.appendChild(products);
             }
@@ -644,11 +666,15 @@
                 text.innerHTML = escapeHtml(msg.text).replace(/\n/g, '<br>');
                 bubble.appendChild(text);
             }
-            if (msg.role === 'bot') renderBlocks(bubble, msg.blocks);
             var time = document.createElement('span');
             time.className = 'help-bubble__time';
             time.textContent = msg.time || '';
             bubble.appendChild(time);
+            if (msg.role === 'bot') {
+                renderBlocks(bubble, msg.blocks);
+                var hasMenu = (msg.blocks || []).some(function (block) { return block.type === 'menu'; });
+                if (!hasMenu && msg.chips && msg.chips.length) renderChipRow(bubble, msg.chips);
+            }
             if (msg.role === 'bot') {
                 var avatar = document.createElement('div');
                 avatar.className = 'help-msg__avatar';
@@ -668,17 +694,137 @@
         threadEl.scrollTop = threadEl.scrollHeight;
     }
 
-    function renderChips() {
-        if (!chipsEl) return;
-        chipsEl.innerHTML = '';
-        chips.forEach(function (chip) {
+    function renderChipRow(host, list) {
+        var row = document.createElement('div');
+        row.className = 'help-inline__chips';
+        (list || []).forEach(function (chip) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'help-chip';
             btn.setAttribute('data-prompt', chip.prompt);
             btn.textContent = chip.label;
-            chipsEl.appendChild(btn);
+            row.appendChild(btn);
         });
+        var follow = document.createElement('div');
+        follow.className = 'help-inline help-follow';
+        follow.hidden = true;
+        host.appendChild(row);
+        host.appendChild(follow);
+    }
+
+    function renderChips() {
+        if (!chipsEl) return;
+        chipsEl.innerHTML = '';
+    }
+
+    function fillAnswer(host, reply) {
+        host.innerHTML = '';
+        if (reply.text) {
+            var text = document.createElement('p');
+            text.className = 'help-inline__text';
+            text.innerHTML = escapeHtml(reply.text).replace(/\n/g, '<br>');
+            host.appendChild(text);
+        }
+        renderBlocks(host, reply.blocks);
+        var hasMenu = (reply.blocks || []).some(function (block) { return block.type === 'menu'; });
+        if (!hasMenu && reply.chips && reply.chips.length) renderChipRow(host, reply.chips);
+    }
+
+    function accParts(acc) {
+        var btn = null;
+        var panel = null;
+        Array.prototype.forEach.call(acc.children, function (child) {
+            if (child.classList.contains('help-menu__btn')) btn = child;
+            if (child.classList.contains('help-acc__panel')) panel = child;
+        });
+        return { btn: btn, panel: panel };
+    }
+
+    function closeAcc(acc) {
+        if (!acc) return;
+        acc.classList.remove('is-open');
+        var parts = accParts(acc);
+        if (parts.btn) parts.btn.setAttribute('aria-expanded', 'false');
+        if (parts.panel) parts.panel.hidden = true;
+    }
+
+    function closeEveryAccordion() {
+        if (!threadEl) return;
+        Array.prototype.forEach.call(threadEl.querySelectorAll('.help-acc.is-open'), closeAcc);
+    }
+
+    function revealUnder(anchor) {
+        if (!threadEl || !anchor) return;
+        var threadRect = threadEl.getBoundingClientRect();
+        var rect = anchor.getBoundingClientRect();
+        if (rect.top < threadRect.top + 4) {
+            threadEl.scrollTop -= threadRect.top + 8 - rect.top;
+        }
+        var panel = anchor.nextElementSibling;
+        if (!panel || panel.hidden) return;
+        var panelTop = panel.getBoundingClientRect().top;
+        var limit = threadRect.bottom - 88;
+        if (panelTop > limit) {
+            var room = rect.top - threadRect.top - 8;
+            if (room > 0) threadEl.scrollTop += Math.min(panelTop - limit, room);
+        }
+    }
+
+    function toggleAccordion(btn) {
+        var acc = btn.closest('.help-acc');
+        if (!acc) return;
+        var parts = accParts(acc);
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        var menu = acc.parentNode;
+        if (menu) {
+            Array.prototype.forEach.call(menu.children, function (child) {
+                if (child !== acc && child.classList.contains('help-acc')) closeAcc(child);
+            });
+        }
+        if (open) {
+            closeAcc(acc);
+            return;
+        }
+        btn.setAttribute('aria-expanded', 'true');
+        acc.classList.add('is-open');
+        if (parts.panel) {
+            parts.panel.hidden = false;
+            if (!parts.panel.getAttribute('data-filled')) {
+                fillAnswer(parts.panel, replyTo(btn.getAttribute('data-acc')));
+                parts.panel.setAttribute('data-filled', '1');
+            }
+        }
+        revealUnder(btn);
+    }
+
+    function openInline(btn, slot, prompt) {
+        var list = btn.parentNode && btn.parentNode.classList.contains('help-nest') ? btn.parentNode.parentNode : null;
+        if (list) {
+            Array.prototype.forEach.call(list.children, function (child) {
+                var inline = null;
+                var rowBtn = null;
+                Array.prototype.forEach.call(child.children || [], function (node) {
+                    if (node.classList.contains('help-inline')) inline = node;
+                    if (node.hasAttribute && node.hasAttribute('data-prompt')) rowBtn = node;
+                });
+                if (inline && inline !== slot) {
+                    inline.hidden = true;
+                    inline.removeAttribute('data-open');
+                }
+                if (rowBtn && rowBtn !== btn) rowBtn.classList.remove('is-open');
+            });
+        }
+        if (!slot.hidden && slot.getAttribute('data-open') === prompt) {
+            slot.hidden = true;
+            slot.removeAttribute('data-open');
+            btn.classList.remove('is-open');
+            return;
+        }
+        fillAnswer(slot, replyTo(prompt));
+        slot.hidden = false;
+        slot.setAttribute('data-open', prompt);
+        btn.classList.add('is-open');
+        revealUnder(btn);
     }
 
     function persist() {
@@ -688,6 +834,7 @@
                     role: msg.role,
                     text: msg.text,
                     blocks: msg.blocks,
+                    chips: msg.chips || [],
                     time: msg.time
                 };
                 if (msg.attachments && msg.attachments.length) {
@@ -715,7 +862,7 @@
             var saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
             if (saved && Array.isArray(saved.messages) && saved.messages.length) {
                 messages = saved.messages;
-                chips = Array.isArray(saved.chips) ? saved.chips : chipsOf(MENU);
+                chips = [];
                 return;
             }
         } catch (err) { /* ignore */ }
@@ -726,9 +873,10 @@
             role: 'bot',
             text: greeting.text,
             blocks: greeting.blocks,
-            time: greeting.time
+            time: greeting.time,
+            chips: []
         }];
-        chips = greeting.chips;
+        chips = [];
     }
 
     function pushBot(reply) {
@@ -736,9 +884,10 @@
             role: 'bot',
             text: reply.text,
             blocks: reply.blocks || [],
+            chips: reply.chips || [],
             time: nowLabel()
         });
-        chips = reply.chips && reply.chips.length ? reply.chips : chipsOf(MENU);
+        chips = [];
         pending = false;
         renderThread();
         renderChips();
@@ -772,8 +921,13 @@
         if (inputEl && !(options && options.keepDraft)) inputEl.value = '';
         renderThread();
         window.setTimeout(function () {
-            pushBot(text ? replyTo(text) : attachmentAck(files));
-        }, 550);
+            try {
+                pushBot(text ? replyTo(text) : attachmentAck(files));
+            } catch (err) {
+                pending = false;
+                pushBot(fallbackReply());
+            }
+        }, 180);
         return true;
     }
 
@@ -942,10 +1096,6 @@
         button.addEventListener('click', function (event) {
             event.preventDefault();
             event.stopPropagation();
-            var emojiMenu = document.getElementById('help-emoji-menu');
-            var emojiBtn = document.getElementById('help-emoji-btn');
-            if (emojiMenu) emojiMenu.hidden = true;
-            if (emojiBtn) emojiBtn.setAttribute('aria-expanded', 'false');
             setOpen(menu.hidden);
         });
 
@@ -967,10 +1117,6 @@
 
         document.addEventListener('click', function () {
             setOpen(false);
-            var emojiMenu = document.getElementById('help-emoji-menu');
-            var emojiBtn = document.getElementById('help-emoji-btn');
-            if (emojiMenu) emojiMenu.hidden = true;
-            if (emojiBtn) emojiBtn.setAttribute('aria-expanded', 'false');
         });
 
         ['document'].forEach(function (kind) {
@@ -984,10 +1130,44 @@
     }
 
     function onPromptClick(event) {
+        var accBtn = event.target.closest('.help-menu__btn');
+        if (accBtn && threadEl && threadEl.contains(accBtn)) {
+            event.preventDefault();
+            toggleAccordion(accBtn);
+            return;
+        }
         var btn = event.target.closest('[data-prompt]');
-        if (!btn || !formEl || !formEl.contains(btn) && !threadEl.contains(btn) && !chipsEl.contains(btn)) return;
+        if (!btn || !threadEl || !threadEl.contains(btn)) return;
         event.preventDefault();
-        ask(btn.getAttribute('data-prompt'));
+        var prompt = btn.getAttribute('data-prompt') || '';
+        if (normalize(prompt) === 'main menu') {
+            closeEveryAccordion();
+            var first = threadEl.querySelector('.help-menu');
+            if (first) revealUnder(first);
+            return;
+        }
+        var topic = null;
+        Array.prototype.forEach.call(threadEl.querySelectorAll('.help-menu__btn'), function (item) {
+            if (!topic && item.getAttribute('data-acc') === prompt) topic = item;
+        });
+        if (topic && !btn.closest('.help-acc__panel, .help-inline')) {
+            toggleAccordion(topic);
+            return;
+        }
+        var nest = btn.parentNode && btn.parentNode.classList.contains('help-nest') ? btn.parentNode : null;
+        var slot = null;
+        if (nest) {
+            Array.prototype.forEach.call(nest.children, function (child) {
+                if (child.classList.contains('help-inline')) slot = child;
+            });
+        } else if (btn.parentNode && btn.parentNode.nextElementSibling && btn.parentNode.nextElementSibling.classList.contains('help-follow')) {
+            slot = btn.parentNode.nextElementSibling;
+        }
+        if (!slot) {
+            ask(prompt);
+            return;
+        }
+        openInline(btn, slot, prompt);
     }
 
     function init() {
@@ -1012,58 +1192,7 @@
             });
         }
         wireHelpAttachments();
-        wireHelpEmoji();
         wireHelpVoice();
-    }
-
-    var HELP_EMOJIS = [
-        '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😎',
-        '😢', '😭', '😡', '🤔', '😴', '🤗', '🙏', '👍',
-        '👎', '👏', '🔥', '❤️', '💯', '✅', '❌', '⭐',
-        '🎉', '🎂', '🍪', '🍫', '📦', '🚚', '💰', '👋'
-    ];
-
-    function insertHelpEmoji(emoji) {
-        if (!inputEl || !emoji) return;
-        var start = inputEl.selectionStart == null ? inputEl.value.length : inputEl.selectionStart;
-        var end = inputEl.selectionEnd == null ? inputEl.value.length : inputEl.selectionEnd;
-        var next = inputEl.value.slice(0, start) + emoji + inputEl.value.slice(end);
-        if (next.length > 240) {
-            showHelpNote('That emoji does not fit in this message.');
-            return;
-        }
-        inputEl.value = next;
-        var pos = start + emoji.length;
-        inputEl.focus();
-        if (inputEl.setSelectionRange) inputEl.setSelectionRange(pos, pos);
-    }
-
-    function wireHelpEmoji() {
-        var button = document.getElementById('help-emoji-btn');
-        var menu = document.getElementById('help-emoji-menu');
-        if (!button || !menu) return;
-        HELP_EMOJIS.forEach(function (emoji) {
-            var item = document.createElement('button');
-            item.type = 'button';
-            item.textContent = emoji;
-            item.addEventListener('click', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                insertHelpEmoji(emoji);
-            });
-            menu.appendChild(item);
-        });
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            var attachMenu = document.getElementById('help-attach-menu');
-            var attachBtn = document.getElementById('help-attach-btn');
-            if (attachMenu) attachMenu.hidden = true;
-            if (attachBtn) attachBtn.setAttribute('aria-expanded', 'false');
-            var open = menu.hidden;
-            menu.hidden = !open;
-            button.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
     }
 
     var helpVoice = { recorder: null, stream: null, chunks: [], send: false, started: 0, timer: 0 };

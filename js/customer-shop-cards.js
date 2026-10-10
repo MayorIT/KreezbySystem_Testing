@@ -64,20 +64,11 @@
         );
     }
 
-    function resolveCategory(prod) {
-        var variant = String((prod && prod.variant) || '').toLowerCase();
-        if (variant.indexOf('jar') >= 0) {
-            return {
-                key: 'jar-specials',
-                title: 'Jar Specials',
-                description: 'Premium crinkles packed in resealable jars for sharing and gifting.'
-            };
-        }
-
+    function resolveCategory() {
         return {
             key: 'pouch-favorites',
-            title: 'Pouch Favorites',
-            description: 'Fresh everyday crinkle selections in easy-to-carry pouches.'
+            title: 'Crinkles',
+            description: 'Pouches and resealable jars together in one product category.'
         };
     }
 

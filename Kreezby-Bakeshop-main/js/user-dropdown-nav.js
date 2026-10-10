@@ -266,7 +266,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261008tabs';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261010flash';
         document.head.appendChild(s);
     }
 
@@ -650,14 +650,16 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
-            style.textContent = 'body.kreezby-admin-home .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
+            style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
         }
+        style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');
         if (!header) return;
         header.querySelectorAll('.hamburger-toggle, a.home-badge, a.top-nav-item.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
             if (el.closest('.user-dropdown')) return;
+            if (isRetailerHomePage() && el.classList.contains('hamburger-toggle')) return;
             el.remove();
         });
     }
@@ -673,6 +675,12 @@
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             var label = btn.querySelector('.admin-home-menu-btn__label');
             if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+            var ham = document.querySelector('.top-navbar-node .hamburger-toggle');
+            if (ham) {
+                ham.setAttribute('aria-expanded', open ? 'true' : 'false');
+                ham.setAttribute('aria-pressed', open ? 'true' : 'false');
+                ham.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+            }
         }
 
         function closeAdminMenu() {

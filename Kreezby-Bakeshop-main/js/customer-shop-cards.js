@@ -67,9 +67,15 @@
     function resolveCategory() {
         return {
             key: 'pouch-favorites',
-            title: 'Pouch Favorites',
-            description: 'Fresh everyday crinkle selections in easy-to-carry pouches.'
+            title: 'Crinkles',
+            description: 'Pouches and resealable jars together in one product category.'
         };
+    }
+
+    function feedbackButtonHtml() {
+        if (!document.getElementById('feedback-modal')) return '';
+        return '<button type="button" class="category-feedback__btn" onclick="openModal(\'feedback-modal\')">' +
+            '<span aria-hidden="true">★</span> Customer Feedback</button>';
     }
 
     function categorySectionHtml(category, items, options) {
@@ -81,7 +87,10 @@
                         '<h4 class="shop-category__title">' + category.title + '</h4>' +
                         '<p class="shop-category__description">' + category.description + '</p>' +
                     '</div>' +
-                    '<span class="shop-category__count">' + items.length + ' item' + (items.length === 1 ? '' : 's') + '</span>' +
+                    '<div class="shop-category__actions">' +
+                        feedbackButtonHtml() +
+                        '<span class="shop-category__count">' + items.length + ' item' + (items.length === 1 ? '' : 's') + '</span>' +
+                    '</div>' +
                 '</div>' +
                 '<div class="menu-grid shop-category__grid">' +
                     items.map(function (prod) { return flavorCardHtml(prod, options); }).join('') +

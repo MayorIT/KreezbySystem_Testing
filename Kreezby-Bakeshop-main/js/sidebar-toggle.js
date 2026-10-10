@@ -60,6 +60,12 @@
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
         }
+        var welcome = document.getElementById('admin-open-menu');
+        if (welcome) {
+            welcome.setAttribute('aria-expanded', open ? 'true' : 'false');
+            var welcomeLabel = welcome.querySelector('.admin-home-menu-btn__label');
+            if (welcomeLabel) welcomeLabel.textContent = open ? 'Close menu' : 'Open menu';
+        }
     }
 
     window.KreezbyToggleSidebar = toggleSidebar;
@@ -69,7 +75,6 @@
         var file = path.split('/').pop().split('?')[0];
         if (file === 'head_admin.html' && path.indexOf('/head_admin/') !== -1) return true;
         if ((path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) && (file === 'staff.html' || /^staff-\d+\.html$/.test(file))) return true;
-        if (path.indexOf('/retailer/') >= 0 && file === 'retailer-portal.html') return true;
         if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
         return file === 'admin.html';
     }

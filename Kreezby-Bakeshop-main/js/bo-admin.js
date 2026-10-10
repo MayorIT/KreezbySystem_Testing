@@ -923,6 +923,7 @@
         loadData();
         refreshTables();
         bindEvents();
+        if (PAGE_MODE === 'retailer') document.documentElement.classList.add('kreezby-module-ready');
         stripRetiredInboundLegendPills();
         if (!window.__kreezbyBoLiveSync) {
             window.__kreezbyBoLiveSync = true;

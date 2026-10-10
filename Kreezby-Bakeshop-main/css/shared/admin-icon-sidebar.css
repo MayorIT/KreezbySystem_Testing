@@ -199,8 +199,9 @@ body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
     .sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready {
         position: fixed !important;
         top: var(--kreezby-admin-header-height, 56px) !important;
+        bottom: 0 !important;
         left: 0 !important;
-        height: calc(100dvh - var(--kreezby-admin-header-height, 56px)) !important;
+        height: auto !important;
         max-height: none !important;
         width: min(280px, 86vw) !important;
         min-width: min(280px, 86vw) !important;
@@ -239,8 +240,10 @@ body.sidebar-collapsed aside.dark-sidebar-panel.kreezby-sidebar-ready,
 body.sidebar-collapsed aside.sidebar-panel.kreezby-icon-sidebar {
     position: fixed !important;
     top: var(--kreezby-admin-header-height, 60px) !important;
+    bottom: 0 !important;
     left: 0 !important;
-    height: calc(100vh - var(--kreezby-admin-header-height, 60px)) !important;
+    height: auto !important;
+    max-height: none !important;
     width: 256px !important;
     min-width: 256px !important;
     max-width: 256px !important;

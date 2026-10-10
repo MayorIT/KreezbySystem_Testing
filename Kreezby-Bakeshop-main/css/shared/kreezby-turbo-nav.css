@@ -43,6 +43,102 @@ turbo-frame#kreezby-main-content main.workspace-view-canvas > *,
     max-width: 100%;
 }
 
+/* Module screens fill the window the same way, including short displays. */
+body:has(.core-viewport-wrapper),
+body:has(.system-dashboard-wrapper) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
+body:has(.core-viewport-wrapper) .core-viewport-wrapper,
+body:has(.system-dashboard-wrapper) .system-dashboard-wrapper {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+}
+
+body:has(.core-viewport-wrapper) main.workspace-view-canvas,
+body:has(.core-viewport-wrapper) main.workspace-canvas,
+body:has(.system-dashboard-wrapper) main.workspace-view-canvas,
+body:has(.system-dashboard-wrapper) main.workspace-canvas,
+body:has(.core-viewport-wrapper) .inbox-page-main,
+body:has(.system-dashboard-wrapper) .inbox-page-main {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: auto;
+}
+
+body:has(.core-viewport-wrapper) .inbox-chat-root,
+body:has(.system-dashboard-wrapper) .inbox-chat-root,
+body:has(.core-viewport-wrapper) .inbox-messenger,
+body:has(.system-dashboard-wrapper) .inbox-messenger {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100%;
+}
+
+/* Retailer only: short windows keep every module on the same scrolling shell. */
+html.kreezby-retailer-account body.kreezby-nav-open .core-viewport-wrapper > .kreezby-turbo-main,
+html.kreezby-retailer-account body.kreezby-nav-open .system-dashboard-wrapper > .kreezby-turbo-main {
+    margin-left: 0 !important;
+    width: auto !important;
+}
+
+html.kreezby-retailer-account aside.sidebar-panel.kreezby-icon-sidebar .kreezby-sidebar-nav {
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+html.kreezby-retailer-account .kreezby-sidebar-nav-icon {
+    pointer-events: none;
+}
+
+@media (max-height: 820px) {
+    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) main.workspace-view-canvas,
+    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) main.workspace-canvas {
+        overflow: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root,
+    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home,
+    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home-stage {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        flex: 0 0 auto !important;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home-stage {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+
+    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-photo,
+    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-copy {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-photo img {
+        width: 100%;
+        max-width: 100%;
+        height: auto !important;
+        max-height: 220px;
+        object-fit: contain;
+    }
+}
+
 /* Persistent shell — no animation (Facebook keeps nav fixed) */
 .top-navbar-node {
     view-transition-name: kreezby-top-nav;

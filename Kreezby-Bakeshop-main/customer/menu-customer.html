@@ -8,10 +8,10 @@
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">
     <title>Kreezby Crinkles - Menu</title>
-    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010brown">
+    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010feedback3">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
-    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010stars">
+    <link rel="stylesheet" href="../css/shared/testimonial.css?v=20261010feedback">
     <link rel="stylesheet" href="../css/shared/order-stepper.css">
     <link rel="stylesheet" href="../css/shared/order-tracking.css">
     <link rel="stylesheet" href="../css/shared/product-flavor-card.css">
@@ -38,6 +38,12 @@
                 </span>
                 <span class="nav-btn__label">Order Notification</span>
                 <span class="notifications-trigger-badge" id="orders-trigger-badge" hidden>0</span>
+            </button>
+            <button class="nav-btn" type="button" data-nav="feedback" onclick="openModal('feedback-modal')" aria-label="Customer Feedback">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6L22 9.3l-5 4.4 1.5 6.8L12 17.3 5.5 20.5 7 13.7 2 9.3l7.1-.7L12 2z"/></svg>
+                </span>
+                <span class="nav-btn__label">Feedback</span>
             </button>
             <button class="nav-btn profile-trigger-btn" data-nav="profile" onclick="openModal('profile-settings-modal')">
                 <span class="nav-btn__icon" aria-hidden="true">
@@ -87,118 +93,6 @@
             </div>
             
             <div id="shop-menu-container"></div>
-            <div class="category-feedback">
-                <button type="button" class="category-feedback__btn" id="category-feedback-btn" aria-expanded="false" aria-controls="category-feedback-panel" onclick="toggleCategoryFeedback()">
-                    <span aria-hidden="true">★</span>
-                    Feedback
-                </button>
-                <div id="category-feedback-panel" class="category-feedback__panel" hidden>
-            <section class="testimonials-section" aria-label="Customer reviews">
-                <div class="section-heading category-feedback__head">
-                    <div>
-                        <h2 class="menu-section-title">What Our Customers Say</h2>
-                        <p class="section-heading__hint">Real notes from people who keep coming back for another pouch.</p>
-                    </div>
-                </div>
-                <div class="review-star-filters" role="group" aria-label="Filter reviews by star rating">
-                    <button type="button" class="review-star-filter is-active" data-stars="0" onclick="filterTestimonials(0, this)">All</button>
-                    <button type="button" class="review-star-filter" data-stars="5" onclick="filterTestimonials(5, this)">5 Stars</button>
-                    <button type="button" class="review-star-filter" data-stars="4" onclick="filterTestimonials(4, this)">4 Stars</button>
-                    <button type="button" class="review-star-filter" data-stars="3" onclick="filterTestimonials(3, this)">3 Stars</button>
-                    <button type="button" class="review-star-filter" data-stars="2" onclick="filterTestimonials(2, this)">2 Stars</button>
-                    <button type="button" class="review-star-filter" data-stars="1" onclick="filterTestimonials(1, this)">1 Star</button>
-                </div>
-                <p id="testimonials-filter-empty" class="testimonials-filter-empty" hidden>No reviews with that star rating yet.</p>
-                <div class="testimonials-grid" id="customer-testimonials-grid">
-
-                    <article class="testimonial" data-rating="5">
-                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
-                        <div class="testimonial__body">
-                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            </div>
-                            <p class="testimonial__text">napakasarp nakakaddict eh...alah eh sinsay mna kau sa kreezby at talagang pagkakasarap😘😘😘</p>
-                            <div class="testimonial__author">
-                                <div class="testimonial__avatar" aria-hidden="true">•</div>
-                                <div>
-                                    <h3 class="testimonial__name" aria-label="Verified customer">J••••• S•••••</h3>
-                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="testimonial" data-rating="5">
-                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
-                        <div class="testimonial__body">
-                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            </div>
-                            <p class="testimonial__text">Their fresh milk are the best in the city. Real milk! Real taste!</p>
-                            <div class="testimonial__author">
-                                <div class="testimonial__avatar" aria-hidden="true">•</div>
-                                <div>
-                                    <h3 class="testimonial__name" aria-label="Verified customer">C••••• A•••••</h3>
-                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="testimonial" data-rating="5">
-                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
-                        <div class="testimonial__body">
-                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            </div>
-                            <p class="testimonial__text">super yummy ng krinckles! addictive talaga..🥰🥰</p>
-                            <div class="testimonial__author">
-                                <div class="testimonial__avatar" aria-hidden="true">•</div>
-                                <div>
-                                    <h3 class="testimonial__name" aria-label="Verified customer">A•••• H••••••</h3>
-                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="testimonial" data-rating="5">
-                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
-                        <div class="testimonial__body">
-                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            </div>
-                            <p class="testimonial__text">Ang sarap mo syet 😂</p>
-                            <div class="testimonial__author">
-                                <div class="testimonial__avatar" aria-hidden="true">•</div>
-                                <div>
-                                    <h3 class="testimonial__name" aria-label="Verified customer">E•• S•••</h3>
-                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                </div>
-            </section>
-                </div>
-            </div>
             </section>
         </div>
 
@@ -400,15 +294,14 @@
             <div class="modal-header notifications-modal-header">
                 <div class="notifications-title-wrap">
                     <h2>Favorites</h2>
-                    <p>Your saved Kreezby picks and jar specials in one place.</p>
+                    <p>Your saved Kreezby picks in one place.</p>
                 </div>
                 <button class="nav-btn" onclick="closeCurrentModal()">✕</button>
             </div>
             <div class="modal-body notifications-modal-body">
                 <div class="notifications-toolbar">
                     <div class="notifications-filter-group" id="favorites-filter-group">
-                        <button type="button" class="notification-filter-btn active" data-filter="crinkle">Crinkle Picks</button>
-                        <button type="button" class="notification-filter-btn" data-filter="jar">Jar Specials</button>
+                        <button type="button" class="notification-filter-btn active" data-filter="crinkle">Saved Picks</button>
                     </div>
                 </div>
 
@@ -416,12 +309,118 @@
             </div>
         </div>
 
+
+        <div class="modal-box orders-modal feedback-modal" id="feedback-modal">
+            <div class="modal-header">
+                <h2>Customer Feedback</h2>
+                <button class="nav-btn" type="button" onclick="closeCurrentModal()" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="section-heading__hint">Ratings, feedback, and comments from customers.</p>
+                <div class="review-star-filters" role="group" aria-label="Filter reviews by star rating">
+                    <button type="button" class="review-star-filter is-active" data-stars="0" onclick="filterTestimonials(0, this)">All</button>
+                    <button type="button" class="review-star-filter" data-stars="5" onclick="filterTestimonials(5, this)">5 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="4" onclick="filterTestimonials(4, this)">4 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="3" onclick="filterTestimonials(3, this)">3 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="2" onclick="filterTestimonials(2, this)">2 Stars</button>
+                    <button type="button" class="review-star-filter" data-stars="1" onclick="filterTestimonials(1, this)">1 Star</button>
+                </div>
+                <p id="testimonials-filter-empty" class="testimonials-filter-empty" hidden>No reviews with that star rating yet.</p>
+                <div class="testimonials-grid" id="customer-testimonials-grid">
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">napakasarp nakakaddict eh...alah eh sinsay mna kau sa kreezby at talagang pagkakasarap😘😘😘</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">J••••• S•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Their fresh milk are the best in the city. Real milk! Real taste!</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">C••••• A•••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">super yummy ng krinckles! addictive talaga..🥰🥰</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">A•••• H••••••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="testimonial" data-rating="5">
+                        <span class="testimonial__quote-mark" aria-hidden="true">"</span>
+                        <div class="testimonial__body">
+                            <div class="testimonial__stars" aria-label="5 out of 5 stars">
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                <svg class="testimonial__star testimonial__star--filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <p class="testimonial__text">Ang sarap mo syet 😂</p>
+                            <div class="testimonial__author">
+                                <div class="testimonial__avatar" aria-hidden="true">•</div>
+                                <div>
+                                    <h3 class="testimonial__name" aria-label="Verified customer">E•• S•••</h3>
+                                    <p class="testimonial__role">Customer @ Kreezby Philippines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/notification-store.js"></script>
     <script src="../js/customer-orders.js?v=20261010review"></script>
-    <script src="../js/customer-shop-cards.js?v=20261010jars"></script>
+    <script src="../js/customer-shop-cards.js?v=20261010catalog"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script>
         function toggleCategoryFeedback() {
@@ -433,6 +432,7 @@
             else panel.setAttribute('hidden', '');
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             btn.classList.toggle('is-open', open);
+            if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         var CUSTOMER_FEEDBACK_KEY = 'kreezbyCustomerCreatedFeedbackV1';
@@ -483,16 +483,7 @@
             grid.insertBefore(card, grid.firstChild);
             var allButton = document.querySelector('.review-star-filter[data-stars="0"]');
             filterTestimonials(0, allButton);
-            var panel = document.getElementById('category-feedback-panel');
-            var feedbackButton = document.getElementById('category-feedback-btn');
-            if (panel && panel.hasAttribute('hidden')) {
-                panel.removeAttribute('hidden');
-                if (feedbackButton) {
-                    feedbackButton.setAttribute('aria-expanded', 'true');
-                    feedbackButton.classList.add('is-open');
-                }
-            }
-            if (typeof closeCurrentModal === 'function') closeCurrentModal();
+            if (typeof openModal === 'function') openModal('feedback-modal');
             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -633,9 +624,8 @@
             }
         }
 
-        function favoriteCategoryOf(product) {
-            const variant = String((product && product.variant) || '').toLowerCase();
-            return variant.includes('jar') ? 'jar' : 'crinkle';
+        function favoriteCategoryOf() {
+            return 'crinkle';
         }
 
         function filterFavoriteProducts(products) {
@@ -1051,7 +1041,8 @@
             const navByModal = {
                 'favorites-modal': 'favorites',
                 'orders-tracker-modal': 'orders',
-                'profile-settings-modal': 'profile'
+                'profile-settings-modal': 'profile',
+                'feedback-modal': 'feedback'
             };
             setActiveHeaderNav(navByModal[modalBoxId] || null);
             if (modalBoxId === 'orders-tracker-modal' && window.KreezbyCustomerOrders) {
