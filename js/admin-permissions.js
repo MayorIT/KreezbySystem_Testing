@@ -629,7 +629,7 @@
         if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
         if (isHeadAdmin()) return;
         var filename = getCurrentPageFilename();
-        if (filename === 'report_issue-admin.html') return;
+        if (filename === 'report_issue-admin.html' || filename === 'issue-reports-admin.html') return;
         var taskKey = getTaskForPage(filename);
         if (!taskKey) return;
         if (!adminCanAccessTask(taskKey)) {

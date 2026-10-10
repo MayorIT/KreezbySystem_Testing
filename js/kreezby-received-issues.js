@@ -21,6 +21,7 @@
         if (type === 'Head Administrator') return true;
         if (!type && path.indexOf('/head_admin/') >= 0) return true;
         if (path.indexOf('/admin/') >= 0 && path.indexOf('/admin_names/') < 0) return true;
+        if (path.indexOf('/staff/') >= 0) return true;
         if (api && api.adminCanAccessTask('issuereports')) return true;
         return false;
     }
@@ -29,6 +30,10 @@
         var path = (location.pathname || '').replace(/\\/g, '/');
         if (path.indexOf('/head_admin/') >= 0) {
             window.location.replace('head_admin.html');
+            return;
+        }
+        if (path.indexOf('/staff/') >= 0) {
+            window.location.replace('staff.html?denied=1');
             return;
         }
         if (path.indexOf('/admin_names/') >= 0) {
@@ -47,6 +52,11 @@
         return String(value || '').replace(/[&<>"']/g, function (ch) {
             return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
         });
+    }
+
+    function isShopReport(row) {
+        var role = String((row && row.role) || '').toLowerCase();
+        return role.indexOf('customer') >= 0 || role.indexOf('retailer') >= 0;
     }
 
     function statusClass(status) {
@@ -79,11 +89,26 @@
             if (statResolved) statResolved.textContent = String(counts.Resolved);
         }
 
+        function resolveButton(id) {
+            return '<button type="button" class="issue-status-btn" data-set-status="Resolved" data-report-id="' + escapeHtml(id) + '">Resolve</button>';
+        }
+
+        function applyFilter(next) {
+            statusFilter = next || '';
+            chips.forEach(function (other) {
+                other.classList.toggle('is-active', (other.getAttribute('data-status-filter') || '') === statusFilter);
+            });
+            document.querySelectorAll('.inbox-stat').forEach(function (card) {
+                card.classList.toggle('is-selected', (card.getAttribute('data-status-filter') || '') === statusFilter && statusFilter !== '');
+            });
+            render();
+        }
+
         function placeholder() {
             detail.innerHTML =
                 '<span class="support-card-kicker">Report detail</span>' +
                 '<h3>Select a report</h3>' +
-                '<p>Choose a row to read the issue and update its status.</p>';
+                '<p>Choose a retailer or customer report, then resolve it.</p>';
         }
 
         function renderDetail(row) {
@@ -101,21 +126,15 @@
                 '<p>' + escapeHtml(row.description) + '</p>' +
                 (row.notes ? '<p>' + escapeHtml(row.notes) + '</p>' : '') +
                 '<p>Received ' + escapeHtml(KreezbyIssueReports.formatReceived(row.submittedAt)) + '</p>' +
-                '<div class="form-actions">' +
-                    '<button type="button" data-set-status="New" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;">New</button>' +
-                    '<button type="button" data-set-status="In Progress" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#ef6c00;color:#fff;font-weight:700;cursor:pointer;">In Progress</button>' +
-                    '<button type="button" data-set-status="Resolved" style="margin:0 6px 6px 0;padding:8px 12px;border:0;border-radius:999px;background:#2e7d32;color:#fff;font-weight:700;cursor:pointer;">Resolved</button>' +
+                '<div class="issue-status-actions">' +
+                    (row.status === 'Resolved'
+                        ? '<p>This report is resolved.</p>'
+                        : resolveButton(row.id)) +
                 '</div>';
-            detail.querySelectorAll('[data-set-status]').forEach(function (button) {
-                button.addEventListener('click', function () {
-                    KreezbyIssueReports.setStatus(row.id, button.getAttribute('data-set-status'));
-                    render();
-                });
-            });
         }
 
         function render() {
-            var rows = KreezbyIssueReports.list();
+            var rows = KreezbyIssueReports.list().filter(isShopReport);
             updateStats(rows);
             var visible = rows.filter(function (row) {
                 return !statusFilter || row.status === statusFilter;
@@ -127,6 +146,7 @@
                     '<td>' + escapeHtml(row.submittedBy) + '</td>' +
                     '<td>' + escapeHtml(row.role) + '</td>' +
                     '<td><span class="' + statusClass(row.status) + '">' + escapeHtml(row.status) + '</span></td>' +
+                    '<td>' + (row.status === 'Resolved' ? 'Resolved' : resolveButton(row.id)) + '</td>' +
                 '</tr>';
             }).join('');
             if (empty) empty.hidden = visible.length > 0;
@@ -136,6 +156,19 @@
             });
             if (selectedId && !selected) selectedId = '';
             renderDetail(selected);
+            [tbody, detail].forEach(function (root) {
+                root.querySelectorAll('[data-set-status]').forEach(function (button) {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        var id = button.getAttribute('data-report-id') || selectedId;
+                        if (!id) return;
+                        selectedId = id;
+                        KreezbyIssueReports.setStatus(id, 'Resolved');
+                        render();
+                    });
+                });
+            });
             tbody.querySelectorAll('tr').forEach(function (tr) {
                 function choose() {
                     selectedId = tr.getAttribute('data-id') || '';
@@ -150,13 +183,39 @@
 
         chips.forEach(function (chip) {
             chip.addEventListener('click', function () {
-                statusFilter = chip.getAttribute('data-status-filter') || '';
-                chips.forEach(function (other) {
-                    other.classList.toggle('is-active', other === chip);
-                });
-                render();
+                applyFilter(chip.getAttribute('data-status-filter') || '');
             });
         });
+
+        [
+            ['stat-new', 'New'],
+            ['stat-progress', 'In Progress'],
+            ['stat-resolved', 'Resolved']
+        ].forEach(function (pair) {
+            var node = document.getElementById(pair[0]);
+            var card = node ? node.closest('.inbox-stat') : null;
+            if (!card || card.dataset.filterBound === '1') return;
+            card.dataset.filterBound = '1';
+            card.setAttribute('data-status-filter', pair[1]);
+            card.setAttribute('role', 'button');
+            card.tabIndex = 0;
+            card.addEventListener('click', function () {
+                applyFilter(card.getAttribute('data-status-filter') === statusFilter ? '' : pair[1]);
+            });
+            card.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    card.click();
+                }
+            });
+        });
+
+        var filedForm = document.getElementById('issue-file-form');
+        if (filedForm) {
+            var filedCard = filedForm.closest('.issue-file-card');
+            if (filedCard) filedCard.remove();
+            else filedForm.remove();
+        }
 
         placeholder();
         render();

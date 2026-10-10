@@ -7,11 +7,12 @@
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - System Configuration Maintenance</title>
-    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css">
+    <link rel="stylesheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
+    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css?v=20261010fix2">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
 </head>
-<body>
+<body class="po-admin-page">
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -32,13 +33,25 @@
         <main class="workspace-view-canvas">
 
             <div class="maintenance-overview-grid">
-                <button type="button" class="overview-card-box blue-theme is-selected" data-maint-dir="retailer" onclick="openHeadMaintenanceDirectory('retailer')">
-                    <span class="overview-card-label">Retailers</span>
-                    <span id="metric-retailers-count">1</span>
+                <button type="button" class="overview-card-box is-selected" data-maint-dir="supplier">
+                    <span class="overview-card-label">Suppliers</span>
+                    <span id="metric-suppliers-count">0</span>
                 </button>
-                <button type="button" class="overview-card-box green-theme" data-maint-dir="customer" onclick="openHeadMaintenanceDirectory('customer')">
+                <button type="button" class="overview-card-box" data-maint-dir="retailer">
+                    <span class="overview-card-label">Retailers</span>
+                    <span id="metric-retailers-count">0</span>
+                </button>
+                <button type="button" class="overview-card-box" data-maint-dir="customer">
                     <span class="overview-card-label">Customers</span>
-                    <span id="metric-customers-count">3</span>
+                    <span id="metric-customers-count">0</span>
+                </button>
+                <button type="button" class="overview-card-box" data-maint-dir="staff">
+                    <span class="overview-card-label">Staff</span>
+                    <span id="metric-staff-count">0</span>
+                </button>
+                <button type="button" class="overview-card-box" data-maint-dir="admins">
+                    <span class="overview-card-label">Admins</span>
+                    <span id="metric-admins-count">0</span>
                 </button>
             </div>
             
@@ -46,40 +59,23 @@
                 <div class="card-body-padded">
                     
                     <div class="maintenance-directory-tabs-row">
-                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'items')">Item List</button>
-                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'settings')">Settings</button>
+                        <button type="button" class="maintenance-tab-link active-tab" data-maint-tab="supplier">Suppliers</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="retailer">Retailers</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="customer">Customers</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="staff">Staff</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="admins">Admins</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="items">Item List</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="settings">Settings</button>
                     </div>
 
                     <div id="maintenance-grid-workspace-root">
-                        
-                        <div class="maintenance-sub-view">
-                            <div class="datatable-controls-bar">
-                                <div>Show <select><option>10</option></select> entries</div>
-                                <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Retailer')">+ Add New Retailer</button>
-                            </div>
-                            <table class="data-display-table">
-                                <thead>
-                                    <tr style="background-color: #e4c9a3; color: #4e342e;">
-                                        <th style="width: 50px;">#</th><th>Retailer Branch Name</th><th>Area Location</th><th>Sync Connection</th><th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td><td><strong>SIDC Batangas Hub</strong></td><td>Batangas City</td><td><span class="status-pill-badge received" style="font-size:11px; padding:2px 8px;">ACTIVE SYNC</span></td>
-                                        <td><button type="button" class="action-trigger-btn">Action ▾</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
+                        <p class="settings-section-desc">Loading accounts…</p>
                     </div>
 
                 </div>
             </div>
 
         </main>
-</turbo-frame>
-</div>
     <div class="system-modal-backdrop" id="maintenance-form-modal-node">
         <div class="form-modal-box">
             <div class="modal-form-header">
@@ -110,7 +106,7 @@
                 </div>
                 <table class="data-display-table">
                     <thead>
-                        <tr style="background-color: #e4c9a3; color: #4e342e;">
+                        <tr >
                             <th style="width: 50px;">#</th><th>Supplier Name</th><th>Contact Person</th><th>Email Node</th><th>Action</th>
                         </tr>
                     </thead>
@@ -128,7 +124,7 @@
                 </div>
                 <table class="data-display-table">
                     <thead>
-                        <tr style="background-color: #e4c9a3; color: #4e342e;">
+                        <tr >
                             <th style="width: 50px;">#</th><th>Retailer Branch Name</th><th>Area Location</th><th>Sync Connection</th><th>Action</th>
                         </tr>
                     </thead>
@@ -146,7 +142,7 @@
                 </div>
                 <table class="data-display-table">
                     <thead>
-                        <tr style="background-color: #e4c9a3; color: #4e342e;">
+                        <tr >
                             <th style="width: 50px;">#</th><th>Customer Name</th><th>Phone</th><th>Email</th><th>Action</th>
                         </tr>
                     </thead>
@@ -172,7 +168,7 @@
                 </div>
                 <table class="data-display-table">
                     <thead>
-                        <tr style="background-color: #e4c9a3; color: #4e342e;">
+                        <tr >
                             <th style="width: 50px;">#</th><th>Item SKU Code</th><th>Flavor Item Description</th><th>Packaging Variant</th><th>Base Rate</th><th>Action</th>
                         </tr>
                     </thead>
@@ -190,7 +186,7 @@
                 </div>
                 <table class="data-display-table">
                     <thead>
-                        <tr style="background-color: #e4c9a3; color: #4e342e;">
+                        <tr >
                             <th style="width: 50px;">#</th><th>Account Name</th><th>Username</th><th>Assigned Authorization Role</th><th>Action</th>
                         </tr>
                     </thead>
@@ -255,6 +251,10 @@
         }
 
         function switchMaintenanceDataTab(tabNode, directoryKey) {
+            if (window.KreezbyMaintenanceUI && typeof window.KreezbyMaintenanceUI.openTab === 'function') {
+                window.KreezbyMaintenanceUI.openTab(directoryKey, tabNode);
+                return;
+            }
             const tabRow = tabNode.parentElement;
             tabRow.querySelectorAll('.maintenance-tab-link').forEach(btn => btn.classList.remove('active-tab'));
             tabNode.classList.add('active-tab');
@@ -345,12 +345,47 @@
             toggleMaintenanceFormModal(false);
         }
     </script>
-    <script src="../js/maintenance-settings.js?v=20261009acct"></script>
+    <script>
+        (function () {
+            var VERSION = '20261010tabs';
+            function boot() {
+                if (window.KreezbyMaintenanceUI && typeof window.KreezbyMaintenanceUI.boot === 'function') {
+                    window.KreezbyMaintenanceUI.boot();
+                }
+            }
+            function load(src, id, next) {
+                var existing = document.getElementById(id);
+                if (existing) {
+                    if (existing.getAttribute('data-loaded') === '1') { next(); return; }
+                    existing.addEventListener('load', function () { next(); }, { once: true });
+                    return;
+                }
+                var s = document.createElement('script');
+                s.id = id;
+                s.src = src;
+                s.onload = function () {
+                    s.setAttribute('data-loaded', '1');
+                    next();
+                };
+                document.body.appendChild(s);
+            }
+            function loadUi() {
+                if (window.KreezbyMaintenanceUI && window.KreezbyMaintenanceUI.version === VERSION) {
+                    boot();
+                    return;
+                }
+                load('../js/maintenance-settings-ui.js?v=' + VERSION, 'kreezby-maintenance-ui-' + VERSION, boot);
+            }
+            if (window.KreezbyMaintenanceSettings) loadUi();
+            else load('../js/maintenance-settings.js?v=' + VERSION, 'kreezby-maintenance-settings-script', loadUi);
+        })();
+    </script>
+</turbo-frame>
+</div>
     <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-    <script src="../js/maintenance-settings-ui.js?v=20261007cards"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
-    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

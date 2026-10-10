@@ -90,6 +90,12 @@ body.kreezby-admin-home .top-navbar-node .hamburger-toggle {
     display: none !important;
 }
 
+body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 body.kreezby-admin-home .top-navbar-node .notification-pill,
 body.kreezby-admin-home .top-navbar-node .notification-popover-btn {
     display: inline-flex !important;

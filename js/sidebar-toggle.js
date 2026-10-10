@@ -60,9 +60,20 @@
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
         }
+        const welcomeBtn = document.getElementById('admin-open-menu');
+        if (welcomeBtn) {
+            welcomeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            const welcomeLabel = welcomeBtn.querySelector('.admin-home-menu-btn__label');
+            if (welcomeLabel) welcomeLabel.textContent = open ? 'Close menu' : 'Open menu';
+        }
     }
 
     window.KreezbyToggleSidebar = toggleSidebar;
+
+    function isHeadAdminPage() {
+        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return path.indexOf('/head_admin/') !== -1;
+    }
 
     function isAdminHomePage() {
         var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
@@ -74,7 +85,33 @@
         return file === 'admin.html';
     }
 
+    function ensureHeadAdminMenuStyle() {
+        if (!isHeadAdminPage()) return;
+        document.body.classList.add('kreezby-head-admin');
+        if (document.getElementById('kreezby-head-menu-keep')) return;
+        var style = document.createElement('style');
+        style.id = 'kreezby-head-menu-keep';
+        style.textContent = 'body.kreezby-admin-home .top-navbar-node .hamburger-toggle{display:none!important;}body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center;justify-content:center;}';
+        document.head.appendChild(style);
+    }
+
+    function watchHeadAdminMenu() {
+        if (!isHeadAdminPage() || document.documentElement.dataset.kreezbyHeadMenuWatch === '1') return;
+        var header = document.querySelector('.top-navbar-node');
+        if (!header || !window.MutationObserver) return;
+        document.documentElement.dataset.kreezbyHeadMenuWatch = '1';
+        new MutationObserver(function () {
+            if (!isHeadAdminPage()) return;
+            if (isAdminHomePage()) {
+                header.querySelectorAll('.hamburger-toggle').forEach(function (el) { el.remove(); });
+                return;
+            }
+            if (!header.querySelector('.hamburger-toggle')) addToggleButton();
+        }).observe(header, { childList: true, subtree: true });
+    }
+
     function addToggleButton() {
+        ensureHeadAdminMenuStyle();
         if (isAdminHomePage()) {
             document.querySelectorAll('.top-navbar-node .hamburger-toggle').forEach(function (el) { el.remove(); });
             return;
@@ -216,6 +253,7 @@
         } catch (e) {}
 
         addToggleButton();
+        watchHeadAdminMenu();
         wireExistingRows();
     });
 
@@ -226,11 +264,13 @@
         ensureMobileLoaded();
         ensureUserDropdownNavLoaded();
         addToggleButton();
+        watchHeadAdminMenu();
         wireExistingRows();
     });
 
     window.addEventListener('pageshow', function () {
         addToggleButton();
+        watchHeadAdminMenu();
         wireExistingRows();
     });
 })();
