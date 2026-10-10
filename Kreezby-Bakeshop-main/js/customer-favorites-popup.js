@@ -395,6 +395,53 @@
         document.body.classList.remove('favorites-popup-open');
     }
 
+    function identityKey(value) {
+        return String(value || '').trim().toLowerCase().replace(/[\s._-]+/g, '');
+    }
+
+    function storedPassword() {
+        var security = readJson('kreezbyCustomerSecurity', {});
+        if (security && security.password) return String(security.password).trim();
+        var profile = readProfile();
+        var creds = readJson('kreezbyAuthCredentials', {});
+        var keys = ['customer', 'customer1', 'maria.santos@email.com', 'Maria Santos', profile.username, profile.email, profile.fullName];
+        for (var i = 0; i < keys.length; i += 1) {
+            var key = identityKey(keys[i]);
+            if (key && creds[key] && creds[key].password) return String(creds[key].password).trim();
+        }
+        return 'kreezby123';
+    }
+
+    function savePopupPassword(form) {
+        var status = document.getElementById('kreezby-popup-password-status');
+        function note(message, isError) {
+            if (!status) return;
+            status.textContent = message;
+            status.classList.toggle('is-error', Boolean(isError));
+        }
+        var current = String(form.current.value || '').trim();
+        var next = String(form.next.value || '').trim();
+        var confirmValue = String(form.confirm.value || '').trim();
+        var expected = storedPassword();
+        if (!current) return note('Please enter your current password.', true);
+        if (current !== expected) return note('Current password is incorrect.', true);
+        if (next.length < 6) return note('New password must be at least 6 characters.', true);
+        if (next !== confirmValue) return note('New password and confirm password do not match.', true);
+        if (next === expected) return note('New password must be different from current password.', true);
+        var updatedAt = new Date().toISOString();
+        localStorage.setItem('kreezbyCustomerSecurity', JSON.stringify({ password: next, updatedAt: updatedAt }));
+        var profile = readProfile();
+        var creds = readJson('kreezbyAuthCredentials', {});
+        ['customer', 'customer1', 'maria.santos@email.com', 'Maria Santos', profile.username, profile.email, profile.fullName].forEach(function (alias) {
+            var key = identityKey(alias);
+            if (!key) return;
+            creds[key] = { password: next, accountType: 'Customer', updatedAt: updatedAt };
+        });
+        localStorage.setItem('kreezbyAuthCredentials', JSON.stringify(creds));
+        form.reset();
+        note('Password updated successfully.', false);
+    }
+
     function bind() {
         document.addEventListener('click', function (event) {
             var trigger = event.target.closest('[data-nav="favorites"], [data-nav="orders"], [data-nav="profile"], [data-nav="cart"]');
