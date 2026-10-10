@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261010flash">
     <link rel="stylesheet" href="../../css/pages/admin/report_issue-admin.css">
     <link rel="stylesheet" href="../../css/shared/retailer-module-heading.css?v=20260930title">
+    <link rel="stylesheet" href="../../css/pages/retailer/report-issue-layout.css?v=20261010issue">
 </head>
-<body>
+<body class="retailer-issue-page">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
 <header class="top-navbar-node">
     <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -39,64 +40,67 @@
     </aside>
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-canvas">
-        <h2 class="page-title">Retailer — Report an Issue</h2>
-        <p class="page-subtitle">Kreezby retailer portal</p>
-        <div class="page-shell">
-            <div class="report-panel">
-                <div class="report-header">
-                    <p>Submit issues related to orders, deliveries, payments, or stock availability.</p>
-                </div>
-                <div class="report-body">
-                    <form class="report-form" onsubmit="submitIssue(event, 'Retailer');">
-                        <div class="form-grid">
-                            <div class="form-row">
-                                <label for="retailer-name">Full Name</label>
-                                <input id="retailer-name" name="fullName" type="text" placeholder="Your full name" required>
-                            </div>
-                            <div class="form-row">
-                                <label for="retailer-email">Email / Phone</label>
-                                <input id="retailer-email" name="contact" type="text" placeholder="you@example.com or 0917 123 4567" required>
-                            </div>
-                            <div class="form-row">
-                                <label for="retailer-store">Retailer / Store Name</label>
-                                <input id="retailer-store" name="storeName" type="text" value="Retailer" readonly>
-                            </div>
-                            <div class="form-row">
-                                <label for="retailer-order">Order / PO Number</label>
-                                <input id="retailer-order" name="orderNumber" type="text" placeholder="E.g. PO-2026-0042" required>
-                            </div>
-                            <div class="form-row full-width">
-                                <label for="retailer-issue-type">Issue Type</label>
-                                <select id="retailer-issue-type" name="issueType" required>
-                                    <option value="">Select issue type</option>
-                                    <option>Delivery / Tracking</option>
-                                    <option>Payment / Invoice</option>
-                                    <option>Stock Availability</option>
-                                    <option>Order Confirmation</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                            <div class="form-row full-width">
-                                <label for="retailer-description">Issue Description</label>
-                                <textarea id="retailer-description" name="description" placeholder="Describe the issue and how it affects your order or delivery." required></textarea>
-                            </div>
-                            <div class="form-row full-width">
-                                <label for="retailer-steps">Additional Notes</label>
-                                <textarea id="retailer-steps" name="notes" placeholder="Provide any extra details, dates, or reference numbers."></textarea>
-                            </div>
-                            <div class="form-row full-width">
-                                <label for="retailer-attachment">Attach Screenshot / Invoice (optional)</label>
-                                <input id="retailer-attachment" name="attachment" type="file">
-                            </div>
+        <section class="retailer-issue-layout" aria-label="Report an issue">
+            <aside class="retailer-issue-aside">
+                <p class="retailer-issue-kicker">The Crinkle Factory</p>
+                <h1>Report an Issue</h1>
+                <p class="retailer-issue-lead">Orders, deliveries, payments, or stock. Include the PO number so the team can find the record.</p>
+                <ul class="retailer-issue-points">
+                    <li>Use the order or PO number from your portal.</li>
+                    <li>Choose the issue type that matches the problem.</li>
+                    <li>A screenshot or invoice photo helps the review.</li>
+                </ul>
+            </aside>
+            <form class="report-form retailer-issue-form report-panel" onsubmit="submitIssue(event, 'Retailer');">
+                <div class="retailer-issue-fields">
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="retailer-name">Full Name</label>
+                            <input id="retailer-name" name="fullName" type="text" placeholder="Your full name" required>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn-submit">Submit Report</button>
-                            <a href="retailer-portal.html" class="btn-secondary">Return to Retailer Portal</a>
+                        <div class="form-row">
+                            <label for="retailer-email">Email / Phone</label>
+                            <input id="retailer-email" name="contact" type="text" placeholder="you@example.com or 0917 123 4567" required>
                         </div>
-                    </form>
+                        <div class="form-row">
+                            <label for="retailer-store">Retailer / Store Name</label>
+                            <input id="retailer-store" name="storeName" type="text" value="Retailer" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label for="retailer-order">Order / PO Number</label>
+                            <input id="retailer-order" name="orderNumber" type="text" placeholder="E.g. PO-2026-0042" required>
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="retailer-issue-type">Issue Type</label>
+                            <select id="retailer-issue-type" name="issueType" required>
+                                <option value="">Select issue type</option>
+                                <option>Delivery / Tracking</option>
+                                <option>Payment / Invoice</option>
+                                <option>Stock Availability</option>
+                                <option>Order Confirmation</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="retailer-description">Issue Description</label>
+                            <textarea id="retailer-description" name="description" placeholder="Describe the issue and how it affects your order or delivery." required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="retailer-steps">Additional Notes</label>
+                            <textarea id="retailer-steps" name="notes" placeholder="Dates, quantities, or other reference numbers."></textarea>
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="retailer-attachment">Screenshot or invoice <span>optional</span></label>
+                            <input id="retailer-attachment" name="attachment" type="file">
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Submit Report</button>
+                    <a href="retailer-portal.html" class="btn-secondary">Back to home</a>
+                </div>
+            </form>
+        </section>
         <script src="../../js/kreezby-issue-reports.js?v=20260924c"></script>
         <script>
         function submitIssue(event, role) {

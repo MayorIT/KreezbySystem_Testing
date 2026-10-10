@@ -101,26 +101,7 @@ html.kreezby-retailer-account .kreezby-sidebar-nav-icon {
 }
 
 @media (max-height: 820px) {
-    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) main.workspace-view-canvas,
-    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) main.workspace-canvas {
-        overflow: auto !important;
-        height: auto !important;
-        min-height: 0 !important;
-    }
-
-    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root,
-    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home,
-    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home-stage {
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-        flex: 0 0 auto !important;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-    }
-
-    html.kreezby-retailer-account body.kreezby-retailer-home #admin-dashboard-root .admin-home-stage {
+    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
     }
 
@@ -128,14 +109,6 @@ html.kreezby-retailer-account .kreezby-sidebar-nav-icon {
     html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-copy {
         min-width: 0;
         max-width: 100%;
-    }
-
-    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-photo img {
-        width: 100%;
-        max-width: 100%;
-        height: auto !important;
-        max-height: 220px;
-        object-fit: contain;
     }
 }
 

@@ -568,7 +568,7 @@
             transform: translateX(-50%);
             border: 1px solid #d7e2ef;
             border-radius: 16px;
-            z-index: 210;
+            z-index: 1500;
             overflow: hidden;
             box-shadow: 0 30px 65px rgba(15, 23, 42, 0.22);
         }
@@ -853,7 +853,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.4);
+            background-color: transparent;
             z-index: 200;
             display: flex;
             justify-content: center;
@@ -865,12 +865,17 @@
             transition: opacity 0.2s;
         }
 
+        /* Favorites, Order Notification, Profile, and Cart: page stays visible behind the panel */
         .modal-overlay.active {
+            z-index: 200;
             opacity: 1;
             pointer-events: auto;
-            background-color: rgba(20, 16, 14, 0.28);
-            -webkit-backdrop-filter: blur(6px);
-            backdrop-filter: blur(6px);
+            background-color: transparent;
+        }
+
+        .modal-overlay .modal-box {
+            position: relative;
+            z-index: 1;
         }
 
         .modal-box {
@@ -1946,6 +1951,15 @@
             background: #f8fbff;
         }
 
+        .modal-box.orders-modal .tab-link.expanding-tab:not(.active) {
+            color: #3e2723 !important;
+            background: #fff8ee !important;
+        }
+
+        .modal-box.orders-modal .expanding-tab__icon {
+            opacity: 1;
+        }
+
         .modal-box.orders-modal .tab-link.active {
             border-color: transparent;
             color: #fff8ee;
@@ -2194,13 +2208,32 @@
             min-width: 0;
         }
 
+        .orders-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
         .orders-modal-header-left h2 {
             margin: 0;
-            font-size: 36px;
+            font-size: 30px;
             line-height: 1.1;
             color: #0f172a;
             letter-spacing: -0.02em;
             font-weight: 800;
+        }
+
+        .orders-modal-subtitle,
+        .orders-list-summary {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .orders-list-summary {
+            margin: -2px 2px 12px;
         }
 
         .orders-back-btn {
@@ -2235,9 +2268,7 @@
         }
 
         .orders-empty-state::before {
-            content: '📭';
-            font-size: 24px;
-            line-height: 1;
+            content: none;
         }
 
         .orders-empty-state p {
@@ -2249,19 +2280,34 @@
             display: block;
             width: 100%;
             text-align: left;
-            border: 1px solid #dbe7f4;
+            border: 1px solid #eadfce;
+            border-left: 4px solid #e7d7c1;
             border-radius: 16px;
             padding: 14px 15px;
             margin-bottom: 12px;
-            background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+            background: #ffffff;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
+        .order-list-card[data-status="processing"] {
+            border-left-color: #e0b445;
+        }
+
+        .order-list-card[data-status="shipped"] {
+            border-left-color: #60a5fa;
+        }
+
+        .order-list-card[data-status="completed"] {
+            border-left-color: #4ade80;
+        }
+
         .order-list-card:hover {
             transform: translateY(-2px);
-            border-color: #93c5fd;
-            box-shadow: 0 14px 24px rgba(37, 99, 235, 0.1);
+            border-top-color: #d4af37;
+            border-right-color: #d4af37;
+            border-bottom-color: #d4af37;
+            box-shadow: 0 14px 24px rgba(62, 39, 35, 0.08);
         }
 
         .order-list-card-top {
@@ -2298,13 +2344,29 @@
 
         .order-status-pill {
             display: inline-block;
-            color: #fff;
+            color: #3e2723;
+            background: #f4efe6;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+        }
+
+        .order-status-pill--processing {
+            background: #fff4cc;
+            color: #7a4b00;
+        }
+
+        .order-status-pill--shipped {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .order-status-pill--completed {
+            background: #dcfce7;
+            color: #166534;
         }
 
         .order-review-pill {
@@ -2326,8 +2388,8 @@
 
         .order-list-thumb {
             flex-shrink: 0;
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             border-radius: 12px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -2385,25 +2447,66 @@
         }
 
         .order-list-items {
-            font-size: 13px;
-            color: #334155;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        .order-list-qty {
+            margin-top: 2px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
         .order-list-total {
             font-size: 16px;
             font-weight: 800;
-            color: #1d4ed8;
+            color: #3e2723;
             margin-top: 4px;
+        }
+
+        .order-list-note {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #f1ebe3;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #3e2723;
+        }
+
+        .order-list-note--alert {
+            color: #b42318;
+        }
+
+        .order-list-note--wait,
+        .order-list-note--review {
+            color: #9a6700;
+        }
+
+        .order-list-note--go {
+            color: #075985;
+        }
+
+        .order-list-note--ok {
+            color: #166534;
         }
 
         .order-list-chevron {
             flex-shrink: 0;
-            font-size: 22px;
-            color: #94a3b8;
-            font-weight: 600;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #fff8ee;
+            color: #3e2723;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .order-detail-status-banner {
