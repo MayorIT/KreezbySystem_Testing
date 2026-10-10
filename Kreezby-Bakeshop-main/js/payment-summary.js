@@ -14,11 +14,11 @@
         },
         paymongo: {
             name: 'PayMongo',
-            icon: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00a3a1"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>'
+            icon: '<img src="../assets/payments/paymongo.svg" alt="">'
         },
         cash_on_delivery: {
             name: 'Cash on delivery',
-            icon: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#5d4037"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>'
+            icon: '<img src="../assets/payments/cash.svg" alt="">'
         },
         mayabank: {
             name: 'MayaBank',

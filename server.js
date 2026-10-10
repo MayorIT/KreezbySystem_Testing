@@ -28,6 +28,7 @@ let cache = {};
 let mongoReady = false;
 
 function createMongoClient() {
+  if (!process.env.MONGODB_URI) return null;
   // One local server and a few people in the shop at once, talking to a
   // 3-member Atlas set. Five warm sockets stay open so a quiet stretch does
   // not drop the link. Twenty is enough if several pages save together.
@@ -54,15 +55,18 @@ function sleep(ms) {
 }
 
 async function resetClient() {
-  try {
-    await client.close();
-  } catch (error) {
-    /* The failed client may already be closed. */
+  if (client) {
+    try {
+      await client.close();
+    } catch (error) {
+      /* The failed client may already be closed. */
+    }
   }
   client = createMongoClient();
 }
 
 async function activateMongo() {
+  if (!client) throw new Error("Missing MONGODB_URI in .env");
   await client.connect();
   await client.db(DB_NAME).command({ ping: 1 });
   if (!mongoReady) {
@@ -451,10 +455,26 @@ function paymongoPublicIntent(resource) {
     status: attributes.status || "",
     amount: Number(attributes.amount || 0) / 100,
     currency: attributes.currency || "PHP",
-    wallet: source.type || (attributes.metadata && attributes.metadata.wallet) || "",
+    wallet: (attributes.metadata && attributes.metadata.wallet) || source.type || "",
     lastPaymentError: lastError ? String(lastError.detail || lastError.message || "Payment was not completed.").slice(0, 240) : "",
   };
 }
+
+function paymongoRedirectUrl(redirect) {
+  try {
+    const parsed = new URL(String(redirect || ""));
+    if (parsed.protocol !== "https:" || !parsed.hostname) return "";
+    return parsed.toString();
+  } catch (error) {
+    return "";
+  }
+}
+
+const PAYMONGO_CHECKOUT_METHODS = {
+  gcash: { type: "gcash" },
+  paymaya: { type: "paymaya" },
+  metrobank: { type: "brankas", bankCode: "metrobank" },
+};
 
 app.use("/api/paymongo", allowLocalPaymongo);
 
@@ -469,7 +489,8 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
 
   const body = req.body || {};
   const requested = String(body.wallet || "gcash");
-  const wallet = requested === "paymaya" ? "paymaya" : (requested === "gcash" ? "gcash" : "");
+  const methodInfo = PAYMONGO_CHECKOUT_METHODS[requested];
+  const wallet = methodInfo ? requested : "";
   const amount = Number(body.amount);
   const centavos = Math.round(amount * 100);
   const name = String(body.name || "").trim();
@@ -477,7 +498,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   const phone = String(body.phone || "").trim();
   const audience = body.audience === "wholesaler" ? "wholesaler" : (body.audience === "customer" ? "customer" : "");
   if (!wallet || !audience || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    res.status(400).json({ ok: false, error: "Choose GCash or Maya and enter the payer name and email." });
+    res.status(400).json({ ok: false, error: "Choose GCash, Maya, or Metrobank, and enter the payer name and email." });
     return;
   }
   if (!Number.isFinite(amount) || centavos < 10000 || centavos > 100000000) {
@@ -494,7 +515,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       data: {
         attributes: {
           amount: centavos,
-          payment_method_allowed: [wallet],
+          payment_method_allowed: [methodInfo.type],
           currency: "PHP",
           capture_type: "automatic",
           description: String(body.description || "Kreezby Bakeshop order").slice(0, 255),
@@ -507,16 +528,16 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
         },
       },
     });
+    const methodAttributes = {
+      type: methodInfo.type,
+      billing: Object.assign({
+        name: name.slice(0, 80),
+        email,
+      }, phone ? { phone: phone.slice(0, 20) } : {}),
+    };
+    if (methodInfo.bankCode) methodAttributes.details = { bank_code: methodInfo.bankCode };
     const method = await paymongoRequest("POST", "/v1/payment_methods", {
-      data: {
-        attributes: {
-          type: wallet,
-          billing: Object.assign({
-            name: name.slice(0, 80),
-            email,
-          }, phone ? { phone: phone.slice(0, 20) } : {}),
-        },
-      },
+      data: { attributes: methodAttributes },
     });
     const attached = await paymongoRequest("POST", "/v1/payment_intents/" + intent.data.id + "/attach", {
       data: {
@@ -530,16 +551,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
     const redirect = attributes.next_action && attributes.next_action.redirect
       ? String(attributes.next_action.redirect.url || "")
       : "";
-    let sourceUrl = "";
-    try {
-      const parsed = new URL(redirect);
-      const sourceId = parsed.searchParams.get("id") || "";
-      if (parsed.protocol === "https:" && parsed.hostname === "secure-authentication.paymongo.com" && sourceId.startsWith("src_")) {
-        sourceUrl = parsed.toString();
-      }
-    } catch (error) {
-      sourceUrl = "";
-    }
+    const sourceUrl = paymongoRedirectUrl(redirect);
     if (!sourceUrl) {
       res.status(502).json({ ok: false, error: "PayMongo did not return a payment link." });
       return;
@@ -590,15 +602,29 @@ app.get("/", (req, res) => {
 
 app.use(express.static(SITE_ROOT));
 
-async function main() {
-  if (!process.env.MONGODB_URI) {
-    console.error("Missing MONGODB_URI in .env");
-    process.exit(1);
-  }
-  app.listen(PORT, () => {
-    console.log("Kreezby server on http://localhost:" + PORT);
-    console.log("Open http://localhost:" + PORT + "/auth/start.html");
+function listenOn(host) {
+  const server = app.listen(PORT, host);
+  server.on("listening", () => {
+    console.log("Kreezby server on http://" + (host === "::1" ? "localhost" : host) + ":" + PORT);
   });
+  server.on("error", (error) => {
+    if (host === "::1") {
+      console.error("IPv6 localhost skipped: " + error.message);
+      return;
+    }
+    console.error(error);
+    process.exit(1);
+  });
+}
+
+async function main() {
+  listenOn("127.0.0.1");
+  listenOn("::1");
+  console.log("Open http://localhost:" + PORT + "/auth/start.html");
+  if (!process.env.MONGODB_URI) {
+    console.error("Missing MONGODB_URI in .env. The site is still available. Shared shop data stays in this browser.");
+    return;
+  }
   await maintainMongo();
 }
 
