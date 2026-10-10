@@ -1,0 +1,268 @@
+/* Retailer report-issue page. Fills the workspace under the header. */
+
+body.retailer-issue-page:has(.system-dashboard-wrapper) main.workspace-canvas {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(255, 202, 40, 0.2), transparent 28%),
+        linear-gradient(180deg, #fbf7f1 0%, #f3eee6 100%);
+}
+
+.retailer-issue-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    align-items: stretch;
+}
+
+.retailer-issue-aside {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px 36px;
+    background:
+        linear-gradient(165deg, #6d4c41 0%, #5d4037 55%, #4e342e 100%);
+    color: #fff8ee;
+}
+
+.retailer-issue-kicker {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #ffca28;
+}
+
+.retailer-issue-aside h1 {
+    margin: 0;
+    font-size: 40px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #fff8ee;
+}
+
+.retailer-issue-lead {
+    margin: 0;
+    max-width: 28ch;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #f6e7d4;
+}
+
+.retailer-issue-points {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.retailer-issue-points li {
+    position: relative;
+    padding-left: 28px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #fff8ee;
+}
+
+.retailer-issue-points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffca28;
+    box-shadow: inset 0 0 0 4px #5d4037;
+}
+
+.retailer-issue-form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    background: #ffffff;
+}
+
+.retailer-issue-fields {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 32px 12px;
+}
+
+.retailer-issue-form .form-grid {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto minmax(120px, 1fr) auto;
+    gap: 16px 18px;
+    min-height: min-content;
+}
+
+.retailer-issue-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.retailer-issue-form .form-row:has(textarea) {
+    height: 100%;
+}
+
+.retailer-issue-form .form-row.full-width {
+    grid-column: 1 / -1;
+}
+
+.retailer-issue-form label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #5d4037;
+}
+
+.retailer-issue-form label span {
+    margin-left: 6px;
+    font-weight: 700;
+    color: #8d6e63;
+}
+
+.retailer-issue-form input,
+.retailer-issue-form select,
+.retailer-issue-form textarea {
+    width: 100%;
+    border: 1px solid #eadfce;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14px;
+    color: #2b2118;
+    background: #fffaf3;
+}
+
+.retailer-issue-form textarea {
+    flex: 1 1 auto;
+    min-height: 120px;
+    height: 100%;
+    resize: vertical;
+}
+
+.retailer-issue-form input:focus,
+.retailer-issue-form select:focus,
+.retailer-issue-form textarea:focus {
+    outline: 3px solid rgba(255, 202, 40, 0.55);
+    outline-offset: 1px;
+    border-color: #fbc02d;
+    background: #ffffff;
+}
+
+.retailer-issue-form input[readonly] {
+    color: #6d4c41;
+    background: #f6f1e8;
+    border-style: dashed;
+}
+
+.retailer-issue-form input[type="file"] {
+    padding: 10px;
+    background: #fffdf8;
+    border-style: dashed;
+    cursor: pointer;
+}
+
+.retailer-issue-form .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin: 0;
+    padding: 16px 32px;
+    border-top: 1px solid #f0e6d8;
+    background: #ffffff;
+}
+
+.retailer-issue-form .btn-submit {
+    border: none;
+    border-radius: 999px;
+    background: #ffca28;
+    color: #1f1f1f;
+    padding: 12px 22px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(251, 192, 45, 0.35);
+}
+
+.retailer-issue-form .btn-submit:hover {
+    background: #fbc02d;
+}
+
+.retailer-issue-form .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #5d4037;
+    border: 1px solid #eadfce;
+    padding: 11px 18px;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.retailer-issue-form .btn-secondary:hover {
+    background: #fff6d8;
+}
+
+@media (max-width: 980px) {
+    body.retailer-issue-page:has(.system-dashboard-wrapper) main.workspace-canvas {
+        overflow: auto !important;
+    }
+
+    .retailer-issue-layout {
+        grid-template-columns: 1fr;
+        min-height: calc(100dvh - var(--kreezby-admin-header-height, 60px));
+    }
+
+    .retailer-issue-aside {
+        padding: 24px 22px 20px;
+        gap: 10px;
+    }
+
+    .retailer-issue-aside h1 {
+        font-size: 30px;
+    }
+
+    .retailer-issue-points {
+        display: none;
+    }
+
+    .retailer-issue-fields {
+        overflow: visible;
+        padding: 20px 18px 8px;
+    }
+
+    .retailer-issue-form .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .retailer-issue-form .form-actions {
+        padding: 14px 18px 18px;
+    }
+}

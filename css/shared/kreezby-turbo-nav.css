@@ -150,3 +150,15 @@ button:active:not(:disabled),
         transition: none;
     }
 }
+
+@media (max-height: 820px) {
+    html.kreezby-retailer-account body.kreezby-retailer-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+
+    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-photo,
+    html.kreezby-retailer-account body.kreezby-retailer-home .admin-home-copy {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
