@@ -438,12 +438,20 @@
     var name = String(resolved && resolved.userName || '').toLowerCase();
     if (resolved && resolved.accountType === 'Retailer') {
       var areaMatch = href.match(/retailer\/([a-z0-9]+)\//);
-      var labels = {
-        bauan: 'Bauan', batangas: 'Batangas', citimart: 'Citimart', lipa: 'Lipa',
-        lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas', tagaytay: 'Tagaytay'
+      // Use centralized area labels from manifest if available, otherwise use hardcoded values
+      var getAreaLabel = function(slug) {
+        if (window.KreezbyRetailerManifest && typeof window.KreezbyRetailerManifest.getAreaLabel === 'function') {
+          return window.KreezbyRetailerManifest.getAreaLabel(slug);
+        }
+        // Fallback hardcoded labels
+        var labels = {
+          bauan: 'Bauan', batangas: 'Batangas', citimart: 'Citimart', lipa: 'Lipa',
+          lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas', tagaytay: 'Tagaytay'
+        };
+        return labels[slug] || slug;
       };
-      if (areaMatch && labels[areaMatch[1]]) return labels[areaMatch[1]];
-      if (name.indexOf('batangas') >= 0) return 'Batangas';
+      if (areaMatch) return getAreaLabel(areaMatch[1]);
+      if (name.indexOf('batangas') >= 0) return getAreaLabel('batangas');
     }
     return '';
   }

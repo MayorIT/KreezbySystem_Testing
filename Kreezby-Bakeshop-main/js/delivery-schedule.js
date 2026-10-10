@@ -1,6 +1,7 @@
 /**
  * Delivery Schedule on the AI Forecast page.
  * Head admin, admin, and staff set a stop and review upcoming deliveries by area.
+ * Now loads store data dynamically from retailer manifest.
  */
 (function () {
     'use strict';
@@ -13,32 +14,7 @@
     var STORE_KEY = 'kreezby_delivery_schedule_v5';
     var PRODUCT = 'Chocolate Crinkles';
     var PAYMENTS = ['GCash', 'Check', 'Cash'];
-    var AREAS = [
-        {
-            name: 'Lucena',
-            stores: ['Chick\'N J Ibaan', 'SIDC IBAAN', 'Balkonahe', 'Citimart Rosario', 'Chick\'N J Namunga', 'SIDC Tiaong', 'Mr.Fields Coffe+', 'Bangihan', 'Girasoles', 'Shell Select Sariaya', 'Kope Right Sariaya', 'Kope Right Lucena', 'Shell Select Domoit', 'SIDC San Juan', 'Chick\'N J Baybayin', 'Matteos Liquiwan', 'Yummies', 'Hang Out']
-        },
-        {
-            name: 'Batangas',
-            stores: ['SIDC Main', 'SIDC Soro-Soro Ilaya', '3M', 'Jhorjhanes Balagtas', 'Wanam sa Bukid Balagtas', 'AA Lomi Balagtas', 'Butch Alangilan', 'Gracias Pasalubong', 'Shell Select Kumintang Ibaba', 'SIDC Tulo', 'SIDC Libjo', 'SIDC Pallocan', 'Wanam sa Bukid Gulod', 'Wanam sa Bukid Palengke']
-        },
-        {
-            name: 'Sto. Tomas',
-            stores: ['Kubo sa Halamanan Malarayat', 'LBN Marawoy', 'Kubo sa Halamanan Marawoy', 'Lucias Cafe Lipa', 'Citimart Tanauan', 'Lucias Cafe Sto Tomas', 'JMA', 'Rose & Grace', 'D\'Vinias', 'Tita Chu', 'Laong Laan', 'Avilles']
-        },
-        {
-            name: 'Lipa',
-            stores: ['SIDC Mahabang Parang', 'SIDC San Jose', 'Banay-banay Eatery', 'AA Lomi Lipa', 'Butch Lipa', 'Shell Select Tambo', 'Shell Select Balintawak', 'Lipa Grill Lipa', 'Lipa Grill San Felipe', 'AA Lomi Padre Garcia', 'Chick\'N J Padre Garcia', 'Ben & Cha']
-        },
-        {
-            name: 'Tagaytay',
-            stores: ['HMM Muzon', 'SIDC Bauan', 'SIDC Sta. Teresita', 'AA Lomi Taal', 'Citimart Lemery', 'Jaytees Acienda', 'RSM Silvinas', 'Pamana', 'Jaytees Main', 'Balinsasayaw Tagaytay', 'Green Ats', 'Jaytees 9th']
-        },
-        {
-            name: 'Citimart',
-            stores: ['Citimart Caedo', 'Citimart Nuciti', 'Citimart Baystar/Baymall', 'Citimart Shop on/ Rizal Ave', 'Citimart Bauan', 'Dyan\'s', 'Ofels', 'Jorjhanes Sta. Rita']
-        }
-    ];
+    var AREAS = []; // Will be populated from manifest
 
     var SEED = [
         { id: 'po-0002', area: 'Batangas', day: 1, po: 'PO-0002', stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
@@ -311,8 +287,40 @@
         paint();
     }
 
+    function initializeFromManifest() {
+        // Wait for manifest loader and load areas dynamically
+        if (window.KreezbyRetailerManifest && typeof window.KreezbyRetailerManifest.getAreaConfiguration === 'function') {
+            return window.KreezbyRetailerManifest.getAreaConfiguration().then(function(areasConfig) {
+                AREAS = areasConfig;
+                return AREAS;
+            }).catch(function(error) {
+                console.warn('Failed to load areas from manifest, using fallback:', error);
+                // Fallback: create basic area structure from a simple list
+                return window.KreezbyRetailerManifest.getStoresByArea().then(function(byArea) {
+                    Object.keys(byArea).sort().forEach(function(areaSlug) {
+                        AREAS.push({
+                            name: window.KreezbyRetailerManifest.getAreaLabel(areaSlug),
+                            slug: areaSlug,
+                            stores: byArea[areaSlug].map(function(s) { return s.storeName; })
+                        });
+                    });
+                    return AREAS;
+                });
+            });
+        }
+        return Promise.resolve(AREAS);
+    }
+
     function boot() {
-        document.querySelectorAll('#delivery-schedule').forEach(render);
+        if (AREAS && AREAS.length > 0) {
+            // Already initialized
+            document.querySelectorAll('#delivery-schedule').forEach(render);
+            return;
+        }
+        // Initialize from manifest before rendering
+        initializeFromManifest().then(function() {
+            document.querySelectorAll('#delivery-schedule').forEach(render);
+        });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

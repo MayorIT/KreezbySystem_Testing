@@ -84,7 +84,7 @@
                 </article>
                 <article class="about-card">
                     <h3>Who we partner with</h3>
-                    <p>Retailers and cooperatives across Batangas, Lipa, Lucena, Manila, Tagaytay, and nearby hubs. Simple pricing, repeatable orders.</p>
+                    <p>Retailers and cooperatives across <span id="service-areas-list">Batangas, Lipa, Lucena, Manila, Tagaytay, Rosario, Sto. Tomas, and Bauan</span>. Simple pricing, repeatable orders.</p>
                 </article>
                 <article class="about-card">
                     <h3>How it works</h3>
@@ -181,6 +181,27 @@
         });
         form.reset();
         if (success) success.hidden = false;
+    });
+})();
+</script>
+<script src="../js/retailer-manifest-loader.js"></script>
+<script>
+// Populate service areas list from manifest
+(function() {
+    var areasSpan = document.getElementById('service-areas-list');
+    if (!areasSpan || !window.KreezbyRetailerManifest) return;
+    
+    window.KreezbyRetailerManifest.getAreaConfiguration().then(function(areasConfig) {
+        if (areasConfig && areasConfig.length > 0) {
+            var areaNames = areasConfig.map(function(area) { return area.name; });
+            if (areaNames.length > 1) {
+                areasSpan.textContent = areaNames.slice(0, -1).join(', ') + ' and ' + areaNames[areaNames.length - 1];
+            } else if (areaNames.length === 1) {
+                areasSpan.textContent = areaNames[0];
+            }
+        }
+    }).catch(function(error) {
+        console.warn('Could not load service areas from manifest:', error);
     });
 })();
 </script>

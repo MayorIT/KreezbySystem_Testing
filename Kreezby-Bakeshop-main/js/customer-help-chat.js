@@ -326,7 +326,7 @@
     function crinklesReply() {
         return catalogReply(
             CATALOG,
-            'Kreezby is The Crinkle Factory in Batangas City. The shop menu has 10 pouch flavors at ₱165.00, plus two jar specials. Nine pouches are 8 pieces. Assorted Crinkles is a 250g mixed pouch. Jars are resealable 250g containers for sharing and gifting. Choco Butternut is ₱200.00. Every other flavor is ₱165.00.'
+            'Kreezby is The Crinkle Factory. The shop menu has 10 pouch flavors at ₱165.00, plus two jar specials. Nine pouches are 8 pieces. Assorted Crinkles is a 250g mixed pouch. Jars are resealable 250g containers for sharing and gifting. Choco Butternut is ₱200.00. Every other flavor is ₱165.00.'
         );
     }
 
@@ -499,7 +499,7 @@
         }
         if (hasAny(text, ['where are you', 'location', 'address of', 'batangas', 'store hours', 'open'])) {
             return {
-                text: 'Kreezby Bakeshop is The Crinkle Factory in Batangas City. Shop orders are delivered to the address you enter at checkout through J&T Express Philippines.',
+                text: 'Kreezby Bakeshop is The Crinkle Factory with retail locations across the Calabarzon region. Shop orders are delivered to the address you enter at checkout through J&T Express Philippines.',
                 chips: [
                     { label: 'How does delivery work?', prompt: 'How does delivery work?' },
                     { label: 'What crinkles do you have?', prompt: 'What crinkles do you have?' }
