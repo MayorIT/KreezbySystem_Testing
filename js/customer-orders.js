@@ -49,6 +49,62 @@
         });
     }
 
+    var CUSTOMER_FEEDBACK_KEY = 'kreezbyCustomerCreatedFeedbackV1';
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function isAwaitingReview(order) {
+        return !!(order && order.status === 'Completed' && !order.customerReview);
+    }
+
+    function ensureFinishedReviewOrder() {
+        var orders = loadAllOrders();
+        var name = currentCustomerName() || 'Maria Santos';
+        var hasPending = orders.some(function (order) {
+            var shipName = (((order.shippingInfo || {}).fullName) || order.poEntity || '');
+            return shipName.toLowerCase() === name.toLowerCase() && isAwaitingReview(order);
+        });
+        if (hasPending) return;
+
+        var profile = {};
+        try { profile = JSON.parse(localStorage.getItem('kreezbyCustomerProfile') || '{}') || {}; } catch (e) { /* ignore */ }
+        var now = new Date().toISOString();
+        orders.push({
+            orderNumber: 'ORD-2026-1099',
+            poCode: 'PO-C-MS-REVIEW',
+            poEntity: name,
+            items: {
+                'review-ube': { name: 'Ube Crinkles', cost: 165, qty: 2, img: 'flavors/ube.jpg' }
+            },
+            subtotal: 330,
+            deliveryFee: 50,
+            total: '₱380.00',
+            paymentMethod: 'cash_on_delivery',
+            shippingInfo: {
+                fullName: name,
+                phone: profile.contactNumber || '09171234567',
+                address: profile.defaultAddress || '18 Dolorosa St., Poblacion, Batangas City',
+                notes: ''
+            },
+            status: 'Completed',
+            trackingNumber: 'JT6049281735999',
+            carrier: 'J&T Express Philippines',
+            date: '2026-10-02T09:30:00.000Z',
+            shippedAt: '2026-10-03T08:00:00.000Z',
+            statusUpdatedAt: '2026-10-04T15:10:00.000Z',
+            paymentVerified: true,
+            source: 'customer-shop',
+            needsReview: true
+        });
+        localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+    }
+
     function seedDemoOrderIfNeeded() {
         if (window.KreezbyPortalSeed && typeof window.KreezbyPortalSeed.apply === 'function') {
             window.KreezbyPortalSeed.apply();
@@ -331,16 +387,17 @@
 
     function renderOrders(filter) {
         seedDemoOrderIfNeeded();
+        ensureFinishedReviewOrder();
         currentFilter = filter || currentFilter;
         var container = document.getElementById('orders-container');
         if (!container) return;
 
         var orders = loadOrders();
-        var filtered = currentFilter === 'all'
-            ? orders
-            : orders.filter(function (o) {
-                return o.status.toLowerCase() === currentFilter.toLowerCase();
-            });
+        var filtered = orders.filter(function (order) {
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'to-review') return isAwaitingReview(order);
+            return String(order.status || '').toLowerCase() === currentFilter.toLowerCase();
+        });
 
         if (!filtered.length) {
             container.innerHTML = '<div class="orders-empty-state"><p>No orders found.</p></div>';
@@ -467,7 +524,9 @@
             '<div class="order-detail-info-row"><span>Order Number</span><span>' + order.orderNumber + '</span></div>' +
             (order.poCode ? '<div class="order-detail-info-row"><span>PO Code</span><span>' + order.poCode + '</span></div>' : '') +
             '<div class="order-detail-info-row"><span>Order Date</span><span>' + formatDate(order.date) + '</span></div>' +
-            '</section>';
+            '</section>' +
+            renderReviewSection(order);
+        if (detailView) detailView.dataset.reviewRating = '5';
     }
 
     function statusMessage(order) {
@@ -478,8 +537,119 @@
                 : 'Your order is being prepared at Kreezby.';
         }
         if (status === 'Shipped') return 'Your order is on the way!';
-        if (status === 'Completed') return 'Order delivered. Enjoy your crinkles!';
+        if (status === 'Completed') {
+            return order.customerReview
+                ? 'Thanks for your review. It is now in What Our Customers Say.'
+                : 'Order delivered. Tell us how the crinkles tasted.';
+        }
         return 'Order status: ' + (status || '');
+    }
+
+    function reviewStarsHtml(selected) {
+        var html = '';
+        for (var i = 1; i <= 5; i++) {
+            html += '<button type="button" class="review-star-btn' + (i <= selected ? ' active' : '') + '" data-star="' + i + '" aria-label="' + i + (i === 1 ? ' star' : ' stars') + '">★</button>';
+        }
+        return html;
+    }
+
+    function orderProductNames(order) {
+        return Object.values(order.items || {}).map(function (item) {
+            return item && item.name;
+        }).filter(Boolean).join(', ');
+    }
+
+    function renderReviewSection(order) {
+        if (!order || order.status !== 'Completed') return '';
+        if (order.customerReview) {
+            var review = order.customerReview;
+            var stars = '';
+            for (var i = 1; i <= 5; i++) stars += i <= review.rating ? '★' : '☆';
+            return (
+                '<section class="order-detail-section">' +
+                '<h3 class="order-detail-section-title">Your review</h3>' +
+                '<div class="review-done-box">' +
+                '<div class="review-done-stars" aria-label="' + review.rating + ' out of 5 stars">' + stars + '</div>' +
+                '<p class="review-done-text">' + escapeHtml(review.comment) + '</p>' +
+                '<p class="review-done-date">Posted to What Our Customers Say</p>' +
+                '</div>' +
+                '</section>'
+            );
+        }
+        var products = orderProductNames(order) || 'this order';
+        return (
+            '<section class="order-detail-section">' +
+            '<h3 class="order-detail-section-title">Review your product</h3>' +
+            '<form class="review-form-box" id="order-review-form">' +
+            '<p class="review-helper-text">Finished order ' + escapeHtml(order.orderNumber) + '. Rate ' + escapeHtml(products) + ' and share a short note.</p>' +
+            '<div class="review-stars-row" role="radiogroup" aria-label="Star rating">' + reviewStarsHtml(5) + '</div>' +
+            '<textarea class="review-feedback-input" name="comment" required maxlength="240" placeholder="How were the crinkles?"></textarea>' +
+            '<div class="review-action-row">' +
+            '<button type="submit" class="btn-action-primary">Submit Review</button>' +
+            '<p class="review-submit-notice" hidden></p>' +
+            '</div>' +
+            '</form>' +
+            '</section>'
+        );
+    }
+
+    function saveCustomerReview(orderNumber, review) {
+        var orders = loadAllOrders();
+        var updated = null;
+        orders.forEach(function (order) {
+            if (order.orderNumber === orderNumber) {
+                order.customerReview = review;
+                order.needsReview = false;
+                updated = order;
+            }
+        });
+        if (!updated) return null;
+        localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+
+        var saved = [];
+        try { saved = JSON.parse(localStorage.getItem(CUSTOMER_FEEDBACK_KEY) || '[]'); } catch (e) { saved = []; }
+        if (!Array.isArray(saved)) saved = [];
+        var entry = {
+            rating: review.rating,
+            comment: review.comment,
+            name: review.name,
+            orderNumber: orderNumber,
+            source: 'order-review'
+        };
+        saved = saved.filter(function (item) { return item.orderNumber !== orderNumber; });
+        saved.unshift(entry);
+        localStorage.setItem(CUSTOMER_FEEDBACK_KEY, JSON.stringify(saved.slice(0, 20)));
+        try {
+            document.dispatchEvent(new CustomEvent('kreezby:customer-feedback', { detail: entry }));
+        } catch (err) { /* ignore */ }
+        return entry;
+    }
+
+    function submitOrderReview(form) {
+        var orderNumber = currentDetailOrder;
+        var order = orderNumber ? findOrder(orderNumber) : null;
+        var notice = form.querySelector('.review-submit-notice');
+        var commentField = form.querySelector('textarea');
+        var comment = commentField ? commentField.value.trim() : '';
+        if (!order || !comment) {
+            if (notice) {
+                notice.hidden = false;
+                notice.classList.add('is-error');
+                notice.textContent = 'Add a short comment before posting.';
+            }
+            return;
+        }
+        var detailView = document.getElementById('orders-detail-view');
+        var rating = Number(detailView && detailView.dataset.reviewRating) || 5;
+        if (rating < 1 || rating > 5) rating = 5;
+        var review = {
+            rating: rating,
+            comment: comment,
+            name: ((order.shippingInfo || {}).fullName) || currentCustomerName() || 'Customer',
+            createdAt: new Date().toISOString()
+        };
+        saveCustomerReview(orderNumber, review);
+        showOrderDetail(orderNumber);
     }
 
     function filterOrders(filter, element) {
@@ -509,10 +679,30 @@
             backBtn.dataset.bound = '1';
             backBtn.addEventListener('click', showListView);
         }
+
+        var detailView = document.getElementById('orders-detail-view');
+        if (detailView && !detailView.dataset.bound) {
+            detailView.dataset.bound = '1';
+            detailView.addEventListener('click', function (event) {
+                var star = event.target.closest('.review-star-btn');
+                if (!star) return;
+                var value = Number(star.getAttribute('data-star')) || 5;
+                detailView.dataset.reviewRating = String(value);
+                detailView.querySelectorAll('.review-star-btn').forEach(function (btn) {
+                    btn.classList.toggle('active', Number(btn.getAttribute('data-star')) <= value);
+                });
+            });
+            detailView.addEventListener('submit', function (event) {
+                if (!event.target || event.target.id !== 'order-review-form') return;
+                event.preventDefault();
+                submitOrderReview(event.target);
+            });
+        }
     }
 
     function onOrdersModalOpen() {
         seedDemoOrderIfNeeded();
+        ensureFinishedReviewOrder();
         bindOrdersUi();
         showListView();
         renderOrders('all');

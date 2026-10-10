@@ -142,10 +142,8 @@
                             </div>
                             <div class="form-field-unit">
                                 <label for="po-modal-area">Area</label>
-                                <select id="po-modal-area" required>
+                                <select id="po-modal-area" required data-populate-areas-from-manifest data-label-attribute="name">
                                     <option value="">Select an area</option>
-                                    <option value="Batangas City">Batangas City</option>
-                                    <option value="Lipa City">Lipa City</option>
                                 </select>
                             </div>
                             <div class="form-field-unit">
@@ -348,6 +346,8 @@
     </script>
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/tab-panel-transition.js"></script>
+    <script src="../js/retailer-manifest-loader.js"></script>
+    <script src="../js/area-dropdown-helper.js"></script>
     <script src="../js/po-admin.js?v=20261010roles"></script>
     <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
