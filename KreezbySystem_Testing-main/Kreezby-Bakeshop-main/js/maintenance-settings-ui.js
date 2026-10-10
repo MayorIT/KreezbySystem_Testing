@@ -151,7 +151,7 @@
         });
     }
 
-    var currentDirectory = 'supplier';
+    var currentDirectory = 'retailer';
 
     var DIRECTORY = {
         supplier: { bucket: 'suppliers', title: 'Suppliers', detail: 'Contact', detailOf: function (u) { return u.contact || '—'; }, accountOf: function (u) { return u.email || '—'; } },
@@ -195,8 +195,21 @@
         if (!grid || grid.dataset.kreezbyAccounts === '1') return;
         grid.dataset.kreezbyAccounts = '1';
 
+        grid.querySelectorAll('.overview-card-box').forEach(function (card) {
+            var metric = card.querySelector('[id]');
+            var metricId = metric ? metric.id : '';
+            var label = ((card.querySelector('label, .overview-card-label') || {}).textContent || '').toLowerCase();
+            var dir = (card.getAttribute('data-maint-dir') || '').toLowerCase();
+            if (dir === 'supplier' || metricId === 'metric-suppliers-count' || label.indexOf('supplier') >= 0) card.remove();
+        });
+        document.querySelectorAll('.maintenance-directory-tabs-row .maintenance-tab-link').forEach(function (btn) {
+            var tab = (btn.getAttribute('data-maint-tab') || '').toLowerCase();
+            var click = (btn.getAttribute('onclick') || '').toLowerCase();
+            var label = (btn.textContent || '').toLowerCase();
+            if (tab === 'supplier' || click.indexOf('supplier') >= 0 || label.indexOf('supplier') >= 0) btn.remove();
+        });
+
         var specs = [
-            { dir: 'supplier', id: 'metric-suppliers-count', label: 'Active Suppliers', theme: '' },
             { dir: 'retailer', id: 'metric-retailers-count', label: 'Retailers', theme: 'blue-theme' },
             { dir: 'customer', id: 'metric-customers-count', label: 'Customers', theme: 'green-theme' },
             { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: 'staff-theme' },
@@ -206,16 +219,6 @@
             specs = specs.filter(function (spec) {
                 return spec.dir === 'retailer' || spec.dir === 'customer';
             });
-            grid.querySelectorAll('.overview-card-box').forEach(function (card) {
-                var metric = card.querySelector('[id]');
-                var metricId = metric ? metric.id : '';
-                var label = ((card.querySelector('label') || {}).textContent || '').toLowerCase();
-                if (metricId === 'metric-suppliers-count' || label.indexOf('supplier') >= 0) {
-                    card.remove();
-                }
-            });
-            var supplierTab = document.querySelector('.maintenance-directory-tabs-row [onclick*="\'supplier\'"]');
-            if (supplierTab) supplierTab.remove();
         }
 
         specs.forEach(function (spec) {
@@ -443,7 +446,7 @@
 
         window.KreezbyMaintenanceDirectory = openDirectory;
         if (isHeadAdminPage()) openDirectory('retailer');
-        else openDirectory('supplier');
+        else openDirectory('retailer');
     }
 
     function upgradeCustomer(customerId, role) {

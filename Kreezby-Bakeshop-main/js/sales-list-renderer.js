@@ -981,8 +981,11 @@
       if (item.key === key) row = item;
     });
     if (!row) return;
-    var title = document.getElementById('sales-details-title');
-    if (title) title.textContent = row.invoice || 'Customer sale';
+    var title = document.getElementById('sales-details-title') || document.querySelector('#saleslist-detailed-inspector-panel-view h3');
+    if (title) {
+      var invoice = row.invoice || 'Customer sale';
+      title.textContent = /breakdown/i.test(title.textContent || '') ? ('Sales Invoice Breakdown - ' + invoice) : invoice;
+    }
     setDetailText('bauan-detail-invoice', 'Invoice:', row.invoice);
     setDetailText('bauan-detail-route', 'Date:', row.date);
     setDetailText('bauan-detail-client', 'Customer:', row.customer);
@@ -1242,11 +1245,12 @@
       });
       document.addEventListener('click', function (event) {
         if (!document.getElementById('customer-sales-tbody')) return;
-        var trigger = event.target.closest ? event.target.closest('#sales-customer-table [data-customer-sale]') : null;
+        var trigger = event.target.closest ? event.target.closest('#customer-sales-tbody [data-customer-sale], #sales-customer-table [data-customer-sale]') : null;
         if (!trigger) return;
         event.preventDefault();
+        event.stopPropagation();
         showCustomerSale(trigger.getAttribute('data-customer-sale'));
-      });
+      }, true);
     }
     var panes = salesPanes();
     if (!panes) return;

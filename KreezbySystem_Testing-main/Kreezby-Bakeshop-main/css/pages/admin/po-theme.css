@@ -2250,10 +2250,10 @@ body.po-admin-page #ot-create-modal .ot-modal-close {
 body.po-admin-page #sales-analysis-master {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
 }
 
 body.po-admin-page #sales-analysis-master > #ai-filter-pills.po-order-tabs {
@@ -2338,11 +2338,11 @@ body.po-admin-page #sales-analysis-table tbody tr[hidden] {
 
 body.po-admin-page #sales-analysis-master > .insights-panel {
     display: none;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     flex-direction: column;
     min-width: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
 }
 
 body.po-admin-page #sales-analysis-master > .insights-panel.is-active {
@@ -2350,7 +2350,8 @@ body.po-admin-page #sales-analysis-master > .insights-panel.is-active {
 }
 
 body.po-admin-page #sales-analysis-master .insights-panel .po-list-body {
-    overflow: hidden;
+    flex: 0 0 auto;
+    overflow: visible;
     justify-content: flex-start;
 }
 
@@ -2389,7 +2390,7 @@ body.po-admin-page #forecast-table th {
 }
 
 body.po-admin-page #sales-analysis-master .insights-panel .datatable-footer-line {
-    margin-top: auto;
+    margin-top: 8px;
 }
 
 body.po-admin-page #sales-analysis-master .dict-reorder {
@@ -2419,13 +2420,63 @@ body.po-admin-page #sales-analysis-master #management-insight-refresh {
 
 
 body.po-admin-page #sales-analysis-master .po-table-scroll-wrap {
-    flex: 0 1 auto;
-    max-height: 100%;
+    flex: 0 0 auto;
+    max-height: none;
 }
 
 body.po-admin-page #sales-analysis-master .datatable-footer-line {
-    margin-top: auto;
+    margin: 12px 4px 2px;
+    padding-top: 2px;
+    color: #6d4c41;
+    font-size: 13px;
 }
+
+body.po-admin-page #sales-analysis-master .insights-panel .po-list-body {
+    padding: 2px 16px 16px;
+}
+
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap {
+    border: 1px solid #e6d3b8;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+}
+
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap table,
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap th,
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap td {
+    border: none !important;
+}
+
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap td {
+    border-bottom: 1px solid #f0e6d8 !important;
+}
+
+body.po-admin-page #sales-analysis-master .po-table-scroll-wrap tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+body.po-admin-page #management-insight-table .mi-col-num { width: 6%; }
+body.po-admin-page #management-insight-table .mi-col-flavor { width: 18%; }
+body.po-admin-page #management-insight-table .mi-col-note { width: 58%; }
+body.po-admin-page #management-insight-table .mi-col-action { width: 18%; }
+
+body.po-admin-page #management-insight-table td:nth-child(3),
+body.po-admin-page #management-insight-table th:nth-child(3) {
+    text-align: left;
+    white-space: normal;
+}
+
+body.po-admin-page #management-insight-table td:last-child,
+body.po-admin-page #management-insight-table th:last-child {
+    text-align: center;
+}
+
+body.po-admin-page #sales-analysis-master .dict-sales-window {
+    margin: 0;
+}
+
+
 
 body.po-admin-page #sales-analysis-master .dict-sales-window {
     margin: 0;

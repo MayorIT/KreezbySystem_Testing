@@ -143,8 +143,7 @@
             'metric-customers-count': c.customers,
             'metric-retailers-count': c.retailers,
             'metric-staff-count': c.staff,
-            'metric-admins-count': c.admins,
-            'metric-suppliers-count': c.suppliers
+            'metric-admins-count': c.admins
         };
         Object.keys(map).forEach(function (id) {
             var el = document.getElementById(id);
@@ -152,7 +151,7 @@
         });
     }
 
-    var currentDirectory = 'supplier';
+    var currentDirectory = 'retailer';
 
     var DIRECTORY = {
         supplier: { bucket: 'suppliers', title: 'Suppliers', detail: 'Contact', detailOf: function (u) { return u.contact || '—'; }, accountOf: function (u) { return u.email || '—'; } },
@@ -192,8 +191,21 @@
         if (!grid || grid.dataset.kreezbyAccounts === '1') return;
         grid.dataset.kreezbyAccounts = '1';
 
+        document.querySelectorAll('.overview-card-box').forEach(function (card) {
+            var metric = card.querySelector('[id]');
+            var metricId = metric ? metric.id : '';
+            var label = ((card.querySelector('label, .overview-card-label') || {}).textContent || '').toLowerCase();
+            var dir = (card.getAttribute('data-maint-dir') || '').toLowerCase();
+            if (dir === 'supplier' || metricId === 'metric-suppliers-count' || label.indexOf('supplier') >= 0) card.remove();
+        });
+        document.querySelectorAll('.maintenance-directory-tabs-row .maintenance-tab-link').forEach(function (btn) {
+            var tab = (btn.getAttribute('data-maint-tab') || '').toLowerCase();
+            var click = (btn.getAttribute('onclick') || '').toLowerCase();
+            var label = (btn.textContent || '').toLowerCase();
+            if (tab === 'supplier' || click.indexOf('supplier') >= 0 || label.indexOf('supplier') >= 0) btn.remove();
+        });
+
         var specs = [
-            { dir: 'supplier', id: 'metric-suppliers-count', label: 'Suppliers', theme: '' },
             { dir: 'retailer', id: 'metric-retailers-count', label: 'Retailers', theme: '' },
             { dir: 'customer', id: 'metric-customers-count', label: 'Customers', theme: '' },
             { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: '' },
@@ -778,7 +790,7 @@
 
         window.KreezbyMaintenanceDirectory = openDirectory;
         if (root && root.getAttribute('data-maint-live') !== '1') {
-            openDirectory('supplier');
+            openDirectory('retailer');
         }
     }
 
@@ -806,7 +818,7 @@
     }
 
     window.KreezbyMaintenanceUI = {
-        version: '20261010tabs',
+        version: '20261010nosupplier',
         initSettingsPanel: initSettingsPanel,
         refreshMetrics: refreshMetrics,
         upgradeCustomer: upgradeCustomer,

@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
-    <title>Admin — Issue Reports</title>
-    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <title>Admin — Report Center</title>
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20261010center2">
     <link rel="stylesheet" href="../css/pages/admin/admin.css">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
@@ -36,11 +36,13 @@
     <aside class="dark-sidebar-panel" aria-label="Admin navigation"></aside>
     <main class="workspace-view-canvas">
         <div class="page-shell">
-            <div class="report-panel">
+            <div class="report-panel report-center">
                 <div class="report-header">
-                    <span class="report-kicker">Received from users</span>
-                    <h1>Issue reports</h1>
-                    <p>This inbox is shared with Head Admin. It opens only when Issue Reports has been granted to this admin.</p>
+                    <div class="report-header-copy">
+                        <span class="report-kicker">Incoming reports</span>
+                        <h1>Report Center</h1>
+                        <p>Retailers and customers send issues here. Review the list and resolve each report.</p>
+                    </div>
                     <div class="report-highlights" role="group" aria-label="Filter by status">
                         <button type="button" class="report-highlight-chip is-active" data-status-filter="">All reports</button>
                         <button type="button" class="report-highlight-chip" data-status-filter="New">New</button>
@@ -58,7 +60,7 @@
                         <section class="inbox-list-card" aria-label="Received issue reports">
                             <div class="form-section-head">
                                 <h2>Report list</h2>
-                                <p>Select a row to read the issue and update its status.</p>
+                                <p>Select a row to read the issue, then resolve it.</p>
                             </div>
                             <table class="inbox-table data-display-table">
                                 <thead>
@@ -68,11 +70,12 @@
                                         <th>From</th>
                                         <th>Role</th>
                                         <th>Status</th>
+                                        <th>Resolve</th>
                                     </tr>
                                 </thead>
                                 <tbody id="received-issues-tbody"></tbody>
                             </table>
-                            <div class="empty-state" id="received-issues-empty" hidden>No issue reports yet. Reports filed by other users will appear here.</div>
+                            <div class="empty-state" id="received-issues-empty" hidden>No retailer or customer reports yet.</div>
                         </section>
                         <aside class="report-side-panel" aria-label="Issue review">
                             <div class="support-card support-card-primary" id="received-issue-detail"></div>
@@ -84,11 +87,11 @@
     </main>
 </div>
 
-<script src="../js/kreezby-issue-reports.js?v=20260927recv"></script>
-<script src="../js/admin-permissions.js?v=20261006perm"></script>
-<script src="../js/kreezby-received-issues.js?v=20260927recv"></script>
-<script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
-<script src="../js/admin-sidebar.js?v=20261006perm"></script>
-<script src="../js/sidebar-toggle.js?v=20260927row"></script>
+<script src="../js/kreezby-issue-reports.js?v=20261010issues"></script>
+<script src="../js/admin-permissions.js?v=20261010center"></script>
+<script src="../js/kreezby-received-issues.js?v=20261010review"></script>
+<script src="../js/user-dropdown-nav.js?v=20261010center"></script>
+<script src="../js/admin-sidebar.js?v=20261010center"></script>
+<script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

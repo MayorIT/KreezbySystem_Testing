@@ -1447,8 +1447,29 @@
         return true;
     }
 
+    function ensurePoAreaOptions() {
+        var select = document.getElementById('po-modal-area');
+        if (!select) return;
+        if (select.options.length <= 1) {
+            ['Batangas', 'Bauan', 'Lipa', 'Lucena', 'Manila', 'Rosario', 'Sto. Tomas', 'Tagaytay'].forEach(function (name) {
+                var opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+        }
+        if (window.KreezbyAreaDropdownHelper && select.hasAttribute('data-populate-areas-from-manifest')) {
+            window.KreezbyAreaDropdownHelper.populateAreaDropdown(
+                select,
+                select.getAttribute('data-default-area'),
+                select.getAttribute('data-label-attribute') || 'name'
+            );
+        }
+    }
+
     function populateModal(order) {
         if (!poModalNode()) return;
+        ensurePoAreaOptions();
         var editing = !!order;
         document.getElementById('po-modal-title').textContent = editing ? 'Edit Purchase Order' : 'Create New Purchase Order';
         var kicker = document.getElementById('po-modal-kicker');
@@ -2095,10 +2116,10 @@
         if (frame && frame.querySelector('#bo-master-dashboard-split-view, #bo-retailer-dashboard-view')) return 'bo';
         if (frame && frame.querySelector('#po-master-lists-container-block, #po-retailer-directory-block')) return 'po';
         var page = currentHtmlName();
-        if (page === 'stocklevel-headadmin.html') return 'stocklevel';
-        if (page === 'alert-headadmin.html') return 'alert';
+        if (page.indexOf('stocklevel-') === 0) return 'stocklevel';
+        if (page.indexOf('alert-') === 0) return 'alert';
         if (page.indexOf('aiforecast_salesanalysis-') === 0) return 'analysis';
-        if (page === 'deliveryschedule-headadmin.html') return 'delivery';
+        if (page.indexOf('deliveryschedule-') === 0) return 'delivery';
         if (page.indexOf('order-tracking-') === 0) return 'tracking';
         if (page.indexOf('saleslist-') === 0) return 'sales';
         if (page.indexOf('stocks-') === 0) return 'stocks';

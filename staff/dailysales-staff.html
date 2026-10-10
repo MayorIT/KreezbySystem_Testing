@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Record Daily Sales (Staff)</title>
-    <link rel="stylesheet" href="../css/pages/staff/dailysales-staff.css">
+    <link rel="stylesheet" href="../css/pages/staff/dailysales-staff.css?v=20261010sales2">
 
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css?v=20261010palette">
@@ -42,56 +42,46 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
             
+            <div class="sales-entry">
             <div class="sales-panel-header-banner">
-                <span>?</span> Record Daily Sales
+                <span class="sales-entry-kicker">Staff sales</span>
+                <h1>Record Daily Sales</h1>
+                <p>Add the flavors sold, then save the transaction.</p>
             </div>
 
             <div class="sales-form-card">
                 <form action="#" method="POST" id="daily-sales-form-root">
-                    
-                    <div class="form-section-title">Customer Information</div>
-
-                    <div class="customer-info-grid" id="cust-regular-fields">
-                        <div class="form-field-block">
-                            <label for="cust-name-field">Customer Name</label>
-                            <input type="text" id="cust-name-field" placeholder="Enter the customer's name">
-                        </div>
-                        <div class="form-field-block">
-                            <label for="cust-email-field">Email</label>
-                            <input type="email" id="cust-email-field" placeholder="name@domain.com">
-                        </div>
-                    </div>
 
                     <div class="form-section-title">Sale Details</div>
 
                     <div class="row-inputs-builder-bar">
                         <div class="form-field-block">
-                            <label>Select Product Flavor</label>
+                            <label for="builder-flavor-select">Select Product Flavor</label>
                             <select id="builder-flavor-select">
                                 <option value="">Please pick an available flavor batch</option>
-                                <option value="Chocolate Crinkles (Pouch)" data-price="120.00">Chocolate Crinkles - Pouch (?120.00)</option>
-                                <option value="Choco-Almond Crinkles (Pouch)" data-price="125.00">Choco-Almond Crinkles - Pouch (?125.00)</option>
-                                <option value="Lemon Crinkles (Pouch)" data-price="120.00">Lemon Crinkles - Pouch (?120.00)</option>
-                                <option value="Choco Butternut Crinkles (Jar)" data-price="150.00">Choco Butternut Crinkles - Jar (?150.00)</option>
-                                <option value="Mango Crinkles (Jar)" data-price="150.00">Mango Crinkles - Jar (?150.00)</option>
+                                <option value="Chocolate Crinkles (Pouch)" data-price="120.00">Chocolate Crinkles - Pouch (₱120.00)</option>
+                                <option value="Choco-Almond Crinkles (Pouch)" data-price="125.00">Choco-Almond Crinkles - Pouch (₱125.00)</option>
+                                <option value="Lemon Crinkles (Pouch)" data-price="120.00">Lemon Crinkles - Pouch (₱120.00)</option>
+                                <option value="Choco Butternut Crinkles (Jar)" data-price="150.00">Choco Butternut Crinkles - Jar (₱150.00)</option>
+                                <option value="Mango Crinkles (Jar)" data-price="150.00">Mango Crinkles - Jar (₱150.00)</option>
                             </select>
                         </div>
                         <div class="form-field-block">
-                            <label>Quantity</label>
+                            <label for="builder-qty-input">Quantity</label>
                             <input type="number" id="builder-qty-input" min="1" placeholder="e.g. 5">
                         </div>
-                        <div></div> <button type="button" class="btn-inline-action" onclick="appendProductLineToCheckoutMatrix()">+ Add Item</button>
+                        <button type="button" class="btn-inline-action" onclick="appendProductLineToCheckoutMatrix()">+ Add Item</button>
                     </div>
 
                     <table class="data-display-table" id="sales-matrix-table">
                         <thead>
-                            <tr style="background-color: #e4c9a3; color: #4e342e;">
-                                <th style="width: 60px;">#</th>
+                            <tr>
+                                <th class="sales-col-num">#</th>
                                 <th>Product Name</th>
-                                <th style="width: 120px; text-align: center;">Quantity</th>
-                                <th style="width: 140px; text-align: right;">Unit Price (?)</th>
-                                <th style="width: 140px; text-align: right;">Total (?)</th>
-                                <th style="width: 110px; text-align: center;">Action</th>
+                                <th class="sales-col-qty">Quantity</th>
+                                <th class="sales-col-money">Unit Price</th>
+                                <th class="sales-col-money">Total</th>
+                                <th class="sales-col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody id="sales-table-lines-injector">
@@ -113,9 +103,9 @@
                             </tr>
                         </tbody>
                         <tfoot>
-                            <tr style="font-weight: bold; background-color: #fcfcfc; font-size: 15px;">
-                                <td colspan="4" style="text-align: right; padding: 12px;">Total Summary Bill:</td>
-                                <td style="text-align: right; padding: 12px; color: #1b5e20;" id="matrix-grand-total-label">?750.00</td>
+                            <tr class="sales-total-row">
+                                <td colspan="4">Total Summary Bill</td>
+                                <td id="matrix-grand-total-label">₱750.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -127,6 +117,7 @@
                     </div>
 
                 </form>
+            </div>
             </div>
 
         </main>
@@ -153,7 +144,7 @@
                 accumulatedGrandTotal += parseFloat(field.value) || 0;
             });
             
-            document.getElementById('matrix-grand-total-label').textContent = '?' + accumulatedGrandTotal.toFixed(2);
+            document.getElementById('matrix-grand-total-label').textContent = '₱' + accumulatedGrandTotal.toFixed(2);
         }
 
         function appendProductLineToCheckoutMatrix() {
@@ -220,10 +211,10 @@
             updateMatrixGrandTotalSummaryValue();
         }
     </script>
-    <script src="../js/daily-sales-customer.js?v=20260927sale"></script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
-        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
+    <script src="../js/daily-sales-customer.js?v=20261010sales2"></script>
+    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+        <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
 <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

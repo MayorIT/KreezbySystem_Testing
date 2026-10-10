@@ -53,6 +53,14 @@
         }
     }
 
+    function portalPage(name) {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var suffix = '-admin.html';
+        if (path.indexOf('/head_admin/') >= 0) suffix = '-headadmin.html';
+        else if (path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) suffix = '-staff.html';
+        return name + suffix;
+    }
+
     function go(href) {
         var link = document.createElement('a');
         link.href = href;
@@ -152,7 +160,7 @@
         }
         if (action === 'restock') {
             toast('Opening purchase orders so you can restock "' + name + '".');
-            go('po-headadmin.html');
+            go(portalPage('po'));
             return;
         }
         if (action === 'modify') {
@@ -162,7 +170,7 @@
             return;
         }
         if (action === 'view') {
-            go(/ret-/i.test(name) ? 'return-headadmin.html' : 'bo-headadmin.html');
+            go(portalPage(/ret-/i.test(name) ? 'return' : 'bo'));
         }
     }
 

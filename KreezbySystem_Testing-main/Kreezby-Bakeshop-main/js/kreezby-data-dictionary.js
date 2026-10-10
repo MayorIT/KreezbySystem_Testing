@@ -793,9 +793,12 @@
         var host = recordHost || table.closest('.card-body-padded, .card-body, .workspace-view-canvas') || table.parentNode;
         var box = document.createElement('div');
         box.id = 'kreezby-fr-stock-tools';
-        var headAdmin = (location.pathname || '').replace(/\\/g, '/').toLowerCase().indexOf('/head_admin/') !== -1;
-        var productNames = headAdmin ? FLAVOR_CHOICES.slice() : [];
-        if (headAdmin) {
+        var pathName = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        var cardLayout = pathName.indexOf('/head_admin/') !== -1
+            || pathName.indexOf('/admin/') !== -1
+            || pathName.indexOf('/admin_names/') !== -1;
+        var productNames = cardLayout ? FLAVOR_CHOICES.slice() : [];
+        if (cardLayout) {
             var seenFlavor = {};
             productNames.forEach(function (name) { seenFlavor[name] = true; });
             mergedProducts().forEach(function (product) {
@@ -805,13 +808,13 @@
                 }
             });
         }
-        var productOptions = (headAdmin ? productNames : mergedProducts().map(function (product) { return product.product_name; })).map(function (name) {
+        var productOptions = (cardLayout ? productNames : mergedProducts().map(function (product) { return product.product_name; })).map(function (name) {
             return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
         }).join('');
         var materialOptions = RAW_MATERIALS.map(function (item) {
             return '<option value="' + esc(item.name) + '">' + esc(item.name) + '</option>';
         }).join('');
-        if (headAdmin) {
+        if (cardLayout) {
             ensureHeadStockFormStyles();
             box.className = 'fr-records';
             box.innerHTML = '<div class="fr-records__grid">'

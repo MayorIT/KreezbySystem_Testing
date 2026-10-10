@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Inventory Report (Staff)</title>
-    <link rel="stylesheet" href="../css/pages/staff/inventoryreport-staff.css">
+    <link rel="stylesheet" href="../css/pages/staff/inventoryreport-staff.css?v=20261011invrep">
 
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css?v=20261010palette">
@@ -42,14 +42,17 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
             
+            <div class="inventory-entry">
             <div class="report-panel-header-banner">
-                <span>?</span> Inventory Report
+                <span class="inventory-kicker">Staff inventory</span>
+                <h1>Inventory Report</h1>
+                <p>Count what is on hand, then save the stock value for the day.</p>
             </div>
 
             <div class="report-form-card">
                 <form action="#" method="POST" id="inventory-report-form-root">
                     
-                    <div class="form-section-title">Inventory Settings</div>
+                    <div class="form-section-title">Report settings</div>
                     
                     <div class="report-settings-grid">
                         <div class="form-field-block">
@@ -57,79 +60,78 @@
                             <input type="date" value="2026-05-16">
                         </div>
                         <div class="form-field-block">
-                            <label>Generate by Category</label>
+                            <label>Category</label>
                             <select id="category-filter-select">
-                                <option value="All Categories" selected>All Categories Combined</option>
-                                <option value="Pouches Only">Finished Pouches Variant (8 Pcs)</option>
-                                <option value="Jars Only">Finished Jars Variant (250g)</option>
-                                <option value="Raw Materials">Raw Baking Ingredients</option>
+                                <option value="All Categories" selected>All categories</option>
+                                <option value="Pouches Only">Finished pouches</option>
+                                <option value="Jars Only">Finished jars</option>
+                                <option value="Raw Materials">Raw materials</option>
+                            </select>
+                        </div>
+                        <div class="form-field-block">
+                            <label>Status</label>
+                            <select id="status-filter-select">
+                                <option value="Active" selected>Active stock</option>
+                                <option value="Archived">Archived</option>
+                                <option value="All">All records</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-field-block" style="max-width: 450px; margin-bottom: 30px;">
-                        <label>Filter by Status</label>
-                        <select id="status-filter-select">
-                            <option value="Active" selected>Active Stocks Only</option>
-                            <option value="Archived">Archived / Discontinued Disposals</option>
-                            <option value="All">Complete Comprehensive History</option>
-                        </select>
-                    </div>
-
-                    <div class="form-section-title">Inventory Items</div>
+                    <div class="form-section-title">Add an item</div>
 
                     <div class="item-builder-dashed-bar">
                         <div class="form-field-block">
-                            <label>Select Flavor / Product SKU</label>
+                            <label>Product</label>
                             <select id="builder-flavor-sku">
-                                <option value="">Please select an active catalog menu SKU</option>
-                                <option value="Chocolate Crinkles (Pouch)" data-cost="120.00">CRK-CHO-P - Chocolate Crinkles (?120.00)</option>
-                                <option value="Choco-Almond Crinkles (Pouch)" data-cost="125.00">CRK-ALM-P - Choco-Almond Crinkles (?125.00)</option>
-                                <option value="Lemon Crinkles (Pouch)" data-cost="120.00">CRK-LEM-P - Lemon Crinkles (?120.00)</option>
-                                <option value="Choco Butternut Crinkles (Jar)" data-cost="150.00">CRK-BUT-J - Choco Butternut (?150.00)</option>
-                                <option value="Mango Crinkles (Jar)" data-cost="150.00">CRK-MNG-J - Mango Crinkles (?150.00)</option>
+                                <option value="">Select a product</option>
+                                <option value="Chocolate Crinkles (Pouch)" data-cost="120.00">CRK-CHO-P — Chocolate Crinkles (₱120.00)</option>
+                                <option value="Choco-Almond Crinkles (Pouch)" data-cost="125.00">CRK-ALM-P — Choco-Almond Crinkles (₱125.00)</option>
+                                <option value="Lemon Crinkles (Pouch)" data-cost="120.00">CRK-LEM-P — Lemon Crinkles (₱120.00)</option>
+                                <option value="Choco Butternut Crinkles (Jar)" data-cost="150.00">CRK-BUT-J — Choco Butternut (₱150.00)</option>
+                                <option value="Mango Crinkles (Jar)" data-cost="150.00">CRK-MNG-J — Mango Crinkles (₱150.00)</option>
                             </select>
                         </div>
                         <div class="form-field-block">
-                            <label>In Stock Qty</label>
+                            <label>In stock qty</label>
                             <input type="number" id="builder-qty-stock" min="0" placeholder="e.g. 100">
                         </div>
-                        <div></div> <button type="button" class="btn-inline-add" onclick="appendProductRowToReportLedgerMatrix()">+ Add Item</button>
+                        <button type="button" class="btn-inline-add" onclick="appendProductRowToReportLedgerMatrix()">+ Add Item</button>
                     </div>
 
-                    <table class="data-display-table" id="report-ledger-table-root">
+                    <table class="data-display-table inventory-ledger" id="report-ledger-table-root">
                         <thead>
-                            <tr style="background-color: #e4c9a3; color: #4e342e;">
-                                <th style="width: 60px;">#</th>
-                                <th>Item Name</th>
-                                <th style="width: 140px; text-align: center;">In Stock Qty</th>
-                                <th style="width: 150px; text-align: right;">Cost per Unit (?)</th>
-                                <th style="width: 150px; text-align: right;">Value (?)</th>
-                                <th style="width: 120px; text-align: center;">Action</th>
+                            <tr>
+                                <th class="inv-col-num">#</th>
+                                <th>Item</th>
+                                <th class="inv-col-qty">In stock qty</th>
+                                <th class="inv-col-money">Cost per unit</th>
+                                <th class="inv-col-money">Value</th>
+                                <th class="inv-col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody id="report-rows-injector-target">
                             <tr>
                                 <td>1</td>
                                 <td><input type="text" class="matrix-input-field" value="Chocolate Crinkles (Pouch)" readonly></td>
-                                <td><input type="number" class="matrix-input-field" value="250" style="text-align: center;" oninput="recalculateRowReportValue(this, 120.00)"></td>
-                                <td><input type="text" class="matrix-input-field" value="120.00" style="text-align: right;" readonly></td>
-                                <td><input type="text" class="matrix-input-field row-value-calc-field" value="30000.00" style="text-align: right;" readonly></td>
-                                <td style="text-align: center;"><button type="button" class="btn-row-action" onclick="removeReportLineRow(this)">Delete</button></td>
+                                <td><input type="number" class="matrix-input-field inv-qty" value="250" oninput="recalculateRowReportValue(this, 120.00)"></td>
+                                <td><input type="text" class="matrix-input-field inv-money" value="120.00" readonly></td>
+                                <td><input type="text" class="matrix-input-field inv-money row-value-calc-field" value="30000.00" readonly></td>
+                                <td class="inv-action"><button type="button" class="btn-row-action" onclick="removeReportLineRow(this)">Delete</button></td>
                             </tr>
                             <tr>
                                 <td>2</td>
                                 <td><input type="text" class="matrix-input-field" value="Choco Butternut Crinkles (Jar)" readonly></td>
-                                <td><input type="number" class="matrix-input-field" value="75" style="text-align: center;" oninput="recalculateRowReportValue(this, 150.00)"></td>
-                                <td><input type="text" class="matrix-input-field" value="150.00" style="text-align: right;" readonly></td>
-                                <td><input type="text" class="matrix-input-field row-value-calc-field" value="11250.00" style="text-align: right;" readonly></td>
-                                <td style="text-align: center;"><button type="button" class="btn-row-action">Action ?</button></td>
+                                <td><input type="number" class="matrix-input-field inv-qty" value="75" oninput="recalculateRowReportValue(this, 150.00)"></td>
+                                <td><input type="text" class="matrix-input-field inv-money" value="150.00" readonly></td>
+                                <td><input type="text" class="matrix-input-field inv-money row-value-calc-field" value="11250.00" readonly></td>
+                                <td class="inv-action"><button type="button" class="btn-row-action" onclick="removeReportLineRow(this)">Delete</button></td>
                             </tr>
                         </tbody>
                         <tfoot>
-                            <tr style="font-weight: bold; background-color: #fafafa; font-size: 15px;">
-                                <td colspan="4" style="text-align: right; padding: 12px;">Total Evaluated Asset Capital Value:</td>
-                                <td style="text-align: right; padding: 12px; color: #0d47a1;" id="report-grand-total-label">?41,250.00</td>
+                            <tr class="inventory-total-row">
+                                <td colspan="4">Total stock value</td>
+                                <td id="report-grand-total-label">₱41,250.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -141,6 +143,7 @@
                     </div>
 
                 </form>
+            </div>
             </div>
 
         </main>
@@ -167,7 +170,7 @@
                 totalAccumulatedAssets += parseFloat(field.value) || 0;
             });
 
-            document.getElementById('report-grand-total-label').textContent = '?' + totalAccumulatedAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('report-grand-total-label').textContent = '₱' + totalAccumulatedAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function appendProductRowToReportLedgerMatrix() {
@@ -190,10 +193,10 @@
             newTrElementNode.innerHTML = `
                 <td>${nextCalculatedRowIndex}</td>
                 <td><input type="text" class="matrix-input-field" value="${chosenFlavorLabel}" readonly></td>
-                <td><input type="number" class="matrix-input-field" value="${stockQtyInputVal}" style="text-align: center;" oninput="recalculateRowReportValue(this, ${parsedUnitCostVal})"></td>
-                <td><input type="text" class="matrix-input-field" value="${parsedUnitCostVal.toFixed(2)}" style="text-align: right;" readonly></td>
-                <td><input type="text" class="matrix-input-field row-value-calc-field" value="${calculatedTotalRowValue.toFixed(2)}" style="text-align: right;" readonly></td>
-                <td style="text-align: center;"><button type="button" class="btn-row-action">Action ?</button></td>
+                <td><input type="number" class="matrix-input-field inv-qty" value="${stockQtyInputVal}" oninput="recalculateRowReportValue(this, ${parsedUnitCostVal})"></td>
+                <td><input type="text" class="matrix-input-field inv-money" value="${parsedUnitCostVal.toFixed(2)}" readonly></td>
+                <td><input type="text" class="matrix-input-field inv-money row-value-calc-field" value="${calculatedTotalRowValue.toFixed(2)}" readonly></td>
+                <td class="inv-action"><button type="button" class="btn-row-action" onclick="removeReportLineRow(this)">Delete</button></td>
             `;
 
             reportTableBodyTarget.appendChild(newTrElementNode);
@@ -235,9 +238,9 @@
             updateReportGrandTotalAssetSummary();
         }
     </script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
-        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
+    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+        <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
 <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

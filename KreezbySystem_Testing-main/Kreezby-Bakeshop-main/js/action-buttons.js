@@ -633,8 +633,10 @@
   function shouldWireButton(btn) {
     if (btn.dataset.kreezbyActionWired === '1') return false;
     if (!isActionDropdownButton(btn)) return false;
-    if (btn.getAttribute('data-menu')) return false;
+    if (btn.getAttribute('data-menu') || btn.getAttribute('data-alert-menu')) return false;
     if (btn.closest('[data-kreezby-page-menu]')) return false;
+    if (btn.hasAttribute('data-customer-sale') || btn.hasAttribute('data-ot-open') || btn.hasAttribute('data-po')) return false;
+    if (btn.closest('#sales-customer-table, #ot-master-list-panel, #alert-master, #po-master-lists-container-block, #po-retailer-directory-block, #delivery-schedule-master')) return false;
     return true;
   }
 

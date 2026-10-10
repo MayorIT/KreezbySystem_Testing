@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
-    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261008layword">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261011insight2">
 
 </head>
 <body class="po-admin-page" data-kreezby-portal="admin-analysis">
@@ -216,9 +216,9 @@
                     </div>
                     <div class="card-body-padded po-list-body">
                         <div class="po-table-scroll-wrap">
-                            <table class="data-display-table insights-table">
+                            <table class="data-display-table insights-table" id="management-insight-table">
                                 <colgroup>
-                                    <col class="sa-col-num"><col class="sa-col-flavor"><col class="sa-col-forecast"><col class="sa-col-var">
+                                    <col class="mi-col-num"><col class="mi-col-flavor"><col class="mi-col-note"><col class="mi-col-action">
                                 </colgroup>
                                 <thead>
                                     <tr>
@@ -256,7 +256,7 @@
                 document.head.appendChild(theme);
             }
             theme.disabled = false;
-            if (theme.href.indexOf('20261008lay') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261008lay2';
+            if (theme.href.indexOf('20261008lay') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261011insight2';
             if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.boot) {
                 try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
             }
@@ -265,9 +265,9 @@
 </turbo-frame>
 </div>
     <script src="../js/aiforecast-pills.js?v=20261008word"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261008lay"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
     <script src="../js/admin-sidebar.js?v=20261008tab"></script>
-    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
     <script src="../js/management-insight.js?v=20261005insight"></script>
 </body>
 </html>

@@ -70,7 +70,6 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
         po: { label: 'Purchase Order', page: 'po-staff.html' },
-        receive: { label: 'Receiving', page: 'receive-staff.html' },
         bo: { label: 'Back Order', page: 'bo-staff.html' },
         return: { label: 'Return/P.O List', page: 'return-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
@@ -78,7 +77,7 @@
         dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
-        inventoryreport: { label: 'Report', page: 'inventoryreport-staff.html' },
+        inventoryreport: { label: 'Inventory Report', page: 'inventoryreport-staff.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-staff.html' },
         deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-staff.html' },
         ordertracking: {
@@ -100,16 +99,16 @@
 
     var DEFAULT_PERMISSIONS = {
         'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox', 'deliveryschedule'],
-        'staff-2': ['dashboard', 'po', 'receive', 'bo', 'return', 'alert', 'deliveryschedule'],
+        'staff-2': ['dashboard', 'po', 'bo', 'return', 'alert', 'deliveryschedule'],
         'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert', 'deliveryschedule'],
         'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'],
         'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'],
-        'staff-6': ['dashboard', 'receive', 'bo', 'return', 'alert', 'ordertracking', 'deliveryschedule'],
+        'staff-6': ['dashboard', 'bo', 'return', 'alert', 'ordertracking', 'deliveryschedule'],
         'staff-7': ['dashboard', 'inbox', 'inbox_retailer', 'saleslist', 'alert', 'ordertracking', 'deliveryschedule']
     };
 
     var TASK_ORDER = [
-        'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
+        'dashboard', 'po', 'bo', 'return', 'stocks',
         'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
@@ -214,7 +213,7 @@
             return ['dashboard', 'stocks', 'alert', 'inbox', 'deliveryschedule'];
         }
         if (text.indexOf('production') >= 0) {
-            return ['dashboard', 'po', 'receive', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'po', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('admin') >= 0 || text.indexOf('executive') >= 0) {
             return ['dashboard', 'po', 'saleslist', 'alert', 'inbox', 'deliveryschedule'];
@@ -368,7 +367,7 @@
         if (normalized.indexOf('inbox_retailer') !== -1 && normalized.indexOf('inbox') === -1) {
             normalized.push('inbox');
         }
-        return normalized;
+        return normalized.filter(function (task) { return task !== 'receive'; });
     }
 
     function staffCanAccessTask(taskKey, staffId) {
@@ -637,6 +636,10 @@
             return;
         }
         if (filename === 'report_issue-staff.html') return;
+        if (filename === 'receive-staff.html') {
+            window.location.replace(getDashboardHref(getCurrentStaffId()));
+            return;
+        }
 
         var taskKey = getTaskForPage(filename);
         if (!taskKey) return;

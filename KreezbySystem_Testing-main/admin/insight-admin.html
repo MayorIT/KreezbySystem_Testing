@@ -7,12 +7,14 @@
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Insights (Admin)</title>
-    <link rel="stylesheet" href="../css/pages/admin/aiforecast-admin.css">
+    <link rel="stylesheet" href="../css/pages/admin/aiforecast_salesanalysis-admin.css">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
 
 </head>
-<body>
+<body class="po-admin-page" data-kreezby-portal="admin-analysis">
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -23,7 +25,7 @@
                     Admin ▾
                 </button>
                 <div class="user-dropdown-menu" id="user-dropdown-menu">
-                    <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
+                                        <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
                     <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
                 </div>
             </div>
@@ -36,38 +38,61 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
             
-            <div class="panel-data-card">
-                <div class="panel-card-title-bar">
-                    <h3>Insights</h3>
+            <div id="sales-analysis-master" class="panel-data-card po-tabbed-card">
+                <div class="po-order-tabs ai-filter-pills" id="ai-filter-pills" role="tablist">
+                    <a class="pill po-order-tab" href="aiforecast_salesanalysis-admin.html" data-key="sales-analysis" role="tab">Sales Analysis</a>
+                    <a class="pill po-order-tab" href="forecast-admin.html" data-key="forecast" role="tab">Moving Average Computation Forecast</a>
+                    <a class="pill po-order-tab active" href="insight-admin.html" data-key="management-insight" role="tab">Management Insight</a>
                 </div>
-                <div class="card-body-padded">
-                    <div class="ai-filter-pills" id="ai-filter-pills">
-                        <a class="pill" href="aiforecast_salesanalysis-admin.html" data-key="sales-analysis">Sales Analysis</a>
-                        <a class="pill" href="forecast-admin.html" data-key="forecast">Moving Average Computation Forecast</a>
-                        <a class="pill" href="insight-admin.html" data-key="management-insight">Management Insight</a>
+                <div class="po-list-toolbar">
+                    <div class="po-list-toolbar-title">
+                        <h3>Management Insight</h3>
                     </div>
-                    <section class="management-insight" id="management-insight" aria-live="polite">
-                        <div class="management-insight__head">
-                            <div>
-                                <p class="management-insight__kicker">For the owner</p>
-                                <h3>Management insight</h3>
+                </div>
+                <div class="card-body-padded po-list-body">
+                    <div class="po-table-scroll-wrap">
+                        <section class="management-insight" id="management-insight" aria-live="polite">
+                            <div class="management-insight__head">
+                                <div>
+                                    <p class="management-insight__kicker">For the owner</p>
+                                    <h3>Management insight</h3>
+                                </div>
+                                <button type="button" class="management-insight__refresh" id="management-insight-refresh">Refresh</button>
                             </div>
-                            <button type="button" class="management-insight__refresh" id="management-insight-refresh">Refresh</button>
-                        </div>
-                        <p class="management-insight__body" id="management-insight-body">Checking sales, stock, and demand…</p>
-                    </section>
+                            <p class="management-insight__body" id="management-insight-body">Checking sales, stock, and demand…</p>
+                        </section>
+                    </div>
                 </div>
             </div>
 
         </main>
+        <script>
+        (function () {
+            document.body.classList.add('po-admin-page');
+            var theme = document.getElementById('po-theme-sheet');
+            if (!theme) {
+                theme = document.createElement('link');
+                theme.id = 'po-theme-sheet';
+                theme.rel = 'stylesheet';
+                theme.setAttribute('data-po-owned', '1');
+                document.head.appendChild(theme);
+            }
+            theme.disabled = false;
+            if (theme.href.indexOf('20261008lay') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261010palette';
+            if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.boot) {
+                try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
+            }
+        })();
+        </script>
 </turbo-frame>
 </div>
 
-    <script src="../js/aiforecast-pills.js"></script>
+    <script src="../js/aiforecast-pills.js?v=20261010tabs"></script>
+    <script src="../js/retailer-manifest-loader.js"></script>
     <script src="../js/delivery-schedule.js?v=20260930areas"></script>
-        <script src="../js/user-dropdown-nav.js?v=20260929title"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
-    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
     <script src="../js/management-insight.js?v=20261005insight"></script>
 </body>
 </html>

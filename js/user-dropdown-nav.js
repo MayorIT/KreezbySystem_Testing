@@ -465,7 +465,7 @@
             if (text.indexOf('inquiry') >= 0 || file === 'inquiries.html' || file === 'inquiries-headadmin.html') return 'inquiry';
             if (text === 'home' || file === 'admin.html' || file === 'head_admin.html') return 'home';
             if (text.indexOf('maintenance') >= 0 || file === 'maintenance-admin.html' || file === 'maintenance-headadmin.html') return 'maintenance';
-            if (text.indexOf('issue report') >= 0 || href.indexOf('it_kreezby') >= 0) return 'issuereports';
+            if (text.indexOf('issue report') >= 0 || text.indexOf('report center') >= 0 || href.indexOf('it_kreezby') >= 0) return 'issuereports';
             if (text.indexOf('inbox') >= 0 || file === 'inbox-admin.html' || file === 'inbox-headadmin.html') return 'inbox';
             return '';
         }
@@ -869,7 +869,7 @@
         Array.prototype.slice.call(menu.querySelectorAll('.dropdown-item')).forEach(function (link) {
             var text = (link.textContent || '').toLowerCase();
             var href = (link.getAttribute('href') || '').toLowerCase();
-            if (text.indexOf('issue reports') >= 0 || href.indexOf('it_kreezby') >= 0) {
+            if (text.indexOf('issue reports') >= 0 || text.indexOf('report center') >= 0 || href.indexOf('it_kreezby') >= 0) {
                 link.remove();
             }
         });
@@ -984,7 +984,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261010roles';
+        s.src = jsBase() + 'action-buttons.js?v=20261011staffbtns';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {

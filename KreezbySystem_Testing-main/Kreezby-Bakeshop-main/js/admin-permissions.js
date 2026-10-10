@@ -39,7 +39,7 @@
         stocklevel: { label: 'Stock Level', page: 'stocklevel-admin.html' },
         maintenance: { label: 'Maintenance', page: 'maintenance-admin.html' },
         inbox: { label: 'Inbox', page: 'inbox-admin.html' },
-        issuereports: { label: 'Issue Reports', page: 'issue-reports-admin.html' }
+        issuereports: { label: 'Report Center', page: 'issue-reports-admin.html' }
     };
 
     var DEFAULT_PERMISSIONS = {
@@ -381,7 +381,7 @@
                 link.hidden = true;
                 link.style.display = 'none';
             }
-            if (href.indexOf('it_kreezby') >= 0 || label.indexOf('issue reports') >= 0) {
+            if (href.indexOf('it_kreezby') >= 0 || label.indexOf('issue reports') >= 0 || label.indexOf('report center') >= 0) {
                 link.remove();
             }
         });

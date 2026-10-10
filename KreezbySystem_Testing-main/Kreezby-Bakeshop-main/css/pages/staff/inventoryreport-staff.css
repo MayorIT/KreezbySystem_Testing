@@ -1317,3 +1317,209 @@ main.workspace-canvas {
         .btn-save-report:hover { background-color: #1a4373; }
         .btn-cancel-report { background-color: #e2e8f0; color: #4a5568; border: none; padding: 10px 24px; border-radius: 4px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
         .btn-cancel-report:hover { background-color: #cbd5e0; }
+
+/* Staff inventory report */
+.inventory-entry {
+    background: #fffdf8;
+    border: 1px solid #eadfce;
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(62, 39, 35, 0.08);
+    overflow: hidden;
+}
+
+.inventory-entry .report-panel-header-banner {
+    display: block;
+    padding: 22px 24px 18px;
+    border-radius: 0;
+    background:
+        radial-gradient(circle at right top, rgba(255, 202, 40, 0.28), transparent 34%),
+        linear-gradient(180deg, #fff8ee 0%, #ffffff 78%);
+    color: #3e2723;
+}
+
+.inventory-entry .inventory-kicker {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff8ee;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.inventory-entry .report-panel-header-banner h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    line-height: 1.15;
+    color: #3e2723;
+}
+
+.inventory-entry .report-panel-header-banner p {
+    margin: 0;
+    max-width: 640px;
+    color: #6d4c41;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.inventory-entry .report-form-card {
+    margin: 0;
+    padding: 8px 24px 24px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.inventory-entry .form-section-title {
+    margin: 16px 0 12px;
+    color: #3e2723;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.inventory-entry .report-settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.inventory-entry .form-field-block label {
+    color: #6d4c41;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.inventory-entry .form-field-block input,
+.inventory-entry .form-field-block select,
+.inventory-entry .matrix-input-field {
+    min-height: 42px;
+    border: 1px solid #eadfce;
+    border-radius: 12px;
+    background: #fffdf8;
+    color: #3e2723;
+    box-sizing: border-box;
+}
+
+.inventory-entry .form-field-block input:focus,
+.inventory-entry .form-field-block select:focus,
+.inventory-entry .matrix-input-field:focus {
+    border-color: #c9a227;
+    outline: none;
+}
+
+.inventory-entry .item-builder-dashed-bar {
+    grid-template-columns: minmax(0, 1.6fr) minmax(140px, 200px) auto;
+    gap: 14px;
+    align-items: end;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid #eadfce;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.inventory-entry .btn-inline-add,
+.inventory-entry .btn-save-report {
+    min-height: 42px;
+    border: 0;
+    border-radius: 999px;
+    background: #5d4037;
+    color: #fff8ee;
+    font-weight: 800;
+}
+
+.inventory-entry .btn-inline-add:hover,
+.inventory-entry .btn-save-report:hover {
+    background: #4e342e;
+}
+
+.inventory-entry .btn-cancel-report {
+    min-height: 42px;
+    border: 1px solid #eadfce;
+    border-radius: 999px;
+    background: #fff;
+    color: #5d4037;
+    font-weight: 800;
+}
+
+.inventory-entry .inventory-ledger {
+    margin-top: 8px;
+    border: 1px solid #eadfce;
+    border-radius: 16px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background: #fff;
+}
+
+.inventory-entry .inventory-ledger th {
+    background: #5d4037;
+    color: #fff8ee;
+    box-shadow: inset 0 -3px 0 #ffca28;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.inventory-entry .inventory-ledger td {
+    background: #fffdf8;
+    border-bottom: 1px solid #f3eadc;
+}
+
+.inventory-entry .inv-col-num { width: 56px; text-align: center; }
+.inventory-entry .inv-col-qty,
+.inventory-entry .inv-qty { width: 140px; text-align: center; }
+.inventory-entry .inv-col-money,
+.inventory-entry .inv-money { width: 150px; text-align: right; }
+.inventory-entry .inv-col-action,
+.inventory-entry .inv-action { width: 120px; text-align: center; }
+
+.inventory-entry .matrix-input-field[readonly] {
+    background: #fff8ee;
+    color: #3e2723;
+    border-color: transparent;
+}
+
+.inventory-entry .btn-row-action {
+    border: 1px solid #eadfce;
+    border-radius: 999px;
+    background: #fff;
+    color: #8d3b32;
+    font-weight: 800;
+}
+
+.inventory-entry .inventory-total-row td {
+    background: #fff8ee;
+    color: #3e2723;
+    font-weight: 800;
+}
+
+.inventory-entry .inventory-total-row td:first-child {
+    text-align: right;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.inventory-entry #report-grand-total-label {
+    color: #2e7d32;
+    text-align: right;
+    font-size: 16px;
+}
+
+.inventory-entry .report-actions-footer {
+    border-top-color: #eadfce;
+}
+
+@media (max-width: 860px) {
+    .inventory-entry .report-settings-grid,
+    .inventory-entry .item-builder-dashed-bar {
+        grid-template-columns: 1fr;
+    }
+}

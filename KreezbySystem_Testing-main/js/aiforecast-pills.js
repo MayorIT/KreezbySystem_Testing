@@ -147,7 +147,13 @@
         var active = master.querySelector('.insights-panel.is-active');
         if (active) applyPanelFilter(active);
         if (updateHistory === false) return true;
-        var url = 'aiforecast_salesanalysis-headadmin.html';
+        var file = ((location.pathname || '').split('/').pop() || '').split('?')[0];
+        var url = file.indexOf('aiforecast_salesanalysis-') === 0 ? file : 'aiforecast_salesanalysis-admin.html';
+        if (file.indexOf('aiforecast_salesanalysis-') !== 0) {
+            var path = (location.pathname || '').replace(/\\/g, '/');
+            if (path.indexOf('/head_admin/') >= 0) url = 'aiforecast_salesanalysis-headadmin.html';
+            else if (path.indexOf('/staff/') >= 0) url = 'aiforecast_salesanalysis-staff.html';
+        }
         if (key !== 'sales-analysis') url += '?tab=' + encodeURIComponent(key);
         try { history.pushState({ insightsTab: key }, '', url); } catch (e) {}
         return true;
@@ -169,7 +175,7 @@
         }
         theme.id = 'po-theme-sheet';
         theme.disabled = false;
-        theme.href = '../css/pages/admin/po-theme.css?v=20261008layword';
+        theme.href = '../css/pages/admin/po-theme.css?v=20261011insight2';
     }
 
     function bootSalesAnalysis() {

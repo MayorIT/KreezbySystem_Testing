@@ -112,76 +112,83 @@
         }) || null;
     }
 
+    function ensureKreezbyPrintSheet() {
+        if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var scripts = document.getElementsByTagName('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var url = scripts[i].getAttribute('src') || '';
+            if (/order-tracking\.js/i.test(url)) {
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                break;
+            }
+        }
+        var tag = document.createElement('script');
+        tag.id = 'kreezby-print-sheet-js';
+        tag.src = src;
+        document.head.appendChild(tag);
+    }
+
+    function whenKreezbyPrintSheet(done) {
+        if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+        ensureKreezbyPrintSheet();
+        var node = document.getElementById('kreezby-print-sheet-js');
+        if (!node) { done(null); return; }
+        var settled = false;
+        var finish = function (sheet) {
+            if (settled) return;
+            settled = true;
+            done(sheet || null);
+        };
+        node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+        node.addEventListener('error', function () { finish(null); });
+        setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+    }
+
     function openReceiptWindow(receipt) {
         if (!receipt) return;
-
-        var rows = (receipt.items || []).map(function (item) {
-            return '<tr><td>' + escapeHtml(item.name) + '</td><td class="num">' + item.qty + '</td><td class="num">' + formatMoney(item.price) + '</td><td class="num">' + formatMoney(item.lineTotal) + '</td></tr>';
-        }).join('');
-
-        var issuedAt = new Date(receipt.issuedAt).toLocaleString('en-PH');
-        var subtotal = Number(receipt.subtotal) || 0;
-        var deliveryFee = Number(receipt.deliveryFee) || 0;
-        var grossTotal = Number(receipt.total) || 0;
-        var discount = 0;
-        var netTotal = Math.max(grossTotal - discount, 0);
-        var vatableSales = netTotal / 1.12;
-        var vatAmount = netTotal - vatableSales;
-
-        function buildCopy(label) {
-            return '<section class="receipt-copy">' +
-                '<div class="center brand">KREEZBY BAKESHOP</div>' +
-                '<div class="center sub">The Crinkle Factory</div>' +
-                '<div class="center sub">Batangas City, Philippines</div>' +
-                '<div class="rule"></div>' +
-                '<div class="center copy-type">' + label + '</div>' +
-                '<div class="center title">OFFICIAL RECEIPT</div>' +
-                '<div class="meta-block">' +
-                    '<div><span>OR No:</span> <strong>' + escapeHtml(receipt.receiptNumber) + '</strong></div>' +
-                    '<div><span>Order:</span> <strong>' + escapeHtml(receipt.orderNumber) + '</strong></div>' +
-                    '<div><span>Date:</span> <strong>' + issuedAt + '</strong></div>' +
-                    '<div><span>Pay:</span> <strong>' + escapeHtml(receipt.paymentMethod) + '</strong></div>' +
-                    (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : '') +
-                    '<div><span>Status:</span> <strong>' + escapeHtml(receipt.paymentStatus || 'PAID') + '</strong></div>' +
-                    '<div><span>Customer Name:</span> <strong>' + escapeHtml(receipt.customerName) + '</strong></div>' +
-                    '<div><span>Phone:</span> <strong>' + escapeHtml(receipt.customerPhone || '-') + '</strong></div>' +
-                    '<div><span>Address:</span> <strong>' + escapeHtml(receipt.customerAddress || '-') + '</strong></div>' +
-                '</div>' +
-                '<table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody><tfoot>' +
-                    '<tr><td colspan="3" class="num">Subtotal</td><td class="num">' + formatMoney(subtotal) + '</td></tr>' +
-                    '<tr><td colspan="3" class="num">Delivery Fee</td><td class="num">' + formatMoney(deliveryFee) + '</td></tr>' +
-                    '<tr><td colspan="3" class="num">Discount</td><td class="num">' + formatMoney(discount) + '</td></tr>' +
-                    '<tr><td colspan="3" class="num grand">Grand Total</td><td class="num grand">' + formatMoney(netTotal) + '</td></tr>' +
-                '</tfoot></table>' +
-                '<div class="tax-block">' +
-                    '<div><span>VATable Sales</span><strong>' + formatMoney(vatableSales) + '</strong></div>' +
-                    '<div><span>VAT-Exempt</span><strong>' + formatMoney(0) + '</strong></div>' +
-                    '<div><span>Zero-Rated</span><strong>' + formatMoney(0) + '</strong></div>' +
-                '</div>' +
-                '<div class="line"><span>Notes:</span> ' + escapeHtml(receipt.shippingNotes || '-') + '</div>' +
-                '<div class="line"><span>Cashier:</span> Online Checkout</div>' +
-                '<div class="line">--------------------------------</div>' +
-                '<div class="center thanks">THANK YOU FOR YOUR ORDER</div>' +
-                '<div class="center tiny">This serves as official receipt.</div>' +
-            '</section>';
-        }
-
-        var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Kreezby Receipt ' + escapeHtml(receipt.receiptNumber) + '</title>' +
-            '<style>body{font-family:"Courier New",Courier,monospace;margin:0;color:#111;background:#f2f2f2}.sheet{width:100%;max-width:320px;margin:10px auto}.receipt-copy{background:#fff;border:1px solid #222;padding:10px}.center{text-align:center}.brand{font-size:16px;font-weight:700;letter-spacing:.5px}.sub{font-size:11px;margin-bottom:2px}.copy-type{font-size:11px;border-top:1px dashed #222;border-bottom:1px dashed #222;padding:3px 0;margin:5px 0 4px}.title{font-size:12px;font-weight:700;margin-bottom:6px}.rule{border-top:1px dashed #222;margin:4px 0}.meta-block{font-size:11px;line-height:1.45;margin-bottom:6px}.meta-block div{margin-bottom:1px}.line{font-size:11px;margin-top:6px}.tax-block{font-size:11px;border-top:1px dashed #222;border-bottom:1px dashed #222;padding:4px 0;margin-top:6px}.tax-block div{display:flex;justify-content:space-between;margin:1px 0}table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;border-top:1px dashed #222;border-bottom:1px dashed #222;padding:3px 2px;font-weight:700}td{padding:3px 2px;border-bottom:1px dotted #999;vertical-align:top}.num{text-align:right;white-space:nowrap}.grand{font-weight:700}.thanks{font-size:11px;margin-top:6px}.tiny{font-size:10px;color:#444;margin-top:2px}.cut-line{border-top:2px dashed #222;margin:10px 0;text-align:center;position:relative}.cut-line span{background:#f2f2f2;font-size:10px;padding:0 4px;position:relative;top:-7px;letter-spacing:.08em}.actions{margin:8px auto 14px;display:flex;gap:6px;justify-content:center}button{padding:8px 10px;border:1px solid #222;background:#fff;cursor:pointer;font-family:inherit;font-size:11px}.print{font-weight:700}@media print{body{background:#fff}.actions{display:none}.sheet{max-width:320px;margin:0 auto}.receipt-copy{border:none;page-break-inside:avoid}}</style></head><body>' +
-            '<div class="sheet">' +
-            buildCopy('CUSTOMER COPY') +
-            '<div class="cut-line"><span>CUT HERE</span></div>' +
-            buildCopy('OWNER COPY') +
-            '<div class="actions"><button class="print" onclick="window.print()">Print Receipt</button><button class="close" onclick="window.close()">Close</button></div></div></body></html>';
-
-        var receiptWin = window.open('', '_blank', 'width=920,height=760');
-        if (!receiptWin) {
-            alert('Receipt pop-up was blocked by your browser. Please allow pop-ups to view receipt.');
-            return;
-        }
-        receiptWin.document.open();
-        receiptWin.document.write(html);
-        receiptWin.document.close();
+        whenKreezbyPrintSheet(function (sheet) {
+            if (!sheet) return;
+            var issuedAt = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString('en-PH') : '';
+            var subtotal = Number(receipt.subtotal) || 0;
+            var deliveryFee = Number(receipt.deliveryFee) || 0;
+            var grossTotal = Number(receipt.total) || 0;
+            var netTotal = Math.max(grossTotal, 0);
+            var vatableSales = netTotal / 1.12;
+            var vatAmount = netTotal - vatableSales;
+            var opened = sheet.openPreview({
+                title: 'Official Receipt',
+                docNo: receipt.receiptNumber || receipt.orderNumber,
+                status: receipt.paymentStatus || 'PAID',
+                totalLabel: 'Grand total',
+                totalValue: formatMoney(netTotal),
+                facts: [
+                    { label: 'Order', value: receipt.orderNumber },
+                    { label: 'Date', value: issuedAt },
+                    { label: 'Payment', value: receipt.paymentMethod },
+                    { label: 'GCash ref', value: receipt.gcashReference },
+                    { label: 'Customer', value: receipt.customerName },
+                    { label: 'Phone', value: receipt.customerPhone },
+                    { label: 'Address', value: receipt.customerAddress },
+                    { label: 'Subtotal', value: formatMoney(subtotal) },
+                    { label: 'Delivery fee', value: formatMoney(deliveryFee) },
+                    { label: 'VATable sales', value: formatMoney(vatableSales) },
+                    { label: 'VAT', value: formatMoney(vatAmount) }
+                ],
+                note: { label: 'Notes', text: receipt.shippingNotes },
+                columns: [
+                    { label: 'Item' },
+                    { label: 'Qty', align: 'right' },
+                    { label: 'Price', align: 'right' },
+                    { label: 'Total', align: 'right' }
+                ],
+                rows: (receipt.items || []).map(function (item) {
+                    return [item.name, String(item.qty), formatMoney(item.price), formatMoney(item.lineTotal)];
+                }),
+                signs: ['Cashier', 'Customer']
+            });
+            if (!opened) alert('Receipt pop-up was blocked by your browser. Please allow pop-ups to view receipt.');
+        });
     }
 
     function formatMoney(n) {
@@ -434,7 +441,7 @@
             var meta = order.accountType
                 ? '<small>' + escapeHtml(order.accountType) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + '</small>'
                 : (order.poCode ? '<small>' + escapeHtml(order.poCode) + '</small>' : '');
-            return '<tr' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
+            return '<tr data-order-id="' + escapeHtml(order.orderNumber) + '"' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
                 '<td class="po-col-num">' + ((page - 1) * size + index + 1) + '</td>' +
                 '<td>' + formatShortDate(order.date) + '</td>' +
                 '<td><a href="#" class="po-code-link" data-ot-open="' + escapeHtml(order.orderNumber) + '">' + escapeHtml(order.orderNumber) + '</a></td>' +
@@ -508,7 +515,7 @@
 
         if (isPoShell(root)) {
             var title = root.querySelector('#ot-details-title');
-            if (title) title.textContent = order.orderNumber;
+            if (title) title.textContent = 'Edit ' + order.orderNumber;
             showTrackingDetail(root);
         } else {
             panel.hidden = false;
@@ -516,7 +523,7 @@
         }
 
         panel.innerHTML =
-            (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">' + escapeHtml(order.orderNumber) + '</h3>') +
+            (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">Edit ' + escapeHtml(order.orderNumber) + '</h3>') +
             '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + (order.deliverySchedule ? ' · Delivery ' + escapeHtml(order.deliverySchedule) : '') + '</p>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
@@ -601,6 +608,11 @@
         var tracking = trackingEl ? trackingEl.value.trim() : '';
         var notes = notesEl ? notesEl.value.trim() : '';
         var schedule = scheduleEl ? scheduleEl.value : '';
+
+        if ((nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
+            showToast(root, 'Enter a J&T tracking ID before marking the order ' + nextStatus + '.');
+            return;
+        }
 
         order.status = nextStatus;
         order.trackingNumber = tracking;
@@ -835,14 +847,104 @@
         root._otPage = 1;
 
         function refresh() {
-            renderTable(root, root._otDetailOpen ? root._otSelected : null);
+            renderTable(root, root._otSelected || null);
             if (root._otDetailOpen && root._otSelected) renderDetail(root, root._otSelected);
+        }
+
+        function focusEditField() {
+            var status = root.querySelector('#ot-status');
+            if (status) status.focus();
+        }
+
+        function selectOrder(orderNumber) {
+            root._otSelected = orderNumber;
+            if (root._otDetailOpen) refresh();
+            else renderTable(root, orderNumber);
         }
 
         function openOrder(orderNumber) {
             root._otSelected = orderNumber;
             root._otDetailOpen = true;
             refresh();
+            focusEditField();
+        }
+
+        function closeEditPicker() {
+            var picker = document.getElementById('ot-edit-picker');
+            if (picker) picker.remove();
+        }
+
+        function openEditPicker() {
+            closeEditPicker();
+            var rows = root.querySelectorAll('#order-tracking-tbody tr[data-order-id]');
+            if (!rows.length) {
+                showToast(root, 'No customer orders to edit.');
+                return;
+            }
+            var picker = document.createElement('div');
+            picker.id = 'ot-edit-picker';
+            picker.className = 'ot-edit-picker';
+            picker.setAttribute('role', 'menu');
+            var html = '<p class="ot-edit-picker__title">Choose an order to edit</p>';
+            Array.prototype.forEach.call(rows, function (row) {
+                var id = row.getAttribute('data-order-id');
+                var order = loadOrders().find(function (item) { return item.orderNumber === id; });
+                var who = order ? customerName(order) : '';
+                var status = order && order.status ? order.status : '';
+                html += '<button type="button" class="ot-edit-picker__item" data-ot-pick="' + escapeHtml(id) + '">' +
+                    '<strong>' + escapeHtml(id) + '</strong>' +
+                    '<span>' + escapeHtml(who + (status ? ' · ' + status : '')) + '</span>' +
+                    '</button>';
+            });
+            picker.innerHTML = html;
+            document.body.appendChild(picker);
+            var anchor = root.querySelector('#ot-create-btn');
+            if (anchor) {
+                var rect = anchor.getBoundingClientRect();
+                var width = picker.offsetWidth || 280;
+                picker.style.top = Math.round(rect.bottom + 8) + 'px';
+                picker.style.left = Math.max(12, Math.round(rect.right - width)) + 'px';
+            }
+            picker.addEventListener('click', function (event) {
+                var item = event.target.closest('[data-ot-pick]');
+                if (!item) return;
+                var id = item.getAttribute('data-ot-pick');
+                closeEditPicker();
+                openOrder(id);
+            });
+            setTimeout(function () {
+                function dismiss(event) {
+                    if (picker.contains(event.target)) return;
+                    if (anchor && anchor.contains(event.target)) return;
+                    closeEditPicker();
+                    document.removeEventListener('click', dismiss, true);
+                }
+                document.addEventListener('click', dismiss, true);
+            }, 0);
+        }
+
+        function editSelectedOrder(event) {
+            if (event) event.preventDefault();
+            if (document.getElementById('ot-edit-picker') && !root._otSelected) {
+                closeEditPicker();
+                return;
+            }
+            if (!root._otSelected) {
+                openEditPicker();
+                return;
+            }
+            var exists = loadOrders().some(function (order) {
+                return order.orderNumber === root._otSelected;
+            });
+            if (!exists) {
+                root._otSelected = null;
+                root._otDetailOpen = false;
+                refresh();
+                showToast(root, 'That order is no longer in the list. Select another one.');
+                return;
+            }
+            closeEditPicker();
+            openOrder(root._otSelected);
         }
 
         function closeOrder() {
@@ -855,30 +957,38 @@
         root.addEventListener('click', function (e) {
             var pageBtn = e.target.closest('[data-ot-page]');
             if (pageBtn && root.contains(pageBtn)) {
+                e.preventDefault();
+                e.stopPropagation();
                 var dir = pageBtn.getAttribute('data-ot-page');
                 root._otPage = (root._otPage || 1) + (dir === 'next' ? 1 : -1);
-                renderTable(root, root._otDetailOpen ? root._otSelected : null);
+                renderTable(root, root._otSelected || null);
                 return;
             }
             var opener = e.target.closest('[data-ot-open]');
             if (opener && root.contains(opener)) {
                 e.preventDefault();
+                e.stopPropagation();
                 openOrder(opener.getAttribute('data-ot-open'));
                 return;
             }
             var row = e.target.closest('#order-tracking-tbody tr[data-order-id]');
             if (!row || !root.contains(row)) return;
-            openOrder(row.getAttribute('data-order-id'));
-        });
+            if (e.target.closest('button, a, input, select')) return;
+            selectOrder(row.getAttribute('data-order-id'));
+        }, true);
 
         var backBtn = root.querySelector('#ot-details-back-btn');
         if (backBtn) backBtn.addEventListener('click', closeOrder);
 
         var createBtn = root.querySelector('#ot-create-btn');
         if (createBtn) {
-            createBtn.addEventListener('click', function () {
-                renderCreatePanel(root);
-            });
+            if (createBtn.getAttribute('data-ot-action') === 'edit') {
+                createBtn.addEventListener('click', editSelectedOrder);
+            } else {
+                createBtn.addEventListener('click', function () {
+                    renderCreatePanel(root);
+                });
+            }
         }
 
         var filter = root.querySelector('#ot-status-filter');

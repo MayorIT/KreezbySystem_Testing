@@ -80,10 +80,12 @@
         if (!host) return;
         var rows = collect();
         if (!rows.length) {
-            host.innerHTML = '<p class="account-order-empty">Orders from a regular customer or retailer account show here with their name, area, and items.</p>';
+            host.hidden = true;
+            host.innerHTML = '';
             return;
         }
-        host.innerHTML = rows.map(function (row) {
+        host.hidden = false;
+        host.innerHTML = '<h2 class="account-order-heading">Account orders</h2>' + rows.map(function (row) {
             var who = esc(row.name);
             var meta = esc(row.type) + (row.area ? ' · ' + esc(row.area) : '');
             var lines = row.lines.map(function (line) {
@@ -118,7 +120,7 @@
             items: items,
             total: (document.getElementById('matrix-grand-total-label') || {}).textContent || '',
             accountType: 'Regular Customer',
-            accountName: (nameField && nameField.value.trim()) || 'Walk-in customer',
+            accountName: (nameField && nameField.value.trim()) || 'Walk-in sale',
             accountArea: '',
             status: 'Completed',
             date: new Date().toISOString(),
@@ -134,19 +136,17 @@
             if ((node.textContent || '').indexOf('Sale Details') >= 0) saleTitle = node;
         });
         if (!saleTitle) saleTitle = title;
-        if (saleTitle && !document.getElementById('account-order-details')) {
+        var entry = document.querySelector('.sales-entry') || saleTitle;
+        if (entry && !document.getElementById('account-order-details')) {
             var host = document.createElement('div');
             host.id = 'account-order-details';
-            saleTitle.insertAdjacentElement('afterend', host);
+            host.hidden = true;
+            entry.insertAdjacentElement('afterend', host);
         }
         if (!document.getElementById('account-order-style')) {
             var style = document.createElement('style');
             style.id = 'account-order-style';
-            style.textContent = '.account-order-empty{margin:0 0 18px;color:#666;font-size:13px;}' +
-                '.account-order-card{border:1px solid #e6e6e6;border-radius:12px;padding:12px 14px;margin:0 0 14px;background:#fff;}' +
-                '.account-order-card header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:8px;}' +
-                '.account-order-card header span{color:#555;font-size:13px;}' +
-                '.account-order-card header em{margin-left:auto;font-style:normal;color:#888;font-size:12px;}';
+            style.textContent = '.account-order-card header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:8px;}';
             document.head.appendChild(style);
         }
         var save = window.processCheckoutReceiptSubmission;

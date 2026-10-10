@@ -10,23 +10,22 @@
     <link rel="stylesheet" href="../css/pages/admin/po-admin.css">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
-    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20260927slip">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
 
 </head>
 <body class="po-admin-page">
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
-        <div class="top-nav-links-right">
+        <div class="top-nav-links-right">            <a class="top-nav-item home-badge" href="admin.html">Home</a>
             <button type="button" class="notification-pill" aria-label="Notifications"></button>
-            <a class="top-nav-item home-badge" href="admin.html">Home</a>
             <div class="user-dropdown">
                 <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
                     <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
                     Admin ▾
                 </button>
                 <div class="user-dropdown-menu" id="user-dropdown-menu">
-                    <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
+                                        <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
                     <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
                 </div>
             </div>
@@ -47,17 +46,22 @@
                     </div>
 
                     <div id="po-tab-retailer" class="po-tab-panel active" role="tabpanel">
-                        <div class="panel-card-title-bar">
-                            <h3>Retailer Orders</h3>
-                            <button class="btn-call-to-action" id="po-create-retailer-btn" type="button">+ Create New</button>
-                        </div>
-                        <div class="card-body-padded">
-                            <div class="datatable-filters-line">
-                                <div>Show <select id="retailer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                        <div class="po-list-toolbar">
+                            <div class="po-list-toolbar-title">
+                                <h3>Retailer Orders</h3>
+                                <span class="po-list-count" id="retailer-orders-count"></span>
+                            </div>
+                            <div class="po-list-toolbar-tools">
+                                <label class="po-page-size">Show
+                                    <select id="retailer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+                                </label>
                                 <div class="search-field-wrap">
                                     <input type="text" id="retailer-search" placeholder="PO code, date, entity, status...">
                                 </div>
+                                <button class="btn-call-to-action" id="po-create-retailer-btn" type="button">+ Create New</button>
                             </div>
+                        </div>
+                        <div class="card-body-padded po-list-body">
                             <div class="po-table-scroll-wrap">
                                 <table class="data-display-table" id="retailer-orders-table">
                                     <thead>
@@ -73,17 +77,22 @@
                     </div>
 
                     <div id="po-tab-customer" class="po-tab-panel" role="tabpanel">
-                        <div class="panel-card-title-bar">
-                            <h3>Customer Orders</h3>
-                            <button class="btn-call-to-action" id="po-create-customer-btn" type="button">+ Create New</button>
-                        </div>
-                        <div class="card-body-padded">
-                            <div class="datatable-filters-line">
-                                <div>Show <select id="customer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select> entries</div>
+                        <div class="po-list-toolbar">
+                            <div class="po-list-toolbar-title">
+                                <h3>Customer Orders</h3>
+                                <span class="po-list-count" id="customer-orders-count"></span>
+                            </div>
+                            <div class="po-list-toolbar-tools">
+                                <label class="po-page-size">Show
+                                    <select id="customer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+                                </label>
                                 <div class="search-field-wrap">
                                     <input type="text" id="customer-search" placeholder="PO code, date, items, status...">
                                 </div>
+                                <button class="btn-call-to-action" id="po-create-customer-btn" type="button">+ Create New</button>
                             </div>
+                        </div>
+                        <div class="card-body-padded po-list-body">
                             <div class="po-table-scroll-wrap">
                                 <table class="data-display-table" id="customer-orders-table">
                                     <thead>
@@ -100,18 +109,21 @@
                 </div>
             </div>
 
-            <div id="po-details-viewer-container-block" style="display: none;">
-                <div class="panel-data-card">
-                    <div class="panel-card-title-bar">
-                        <h3 id="po-details-title">Purchase Order Details</h3>
-                    </div>
-                    <div class="card-body-padded">
-                        <div class="details-container-view" id="po-details-content"></div>
-                        <div class="details-action-footer-row">
-                            <button class="btn-viewer-tool green" id="po-details-print-btn" type="button">Print Receipt</button>
-                            <button class="btn-viewer-tool blue" id="po-details-edit-btn" type="button">Edit Record</button>
-                            <button class="btn-viewer-tool black" id="po-details-back-btn" type="button">Back To Master List</button>
+            <div id="po-details-viewer-container-block" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Purchase order</p>
+                            <h3 id="po-details-title">Details</h3>
                         </div>
+                        <button class="po-details-back" id="po-details-back-btn" type="button">Back to list</button>
+                    </div>
+                    <div class="po-details-scroll">
+                        <div id="po-details-content"></div>
+                    </div>
+                    <div class="details-action-footer-row">
+                        <button class="btn-viewer-tool green" id="po-details-print-btn" type="button">Print Receipt</button>
+                        <button class="btn-viewer-tool blue" id="po-details-edit-btn" type="button">Edit Record</button>
                     </div>
                 </div>
             </div>
@@ -128,7 +140,6 @@
             </div>
             <div class="modal-form-body">
                 <form action="#" method="POST" id="po-form-element" onsubmit="return false;">
-
                     <section class="po-form-section">
                         <p class="po-form-section-title">Order details</p>
                         <div class="form-inputs-row-grid">
@@ -165,7 +176,6 @@
                             </div>
                         </div>
                     </section>
-
                     <section class="po-form-section">
                         <p class="po-form-section-title">Line items</p>
                         <div class="item-entry-builder-bar">
@@ -188,7 +198,6 @@
                             </div>
                             <button type="button" class="btn-call-to-action" id="po-modal-add-item-btn">Add item</button>
                         </div>
-
                         <div class="po-modal-table-wrap">
                             <table class="data-display-table po-modal-items-table">
                                 <thead>
@@ -206,7 +215,6 @@
                             </table>
                         </div>
                     </section>
-
                     <section class="po-form-section po-form-section-last">
                         <p class="po-form-section-title">Delivery and notes</p>
                         <div class="form-inputs-row-grid po-form-grid-2">
@@ -221,12 +229,12 @@
                             <div class="form-field-unit">
                                 <label for="po-modal-payment">Mode of payment</label>
                                 <select id="po-modal-payment">
-                                    <option value="gcash">GCash</option>
+                                    <option value="consignment">Consignment</option>
+                                    <option value="cash_on_delivery">Cash on delivery</option>
                                     <option value="check">Check</option>
-                                    <option value="cash">Cash</option>
                                 </select>
                             </div>
-                            <div class="form-field-unit">
+                            <div class="form-field-unit" id="po-modal-check-wrap">
                                 <label for="po-modal-check-no">Check number</label>
                                 <input type="text" id="po-modal-check-no" placeholder="Only if paid by check">
                             </div>
@@ -236,7 +244,6 @@
                             <textarea id="po-modal-remarks" placeholder="Notes for the shop copy (optional)"></textarea>
                         </div>
                     </section>
-
                 </form>
             </div>
             <div class="modal-action-footer-panel">
@@ -348,9 +355,9 @@
     <script src="../js/tab-panel-transition.js"></script>
     <script src="../js/retailer-manifest-loader.js"></script>
     <script src="../js/area-dropdown-helper.js"></script>
-    <script src="../js/po-admin.js?v=20261005paymongo2"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+    <script src="../js/po-admin.js?v=20261010tabs"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
-    <script src="../js/sidebar-toggle.js?v=20260927home"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

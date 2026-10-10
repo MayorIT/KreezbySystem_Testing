@@ -32,10 +32,6 @@
         <main class="workspace-view-canvas">
 
             <div class="maintenance-overview-grid">
-                <div class="overview-card-box">
-                    <label>Active Suppliers</label>
-                    <span id="metric-suppliers-count">3</span>
-                </div>
                 <div class="overview-card-box blue-theme">
                     <label>Retailers</label>
                     <span id="metric-retailers-count">1</span>
@@ -50,33 +46,12 @@
                 <div class="card-body-padded">
                     
                     <div class="maintenance-directory-tabs-row">
-                        <button class="maintenance-tab-link active-tab" onclick="switchMaintenanceDataTab(this, 'supplier')">Supplier List</button>
                         <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'items')">Item List</button>
                         <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'settings')">Settings</button>
                     </div>
 
                     <div id="maintenance-grid-workspace-root">
-                        
-                        <div class="maintenance-sub-view">
-                            <div class="datatable-controls-bar">
-                                <div>Show <select><option>10</option></select> entries</div>
-                                <button class="btn-add-item" onclick="toggleMaintenanceFormModal(true, 'Supplier')">+ Add New Supplier</button>
-                            </div>
-                            <table class="data-display-table">
-                                <thead>
-                                    <tr style="background-color: #e4c9a3; color: #4e342e;">
-                                        <th style="width: 50px;">#</th><th>Supplier Name</th><th>Contact Person</th><th>Email Node</th><th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td><td><strong>Supplier Hub 101</strong></td><td>Juan Dela Cruz</td><td>juan@supplier101.com</td>
-                                        <td><button type="button" class="action-trigger-btn">Action ▾</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
+                        <p class="settings-section-desc">Loading accounts…</p>
                     </div>
 
                 </div>
@@ -307,7 +282,7 @@
     </script>
     <script src="../js/maintenance-settings.js?v=20261009acct"></script>
     <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-    <script src="../js/maintenance-settings-ui.js?v=20260927req"></script>
+    <script src="../js/maintenance-settings-ui.js?v=20261010nosupplier"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
         <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>

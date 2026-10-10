@@ -33,11 +33,7 @@
         <main class="workspace-view-canvas">
 
             <div class="maintenance-overview-grid">
-                <button type="button" class="overview-card-box is-selected" data-maint-dir="supplier">
-                    <span class="overview-card-label">Suppliers</span>
-                    <span id="metric-suppliers-count">0</span>
-                </button>
-                <button type="button" class="overview-card-box" data-maint-dir="retailer">
+                <button type="button" class="overview-card-box is-selected" data-maint-dir="retailer">
                     <span class="overview-card-label">Retailers</span>
                     <span id="metric-retailers-count">0</span>
                 </button>
@@ -59,8 +55,7 @@
                 <div class="card-body-padded">
                     
                     <div class="maintenance-directory-tabs-row">
-                        <button type="button" class="maintenance-tab-link active-tab" data-maint-tab="supplier">Suppliers</button>
-                        <button type="button" class="maintenance-tab-link" data-maint-tab="retailer">Retailers</button>
+                        <button type="button" class="maintenance-tab-link active-tab" data-maint-tab="retailer">Retailers</button>
                         <button type="button" class="maintenance-tab-link" data-maint-tab="customer">Customers</button>
                         <button type="button" class="maintenance-tab-link" data-maint-tab="staff">Staff</button>
                         <button type="button" class="maintenance-tab-link" data-maint-tab="admins">Admins</button>
@@ -347,7 +342,7 @@
     </script>
     <script>
         (function () {
-            var VERSION = '20261010tabs';
+            var VERSION = '20261010nosupplier';
             function boot() {
                 if (window.KreezbyMaintenanceUI && typeof window.KreezbyMaintenanceUI.boot === 'function') {
                     window.KreezbyMaintenanceUI.boot();
@@ -384,7 +379,7 @@
 </div>
     <script src="../js/staff-permissions.js?v=20261006perm2"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>

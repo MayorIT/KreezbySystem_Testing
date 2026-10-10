@@ -441,7 +441,7 @@
             var meta = order.accountType
                 ? '<small>' + escapeHtml(order.accountType) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + '</small>'
                 : (order.poCode ? '<small>' + escapeHtml(order.poCode) + '</small>' : '');
-            return '<tr' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
+            return '<tr data-order-id="' + escapeHtml(order.orderNumber) + '"' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
                 '<td class="po-col-num">' + ((page - 1) * size + index + 1) + '</td>' +
                 '<td>' + formatShortDate(order.date) + '</td>' +
                 '<td><a href="#" class="po-code-link" data-ot-open="' + escapeHtml(order.orderNumber) + '">' + escapeHtml(order.orderNumber) + '</a></td>' +
@@ -515,7 +515,7 @@
 
         if (isPoShell(root)) {
             var title = root.querySelector('#ot-details-title');
-            if (title) title.textContent = order.orderNumber;
+            if (title) title.textContent = 'Edit ' + order.orderNumber;
             showTrackingDetail(root);
         } else {
             panel.hidden = false;
@@ -523,7 +523,7 @@
         }
 
         panel.innerHTML =
-            (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">' + escapeHtml(order.orderNumber) + '</h3>') +
+            (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">Edit ' + escapeHtml(order.orderNumber) + '</h3>') +
             '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + (order.deliverySchedule ? ' · Delivery ' + escapeHtml(order.deliverySchedule) : '') + '</p>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
@@ -608,6 +608,11 @@
         var tracking = trackingEl ? trackingEl.value.trim() : '';
         var notes = notesEl ? notesEl.value.trim() : '';
         var schedule = scheduleEl ? scheduleEl.value : '';
+
+        if ((nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
+            showToast(root, 'Enter a J&T tracking ID before marking the order ' + nextStatus + '.');
+            return;
+        }
 
         order.status = nextStatus;
         order.trackingNumber = tracking;
@@ -842,14 +847,104 @@
         root._otPage = 1;
 
         function refresh() {
-            renderTable(root, root._otDetailOpen ? root._otSelected : null);
+            renderTable(root, root._otSelected || null);
             if (root._otDetailOpen && root._otSelected) renderDetail(root, root._otSelected);
+        }
+
+        function focusEditField() {
+            var status = root.querySelector('#ot-status');
+            if (status) status.focus();
+        }
+
+        function selectOrder(orderNumber) {
+            root._otSelected = orderNumber;
+            if (root._otDetailOpen) refresh();
+            else renderTable(root, orderNumber);
         }
 
         function openOrder(orderNumber) {
             root._otSelected = orderNumber;
             root._otDetailOpen = true;
             refresh();
+            focusEditField();
+        }
+
+        function closeEditPicker() {
+            var picker = document.getElementById('ot-edit-picker');
+            if (picker) picker.remove();
+        }
+
+        function openEditPicker() {
+            closeEditPicker();
+            var rows = root.querySelectorAll('#order-tracking-tbody tr[data-order-id]');
+            if (!rows.length) {
+                showToast(root, 'No customer orders to edit.');
+                return;
+            }
+            var picker = document.createElement('div');
+            picker.id = 'ot-edit-picker';
+            picker.className = 'ot-edit-picker';
+            picker.setAttribute('role', 'menu');
+            var html = '<p class="ot-edit-picker__title">Choose an order to edit</p>';
+            Array.prototype.forEach.call(rows, function (row) {
+                var id = row.getAttribute('data-order-id');
+                var order = loadOrders().find(function (item) { return item.orderNumber === id; });
+                var who = order ? customerName(order) : '';
+                var status = order && order.status ? order.status : '';
+                html += '<button type="button" class="ot-edit-picker__item" data-ot-pick="' + escapeHtml(id) + '">' +
+                    '<strong>' + escapeHtml(id) + '</strong>' +
+                    '<span>' + escapeHtml(who + (status ? ' · ' + status : '')) + '</span>' +
+                    '</button>';
+            });
+            picker.innerHTML = html;
+            document.body.appendChild(picker);
+            var anchor = root.querySelector('#ot-create-btn');
+            if (anchor) {
+                var rect = anchor.getBoundingClientRect();
+                var width = picker.offsetWidth || 280;
+                picker.style.top = Math.round(rect.bottom + 8) + 'px';
+                picker.style.left = Math.max(12, Math.round(rect.right - width)) + 'px';
+            }
+            picker.addEventListener('click', function (event) {
+                var item = event.target.closest('[data-ot-pick]');
+                if (!item) return;
+                var id = item.getAttribute('data-ot-pick');
+                closeEditPicker();
+                openOrder(id);
+            });
+            setTimeout(function () {
+                function dismiss(event) {
+                    if (picker.contains(event.target)) return;
+                    if (anchor && anchor.contains(event.target)) return;
+                    closeEditPicker();
+                    document.removeEventListener('click', dismiss, true);
+                }
+                document.addEventListener('click', dismiss, true);
+            }, 0);
+        }
+
+        function editSelectedOrder(event) {
+            if (event) event.preventDefault();
+            if (document.getElementById('ot-edit-picker') && !root._otSelected) {
+                closeEditPicker();
+                return;
+            }
+            if (!root._otSelected) {
+                openEditPicker();
+                return;
+            }
+            var exists = loadOrders().some(function (order) {
+                return order.orderNumber === root._otSelected;
+            });
+            if (!exists) {
+                root._otSelected = null;
+                root._otDetailOpen = false;
+                refresh();
+                showToast(root, 'That order is no longer in the list. Select another one.');
+                return;
+            }
+            closeEditPicker();
+            openOrder(root._otSelected);
         }
 
         function closeOrder() {
@@ -862,30 +957,38 @@
         root.addEventListener('click', function (e) {
             var pageBtn = e.target.closest('[data-ot-page]');
             if (pageBtn && root.contains(pageBtn)) {
+                e.preventDefault();
+                e.stopPropagation();
                 var dir = pageBtn.getAttribute('data-ot-page');
                 root._otPage = (root._otPage || 1) + (dir === 'next' ? 1 : -1);
-                renderTable(root, root._otDetailOpen ? root._otSelected : null);
+                renderTable(root, root._otSelected || null);
                 return;
             }
             var opener = e.target.closest('[data-ot-open]');
             if (opener && root.contains(opener)) {
                 e.preventDefault();
+                e.stopPropagation();
                 openOrder(opener.getAttribute('data-ot-open'));
                 return;
             }
             var row = e.target.closest('#order-tracking-tbody tr[data-order-id]');
             if (!row || !root.contains(row)) return;
-            openOrder(row.getAttribute('data-order-id'));
-        });
+            if (e.target.closest('button, a, input, select')) return;
+            selectOrder(row.getAttribute('data-order-id'));
+        }, true);
 
         var backBtn = root.querySelector('#ot-details-back-btn');
         if (backBtn) backBtn.addEventListener('click', closeOrder);
 
         var createBtn = root.querySelector('#ot-create-btn');
         if (createBtn) {
-            createBtn.addEventListener('click', function () {
-                renderCreatePanel(root);
-            });
+            if (createBtn.getAttribute('data-ot-action') === 'edit') {
+                createBtn.addEventListener('click', editSelectedOrder);
+            } else {
+                createBtn.addEventListener('click', function () {
+                    renderCreatePanel(root);
+                });
+            }
         }
 
         var filter = root.querySelector('#ot-status-filter');

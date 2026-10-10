@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
-    <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
+    <link rel="stylesheet" href="../css/shared/portal-shell-layout.css?v=20261010palette">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
 </head>
 <body>
@@ -41,32 +41,26 @@
         <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
 
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
-        <main class="workspace-view-canvas">
-            
-            <div class="panel-data-card">
-                <div class="panel-card-title-bar">
-                    <h3>Insights</h3>
-                </div>
-                <div class="card-body-padded">
-                    <div class="ai-filter-pills" id="ai-filter-pills">
-                        <a class="pill" href="aiforecast_salesanalysis-staff.html" data-key="sales-analysis">Sales Analysis</a>
-                        <a class="pill" href="forecast-staff.html" data-key="forecast">Moving Average Computation Forecast</a>
-                        <a class="pill" href="insight-staff.html" data-key="management-insight">Management Insight</a>
-                    </div>
-                                        <div id="reorder-recommendation"></div>
-                </div>
-            </div>
-
-        </main>
+        <script>
+        (function () {
+            var dest = 'aiforecast_salesanalysis-staff.html?tab=forecast';
+            if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.visit(dest, { frame: 'kreezby-main-content', action: 'replace' });
+                return;
+            }
+            location.replace(dest);
+        })();
+        </script>
         </turbo-frame>
     </div>
 
     <script src="../js/aiforecast-pills.js"></script>
+    <script src="../js/retailer-manifest-loader.js"></script>
     <script src="../js/delivery-schedule.js?v=20260930areas"></script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261005one"></script>
-        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
-<script src="../js/sidebar-toggle.js?v=20261005one"></script>
+    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+        <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
+<script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 <script src="../js/management-insight.js?v=20261005insight"></script>
 </body>
 </html>

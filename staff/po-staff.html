@@ -120,91 +120,121 @@
             </div>
 
         </main>
-        </turbo-frame>
-    </div>
-
     <div class="system-modal-backdrop" id="purchase-order-modal-node">
         <div class="form-modal-box">
             <div class="modal-form-header">
-                <h2 id="po-modal-title">Create New Purchase Order</h2>
-                <button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" id="po-modal-close-btn">✕</button>
+                <div class="po-modal-heading">
+                    <span class="po-modal-kicker" id="po-modal-kicker">New order</span>
+                    <h2 id="po-modal-title">Create New Purchase Order</h2>
+                </div>
+                <button type="button" class="po-modal-close" id="po-modal-close-btn" aria-label="Close">✕</button>
             </div>
             <div class="modal-form-body">
                 <form action="#" method="POST" id="po-form-element" onsubmit="return false;">
-                    <div class="form-inputs-row-grid">
-                        <div class="form-field-unit">
-                            <label>PO Code *</label>
-                            <input type="text" id="po-modal-code" value="Auto-generated" readonly>
+                    <section class="po-form-section">
+                        <p class="po-form-section-title">Order details</p>
+                        <div class="form-inputs-row-grid">
+                            <div class="form-field-unit">
+                                <label for="po-modal-code">PO code</label>
+                                <input type="text" id="po-modal-code" value="Auto-generated" readonly>
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-date">Date created</label>
+                                <input type="datetime-local" id="po-modal-date" required>
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-area">Area</label>
+                                <select id="po-modal-area" required data-populate-areas-from-manifest data-label-attribute="name">
+                                    <option value="">Select an area</option>
+                                </select>
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-entity">Retailer or customer</label>
+                                <input type="text" id="po-modal-entity" placeholder="Store or customer name" required>
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-type">Order type</label>
+                                <select id="po-modal-type" required>
+                                    <option value="retailer">Retailer order</option>
+                                    <option value="customer">Customer order</option>
+                                </select>
+                            </div>
+                            <div class="form-field-unit po-form-status-field">
+                                <label for="po-modal-status">Status</label>
+                                <select id="po-modal-status" required>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="po-form-section">
+                        <p class="po-form-section-title">Line items</p>
+                        <div class="item-entry-builder-bar">
+                            <div class="form-field-unit">
+                                <label for="builder-flavor-picker">Flavor</label>
+                                <select id="builder-flavor-picker">
+                                    <option value="">Select a flavor</option>
+                                    <option value="Chocolate" data-rate="50.00">Chocolate</option>
+                                    <option value="Lemon" data-rate="45.00">Lemon</option>
+                                    <option value="Choco Almond" data-rate="55.00">Choco Almond</option>
+                                </select>
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="builder-unit-input">Unit</label>
+                                <input type="text" id="builder-unit-input" placeholder="PCS" value="PCS">
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="builder-qty-input">Qty</label>
+                                <input type="number" id="builder-qty-input" placeholder="Qty" min="1">
+                            </div>
+                            <button type="button" class="btn-call-to-action" id="po-modal-add-item-btn">Add item</button>
+                        </div>
+                        <div class="po-modal-table-wrap">
+                            <table class="data-display-table po-modal-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th><th>Item</th><th>Unit</th><th>Qty</th><th>Cost</th><th>Total</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="po-modal-items-injector"></tbody>
+                                <tfoot>
+                                    <tr class="po-modal-total-row">
+                                        <td colspan="5">Grand total</td>
+                                        <td id="po-modal-grand-total" colspan="2">0.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </section>
+                    <section class="po-form-section po-form-section-last">
+                        <p class="po-form-section-title">Delivery and notes</p>
+                        <div class="form-inputs-row-grid po-form-grid-2">
+                            <div class="form-field-unit">
+                                <label for="po-modal-tracking">Tracking number</label>
+                                <input type="text" id="po-modal-tracking" placeholder="Optional">
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-courier">Courier</label>
+                                <input type="text" id="po-modal-courier" value="J&T Express Philippines">
+                            </div>
+                            <div class="form-field-unit">
+                                <label for="po-modal-payment">Mode of payment</label>
+                                <select id="po-modal-payment">
+                                    <option value="consignment">Consignment</option>
+                                    <option value="cash_on_delivery">Cash on delivery</option>
+                                    <option value="check">Check</option>
+                                </select>
+                            </div>
+                            <div class="form-field-unit" id="po-modal-check-wrap">
+                                <label for="po-modal-check-no">Check number</label>
+                                <input type="text" id="po-modal-check-no" placeholder="Only if paid by check">
+                            </div>
                         </div>
                         <div class="form-field-unit">
-                            <label>Date Created *</label>
-                            <input type="datetime-local" id="po-modal-date" required>
+                            <label for="po-modal-remarks">Remarks</label>
+                            <textarea id="po-modal-remarks" placeholder="Notes for the shop copy (optional)"></textarea>
                         </div>
-                        <div class="form-field-unit">
-                            <label>Area of Location *</label>
-                            <select id="po-modal-area" required data-populate-areas-from-manifest data-label-attribute="name">
-                                <option value="">Please select an area</option>
-                            </select>
-                        </div>
-                        <div class="form-field-unit">
-                            <label>Retailer / Entity *</label>
-                            <input type="text" id="po-modal-entity" placeholder="Enter retailer or customer name" required>
-                        </div>
-                        <div class="form-field-unit">
-                            <label>Order Type *</label>
-                            <select id="po-modal-type" required>
-                                <option value="retailer">Retailer Order</option>
-                                <option value="customer">Customer Order</option>
-                            </select>
-                        </div>
-                        <div class="form-field-unit" style="display:none;">
-                            <label>Status *</label>
-                            <select id="po-modal-status" required>
-                                <option value="pending">Pending</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="item-builder-sub-header">
-                        <span>■</span> Item Form
-                    </div>
-                    <div class="item-entry-builder-bar">
-                        <div class="form-field-unit">
-                            <label>Flavor</label>
-                            <select id="builder-flavor-picker">
-                                <option value="">Please select a flavor</option>
-                                <option value="Chocolate" data-rate="50.00">Chocolate</option>
-                                <option value="Lemon" data-rate="45.00">Lemon</option>
-                                <option value="Choco Almond" data-rate="55.00">Choco Almond</option>
-                            </select>
-                        </div>
-                        <div class="form-field-unit">
-                            <label>Unit</label>
-                            <input type="text" id="builder-unit-input" placeholder="e.g. PCS" value="PCS">
-                        </div>
-                        <div class="form-field-unit">
-                            <label>Qty</label>
-                            <input type="number" id="builder-qty-input" placeholder="e.g. 1" min="1">
-                        </div>
-                        <button type="button" class="btn-call-to-action" style="background:#00897b;" id="po-modal-add-item-btn">Add Item +</button>
-                    </div>
-                    <table class="data-display-table" style="margin-bottom: 20px;">
-                        <thead>
-                            <tr style="background-color:#e4c9a3; color:#4e342e;">
-                                <th>#</th><th>Item</th><th>Unit</th><th>Qty</th><th>Cost</th><th>Total</th><th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="po-modal-items-injector"></tbody>
-                        <tfoot>
-                            <tr style="font-weight:bold; background-color:#f5f5f5;">
-                                <td colspan="5" style="text-align:right;">Grand Total</td>
-                                <td id="po-modal-grand-total" colspan="2">0.00</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div class="form-field-unit" style="margin-bottom: 10px;">
-                        <label>Remarks</label>
-                        <textarea id="po-modal-remarks" style="width:100%; height:60px; border:1px solid #ccc; border-radius:4px; padding:8px; outline:none;" placeholder="Enter any additional notes (optional)"></textarea>
-                    </div>
+                    </section>
                 </form>
             </div>
             <div class="modal-action-footer-panel">
@@ -212,6 +242,8 @@
                 <button class="btn-modal-save" type="button" id="po-modal-save-btn">Save Purchase Order</button>
             </div>
         </div>
+    </div>
+        </turbo-frame>
     </div>
 
     <div id="po-print-receipt-root" class="po-print-receipt-root" aria-hidden="true"></div>
@@ -233,10 +265,10 @@
     <script src="../js/tab-panel-transition.js"></script>
     <script src="../js/retailer-manifest-loader.js"></script>
     <script src="../js/area-dropdown-helper.js"></script>
-    <script src="../js/po-admin.js?v=20261010roles"></script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
-        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
+    <script src="../js/po-admin.js?v=20261011pocreate"></script>
+    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+        <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
 <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

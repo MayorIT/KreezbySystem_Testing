@@ -30,7 +30,7 @@
         if (!tbody) return;
         var selectedId = '';
         var statusFilter = '';
-        var chips = document.querySelectorAll('[data-status-filter]');
+        var chips = document.querySelectorAll('.report-highlight-chip[data-status-filter]');
         var statNew = document.getElementById('stat-new');
         var statProgress = document.getElementById('stat-progress');
         var statResolved = document.getElementById('stat-resolved');
@@ -48,6 +48,9 @@
         function syncChips() {
             chips.forEach(function (chip) {
                 chip.classList.toggle('is-active', (chip.getAttribute('data-status-filter') || '') === statusFilter);
+            });
+            document.querySelectorAll('.inbox-stat[data-status-filter]').forEach(function (card) {
+                card.classList.toggle('is-selected', card.getAttribute('data-status-filter') === statusFilter && statusFilter !== '');
             });
         }
 
@@ -116,6 +119,30 @@
                 statusFilter = chip.getAttribute('data-status-filter') || '';
                 syncChips();
                 render();
+            });
+        });
+
+        [
+            ['stat-new', 'New'],
+            ['stat-progress', 'In Progress'],
+            ['stat-resolved', 'Resolved']
+        ].forEach(function (pair) {
+            var node = document.getElementById(pair[0]);
+            var card = node ? node.closest('.inbox-stat') : null;
+            if (!card) return;
+            card.setAttribute('data-status-filter', pair[1]);
+            card.setAttribute('role', 'button');
+            card.tabIndex = 0;
+            card.addEventListener('click', function () {
+                statusFilter = card.getAttribute('data-status-filter') === statusFilter ? '' : pair[1];
+                syncChips();
+                render();
+            });
+            card.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    card.click();
+                }
             });
         });
 

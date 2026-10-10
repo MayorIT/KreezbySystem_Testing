@@ -364,7 +364,7 @@
             items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries-headadmin.html', icon: 'inquiry', top: true });
         }
         if (canSeeIssueReports() && !items.some(function (item) { return item.key === 'issuereports'; })) {
-            items.push({ key: 'issuereports', label: 'Issue Reports', href: issueReportsHref(), icon: 'flag', top: true });
+            items.push({ key: 'issuereports', label: 'Report Center', href: issueReportsHref(), icon: 'flag', top: true });
         }
         return items.map(function (item) {
             var next = {

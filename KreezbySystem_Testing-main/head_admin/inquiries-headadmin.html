@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <title>Head Admin — Partnership Inquiries</title>
-    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20260925j">
+    <link rel="stylesheet" href="../css/pages/it_kreezby/issue-reports.css?v=20261010inquiry2">
     <link rel="stylesheet" href="../css/pages/admin/admin.css">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
@@ -39,11 +39,13 @@
     <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
     <main class="workspace-view-canvas">
         <div class="page-shell">
-            <div class="report-panel">
+            <div class="report-panel report-center">
                 <div class="report-header">
-                    <span class="report-kicker">Partnership Queue</span>
-                    <h1>Inquiries received</h1>
-                    <p>Every “Partner with Kreezby” form from checkout lands here for Head Admin review.</p>
+                    <div class="report-header-copy">
+                        <span class="report-kicker">Partnership Queue</span>
+                        <h1>Inquiries received</h1>
+                        <p>Every “Partner with Kreezby” form from checkout lands here for Head Admin review.</p>
+                    </div>
                     <div class="report-highlights" role="group" aria-label="Filter by status">
                         <button type="button" class="report-highlight-chip is-active" data-status-filter="">All inquiries</button>
                         <button type="button" class="report-highlight-chip" data-status-filter="New">New</button>
@@ -65,7 +67,7 @@
                                 <h2>Inquiry list</h2>
                                 <p>Select a row to read the full request and update status.</p>
                             </div>
-                            <table class="inbox-table">
+                            <table class="inbox-table data-display-table">
                                 <thead>
                                     <tr>
                                         <th>Ticket</th>
@@ -95,7 +97,7 @@
 </div>
 
 <script src="../js/kreezby-partner-inquiries.js"></script>
-<script src="../js/kreezby-partner-inquiries-inbox.js"></script>
+<script src="../js/kreezby-partner-inquiries-inbox.js?v=20261010inquiry3"></script>
 <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
 <script src="../js/admin-sidebar.js?v=20261006perm"></script>
 <script src="../js/sidebar-toggle.js?v=20260927row"></script>

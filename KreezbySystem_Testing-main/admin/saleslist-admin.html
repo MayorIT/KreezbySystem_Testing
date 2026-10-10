@@ -10,9 +10,11 @@
     <link rel="stylesheet" href="../css/pages/admin/saleslist-admin.css?v=20261005notes">
     <link rel="stylesheet" href="../css/shared/sales-view-switch.css?v=20261001switch">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
 
 </head>
-<body>
+<body class="po-admin-page" data-kreezby-portal="admin-sales">
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -23,7 +25,7 @@
                     Admin ▾
                 </button>
                 <div class="user-dropdown-menu" id="user-dropdown-menu">
-                    <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
+                                        <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
                     <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
                 </div>
             </div>
@@ -80,11 +82,23 @@
                             <h3>Customer Sales Records</h3>
                         </div>
                         <div class="card-body-padded">
-                            <div class="datatable-filters-line">
-                                <div>Search Customers: <input type="text" placeholder="Filter code or name…" disabled></div>
+                            <div class="po-list-toolbar sales-customer-toolbar">
+                                <div class="search-field-wrap">
+                                    <input type="text" id="sales-customer-search" placeholder="Invoice, customer, or item...">
+                                </div>
                             </div>
 
-                            <table class="data-display-table manual-sheet-table">
+                            <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="sales-customer-table">
+                                <colgroup>
+                                    <col class="sl-cust-num">
+                                    <col class="sl-cust-date">
+                                    <col class="sl-cust-invoice">
+                                    <col class="sl-cust-who">
+                                    <col class="sl-cust-pay">
+                                    <col class="sl-cust-status">
+                                    <col class="sl-cust-action">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -92,15 +106,17 @@
                                         <th>Invoice</th>
                                         <th>Customer / Items</th>
                                         <th>Total Paid</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="customer-sales-tbody">
                                     <tr>
-                                        <td colspan="6" style="text-align:center;padding:24px;color:#888;">No walk-in customer entries imported yet. Use <strong>+ Create Sale</strong> for new customer transactions.</td>
+                                        <td colspan="7" style="text-align:center;padding:24px;color:#888;">No walk-in customer entries imported yet. Use <strong>+ Create Sale</strong> for new customer transactions.</td>
                                     </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
 
@@ -108,11 +124,16 @@
             </div>
 
 
-            <div id="saleslist-detailed-inspector-panel-view" style="display: none;">
-                <div class="panel-data-card">
-                    <div class="panel-card-title-bar">
-                        <h3>Sales Invoice Breakdown - SALE-0002</h3>
+            <div id="saleslist-detailed-inspector-panel-view" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Sales</p>
+                            <h3 id="sales-details-title">Details</h3>
+                        </div>
+                        <button type="button" class="po-details-back" id="sales-details-back-btn">Back to list</button>
                     </div>
+                    <div class="po-details-scroll">
                     <div class="card-body-padded">
                         
                         <div class="details-inspection-sheet">
@@ -135,11 +156,10 @@
                             <span id="bauan-detail-grand-total" style="display:none;"></span>
                         </div>
 
-                        <div class="details-action-footer-row">
-                            <button class="btn-viewer-tool green" onclick="window.print()">Print Official Receipt</button>
-                            <button class="btn-viewer-tool black" onclick="switchToSalesMasterDirectoryListingView()">Back To Sales Ledger</button>
-                        </div>
-
+                    </div>
+                    </div>
+                    <div class="details-action-footer-row">
+                        <button class="btn-viewer-tool green" id="sales-details-print-btn" type="button">Print Official Receipt</button>
                     </div>
                 </div>
             </div>
@@ -151,23 +171,33 @@
 
     <script>
         function switchToDetailedSalesTransactionInspector() {
-            document.getElementById('saleslist-master-directory-panel-view').style.display = 'none';
-            document.getElementById('saleslist-detailed-inspector-panel-view').style.display = 'block';
+            var master = document.getElementById('saleslist-master-directory-panel-view');
+            var details = document.getElementById('saleslist-detailed-inspector-panel-view');
+            if (master) master.style.display = 'none';
+            if (details) {
+                details.classList.add('is-open');
+                details.style.display = 'flex';
+            }
         }
 
         function switchToSalesMasterDirectoryListingView() {
-            document.getElementById('saleslist-detailed-inspector-panel-view').style.display = 'none';
-            document.getElementById('saleslist-master-directory-panel-view').style.display = 'block';
+            var master = document.getElementById('saleslist-master-directory-panel-view');
+            var details = document.getElementById('saleslist-detailed-inspector-panel-view');
+            if (details) {
+                details.classList.remove('is-open');
+                details.style.display = 'none';
+            }
+            if (master) master.style.display = '';
         }
 
     </script>
-        <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
     <script src="../js/admin-sidebar.js?v=20261006perm"></script>
-    <script src="../js/sidebar-toggle.js?v=20260927row"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/kreezby-sales-fake-admin.js?v=20260929areas"></script>
     <script src="../js/kreezby-sales-data.js?v=20260929areas"></script>
-    <script src="../js/sales-sheet-editor.js"></script>
-    <script src="../js/sales-list-renderer.js?v=20261005notes"></script>
+    <script src="../js/sales-sheet-editor.js?v=20261008sls"></script>
+    <script src="../js/sales-list-renderer.js?v=20261011staffbtns"></script>
 </body>
 </html>

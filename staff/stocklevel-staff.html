@@ -3,19 +3,21 @@
 <head>
 <script src="../js/kreezby-db-sync.js"></script>
     <meta charset="UTF-8">
-        <meta name="view-transition" content="same-origin">
+    <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreezby Bakeshop - Total Stock Units (Staff)</title>
+    <title>Kreezby Bakeshop - Stock Level (Staff)</title>
     <link rel="stylesheet" href="../css/pages/staff/stocklevel-staff.css">
+    <link rel="stylesheet" href="../css/pages/admin/stocklevel-admin.css?v=20261008stock">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css?v=20261010palette">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
+    <link rel="stylesheet" id="kreezby-admin-table-frame" href="../css/shared/admin-table-frame.css?v=20261005frame">
 </head>
-<body>
+<body class="po-admin-page">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
-
-
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -23,12 +25,10 @@
             <a class="top-nav-item home-badge" href="staff.html">Home</a>
             <button type="button" class="notification-pill" aria-label="Notifications"></button>
             <div class="user-dropdown">
-                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
-                    Staff ?
-                </button>
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">Staff ▾</button>
                 <div class="user-dropdown-menu" id="user-dropdown-menu">
                     <a href="report_issue-staff.html" class="dropdown-item">Report Issue</a>
-                    <a href="../auth/log_in.html" class="dropdown-item">? Log Out</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
                 </div>
             </div>
         </div>
@@ -39,24 +39,78 @@
 
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
-            <div class="panel-data-card">
-                <div class="panel-card-title-bar">
-                    <h3>Inventory Dashboard</h3>
+            <div id="stocklevel-master" class="panel-data-card po-tabbed-card">
+                <div class="po-order-tabs ai-filter-pills" id="stocklevel-filter-pills" role="tablist"></div>
+                <div class="po-list-toolbar">
+                    <div class="po-list-toolbar-title">
+                        <h3 id="stocklevel-title">Total Stock Units</h3>
+                        <span class="po-list-count" id="stocklevel-count"></span>
+                    </div>
+                    <div class="po-list-toolbar-tools">
+                        <div class="search-field-wrap">
+                            <input type="text" id="stocklevel-search" placeholder="Filter item or category...">
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body-padded">
-                    <div class="ai-filter-pills" id="stocklevel-filter-pills"></div>
-                    <div id="stocklevel-dashboard-root" data-view="units" data-report-href="inventoryreport-staff.html"></div>
+                <div class="card-body-padded po-list-body" id="stocklevel-scroll">
+                    <div id="stocklevel-dashboard-root" data-view="units" data-report-href="stocks-staff.html"></div>
                 </div>
             </div>
         </main>
+        <script>
+        (function () {
+            function applyStockTheme() {
+                if (!document.getElementById('stocklevel-master')) return;
+                document.body.classList.add('po-admin-page');
+                var theme = document.getElementById('po-theme-sheet');
+                if (!theme) {
+                    theme = document.createElement('link');
+                    theme.id = 'po-theme-sheet';
+                    theme.rel = 'stylesheet';
+                    theme.setAttribute('data-po-owned', '1');
+                    document.head.appendChild(theme);
+                }
+                theme.disabled = false;
+                if (theme.href.indexOf('20261010palette') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261010palette';
+                function boot() {
+                    if (window.KreezbyStockLevelPills && window.KreezbyStockLevelPills.boot) {
+                        try { window.KreezbyStockLevelPills.boot(); } catch (e) {}
+                    }
+                    if (window.KreezbyStockLevelDashboard && window.KreezbyStockLevelDashboard.boot && !window.KreezbyStockLevelPills) {
+                        try { window.KreezbyStockLevelDashboard.boot(); } catch (e2) {}
+                    }
+                }
+                if (window.KreezbyStockLevelPills && window.KreezbyStockLevelPills.show && window.KreezbyStockLevelDashboard && window.KreezbyStockLevelDashboard.turboLinks) {
+                    boot();
+                    return;
+                }
+                if (document.getElementById('kreezby-stocklevel-frame-script')) {
+                    boot();
+                    return;
+                }
+                var dash = document.createElement('script');
+                dash.id = 'kreezby-stocklevel-frame-script';
+                dash.src = '../js/stocklevel-dashboard.js?v=20261011staffstock';
+                dash.onload = function () {
+                    var pills = document.createElement('script');
+                    pills.src = '../js/stocklevel-pills.js?v=20261011staffstock';
+                    pills.onload = boot;
+                    document.body.appendChild(pills);
+                };
+                document.body.appendChild(dash);
+            }
+            applyStockTheme();
+            document.addEventListener('turbo:frame-load', applyStockTheme);
+            document.addEventListener('kreezby:page-load', applyStockTheme);
+        })();
+        </script>
         </turbo-frame>
     </div>
-
-    <script src="../js/stocklevel-dashboard.js"></script>
-    <script src="../js/stocklevel-pills.js"></script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261010fix"></script>
-        <script src="../js/staff-sidebar.js?v=20261006perm"></script>
-<script src="../js/sidebar-toggle.js?v=20261010dash"></script>
+    <script src="../js/stocklevel-dashboard.js?v=20261011staffstock"></script>
+    <script src="../js/stocklevel-pills.js?v=20261011staffstock"></script>
+    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+    <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

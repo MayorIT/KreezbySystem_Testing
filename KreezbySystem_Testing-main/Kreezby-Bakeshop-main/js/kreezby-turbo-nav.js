@@ -497,7 +497,7 @@
             boot();
             return;
         }
-        loadScript(moduleRelativeRoot() + 'js/aiforecast-pills.js?v=20261008word', 'kreezby-aiforecast-pills-script-word', boot);
+        loadScript(moduleRelativeRoot() + 'js/aiforecast-pills.js?v=20261011insights', 'kreezby-aiforecast-pills-script-word', boot);
     }
 
     function activateSalesList(frame) {
@@ -577,9 +577,9 @@
                 page === 'aiforecast_salesanalysis-admin.html' || page === 'aiforecast_salesanalysis-headadmin.html' || page === 'aiforecast_salesanalysis-staff.html' ||
                 page === 'forecast-admin.html' || page === 'forecast-headadmin.html' || page === 'forecast-staff.html' ||
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
-                page === 'deliveryschedule-headadmin.html' ||
-                page === 'alert-headadmin.html' ||
-                page === 'stocklevel-headadmin.html';
+                page === 'deliveryschedule-admin.html' || page === 'deliveryschedule-headadmin.html' || page === 'deliveryschedule-staff.html' ||
+                page === 'alert-admin.html' || page === 'alert-headadmin.html' || page === 'alert-staff.html' ||
+                page.indexOf('stocklevel-') === 0;
         }
         document.body.classList.toggle('po-admin-page', onPo);
         if (!onPo) {

@@ -46,15 +46,14 @@
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
         { key: 'po', label: 'Purchase Order', href: 'po-staff.html', icon: 'cart' },
-        { key: 'receive', label: 'Receiving', href: 'receive-staff.html', icon: 'package' },
         { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
         { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'forecast-staff.html' },
-            { key: 'management-insight', label: 'Management Insight', href: 'insight-staff.html' }
+            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
+            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
         ] },
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
@@ -174,14 +173,14 @@
         var items = [];
 
         var taskOrder = api.TASK_ORDER || [
-            'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
+            'dashboard', 'po', 'bo', 'return', 'stocks',
             'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
         ];
 
         taskOrder.forEach(function (taskKey) {
             if (allowed.indexOf(taskKey) === -1) return;
-            if (taskKey === 'inbox_retailer') return;
+            if (taskKey === 'receive' || taskKey === 'inbox_retailer') return;
             if (taskKey === 'inbox') {
                 items.push({
                     key: 'inbox',
@@ -207,8 +206,8 @@
                 entry.href = 'aiforecast_salesanalysis-staff.html';
                 entry.children = [
                     { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-                    { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'forecast-staff.html' },
-                    { key: 'management-insight', label: 'Management Insight', href: 'insight-staff.html' }
+                    { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
+                    { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
                 ];
             }
             items.push(entry);
@@ -241,8 +240,14 @@
         var filename = currentFilename();
         if (item.children && item.children.length) {
             var childrenHtml = '<div class="kreezby-sidebar-sub">' + item.children.map(function (child) {
-                var file = String(child.href || '').split('/').pop().toLowerCase();
-                var on = file === filename;
+                var file = String(child.href || '').split('?')[0].split('#')[0].split('/').pop().toLowerCase();
+                var childTab = '';
+                var currentTab = '';
+                var query = String(child.href || '').split('?')[1] || '';
+                var match = query.match(/(?:^|&)tab=([^&]+)/);
+                if (match) childTab = decodeURIComponent(match[1]);
+                try { currentTab = new URLSearchParams(location.search).get('tab') || ''; } catch (e) {}
+                var on = file === filename && childTab === currentTab;
                 return '<a href="' + child.href + '"' + turboAttrs(child.href) + (on ? ' aria-current="page" class="is-active"' : '') + '>' + child.label + '</a>';
             }).join('') + '</div>';
             var open = item.key === activeKey;

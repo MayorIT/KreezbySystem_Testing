@@ -34,7 +34,7 @@
             input.disabled = readOnly;
             input.placeholder = readOnly
                 ? 'Retailer replies are disabled for your account. Contact your administrator.'
-                : 'Type a message';
+                : (document.querySelector('.inbox-messenger') ? 'Aa' : 'Type a message');
         }
         if (attachBtn) attachBtn.disabled = readOnly;
         if (footer) footer.classList.toggle('composer-readonly', readOnly);
