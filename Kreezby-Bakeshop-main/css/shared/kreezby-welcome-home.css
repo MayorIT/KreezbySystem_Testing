@@ -133,32 +133,42 @@ body.kreezby-admin-home main.workspace-view-canvas {
 
 /* Home dashboards fill the viewport so the welcome card reaches the bottom. */
 body.kreezby-admin-home:has(#admin-dashboard-root) {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    min-height: 100dvh;
-    overflow: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
 }
 
 body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    align-items: stretch;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: stretch !important;
 }
 
 body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper > turbo-frame#kreezby-main-content,
 body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper > .kreezby-turbo-main {
-    min-height: 0;
-    height: 100%;
+    display: flex !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    height: auto !important;
 }
 
 body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-canvas,
 body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    padding: 0 !important;
 }
 
 body.kreezby-admin-home #admin-dashboard-root,
@@ -177,7 +187,7 @@ body.kreezby-admin-home .workspace-container {
 
 body.kreezby-admin-home #admin-dashboard-root {
     flex-direction: column;
-    gap: 18px;
+    gap: 0;
 }
 
 .admin-home {
@@ -190,25 +200,27 @@ body.kreezby-admin-home #staff-dashboard-root .admin-home {
     flex: 0 0 auto;
 }
 
-body.kreezby-admin-home #admin-dashboard-root .admin-home {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-}
-
-body.kreezby-admin-home #admin-dashboard-root .admin-home-stage {
-    height: 100%;
-    min-height: 0;
+body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root,
+body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home,
+body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
+    flex: 1 1 0% !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
 }
 
 body.kreezby-admin-home #admin-dashboard-root .admin-home-photo {
-    min-height: 0;
+    min-height: 0 !important;
+    height: auto !important;
     align-self: stretch;
 }
 
 body.kreezby-admin-home #admin-dashboard-root .admin-home-photo img {
-    max-height: none;
-    height: 100%;
+    max-height: none !important;
+    height: 100% !important;
+    width: 100%;
 }
 
 .admin-home-stage {
@@ -217,10 +229,10 @@ body.kreezby-admin-home #admin-dashboard-root .admin-home-photo img {
     grid-template-columns: minmax(280px, 0.92fr) minmax(300px, 1.08fr);
     align-items: stretch;
     background: #ffffff;
-    border-radius: 28px;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 22px 50px rgba(63, 47, 20, 0.1);
-    border: 1px solid rgba(93, 64, 55, 0.08);
+    box-shadow: none;
+    border: none;
 }
 
 .admin-home-copy {
@@ -464,15 +476,21 @@ body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby
 
 @media (max-width: 860px) {
     body.kreezby-admin-home:has(#admin-dashboard-root) {
-        height: auto;
-        overflow: visible;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
     }
 
     body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-canvas,
     body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas {
-        height: auto;
-        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px));
-        overflow: visible;
+        height: auto !important;
+        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px)) !important;
+        overflow: visible !important;
+    }
+
+    body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
+        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px)) !important;
     }
 
     .admin-home-stage {

@@ -8,7 +8,7 @@
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">
     <title>Kreezby Crinkles</title>
-    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010blur">
+    <link rel="stylesheet" href="../css/pages/customer/customer.css?v=20261010clear">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/testimonial.css">
@@ -255,7 +255,10 @@
             <div class="modal-header">
                 <div class="orders-modal-header-left">
                     <button type="button" class="orders-back-btn" id="orders-back-btn" style="display:none;" aria-label="Back to orders">←</button>
-                    <h2 id="orders-modal-title">Order Notification</h2>
+                    <div class="orders-title-wrap">
+                        <h2 id="orders-modal-title">Order Notification</h2>
+                        <p class="orders-modal-subtitle" id="orders-modal-subtitle">Track packing, delivery, and reviews.</p>
+                    </div>
                 </div>
                 <button class="nav-btn" onclick="closeCurrentModal()">✕</button>
             </div>
@@ -268,6 +271,7 @@
                         <div class="tab-link" onclick="filterOrders('completed', this)">Completed</div>
                         <div class="tab-link" onclick="filterOrders('to-review', this)">To Review</div>
                     </div>
+                    <p class="orders-list-summary" id="orders-list-summary"></p>
                     <div id="orders-container"></div>
                 </div>
                 <div id="orders-detail-view" style="display:none;"></div>
@@ -403,7 +407,7 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20260929webpay"></script>
     <script src="../js/notification-store.js"></script>
-    <script src="../js/customer-orders.js?v=20261010review"></script>
+    <script src="../js/customer-orders.js?v=20261010orders"></script>
     <script src="../js/customer-shop-cards.js?v=20261010catalog"></script>
     <script src="../js/coverflow-home.js?v=20261009ube"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
