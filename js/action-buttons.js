@@ -517,8 +517,12 @@
     }
 
     if (action === 'print') {
-      if (typeof window.print === 'function') window.print();
-      toast('Print dialog opened for "' + label + '".', 'success');
+      var printBtn = document.querySelector('#po-details-print-btn, #bo-details-print-btn, #return-details-print-btn, #recv-details-print-btn, #sales-details-print-btn');
+      if (printBtn) {
+        printBtn.click();
+        return;
+      }
+      toast('Open the record first, then print it.', 'info');
       return;
     }
 

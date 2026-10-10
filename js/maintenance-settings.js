@@ -506,7 +506,7 @@
         var record = {
             id: bucket.slice(0, 4) + '-' + Date.now(),
             name: name,
-            role: String((fields && fields.role) || dictionaryRole(bucket)),
+            role: String((fields && fields.role) || (bucket === 'suppliers' ? 'Supplier' : dictionaryRole(bucket))),
             active: true
         };
         if (bucket === 'staff' || bucket === 'admins') {

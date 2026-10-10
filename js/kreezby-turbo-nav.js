@@ -564,7 +564,7 @@
 
     function syncPurchaseOrderTheme() {
         var frame = document.getElementById(FRAME_ID);
-        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
+        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block, #maintenance-grid-workspace-root'));
         if (!frame || !frame.querySelector('main, .workspace-view-canvas, .panel-data-card')) {
             var page = currentPageName();
             onPo = page === 'po-admin.html' || page === 'po-headadmin.html' || page === 'po-staff.html' ||
@@ -578,7 +578,9 @@
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
                 page === 'deliveryschedule-headadmin.html' ||
                 page === 'alert-headadmin.html' ||
-                page === 'stocklevel-headadmin.html';
+                page === 'stocklevel-headadmin.html' ||
+                page === 'maintenance-admin.html' || page === 'maintenance-headadmin.html' ||
+                page === 'maintenance-staff.html';
         }
         document.body.classList.toggle('po-admin-page', onPo);
         if (!onPo) {
@@ -588,7 +590,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261008laystock2';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261010palette';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');
@@ -624,7 +626,9 @@
             document.dispatchEvent(new CustomEvent('kreezby-staff-sidebar-ready'));
 
             if (window.KreezbyMaintenanceUI && frame.querySelector('#maintenance-grid-workspace-root')) {
-                try { window.KreezbyMaintenanceUI.initSettingsPanel(); } catch (e) {}
+                try {
+                    if (typeof window.KreezbyMaintenanceUI.boot === 'function') window.KreezbyMaintenanceUI.boot();
+                } catch (e) {}
             }
             if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
                 try { window.KreezbyActionMenu.scan(frame); } catch (e2) {}

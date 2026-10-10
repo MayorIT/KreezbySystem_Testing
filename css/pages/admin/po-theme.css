@@ -155,8 +155,9 @@ body.po-admin-page .data-display-table thead th,
 body.po-admin-page .po-tabbed-card .data-display-table thead th,
 body.po-admin-page .order-list-card .data-display-table thead th,
 body.po-admin-page .data-display-table thead tr {
-    background: #e4c9a3 !important;
-    color: #4e342e !important;
+    background: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
     border: none;
 }
 
@@ -721,9 +722,10 @@ body.po-admin-page .status-pill-badge.pending {
 #po-master-lists-container-block .data-display-table thead tr,
 #po-details-viewer-container-block .data-display-table thead th,
 #purchase-order-modal-node .data-display-table thead th {
-    background: #e4c9a3 !important;
-    background-color: #e4c9a3 !important;
-    color: #4e342e !important;
+    background: #5d4037 !important;
+    background-color: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
 }
 
 #po-master-lists-container-block .po-table-scroll-wrap .data-display-table thead th {

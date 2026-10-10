@@ -1386,6 +1386,12 @@ main.workspace-canvas {
             display: none !important;
         }
 
+        body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
         .top-navbar-node .hamburger-toggle {
             width: 40px;
             height: 40px;

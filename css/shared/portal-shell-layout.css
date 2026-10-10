@@ -205,3 +205,28 @@ main.workspace-view-canvas {
     color: #222222;
     line-height: 1.1;
 }
+
+.data-display-table thead th,
+.data-display-table thead tr,
+table.manual-sheet-table thead th {
+    background: #5d4037 !important;
+    background-color: #5d4037 !important;
+    color: #fff8ee !important;
+    box-shadow: inset 0 -3px 0 #ffca28;
+}
+
+.data-display-table td,
+table.manual-sheet-table td {
+    color: #3e2723;
+    border-bottom-color: #f0e6d8;
+}
+
+.data-display-table tbody tr:nth-child(even) td,
+table.manual-sheet-table tbody tr:nth-child(even) td {
+    background: #fbf6ee;
+}
+
+.data-display-table tbody tr:hover td,
+table.manual-sheet-table tbody tr:hover td {
+    background: #fff6d8;
+}

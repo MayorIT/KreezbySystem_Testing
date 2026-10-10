@@ -179,144 +179,90 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;');
 }
 
+function ensureKreezbyPrintSheet() {
+    if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
+    var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+        var url = scripts[i].getAttribute('src') || '';
+        if (/checkout-customer\.js/i.test(url)) {
+            src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+            break;
+        }
+    }
+    var tag = document.createElement('script');
+    tag.id = 'kreezby-print-sheet-js';
+    tag.src = src;
+    document.head.appendChild(tag);
+}
+
+function whenKreezbyPrintSheet(done) {
+    if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
+    ensureKreezbyPrintSheet();
+    var node = document.getElementById('kreezby-print-sheet-js');
+    if (!node) { done(null); return; }
+    var settled = false;
+    var finish = function (sheet) {
+        if (settled) return;
+        settled = true;
+        done(sheet || null);
+    };
+    node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
+    node.addEventListener('error', function () { finish(null); });
+    setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
+}
+
 function openReceiptWindow(receipt, heading) {
     if (!receipt) return;
-
-    const rows = (receipt.items || []).map((item) => {
-        return `<tr><td>${escapeHtml(item.name)}</td><td class="num">${item.qty}</td><td class="num">${formatCurrency(item.price)}</td><td class="num">${formatCurrency(item.lineTotal)}</td></tr>`;
-    }).join('');
-
-    const issuedAt = new Date(receipt.issuedAt).toLocaleString('en-PH');
-    const notes = escapeHtml(receipt.shippingNotes || '-');
-    const copyTitle = escapeHtml(heading || 'Receipt');
-    const subtotal = Number(receipt.subtotal) || 0;
-    const deliveryFee = Number(receipt.deliveryFee) || 0;
-    const grossTotal = Number(receipt.total) || 0;
-    const discount = 0;
-    const netTotal = Math.max(grossTotal - discount, 0);
-    const vatableSales = netTotal / 1.12;
-    const vatAmount = netTotal - vatableSales;
-
-    const buildCopy = (label) => {
-        const isCustomerCopy = label === 'CUSTOMER COPY';
-        return `
-<section class="receipt-copy ${isCustomerCopy ? 'customer-copy' : 'owner-copy'}">
-    <div class="center brand">KREEZBY BAKESHOP</div>
-    <div class="center sub">The Crinkle Factory</div>
-    <div class="center sub">Batangas City, Philippines</div>
-    <div class="rule"></div>
-    <div class="center copy-type">${label}</div>
-    ${isCustomerCopy ? '<div class="customer-copy-banner">Keep this copy for order tracking and support follow-up.</div>' : ''}
-    <div class="center title">OFFICIAL RECEIPT</div>
-    <div class="meta-block">
-        <div><span>OR No:</span> <strong>${escapeHtml(receipt.receiptNumber)}</strong></div>
-        <div><span>Order:</span> <strong>${escapeHtml(receipt.orderNumber)}</strong></div>
-        <div><span>Date:</span> <strong>${issuedAt}</strong></div>
-        <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}${receipt.gcashReference ? ' ' + escapeHtml(GCASH_SHOP_NUMBER_LABEL) : ''}</strong></div>
-        ${receipt.paymongoPaymentIntentId ? '<div><span>PayMongo:</span> <strong>' + escapeHtml(receipt.paymongoPaymentIntentId) + '</strong></div>' : (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber ? '<div><span>Webpay ref:</span> <strong>' + escapeHtml(receipt.gcashWebpay.webpayReferenceNumber) + '</strong></div>' : (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''))}
-        <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
-        <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
-        <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
-        <div><span>Address:</span> <strong>${escapeHtml(receipt.customerAddress || '-')}</strong></div>
-    </div>
-    <table>
-        <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot>
-            <tr><td colspan="3" class="num">Subtotal</td><td class="num">${formatCurrency(subtotal)}</td></tr>
-            <tr><td colspan="3" class="num">Delivery Fee</td><td class="num">${formatCurrency(deliveryFee)}</td></tr>
-            <tr><td colspan="3" class="num">Discount</td><td class="num">${formatCurrency(discount)}</td></tr>
-            <tr><td colspan="3" class="num grand">Grand Total</td><td class="num grand">${formatCurrency(netTotal)}</td></tr>
-        </tfoot>
-    </table>
-    <div class="tax-block">
-        <div><span>VATable Sales</span><strong>${formatCurrency(vatableSales)}</strong></div>
-        <div><span>VAT-Exempt</span><strong>${formatCurrency(0)}</strong></div>
-        <div><span>Zero-Rated</span><strong>${formatCurrency(0)}</strong></div>
-    </div>
-    <div class="line"><span>Notes:</span> ${notes}</div>
-    <div class="line"><span>Cashier:</span> Online Checkout</div>
-    <div class="line">--------------------------------</div>
-    <div class="center thanks">THANK YOU FOR YOUR ORDER</div>
-    <div class="center tiny">${copyTitle} | This serves as official receipt.</div>
-</section>`;
-    };
-
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kreezby Receipt ${escapeHtml(receipt.receiptNumber)}</title>
-<style>
-body { font-family: 'Courier New', Courier, monospace; margin: 0; color: #111; background: #eceff3; }
-.sheet { width: 100%; max-width: 340px; margin: 12px auto; }
-.receipt-copy { background: #fff; border: 1px solid #222; padding: 10px; }
-.receipt-copy.customer-copy { border: 1px solid #7a543b; background: linear-gradient(180deg, #fffdf8 0%, #ffffff 24%, #fbfdff 100%); box-shadow: 0 16px 28px rgba(40, 28, 14, 0.12); }
-.center { text-align: center; }
-.brand { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
-.customer-copy .brand { color: #5d4037; }
-.sub { font-size: 11px; margin-bottom: 4px; }
-.copy-type { font-size: 11px; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 3px 0; margin-bottom: 4px; }
-.customer-copy .copy-type { border-color: #7a543b; color: #5d4037; font-weight: 700; background: rgba(248, 220, 170, 0.22); }
-.customer-copy-banner { margin: 6px 0 7px; padding: 6px 7px; border: 1px dashed #d09b3c; background: #fff5dd; color: #7a4d00; font-size: 10px; line-height: 1.35; text-align: center; }
-.title { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
-.rule { border-top: 1px dashed #222; margin: 4px 0; }
-.customer-copy .rule { border-color: #7a543b; }
-.meta-block { font-size: 11px; line-height: 1.45; margin-bottom: 6px; }
-.customer-copy .meta-block { padding: 6px 7px; border: 1px dashed #d7c1a4; background: rgba(255, 250, 239, 0.72); }
-.meta-block div { margin-bottom: 1px; }
-.line { font-size: 11px; margin-top: 6px; }
-.tax-block { font-size: 11px; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 4px 0; margin-top: 6px; }
-.tax-block div { display: flex; justify-content: space-between; margin: 1px 0; }
-.customer-copy .tax-block { border-color: #7a543b; background: rgba(255, 250, 239, 0.55); padding-left: 5px; padding-right: 5px; }
-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-th { text-align: left; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 3px 2px; font-weight: 700; }
-.customer-copy th { border-color: #7a543b; background: rgba(248, 220, 170, 0.18); }
-td { padding: 3px 2px; border-bottom: 1px dotted #999; vertical-align: top; }
-.customer-copy td { border-bottom-color: #cab8a5; }
-.num { text-align: right; white-space: nowrap; }
-.grand { font-weight: 700; }
-.customer-copy .grand { color: #5d4037; }
-.thanks { font-size: 11px; margin-top: 6px; }
-.customer-copy .thanks { color: #5d4037; }
-.tiny { font-size: 10px; color: #444; margin-top: 2px; }
-.cut-line { border-top: 2px dashed #222; margin: 10px 0; text-align: center; position: relative; }
-.cut-line span { background: #eceff3; font-size: 10px; padding: 0 4px; position: relative; top: -7px; }
-.actions { margin: 8px auto 14px; display: flex; gap: 6px; justify-content: center; }
-button { padding: 8px 10px; border: 1px solid #222; background: #fff; cursor: pointer; font-family: inherit; font-size: 11px; }
-.print { font-weight: 700; }
-@media print {
-    body { background: #fff; }
-    .actions { display: none; }
-    .sheet { max-width: 340px; margin: 0 auto; }
-    .receipt-copy { border: none; page-break-inside: avoid; box-shadow: none; }
-}
-</style>
-</head>
-<body>
-<div class="sheet">
-${buildCopy('CUSTOMER COPY')}
-<div class="actions">
-<button class="print" onclick="window.print()">Print Receipt</button>
-<button class="close" onclick="window.close()">Close</button>
-</div>
-</div>
-</body>
-</html>`;
-
-    const receiptWin = window.open('', '_blank', 'width=920,height=760');
-    if (!receiptWin) {
-        showCheckoutDialog('Receipt pop-up was blocked by your browser. Please allow pop-ups to print receipt.', {
-            type: 'warning',
-            title: 'Pop-up Blocked'
+    whenKreezbyPrintSheet(function (sheet) {
+        if (!sheet) return;
+        var issuedAt = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString('en-PH') : '';
+        var subtotal = Number(receipt.subtotal) || 0;
+        var deliveryFee = Number(receipt.deliveryFee) || 0;
+        var grossTotal = Number(receipt.total) || 0;
+        var netTotal = Math.max(grossTotal, 0);
+        var vatableSales = netTotal / 1.12;
+        var vatAmount = netTotal - vatableSales;
+        var payment = paymentMethodLabel(receipt.paymentMethod);
+        var opened = sheet.openPreview({
+            title: heading || 'Official Receipt',
+            docNo: receipt.receiptNumber || receipt.orderNumber,
+            status: receipt.paymentStatus || 'Awaiting verification',
+            totalLabel: 'Grand total',
+            totalValue: formatCurrency(netTotal),
+            facts: [
+                { label: 'Order', value: receipt.orderNumber },
+                { label: 'Date', value: issuedAt },
+                { label: 'Payment', value: payment },
+                { label: 'GCash ref', value: receipt.gcashReference || (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber) || '' },
+                { label: 'PayMongo', value: receipt.paymongoPaymentIntentId },
+                { label: 'Customer', value: receipt.customerName },
+                { label: 'Phone', value: receipt.customerPhone },
+                { label: 'Address', value: receipt.customerAddress },
+                { label: 'Subtotal', value: formatCurrency(subtotal) },
+                { label: 'Delivery fee', value: formatCurrency(deliveryFee) },
+                { label: 'VATable sales', value: formatCurrency(vatableSales) },
+                { label: 'VAT', value: formatCurrency(vatAmount) }
+            ],
+            note: { label: 'Notes', text: receipt.shippingNotes },
+            columns: [
+                { label: 'Item' },
+                { label: 'Qty', align: 'right' },
+                { label: 'Price', align: 'right' },
+                { label: 'Total', align: 'right' }
+            ],
+            rows: (receipt.items || []).map(function (item) {
+                return [item.name, String(item.qty), formatCurrency(item.price), formatCurrency(item.lineTotal)];
+            }),
+            signs: ['Cashier', 'Customer']
         });
-        return;
-    }
-
-    receiptWin.document.open();
-    receiptWin.document.write(html);
-    receiptWin.document.close();
+        if (!opened) {
+            showCheckoutDialog('Receipt pop-up was blocked by your browser. Please allow pop-ups to print receipt.', {
+                type: 'warning',
+                title: 'Pop-up Blocked'
+            });
+        }
+    });
 }
 
 function normalizeCartData(rawCart) {

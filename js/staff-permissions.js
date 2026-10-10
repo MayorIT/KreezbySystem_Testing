@@ -677,7 +677,7 @@
         if (filename.indexOf('-staff.html') === -1 && filename.indexOf('staff-') !== 0 && !/^inbox-staff(-\d+)?\.html$/i.test(filename)) {
             return;
         }
-        if (filename === 'report_issue-staff.html') return;
+        if (filename === 'report_issue-staff.html' || filename === 'issue-reports-staff.html') return;
 
         var taskKey = getTaskForPage(filename);
         if (!taskKey) return;

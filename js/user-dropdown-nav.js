@@ -195,16 +195,16 @@
 
     function reportIssueHref() {
         var path = (window.location.pathname || '').toLowerCase();
-        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
+        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('issue-reports-staff.html');
         if (isRetailerStoreFolder()) {
             var reportKey = retailerModuleKey();
             return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-portal.html';
         }
         if (path.indexOf('/retailer/') !== -1) return 'report_issue-portal.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
-        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
-        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('report_issue-admin.html');
-        return moduleLocalHref('report_issue-admin.html');
+        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('issue-reports-headadmin.html');
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('issue-reports-admin.html');
+        return moduleLocalHref('issue-reports-admin.html');
     }
 
     function reportIssueMenuHtml() {
@@ -266,7 +266,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261008tabs';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261010fix';
         document.head.appendChild(s);
     }
 
@@ -650,12 +650,13 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
-            style.textContent = 'body.kreezby-admin-home .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
         }
+        style.textContent = 'body.kreezby-admin-home .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');
         if (!header) return;
+        if (isHeadAdminPortalPage()) document.body.classList.add('kreezby-head-admin');
         header.querySelectorAll('.hamburger-toggle, a.home-badge, a.top-nav-item.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
             if (el.closest('.user-dropdown')) return;
             el.remove();
@@ -983,7 +984,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261005history2';
+        s.src = jsBase() + 'action-buttons.js?v=20261010roles';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {

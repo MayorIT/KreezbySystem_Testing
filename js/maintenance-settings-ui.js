@@ -40,7 +40,7 @@
         return ''
             + '<h4 class="settings-section-title">Login History</h4>'
             + '<p class="settings-section-desc">Recent sign-ins for all users (customers, retailers, staff, and admin).</p>'
-            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
+            + '<table class="data-display-table"><thead><tr>'
             + '<th style="width:40px;">#</th><th>Full Name</th><th>Account Type</th><th>Email / Username</th><th>Date &amp; Time</th>'
             + '</tr></thead><tbody>' + (rows || '<tr><td colspan="5">No login records yet.</td></tr>') + '</tbody></table>';
     }
@@ -56,7 +56,7 @@
         return ''
             + '<h4 class="settings-section-title">Customer Accounts</h4>'
             + '<p class="settings-section-desc">Upgrade a customer to retailer. The old customer account is archived as a changed business partner.</p>'
-            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
+            + '<table class="data-display-table"><thead><tr>'
             + '<th>#</th><th>User ID</th><th>Name</th><th>Role</th><th>Password</th><th>Email</th><th>Phone</th><th>Joined</th><th>Grant Access</th>'
             + '</tr></thead><tbody>' + (rows || '<tr><td colspan="9">No customer accounts.</td></tr>') + '</tbody></table>';
     }
@@ -70,7 +70,7 @@
         return ''
             + '<h4 class="settings-section-title">Retailer Accounts</h4>'
             + '<p class="settings-section-desc">Partner retailers with inventory and order portal access.</p>'
-            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
+            + '<table class="data-display-table"><thead><tr>'
             + '<th>#</th><th>User ID</th><th>Business Name</th><th>Role</th><th>Password</th><th>Contact</th><th>Email</th><th>Area</th><th>Source</th>'
             + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
@@ -93,6 +93,7 @@
         var rootWorkspace = document.getElementById('maintenance-grid-workspace-root');
         if (!rootWorkspace) return;
         rootWorkspace.innerHTML = settingsShellHtml.replace(/<motion/g, '<div').replace(/<\/motion>/g, '</div>');
+        rootWorkspace.setAttribute('data-maint-live', '1');
 
         document.querySelectorAll('.settings-sub-tab').forEach(function (btn) {
             btn.onclick = function () {
@@ -186,37 +187,18 @@
         return path.indexOf('/head_admin/') >= 0 || path.indexOf('/admin/') >= 0;
     }
 
-    function isHeadAdminPage() {
-        return (window.location.pathname || '').toLowerCase().indexOf('/head_admin/') >= 0;
-    }
-
     function ensureDirectoryChrome() {
         var grid = document.querySelector('.maintenance-overview-grid');
         if (!grid || grid.dataset.kreezbyAccounts === '1') return;
         grid.dataset.kreezbyAccounts = '1';
 
         var specs = [
-            { dir: 'supplier', id: 'metric-suppliers-count', label: 'Active Suppliers', theme: '' },
-            { dir: 'retailer', id: 'metric-retailers-count', label: 'Retailers', theme: 'blue-theme' },
-            { dir: 'customer', id: 'metric-customers-count', label: 'Customers', theme: 'green-theme' },
-            { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: 'staff-theme' },
-            { dir: 'admins', id: 'metric-admins-count', label: 'Admins', theme: 'admin-theme' }
+            { dir: 'supplier', id: 'metric-suppliers-count', label: 'Suppliers', theme: '' },
+            { dir: 'retailer', id: 'metric-retailers-count', label: 'Retailers', theme: '' },
+            { dir: 'customer', id: 'metric-customers-count', label: 'Customers', theme: '' },
+            { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: '' },
+            { dir: 'admins', id: 'metric-admins-count', label: 'Admins', theme: '' }
         ];
-        if (isHeadAdminPage()) {
-            specs = specs.filter(function (spec) {
-                return spec.dir === 'retailer' || spec.dir === 'customer';
-            });
-            grid.querySelectorAll('.overview-card-box').forEach(function (card) {
-                var metric = card.querySelector('[id]');
-                var metricId = metric ? metric.id : '';
-                var label = ((card.querySelector('label') || {}).textContent || '').toLowerCase();
-                if (metricId === 'metric-suppliers-count' || label.indexOf('supplier') >= 0) {
-                    card.remove();
-                }
-            });
-            var supplierTab = document.querySelector('.maintenance-directory-tabs-row [onclick*="\'supplier\'"]');
-            if (supplierTab) supplierTab.remove();
-        }
 
         specs.forEach(function (spec) {
             var card = grid.querySelector('[data-maint-dir="' + spec.dir + '"]');
@@ -227,54 +209,36 @@
             if (!card) {
                 card = document.createElement('button');
                 card.type = 'button';
-                card.className = 'overview-card-box ' + spec.theme;
-                card.innerHTML = '<label>' + spec.label + '</label><span id="' + spec.id + '">0</span>';
+                card.className = 'overview-card-box';
+                card.innerHTML = '<span class="overview-card-label">' + spec.label + '</span><span id="' + spec.id + '">0</span>';
                 grid.appendChild(card);
             } else if (card.tagName !== 'BUTTON') {
                 card.setAttribute('role', 'button');
                 card.tabIndex = 0;
             }
             card.classList.add('is-account-card');
-            if (spec.theme) card.classList.add(spec.theme);
             card.setAttribute('data-maint-dir', spec.dir);
             card.setAttribute('aria-label', 'Open ' + spec.label);
         });
 
         var row = document.querySelector('.maintenance-directory-tabs-row');
-        if (!isHeadAdminPage() && row && !row.querySelector('[data-maint-tab="staff"]')) {
-            ['staff', 'admins'].forEach(function (dir) {
+        if (row) {
+            ['staff', 'admins', 'items', 'settings'].forEach(function (dir) {
+                if (row.querySelector('[data-maint-tab="' + dir + '"]')) return;
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'maintenance-tab-link';
                 btn.setAttribute('data-maint-tab', dir);
-                btn.textContent = DIRECTORY[dir].title;
-                var settings = row.querySelector('[onclick*="settings"]');
-                if (settings) row.insertBefore(btn, settings);
-                else row.appendChild(btn);
-                btn.addEventListener('click', function () {
-                    openDirectory(dir, btn);
-                });
+                btn.textContent = dir === 'items' ? 'Item List' : (dir === 'settings' ? 'Settings' : DIRECTORY[dir].title);
+                row.appendChild(btn);
             });
         }
 
         if (!document.getElementById('kreezby-account-card-style')) {
             var style = document.createElement('style');
             style.id = 'kreezby-account-card-style';
-            style.textContent = ''
-                + '.maintenance-overview-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}'
-                + '.overview-card-box.is-account-card{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;}'
-                + '.overview-card-box.is-account-card:hover,.overview-card-box.is-selected{box-shadow:0 2px 10px rgba(93,64,55,.12);}'
-                + '.overview-card-box.is-selected{outline:2px solid #5d4037;}'
-                + '.overview-card-box.teal-theme{border-left-color:#00897b;}'
-                + '.overview-card-box.staff-theme{border-left-color:#6d4c41;}'
-                + '.overview-card-box.admin-theme{border-left-color:#1565c0;}'
-                + '.maint-account-row{cursor:pointer;}'
-                + '.maint-account-detail{margin:0 0 14px;padding:12px 14px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;}'
-                + '.maint-account-detail p{margin:0 0 8px;}'
-                + '.maint-status-btn{border:0;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;}'
-                + '.maint-status-btn.is-off{background:#c62828;color:#fff;}'
-                + '.maint-status-btn.is-on{background:#2e7d32;color:#fff;}'
-                + '.maint-status-btn:disabled{opacity:.55;cursor:not-allowed;}';
+            style.textContent = '.overview-card-box.is-account-card{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;}'
+                + '.maint-account-row{cursor:pointer;}';
             document.head.appendChild(style);
         }
     }
@@ -295,47 +259,280 @@
         }
     }
 
+    var DIRECTORY_VIEW = {
+        supplier: {
+            add: 'Supplier',
+            modal: 'Supplier',
+            headers: ['#', 'Supplier Name', 'Contact Person', 'Email', 'Action'],
+            cells: function (user) {
+                return [user.name, user.contact || '—', user.email || '—'];
+            }
+        },
+        retailer: {
+            add: 'Retailer',
+            modal: 'Retailer',
+            headers: ['#', 'Retailer Branch Name', 'Area Location', 'Sync Connection', 'Action'],
+            cells: function (user, on) {
+                var sync = '<span class="status-pill-badge ' + (on ? 'received' : 'rejected') + '">' + (on ? 'ACTIVE SYNC' : 'INACTIVE') + '</span>';
+                return [user.name, user.area || '—', sync];
+            }
+        },
+        customer: {
+            add: 'Customer',
+            modal: 'Customer',
+            headers: ['#', 'Customer Name', 'Phone', 'Email', 'Action'],
+            cells: function (user) {
+                return [user.name, user.phone || user.contact || '—', user.email || '—'];
+            }
+        },
+        staff: {
+            add: 'Staff',
+            modal: 'User Account',
+            headers: ['#', 'Account Name', 'Username', 'Assigned Role', 'Action'],
+            cells: function (user) {
+                return [user.name, user.username || '—', user.role || '—'];
+            }
+        },
+        admins: {
+            add: 'Admin',
+            modal: 'User Account',
+            headers: ['#', 'Account Name', 'Username', 'Assigned Role', 'Action'],
+            cells: function (user) {
+                return [user.name, user.username || '—', user.role || '—'];
+            }
+        }
+    };
+
+    var directoryPageSize = 10;
+    var directoryPage = 0;
+    var currentPanel = 'directory';
+    var pendingSave = '';
+    var ITEM_KEY = 'kreezby-maintenance-items-v1';
+    var DEFAULT_ITEMS = [
+        { id: 'CRK-CHO-P', name: 'Chocolate Crinkles', pack: 'Pouch (8 Pcs)', rate: 165 },
+        { id: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', pack: 'Pouch (8 Pcs)', rate: 175 },
+        { id: 'CRK-LEM-P', name: 'Lemon Crinkles', pack: 'Pouch (8 Pcs)', rate: 155 },
+        { id: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', pack: 'Jar (250g Container)', rate: 210 },
+        { id: 'CRK-MNG-J', name: 'Mango Crinkles', pack: 'Jar (250g Container)', rate: 190 },
+        { id: 'CRK-UBE-P', name: 'Ube Crinkles', pack: 'Pouch (8 Pcs)', rate: 170 }
+    ];
+
+    function loadItems() {
+        try {
+            var raw = localStorage.getItem(ITEM_KEY);
+            if (raw != null) {
+                var saved = JSON.parse(raw);
+                if (Array.isArray(saved)) return saved;
+            }
+        } catch (e) {}
+        return DEFAULT_ITEMS.map(function (item) { return Object.assign({}, item); });
+    }
+
+    function saveItems(list) {
+        localStorage.setItem(ITEM_KEY, JSON.stringify(list));
+    }
+
+    function pageWindow(total) {
+        var pages = Math.max(1, Math.ceil(total / directoryPageSize) || 1);
+        if (directoryPage >= pages) directoryPage = pages - 1;
+        if (directoryPage < 0) directoryPage = 0;
+        var start = directoryPage * directoryPageSize;
+        return { start: start, end: Math.min(total, start + directoryPageSize), pages: pages, total: total };
+    }
+
+    function pagerHtml(info) {
+        var from = info.total ? info.start + 1 : 0;
+        return '<div class="maint-pager"><span>Showing ' + from + '–' + info.end + ' of ' + info.total + '</span>'
+            + '<div class="maint-pager-nav">'
+            + '<button type="button" id="maint-page-prev"' + (directoryPage <= 0 ? ' disabled' : '') + '>Previous</button>'
+            + '<button type="button" id="maint-page-next"' + (directoryPage >= info.pages - 1 ? ' disabled' : '') + '>Next</button>'
+            + '</div></div>';
+    }
+
+    function bindPager(rerender) {
+        var prev = document.getElementById('maint-page-prev');
+        var next = document.getElementById('maint-page-next');
+        if (prev) prev.onclick = function () {
+            if (directoryPage <= 0) return;
+            directoryPage -= 1;
+            rerender();
+        };
+        if (next) next.onclick = function () {
+            directoryPage += 1;
+            rerender();
+        };
+    }
+
+    function bindPageSize(rerender) {
+        var sizeSelect = document.getElementById('maint-page-size');
+        if (!sizeSelect) return;
+        sizeSelect.onchange = function () {
+            directoryPageSize = Number(sizeSelect.value) || 10;
+            directoryPage = 0;
+            rerender();
+        };
+    }
+
+    function actionMenu(user, spec, on, manage) {
+        var locked = spec.bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
+        if (locked) {
+            return '<button type="button" class="maint-action-btn" disabled>Head admin</button>';
+        }
+        var next = on ? '0' : '1';
+        var verb = on ? 'Deactivate' : 'Activate';
+        var danger = on ? ' is-danger' : '';
+        var disabled = manage ? '' : ' disabled';
+        return '<div class="maint-action">'
+            + '<button type="button" class="maint-action-btn" data-maint-menu="' + esc(user.id) + '">Action ▾</button>'
+            + '<div class="maint-action-menu" hidden>'
+            + '<button type="button" data-account-view="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '">View</button>'
+            + '<button type="button" class="' + danger.trim() + '" data-account-toggle="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '" data-next-active="' + next + '"' + disabled + '>' + verb + '</button>'
+            + '</div></div>';
+    }
+
     function renderDirectory(dir) {
         var spec = DIRECTORY[dir];
+        var view = DIRECTORY_VIEW[dir];
         var root = document.getElementById('maintenance-grid-workspace-root');
-        if (!spec || !root || !window.KreezbyMaintenanceSettings) return;
+        if (!spec || !view || !root || !window.KreezbyMaintenanceSettings) return;
         var users = (KreezbyMaintenanceSettings.getUsers()[spec.bucket] || []).filter(function (user) {
             return !user.archived;
         });
         var manage = canManageAccounts();
-        var rows = users.map(function (user, index) {
+        var info = pageWindow(users.length);
+        var shown = users.slice(info.start, info.end);
+        var rows = shown.map(function (user, index) {
             var on = user.active !== false;
-            var locked = spec.bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
-            var action = locked
-                ? '<button type="button" class="maint-status-btn is-on" disabled>Head admin</button>'
-                : '<button type="button" class="maint-status-btn ' + (on ? 'is-off' : 'is-on') + '" data-account-toggle="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '" data-next-active="' + (on ? '0' : '1') + '"' + (manage ? '' : ' disabled') + '>' + (on ? 'Deactivate' : 'Activate') + '</button>';
+            var cells = view.cells(user, on).map(function (value, cellIndex) {
+                var text = cellIndex === 0 ? '<strong>' + esc(value) + '</strong>' : value;
+                if (cellIndex === 0) return '<td data-label="' + esc(view.headers[1]) + '">' + text + '</td>';
+                if (String(value).indexOf('<span') === 0) return '<td data-label="' + esc(view.headers[cellIndex + 1]) + '">' + value + '</td>';
+                return '<td data-label="' + esc(view.headers[cellIndex + 1]) + '">' + esc(value) + '</td>';
+            }).join('');
             return '<tr class="maint-account-row" data-account-row="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '">'
-                + '<td data-label="#">' + (index + 1) + '</td>'
-                + '<td data-label="Name"><strong>' + esc(user.name) + '</strong></td>'
-                + '<td data-label="' + esc(spec.detail) + '">' + esc(spec.detailOf(user)) + '</td>'
-                + '<td data-label="Account">' + esc(spec.accountOf(user)) + '</td>'
-                + '<td data-label="Status"><span class="status-pill-badge ' + (on ? 'received' : 'rejected') + '">' + (on ? 'Active' : 'Deactivated') + '</span></td>'
-                + '<td data-label="Action">' + action + '</td></tr>';
+                + '<td data-label="#">' + (info.start + index + 1) + '</td>'
+                + cells
+                + '<td data-label="Action">' + actionMenu(user, spec, on, manage) + '</td></tr>';
         }).join('');
-        var note = manage
-            ? 'Select a row or use Activate / Deactivate. A deactivated account stays on file and cannot log in.'
-            : 'You can open every account. Only an admin or head admin can activate or deactivate it.';
-        var createForm = manage
-            ? '<form id="maint-create-account" data-kreezby-native="1" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 14px;">'
-                + '<label>Name<br><input name="name" required></label>'
-                + (spec.bucket === 'staff' || spec.bucket === 'admins'
-                    ? '<label>Username<br><input name="username" required></label><label>Role<br><input name="role" placeholder="Job title"></label>'
-                    : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>')
-                + '<button type="submit">Add account</button></form>'
+        var sizeOptions = [10, 25, 50].map(function (size) {
+            return '<option' + (size === directoryPageSize ? ' selected' : '') + '>' + size + '</option>';
+        }).join('');
+        var addButton = manage
+            ? '<button type="button" class="btn-add-item" id="maint-add-account">+ Add New ' + esc(view.add) + '</button>'
             : '';
         root.innerHTML = ''
-            + '<div class="maint-account-detail" id="maint-account-detail"><p>Select an account to review it.</p></div>'
-            + createForm
-            + '<div class="datatable-controls-bar"><div>' + esc(spec.title) + '</div></div>'
-            + '<p class="settings-section-desc">' + note + '</p>'
-            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
-            + '<th>#</th><th>Name</th><th>' + esc(spec.detail) + '</th><th>Account</th><th>Status</th><th>Action</th>'
-            + '</tr></thead><tbody>' + (rows || '<tr class="kreezby-phone-span"><td colspan="6">No accounts in this list.</td></tr>') + '</tbody></table>';
+            + '<div class="maintenance-sub-view">'
+            + '<div id="maint-account-detail" class="maint-account-detail" hidden></div>'
+            + '<div class="datatable-controls-bar"><div>Show <select id="maint-page-size">' + sizeOptions + '</select> entries</div>' + addButton + '</div>'
+            + '<table class="data-display-table"><thead><tr>'
+            + view.headers.map(function (header) { return '<th>' + esc(header) + '</th>'; }).join('')
+            + '</tr></thead><tbody>' + (rows || '<tr class="kreezby-phone-span"><td colspan="' + view.headers.length + '">No accounts in this list.</td></tr>') + '</tbody></table>'
+            + pagerHtml(info)
+            + '</div>';
+        root.setAttribute('data-maint-live', '1');
+        bindPageSize(function () { renderDirectory(currentDirectory); });
+        bindPager(function () { renderDirectory(currentDirectory); });
+        var addBtn = document.getElementById('maint-add-account');
+        if (addBtn && typeof window.toggleMaintenanceFormModal === 'function') {
+            addBtn.onclick = function () {
+                pendingSave = currentDirectory;
+                window.toggleMaintenanceFormModal(true, view.modal || view.add);
+            };
+        }
+    }
+
+    function renderItems(tabNode) {
+        currentPanel = 'items';
+        var row = document.querySelector('.maintenance-directory-tabs-row');
+        var tab = tabNode || (row && row.querySelector('[data-maint-tab="items"]'));
+        markSelected('', tab);
+        var root = document.getElementById('maintenance-grid-workspace-root');
+        if (!root) return;
+        var items = loadItems();
+        var info = pageWindow(items.length);
+        var shown = items.slice(info.start, info.end);
+        var manage = canManageAccounts();
+        var rows = shown.map(function (item, index) {
+            var menu = '<div class="maint-action">'
+                + '<button type="button" class="maint-action-btn" data-maint-menu="' + esc(item.id) + '">Action ▾</button>'
+                + '<div class="maint-action-menu" hidden>'
+                + '<button type="button" data-item-view="' + esc(item.id) + '">View</button>'
+                + (manage ? '<button type="button" class="is-danger" data-item-remove="' + esc(item.id) + '">Remove</button>' : '')
+                + '</div></div>';
+            return '<tr><td>' + (info.start + index + 1) + '</td><td>' + esc(item.id) + '</td><td><strong>' + esc(item.name) + '</strong></td><td>' + esc(item.pack || '—') + '</td><td>' + esc(item.rate) + '</td><td>' + menu + '</td></tr>';
+        }).join('');
+        var sizeOptions = [10, 25, 50].map(function (size) {
+            return '<option' + (size === directoryPageSize ? ' selected' : '') + '>' + size + '</option>';
+        }).join('');
+        var addButton = manage ? '<button type="button" class="btn-add-item" id="maint-add-item">+ Add New Flavor Item</button>' : '';
+        root.innerHTML = ''
+            + '<div class="maintenance-sub-view">'
+            + '<div id="maint-account-detail" class="maint-account-detail" hidden></div>'
+            + '<div class="datatable-controls-bar"><div>Show <select id="maint-page-size">' + sizeOptions + '</select> entries</div>' + addButton + '</div>'
+            + '<table class="data-display-table"><thead><tr><th>#</th><th>Item SKU Code</th><th>Flavor Item Description</th><th>Packaging Variant</th><th>Base Rate</th><th>Action</th></tr></thead><tbody>'
+            + (rows || '<tr><td colspan="6">No flavor items yet.</td></tr>')
+            + '</tbody></table>' + pagerHtml(info) + '</div>';
+        root.setAttribute('data-maint-live', '1');
+        bindPageSize(renderItems);
+        bindPager(renderItems);
+        var addBtn = document.getElementById('maint-add-item');
+        if (addBtn && typeof window.toggleMaintenanceFormModal === 'function') {
+            addBtn.onclick = function () {
+                pendingSave = 'item';
+                window.toggleMaintenanceFormModal(true, 'Flavor Item');
+            };
+        }
+    }
+
+    function saveFlavorItem(fields) {
+        var sku = String(fields.sku || '').trim();
+        var name = String(fields.name || '').trim();
+        var rate = Number(fields.rate);
+        if (!sku || !name) return { ok: false, message: 'SKU and flavor name are required.' };
+        if (!isFinite(rate) || rate <= 0) return { ok: false, message: 'Base rate must be greater than zero.' };
+        var items = loadItems();
+        var duplicate = items.some(function (item) { return String(item.id).toLowerCase() === sku.toLowerCase(); });
+        if (duplicate) return { ok: false, message: 'That SKU is already in the item list.' };
+        items.push({ id: sku, name: name, pack: fields.pack || 'Pouch (8 Pcs)', rate: rate });
+        saveItems(items);
+        return { ok: true, message: name + ' was added to the item list.' };
+    }
+
+    function showItemDetail(id) {
+        var box = document.getElementById('maint-account-detail');
+        var item = null;
+        loadItems().forEach(function (row) { if (row.id === id) item = row; });
+        if (!box || !item) return;
+        box.hidden = false;
+        box.innerHTML = '<p><strong>' + esc(item.name) + '</strong> · ' + esc(item.id) + '</p>'
+            + '<p>Packaging: ' + esc(item.pack || '—') + '</p>'
+            + '<p>Base rate: ₱' + esc(item.rate) + '</p>';
+    }
+
+    function readModalFields() {
+        var root = document.getElementById('dynamic-form-fields-injector');
+        var fields = {};
+        if (!root) return fields;
+        root.querySelectorAll('.form-field-unit').forEach(function (unit) {
+            var label = ((unit.querySelector('label') || {}).textContent || '').toLowerCase();
+            var input = unit.querySelector('input, select');
+            var value = input ? String(input.value || '').trim() : '';
+            if (label.indexOf('sku') >= 0) fields.sku = value;
+            else if (label.indexOf('flavor') >= 0) fields.name = value;
+            else if (label.indexOf('packaging') >= 0) fields.pack = value;
+            else if (label.indexOf('rate') >= 0 || label.indexOf('cost') >= 0) fields.rate = value;
+            else if (label.indexOf('branch') >= 0 || label.indexOf('customer name') >= 0 || label.indexOf('supplier name') >= 0 || label.indexOf('employee') >= 0 || label.indexOf('full') >= 0) fields.name = value;
+            else if (label.indexOf('area') >= 0 || label.indexOf('location') >= 0) fields.area = value;
+            else if (label.indexOf('phone') >= 0 || label.indexOf('contact') >= 0) fields.contact = value;
+            else if (label.indexOf('email') >= 0) fields.email = value;
+            else if (label.indexOf('username') >= 0) fields.username = value;
+            else if (label.indexOf('role') >= 0) fields.role = value;
+            else if (!fields.name) fields.name = value;
+        });
+        if (!fields.username && !fields.email && fields.name) {
+            fields.username = fields.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        }
+        return fields;
     }
 
     function showAccountDetail(bucket, id) {
@@ -346,6 +543,7 @@
             if (users[i].id === id) user = users[i];
         }
         if (!box || !user) return;
+        box.hidden = false;
         var on = user.active !== false;
         var manage = canManageAccounts();
         var locked = bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
@@ -370,15 +568,31 @@
         }
     }
 
+    function placeActionMenu(menu, menuBtn) {
+        menu.hidden = false;
+        var rect = menuBtn.getBoundingClientRect();
+        var width = menu.offsetWidth || 160;
+        menu.style.position = 'fixed';
+        menu.style.top = Math.round(rect.bottom + 4) + 'px';
+        menu.style.left = Math.max(8, Math.round(rect.right - width)) + 'px';
+        menu.style.right = 'auto';
+        menu.style.zIndex = '4000';
+    }
+
     function openDirectory(dir, tabNode) {
         if (!DIRECTORY[dir]) return;
+        if (dir !== currentDirectory || currentPanel !== 'directory') directoryPage = 0;
         currentDirectory = dir;
+        currentPanel = 'directory';
         markSelected(dir, tabNode);
         renderDirectory(dir);
-        if (!isHeadAdminPage()) {
-            var root = document.getElementById('maintenance-grid-workspace-root');
-            if (root && root.scrollIntoView) root.scrollIntoView({ block: 'nearest' });
-        }
+    }
+
+    function openSettings(tabNode) {
+        currentPanel = 'settings';
+        var row = document.querySelector('.maintenance-directory-tabs-row');
+        markSelected('', tabNode || (row && row.querySelector('[data-maint-tab="settings"]')));
+        initSettingsPanel();
     }
 
     function wireDirectory() {
@@ -386,19 +600,26 @@
         ensureDirectoryChrome();
         refreshMetrics();
 
-        document.querySelectorAll('.overview-card-box[data-maint-dir]').forEach(function (card) {
-            if (card.dataset.kreezbyBound === '1') return;
-            card.dataset.kreezbyBound = '1';
-            if (isHeadAdminPage()) return;
-            function go() { openDirectory(card.getAttribute('data-maint-dir')); }
-            card.addEventListener('click', go);
-            card.addEventListener('keydown', function (ev) {
-                if (ev.key === 'Enter' || ev.key === ' ') {
-                    ev.preventDefault();
-                    go();
+        if (!window.__kreezbyMaintDelegate) {
+            window.__kreezbyMaintDelegate = true;
+            document.addEventListener('click', function (ev) {
+                var target = ev.target;
+                if (!target || !target.closest) return;
+                var tab = target.closest('.maintenance-directory-tabs-row .maintenance-tab-link');
+                if (tab) {
+                    var key = tab.getAttribute('data-maint-tab');
+                    if (!key || !document.getElementById('maintenance-grid-workspace-root')) return;
+                    if (DIRECTORY[key]) openDirectory(key, tab);
+                    else if (key === 'items') renderItems(tab);
+                    else if (key === 'settings') openSettings(tab);
+                    return;
                 }
-            });
-        });
+                var card = target.closest('.maintenance-overview-grid .overview-card-box[data-maint-dir]');
+                if (card && document.getElementById('maintenance-grid-workspace-root')) {
+                    openDirectory(card.getAttribute('data-maint-dir'));
+                }
+            }, true);
+        }
 
         var root = document.getElementById('maintenance-grid-workspace-root');
         if (root && root.dataset.kreezbyAccountClicks !== '1') {
@@ -422,6 +643,42 @@
                 if (box) box.innerHTML = '<p>' + esc(result.message) + '</p>';
             });
             root.addEventListener('click', function (ev) {
+                var menuBtn = ev.target.closest('[data-maint-menu]');
+                if (menuBtn) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    var menu = menuBtn.parentNode ? menuBtn.parentNode.querySelector('.maint-action-menu') : null;
+                    var willOpen = menu && menu.hidden;
+                    root.querySelectorAll('.maint-action-menu').forEach(function (node) { node.hidden = true; });
+                    if (menu && willOpen) placeActionMenu(menu, menuBtn);
+                    return;
+                }
+                root.querySelectorAll('.maint-action-menu').forEach(function (node) { node.hidden = true; });
+                var viewBtn = ev.target.closest('[data-account-view]');
+                if (viewBtn) {
+                    ev.preventDefault();
+                    showAccountDetail(viewBtn.getAttribute('data-account-bucket'), viewBtn.getAttribute('data-account-view'));
+                    return;
+                }
+                var itemView = ev.target.closest('[data-item-view]');
+                if (itemView) {
+                    ev.preventDefault();
+                    showItemDetail(itemView.getAttribute('data-item-view'));
+                    return;
+                }
+                var itemRemove = ev.target.closest('[data-item-remove]');
+                if (itemRemove) {
+                    ev.preventDefault();
+                    if (!canManageAccounts()) return;
+                    var itemId = itemRemove.getAttribute('data-item-remove');
+                    var removed = null;
+                    loadItems().forEach(function (item) { if (item.id === itemId) removed = item; });
+                    if (!removed) return;
+                    if (!window.confirm('Remove ' + removed.name + ' from the item list?')) return;
+                    saveItems(loadItems().filter(function (item) { return item.id !== itemId; }));
+                    renderItems();
+                    return;
+                }
                 var toggle = ev.target.closest('[data-account-toggle]');
                 if (toggle) {
                     ev.preventDefault();
@@ -429,23 +686,106 @@
                     toggleAccount(toggle.getAttribute('data-account-bucket'), toggle.getAttribute('data-account-toggle'), toggle.getAttribute('data-next-active') === '1');
                     return;
                 }
+                if (ev.target.closest('.maint-action')) return;
                 var row = ev.target.closest('[data-account-row]');
                 if (row) showAccountDetail(row.getAttribute('data-account-bucket'), row.getAttribute('data-account-row'));
             });
         }
 
-        var previous = window.switchMaintenanceDataTab;
-        window.switchMaintenanceDataTab = function (tabNode, directoryKey) {
-            if (DIRECTORY[directoryKey]) {
-                openDirectory(directoryKey, tabNode);
-                return;
-            }
-            if (typeof previous === 'function') previous(tabNode, directoryKey);
-        };
+        if (!window.__kreezbyMaintDocClick) {
+            window.__kreezbyMaintDocClick = true;
+            document.addEventListener('click', function (ev) {
+                if (ev.target.closest && ev.target.closest('.maint-action')) return;
+                document.querySelectorAll('.maint-action-menu').forEach(function (node) { node.hidden = true; });
+            });
+        }
+
+        var currentSave = window.handleFormSubmissionSave;
+        if (!currentSave || !currentSave.__kreezbyMaintSave) {
+            var priorSave = currentSave;
+            var wrappedSave = function () {
+                var title = ((document.getElementById('modal-title-injector') || {}).textContent || '');
+                if (pendingSave === 'item' || title.indexOf('Flavor Item') >= 0) {
+                    var itemResult = saveFlavorItem(readModalFields());
+                    if (!itemResult.ok) {
+                        alert(itemResult.message);
+                        return;
+                    }
+                    if (typeof window.toggleMaintenanceFormModal === 'function') window.toggleMaintenanceFormModal(false);
+                    pendingSave = '';
+                    renderItems();
+                    var itemBox = document.getElementById('maint-account-detail');
+                    if (itemBox) {
+                        itemBox.hidden = false;
+                        itemBox.innerHTML = '<p>' + esc(itemResult.message) + '</p>';
+                    }
+                    return;
+                }
+                var saveKey = DIRECTORY[pendingSave] ? pendingSave : currentDirectory;
+                var view = DIRECTORY_VIEW[saveKey];
+                var modalName = view ? (view.modal || view.add) : '';
+                if (!view || !DIRECTORY[saveKey] || title.indexOf(modalName) < 0) {
+                    if (typeof priorSave === 'function') priorSave();
+                    return;
+                }
+                var result = KreezbyMaintenanceSettings.createAccount(DIRECTORY[saveKey].bucket, readModalFields());
+                if (!result.ok) {
+                    alert(result.message);
+                    return;
+                }
+                if (typeof window.toggleMaintenanceFormModal === 'function') window.toggleMaintenanceFormModal(false);
+                pendingSave = '';
+                refreshMetrics();
+                currentDirectory = saveKey;
+                currentPanel = 'directory';
+                var savedUsers = (KreezbyMaintenanceSettings.getUsers()[DIRECTORY[saveKey].bucket] || []).filter(function (user) {
+                    return !user.archived;
+                });
+                directoryPage = Math.max(0, Math.ceil(savedUsers.length / directoryPageSize) - 1);
+                markSelected(saveKey);
+                renderDirectory(saveKey);
+                var box = document.getElementById('maint-account-detail');
+                if (box) {
+                    box.hidden = false;
+                    box.innerHTML = '<p>' + esc(result.message) + '</p>';
+                }
+            };
+            wrappedSave.__kreezbyMaintSave = true;
+            window.handleFormSubmissionSave = wrappedSave;
+        }
+
+        var currentTabSwitch = window.switchMaintenanceDataTab;
+        if (currentTabSwitch && !currentTabSwitch.__kreezbyMaintWrapped) {
+            var previous = currentTabSwitch;
+            var wrapped = function (tabNode, directoryKey) {
+                if (directoryKey === 'items') {
+                    renderItems(tabNode);
+                    return;
+                }
+                if (directoryKey === 'settings') {
+                    openSettings(tabNode);
+                    return;
+                }
+                if (DIRECTORY[directoryKey]) {
+                    openDirectory(directoryKey, tabNode);
+                    return;
+                }
+                if (typeof previous === 'function') previous(tabNode, directoryKey);
+            };
+            wrapped.__kreezbyMaintWrapped = true;
+            window.switchMaintenanceDataTab = wrapped;
+        }
 
         window.KreezbyMaintenanceDirectory = openDirectory;
-        if (isHeadAdminPage()) openDirectory('retailer');
-        else openDirectory('supplier');
+        if (root && root.getAttribute('data-maint-live') !== '1') {
+            openDirectory('supplier');
+        }
+    }
+
+    function openTab(directoryKey, tabNode) {
+        if (DIRECTORY[directoryKey]) openDirectory(directoryKey, tabNode);
+        else if (directoryKey === 'items') renderItems(tabNode);
+        else if (directoryKey === 'settings') openSettings(tabNode);
     }
 
     function upgradeCustomer(customerId, role) {
@@ -459,15 +799,28 @@
         }
     }
 
-    window.KreezbyMaintenanceUI = {
-        initSettingsPanel: initSettingsPanel,
-        refreshMetrics: refreshMetrics,
-        upgradeCustomer: upgradeCustomer
-    };
-
     function bootMaintenanceUi() {
+        if (!document.getElementById('maintenance-grid-workspace-root')) return;
         refreshMetrics();
         wireDirectory();
+    }
+
+    window.KreezbyMaintenanceUI = {
+        version: '20261010tabs',
+        initSettingsPanel: initSettingsPanel,
+        refreshMetrics: refreshMetrics,
+        upgradeCustomer: upgradeCustomer,
+        openTab: openTab,
+        boot: bootMaintenanceUi
+    };
+
+    if (!window.__kreezbyMaintPageLoad) {
+        window.__kreezbyMaintPageLoad = true;
+        document.addEventListener('kreezby:page-load', function () {
+            if (window.KreezbyMaintenanceUI && document.getElementById('maintenance-grid-workspace-root')) {
+                window.KreezbyMaintenanceUI.boot();
+            }
+        });
     }
 
     if (document.readyState === 'loading') {
