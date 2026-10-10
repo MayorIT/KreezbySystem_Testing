@@ -43,6 +43,10 @@
     margin-top: 16px;
 }
 
+.category-feedback__panel[hidden] {
+    display: none !important;
+}
+
 .review-star-filters {
     display: flex;
     flex-wrap: wrap;

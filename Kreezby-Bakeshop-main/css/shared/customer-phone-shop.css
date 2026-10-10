@@ -852,4 +852,23 @@
         max-width: 100% !important;
         width: calc(100vw - 12px) !important;
     }
+
+    /* Home, Shop, Help, Cart, and Me fill the space above the tab bar. */
+    html.kreezby-phone-shop,
+    body.kreezby-phone-shop {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+    }
+
+    body.kreezby-phone-shop .coverflow-home,
+    body.kreezby-phone-shop .help-bot,
+    body.kreezby-phone-shop main.customer-inbox-main,
+    body.kreezby-phone-shop .main-layout,
+    body.kreezby-phone-shop .content-workspace {
+        min-height: 0 !important;
+        height: auto;
+        max-height: calc(100dvh - 64px - 56px - env(safe-area-inset-bottom, 0px));
+        overflow: auto;
+    }
 }

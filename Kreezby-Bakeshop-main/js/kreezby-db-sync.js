@@ -6,6 +6,28 @@
 (function () {
   "use strict";
 
+  if (/\/retailer\//i.test(location.pathname || "")) {
+    document.documentElement.classList.add("kreezby-retailer-account");
+    function stripViewTransition(node) {
+      if (!node || node.nodeType !== 1) return;
+      if (node.matches && node.matches('meta[name="view-transition"]')) node.remove();
+      if (node.querySelectorAll) {
+        node.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
+      }
+    }
+    stripViewTransition(document.head);
+    if (window.MutationObserver && document.documentElement) {
+      new MutationObserver(function (records) {
+        records.forEach(function (record) {
+          record.addedNodes.forEach(stripViewTransition);
+        });
+      }).observe(document.documentElement, { childList: true, subtree: true });
+    }
+    setTimeout(function () {
+      document.documentElement.classList.add("kreezby-module-ready");
+    }, 1200);
+  }
+
   if (location.protocol === "file:") return;
 
   var LOCAL_ONLY = {
@@ -104,34 +126,24 @@
     }
   }
 
-  var initial = null;
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/state", false);
-    xhr.send();
-    if (xhr.status === 200) initial = JSON.parse(xhr.responseText);
-  } catch (e) {
-    initial = null;
-  }
-
   var synced = false;
-  if (initial && initial.items) {
-    applyItems(initial.items, true);
-    synced = true;
-  }
 
-  setInterval(function () {
+  function pull(uploadMissing) {
     var poll = new XMLHttpRequest();
     poll.open("GET", "/api/state", true);
+    poll.timeout = 2500;
     poll.onload = function () {
       if (poll.status !== 200) return;
       try {
-        applyItems(JSON.parse(poll.responseText).items, !synced);
+        applyItems(JSON.parse(poll.responseText).items, uploadMissing && !synced);
         synced = true;
       } catch (e) { /* ignore */ }
     };
     poll.send();
-  }, 4000);
+  }
+
+  pull(true);
+  setInterval(function () { pull(false); }, 4000);
 })();
 
 (function () {

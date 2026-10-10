@@ -86,7 +86,7 @@ main.workspace-view-canvas .kreezby-welcome {
 body.kreezby-admin-home .top-navbar-node a.home-badge,
 body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,
 body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs,
-body.kreezby-admin-home .top-navbar-node .hamburger-toggle {
+body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle {
     display: none !important;
 }
 
@@ -372,7 +372,7 @@ body.kreezby-retailer-home .kreezby-nav-scrim {
 }
 
 body.kreezby-retailer-home.kreezby-nav-open .kreezby-nav-scrim {
-    display: none !important;
+    display: block;
 }
 
 body.kreezby-retailer-home.kreezby-nav-open .core-viewport-wrapper > .kreezby-turbo-main,

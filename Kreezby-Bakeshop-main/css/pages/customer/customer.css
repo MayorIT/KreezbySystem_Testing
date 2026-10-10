@@ -462,6 +462,14 @@
             line-height: 1.5;
         }
 
+        .shop-category__actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
         .shop-category__count {
             display: inline-flex;
             align-items: center;
@@ -475,6 +483,33 @@
             font-weight: 800;
             white-space: nowrap;
             border: 1px solid #c7dcfb;
+        }
+
+        .modal-box.feedback-modal.orders-modal {
+            width: min(94vw, 760px);
+            max-width: 760px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .modal-box.feedback-modal.orders-modal .modal-body {
+            background: #ffffff;
+            overflow-x: hidden;
+            overflow-y: auto;
+            max-height: calc(88vh - 78px);
+        }
+
+        .modal-box.feedback-modal .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-box.feedback-modal .testimonials-section,
+        .modal-box.feedback-modal .section-heading__hint {
+            margin-top: 0;
+        }
+
+        .modal-box.feedback-modal .section-heading {
+            margin-bottom: 14px;
         }
 
         .shop-category__grid {

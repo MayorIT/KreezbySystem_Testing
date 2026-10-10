@@ -41,3 +41,48 @@ table.manual-sheet-table tbody tr:hover td {
     object-position: center;
     flex-shrink: 0;
 }
+
+/* Retailer pages open on the finished layout. The shared nav stylesheet
+   opts every portal into a cross-document view transition, which holds the
+   raw sidebar and empty list on screen until scripts replace them. */
+@view-transition {
+    navigation: none;
+}
+
+html.kreezby-retailer-account .top-navbar-node,
+html.kreezby-retailer-account aside.sidebar-panel,
+html.kreezby-retailer-account turbo-frame#kreezby-main-content,
+html.kreezby-retailer-account #kreezby-main-content {
+    view-transition-name: none !important;
+}
+
+html.kreezby-retailer-account aside.sidebar-panel:not(.kreezby-icon-sidebar) {
+    position: fixed !important;
+    left: 0 !important;
+    top: var(--kreezby-admin-header-height, 60px) !important;
+    width: 256px !important;
+    min-width: 0 !important;
+    max-width: 256px !important;
+    height: calc(100vh - var(--kreezby-admin-header-height, 60px)) !important;
+    margin: 0 !important;
+    transform: translateX(-110%) !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    transition: none !important;
+}
+
+html.kreezby-retailer-account aside.sidebar-panel,
+html.kreezby-retailer-account main.workspace-canvas,
+html.kreezby-retailer-account main.workspace-view-canvas {
+    transition: none !important;
+}
+
+html.kreezby-retailer-account #bo-retailer-dashboard-view {
+    visibility: hidden;
+}
+
+html.kreezby-retailer-account.kreezby-module-ready #bo-retailer-dashboard-view {
+    visibility: visible;
+}

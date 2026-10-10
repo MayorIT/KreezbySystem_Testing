@@ -32,6 +32,7 @@
     }
 
     function ensureMeta() {
+        if (/\/retailer\//i.test(location.pathname || "")) return;
         if (!document.querySelector('meta[name="view-transition"]')) {
             var meta = document.createElement('meta');
             meta.name = 'view-transition';

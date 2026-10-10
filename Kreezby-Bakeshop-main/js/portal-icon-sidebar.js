@@ -121,7 +121,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-portal-icon-sidebar-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/admin-icon-sidebar.css?v=20260927active';
+        link.href = moduleRelativeRoot() + 'css/shared/admin-icon-sidebar.css?v=20261010fill';
         document.head.appendChild(link);
     }
 

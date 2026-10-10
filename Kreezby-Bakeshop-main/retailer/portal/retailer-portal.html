@@ -1,16 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../../js/kreezby-db-sync.js"></script>
+<script src="../../js/kreezby-db-sync.js?v=20261010flash"></script>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css">
+    <link rel="stylesheet" href="../../css/shared/kreezby-turbo-nav.css?v=20261010short3">
+    <style id="admin-no-motion">
+        @view-transition { navigation: none; }
+        body.kreezby-admin-home,
+        body.kreezby-admin-home *,
+        body.kreezby-admin-home *::before,
+        body.kreezby-admin-home *::after {
+            animation: none !important;
+            animation-delay: 0s !important;
+            animation-duration: 0s !important;
+            transition: none !important;
+            transition-delay: 0s !important;
+            transition-duration: 0s !important;
+            scroll-behavior: auto !important;
+            will-change: auto !important;
+        }
+        body.kreezby-admin-home turbo-frame#kreezby-main-content,
+        body.kreezby-admin-home #kreezby-main-content,
+        body.kreezby-admin-home turbo-frame#kreezby-main-content.is-kreezby-leaving,
+        body.kreezby-admin-home #kreezby-main-content.is-kreezby-leaving,
+        body.kreezby-admin-home aside.sidebar-panel,
+        body.kreezby-admin-home aside.dark-sidebar-panel {
+            opacity: 1 !important;
+            view-transition-name: none !important;
+        }
+        body.kreezby-admin-home button:active,
+        body.kreezby-admin-home [role="button"]:active,
+        body.kreezby-admin-home .admin-home-menu-btn:hover,
+        body.kreezby-admin-home .admin-home-menu-btn:active,
+        body.kreezby-admin-home .kreezby-sidebar-nav-item:active {
+            transform: none !important;
+        }
+    </style>
+    <script>
+        (function () {
+            function onHome() {
+                var file = (location.pathname.split('/').pop() || '').toLowerCase().split('?')[0];
+                return file === 'retailer-portal.html' || file === '';
+            }
+            function stripViewTransition() {
+                if (!onHome()) return;
+                document.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
+            }
+            stripViewTransition();
+            if (window.MutationObserver && document.documentElement) {
+                new MutationObserver(stripViewTransition).observe(document.documentElement, { childList: true, subtree: true });
+            }
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Retailer</title>
     <link rel="stylesheet" href="../../css/pages/retailer/retailer-portal.css">
 
-    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261008tables">
+    <link rel="stylesheet" href="../../css/pages/retailer/retailer-brand.css?v=20261010flash">
     <link rel="stylesheet" href="../../css/shared/portal-shell-layout.css">
-    <link rel="stylesheet" href="../../css/shared/kreezby-welcome-home.css?v=20261010fill">
+    <link rel="stylesheet" href="../../css/shared/kreezby-welcome-home.css?v=20261010short">
 </head>
 <body class="kreezby-admin-home kreezby-retailer-home">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -68,8 +116,8 @@
         </turbo-frame>
 
     <script src="../../js/kreezby-seed-portal-data.js?v=20261005rnote"></script>
-    <script src="../../js/sidebar-toggle.js?v=20261005rbell"></script>
-    <script src="../../js/retailer-nav.js?v=20261008tabs3"></script>
-    <script src="../../js/user-dropdown-nav.js?v=20261008tabs2"></script>
+    <script src="../../js/sidebar-toggle.js?v=20261010short2"></script>
+    <script src="../../js/retailer-nav.js?v=20261010short"></script>
+    <script src="../../js/user-dropdown-nav.js?v=20261010flash"></script>
     </body>
 </html>
