@@ -3,6 +3,7 @@ let cartData = {};
 let isPaymentVerified = false;
 let gcashWebpay = null;
 let paymongoPayment = null;
+let paymongoTestUrl = '';
 let paymongoPollTimer = null;
 const PAYMONGO_DRAFT_KEY = 'kreezbyPaymongoCheckout';
 let orderNumber = '';
@@ -111,7 +112,8 @@ function formatCurrency(value) {
 function paymentMethodLabel(methodId) {
     const labels = {
         gcash: 'GCash',
-        paymongo: 'PayMongo',
+        paymongo: 'QR Ph',
+        qrph: 'QR Ph',
         cash_on_delivery: 'Cash on delivery',
         cod: 'Cash on delivery'
     };
@@ -224,7 +226,7 @@ function openReceiptWindow(receipt, heading) {
         <div><span>Order:</span> <strong>${escapeHtml(receipt.orderNumber)}</strong></div>
         <div><span>Date:</span> <strong>${issuedAt}</strong></div>
         <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}${receipt.gcashReference ? ' ' + escapeHtml(GCASH_SHOP_NUMBER_LABEL) : ''}</strong></div>
-        ${receipt.paymongoPaymentIntentId ? '<div><span>PayMongo:</span> <strong>' + escapeHtml(receipt.paymongoPaymentIntentId) + '</strong></div>' : (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber ? '<div><span>Webpay ref:</span> <strong>' + escapeHtml(receipt.gcashWebpay.webpayReferenceNumber) + '</strong></div>' : (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''))}
+        ${receipt.paymongoPaymentIntentId ? '<div><span>QR Ph:</span> <strong>' + escapeHtml(receipt.paymongoPaymentIntentId) + '</strong></div>' : (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber ? '<div><span>Webpay ref:</span> <strong>' + escapeHtml(receipt.gcashWebpay.webpayReferenceNumber) + '</strong></div>' : (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''))}
         <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
         <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
         <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
@@ -384,7 +386,7 @@ function updateActionButtons() {
     if (placeOrderBtn) {
         const paymongoReady = !isPaymongoCheckout() || paymongoSucceeded();
         placeOrderBtn.disabled = !canPay || !paymongoReady;
-        placeOrderBtn.textContent = isPaymongoCheckout() && !paymongoReady ? 'Pay with PayMongo first' : 'Place Order';
+        placeOrderBtn.textContent = isPaymongoCheckout() && !paymongoReady ? 'Pay with QR Ph first' : 'Place Order';
     }
 }
 
@@ -397,11 +399,36 @@ function syncPaymentPanels() {
     if (codPanel) codPanel.classList.toggle('active', selectedPaymentMethod === 'cash_on_delivery');
 }
 
+function setPaymongoButtonLabel(text) {
+    const button = document.getElementById('paymongo-pay-btn');
+    if (!button) return;
+    const label = button.querySelector('.paymongo-open-btn__label');
+    if (label) label.textContent = text;
+    else button.textContent = text;
+}
+
+function resetPaymongoButton() {
+    paymongoTestUrl = '';
+    const qr = document.getElementById('paymongo-qr');
+    const frame = document.querySelector('.paymongo-qr-frame');
+    if (qr) {
+        qr.hidden = true;
+        qr.removeAttribute('src');
+    }
+    if (frame) frame.hidden = true;
+    const button = document.getElementById('paymongo-pay-btn');
+    if (button) {
+        button.disabled = false;
+        setPaymongoButtonLabel('Show QR code');
+    }
+}
+
 function resetVerification() {
     isPaymentVerified = false;
     gcashWebpay = null;
     paymongoPayment = null;
     stopPaymongoPoll();
+    resetPaymongoButton();
     const result = document.getElementById('gcash-webpay-result');
     if (result) {
         result.hidden = true;
@@ -466,7 +493,7 @@ function saveCustomerPurchaseOrder(order) {
         status: 'PROCESSING',
         statusClass: 'pending',
         remarks: order.paymentMethod === 'paymongo'
-            ? ('PayMongo paid. Payment intent ' + ((order.paymongo && order.paymongo.paymentIntentId) || '') + '.')
+            ? ('QR Ph paid. Payment intent ' + ((order.paymongo && order.paymongo.paymentIntentId) || '') + '.')
             : (order.paymentMethod === 'gcash'
                 ? ('GCash webpay paid. Reference ' + ((order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber) || order.gcashReference) + '.')
                 : 'Cash on delivery is waiting for verification.'),
@@ -574,7 +601,16 @@ function initCheckout() {
         });
     }
     const paymongoBtn = document.getElementById('paymongo-pay-btn');
-    if (paymongoBtn) paymongoBtn.addEventListener('click', startPaymongo);
+    if (paymongoBtn) {
+        paymongoBtn.addEventListener('click', function () {
+            if (paymongoTestUrl) {
+                window.open(paymongoTestUrl, '_blank', 'noopener');
+                setPaymongoStatus('Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.');
+                return;
+            }
+            startPaymongo();
+        });
+    }
     resumePaymongoReturn();
 }
 
@@ -678,13 +714,34 @@ function checkoutTotalAmount() {
 }
 
 function selectedPaymongoWallet() {
-    const picked = document.querySelector('input[name="paymongo-wallet"]:checked');
-    const value = picked ? picked.value : 'gcash';
-    return paymongoWalletLabel(value) ? value : 'gcash';
+    return 'qrph';
+}
+
+function paymongoTestPageUrl(value) {
+    try {
+        const parsed = new URL(String(value || ''));
+        const host = parsed.hostname.toLowerCase();
+        if (parsed.protocol !== 'https:' || (host !== 'paymongo.com' && !host.endsWith('.paymongo.com'))) return '';
+        return parsed.toString();
+    } catch (error) {
+        return '';
+    }
+}
+
+function claimPaymongoOrder(paymentIntentId) {
+    const key = 'kreezbyPaymongoPlaced:' + paymentIntentId;
+    try {
+        if (localStorage.getItem(key) === '1') return false;
+        localStorage.setItem(key, '1');
+        return true;
+    } catch (error) {
+        return true;
+    }
 }
 
 function paymongoWalletLabel(wallet) {
     const labels = {
+        qrph: 'QR Ph',
         gcash: 'GCash',
         paymaya: 'Maya',
         metrobank: 'Metrobank'
@@ -694,9 +751,11 @@ function paymongoWalletLabel(wallet) {
 
 function showPaymongoQr(image) {
     const qr = document.getElementById('paymongo-qr');
+    const frame = document.querySelector('.paymongo-qr-frame');
     if (!qr || !String(image || '').startsWith('data:image/')) return false;
     qr.src = image;
     qr.hidden = false;
+    if (frame) frame.hidden = false;
     return true;
 }
 
@@ -746,8 +805,6 @@ function restoreShippingFields(draft) {
     if (address && draft.address) address.value = draft.address;
     if (notes && draft.notes) notes.value = draft.notes;
     if (email && draft.email) email.value = draft.email;
-    const wallet = document.querySelector('input[name="paymongo-wallet"][value="' + (draft.wallet || 'gcash') + '"]');
-    if (wallet) wallet.checked = true;
 }
 
 function validCheckoutContact(fields) {
@@ -764,7 +821,7 @@ function validCheckoutContact(fields) {
         return false;
     }
     if (isPaymongoCheckout() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-        showCheckoutDialog('Enter an email address so PayMongo can send the receipt.', {
+        showCheckoutDialog('Enter an email address so the QR Ph receipt can be sent.', {
             type: 'warning',
             title: 'Email Needed'
         });
@@ -797,7 +854,7 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                     amount: data.amount
                 };
                 isPaymentVerified = true;
-                setPaymongoStatus('Payment successful. PayMongo reference ' + data.paymentIntentId + '.');
+                setPaymongoStatus('Payment successful. QR Ph reference ' + data.paymentIntentId + '.');
                 updateActionButtons();
                 if (typeof onSucceeded === 'function') onSucceeded();
                 return;
@@ -809,7 +866,9 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                 updateActionButtons();
                 return;
             }
-            setPaymongoStatus('Scan the QR code. It opens the PayMongo payment link. This page checks every 5 seconds.');
+            setPaymongoStatus(paymongoTestUrl
+                ? 'Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.'
+                : 'Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
             if (ticks > 36) {
                 stopPaymongoPoll();
                 setPaymongoStatus('The QR code is still waiting. Show it again if you need a new one.');
@@ -860,7 +919,7 @@ async function paymongoFetch(path, options) {
 
 async function startPaymongo() {
     if (!hasCartItems()) {
-        showCheckoutDialog('Your cart is empty. Add items before paying with PayMongo.', { type: 'warning', title: 'Cart Empty' });
+        showCheckoutDialog('Your cart is empty. Add items before paying with QR Ph.', { type: 'warning', title: 'Cart Empty' });
         return;
     }
     const fields = shippingFields();
@@ -900,13 +959,23 @@ async function startPaymongo() {
             return;
         }
         if (!showPaymongoQr(data.qrImage)) {
-            setPaymongoStatus('PayMongo did not return a QR code.');
+            setPaymongoStatus('QR Ph did not return a code.');
             return;
         }
         showedQr = true;
-        if (button) {
+        paymongoTestUrl = paymongoTestPageUrl(data.testUrl);
+        const lead = document.querySelector('#paymongo-section .gcash-pay-lead');
+        if (paymongoTestUrl) {
+            if (button) {
+                button.disabled = false;
+                setPaymongoButtonLabel('Open PayMongo payment');
+            }
+            if (lead) lead.textContent = 'A bank app cannot finish this test payment. Open the PayMongo page and choose Authorize. This checkout places the order after that.';
+            setPaymongoStatus('Open the PayMongo payment page, then choose Authorize.');
+        } else if (button) {
             button.disabled = true;
-            button.textContent = 'QR code ready';
+            setPaymongoButtonLabel('QR code ready');
+            setPaymongoStatus('Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
         }
         writePaymongoDraft(Object.assign({}, fields, {
             wallet,
@@ -915,7 +984,7 @@ async function startPaymongo() {
         }));
         watchPaymongo(data.paymentIntentId, function () {
             const current = readPaymongoDraft() || {};
-            if (current.placed) return;
+            if (current.placed || !claimPaymongoOrder(data.paymentIntentId)) return;
             current.placed = true;
             writePaymongoDraft(current);
             placeOrder();
@@ -936,7 +1005,7 @@ function resumePaymongoReturn() {
     setPaymongoStatus('Checking PayMongo…');
     watchPaymongo(draft.paymentIntentId, function () {
         const current = readPaymongoDraft() || draft;
-        if (current.placed) return;
+        if (current.placed || !claimPaymongoOrder(draft.paymentIntentId)) return;
         current.placed = true;
         writePaymongoDraft(current);
         placeOrder();
@@ -953,7 +1022,7 @@ function placeOrder() {
     const fields = shippingFields();
     if (!validCheckoutContact(fields)) return;
     if (payingWithPaymongo && !paymongoSucceeded()) {
-        showCheckoutDialog('Pay with PayMongo before placing the order.', { type: 'warning', title: 'Payment Needed' });
+        showCheckoutDialog('Pay with QR Ph before placing the order.', { type: 'warning', title: 'Payment Needed' });
         return;
     }
 
@@ -972,7 +1041,6 @@ function placeOrder() {
     const accountArea = (accountType === 'Regular Customer')
         ? fields.address
         : (session.accountArea || fields.address);
-    const walletLabel = paymongoWalletLabel(paymongoPayment && paymongoPayment.wallet) || 'PayMongo';
 
     const order = {
         orderNumber: orderNumber,
@@ -1029,7 +1097,7 @@ function placeOrder() {
             id: 'n-order-' + orderNumber,
             title: 'Customer Order Placed',
             description: payingWithPaymongo
-                ? ('New PayMongo order ' + orderNumber + ' from ' + fields.fullName + '. ' + walletLabel + ' payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
+                ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + '. Payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
                 : ('New cash on delivery order ' + orderNumber + ' from ' + fields.fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
             read: false,
@@ -1061,7 +1129,7 @@ function placeOrder() {
             buttonText: 'Go To Shop',
             details: [
                 { label: 'Order number', value: orderNumber },
-                { label: 'Payment', value: payingWithPaymongo ? ('PayMongo · ' + walletLabel) : 'Cash on delivery' },
+                { label: 'Payment', value: payingWithPaymongo ? 'QR Ph' : 'Cash on delivery' },
                 payingWithPaymongo ? { label: 'Payment intent', value: paymongoPayment.paymentIntentId, mono: true } : null,
                 { label: 'Receipt', value: order.receiptNumber },
                 { label: 'Total', value: order.total, emphasis: true }

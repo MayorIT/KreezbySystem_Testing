@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
-    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261010qr">
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261013pay5">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
@@ -102,11 +102,11 @@
                     <div class="payment-method-selector__list" role="radiogroup" aria-label="Payment method">
                         <div class="payment-method-selector__item is-selected" data-payment-id="paymongo" tabindex="0" aria-checked="true">
                             <div class="payment-method-selector__icon" aria-hidden="true">
-                                <img src="../assets/payments/paymongo.svg" alt="">
+                                <img src="../assets/payments/qrph.svg" alt="">
                             </div>
                             <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">PayMongo</p>
-                                <p class="payment-method-selector__desc">E-wallet and online banking</p>
+                                <p class="payment-method-selector__label">QR Ph</p>
+                                <p class="payment-method-selector__desc">Scan to pay with any QR Ph app</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
@@ -124,38 +124,24 @@
                 </div>
 
                 <div class="qr-section gcash-pay-panel" id="paymongo-section">
-                    <h3 class="qr-title">PayMongo</h3>
-                    <p class="gcash-pay-lead">Scan the QR code with your phone. GCash and Maya open a PayMongo link. Metrobank opens online banking. Complete the payment there. This page checks every 5 seconds.</p>
-                    <div class="form-group">
-                        <label for="paymongo-email">Email for the receipt</label>
-                        <input type="email" id="paymongo-email" placeholder="name@email.com" autocomplete="email">
-                    </div>
-                    <div class="paymongo-wallets" role="radiogroup" aria-label="PayMongo payment option">
-                        <p class="paymongo-wallets-label">E-wallet</p>
-                        <div class="paymongo-wallet-grid">
-                            <label class="paymongo-wallet-card">
-                                <input type="radio" name="paymongo-wallet" value="gcash" checked>
-                                <span class="paymongo-wallet-logo"><img src="../assets/payments/gcash.svg" alt=""></span>
-                                <span class="paymongo-wallet-name">GCash</span>
-                            </label>
-                            <label class="paymongo-wallet-card">
-                                <input type="radio" name="paymongo-wallet" value="paymaya">
-                                <span class="paymongo-wallet-logo paymongo-wallet-logo--dark"><img src="../assets/payments/maya.svg" alt=""></span>
-                                <span class="paymongo-wallet-name">Maya</span>
-                            </label>
+                    <div class="paymongo-layout">
+                        <div class="paymongo-layout__copy">
+                            <h3 class="qr-title">QR Ph</h3>
+                            <p class="gcash-pay-lead">Scan the QR Ph code with any participating bank or e-wallet app. Complete the payment there. This page checks every 5 seconds.</p>
+                            <div class="form-group">
+                                <label for="paymongo-email">Email for the receipt</label>
+                                <input type="email" id="paymongo-email" placeholder="name@email.com" autocomplete="email">
+                            </div>
+                            <p class="qr-instructions" id="paymongo-status">Enter your email, then show the QR code.</p>
+                            <button type="button" class="paymongo-open-btn" id="paymongo-pay-btn">
+                                <span class="paymongo-open-btn__icon" aria-hidden="true">₱</span>
+                                <span class="paymongo-open-btn__label">Show QR code</span>
+                            </button>
                         </div>
-                        <p class="paymongo-wallets-label">Online banking</p>
-                        <div class="paymongo-wallet-grid">
-                            <label class="paymongo-wallet-card">
-                                <input type="radio" name="paymongo-wallet" value="metrobank">
-                                <span class="paymongo-wallet-logo"><img src="../assets/payments/metrobank.svg" alt=""></span>
-                                <span class="paymongo-wallet-name">Metrobank</span>
-                            </label>
+                        <div class="paymongo-qr-frame" hidden>
+                            <img id="paymongo-qr" class="paymongo-qr" alt="QR Ph code" hidden>
                         </div>
                     </div>
-                    <img id="paymongo-qr" class="paymongo-qr" alt="PayMongo QR code" hidden>
-                    <p class="qr-instructions" id="paymongo-status">Enter your email, then show the QR code.</p>
-                    <button type="button" class="checkout-btn" id="paymongo-pay-btn">Show QR code</button>
                 </div>
 
                 <div class="qr-section gcash-pay-panel" id="cod-section">
@@ -187,8 +173,8 @@
                         <div class="payment-summary__row payment-summary__row--method">
                             <span class="payment-summary__label">Payment Method</span>
                             <div class="payment-summary__method">
-                                <span class="payment-summary__method-icon" data-ps-payment-icon aria-hidden="true"><img src="../assets/payments/paymongo.svg" alt=""></span>
-                                <span class="payment-summary__method-name" data-ps-payment-name>PayMongo</span>
+                                <span class="payment-summary__method-icon" data-ps-payment-icon aria-hidden="true"><img src="../assets/payments/qrph.svg" alt=""></span>
+                                <span class="payment-summary__method-name" data-ps-payment-name>QR Ph</span>
                             </div>
                         </div>
                         <div data-ps-items></div>

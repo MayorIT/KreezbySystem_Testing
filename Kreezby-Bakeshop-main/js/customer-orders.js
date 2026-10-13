@@ -525,7 +525,7 @@
         var totals = orderTotals(order);
         var shipping = order.shippingInfo || {};
         var paymentKey = String(order.paymentMethod || '').toLowerCase();
-        var paymentLabel = paymentKey === 'paymongo' ? 'PayMongo'
+        var paymentLabel = paymentKey === 'paymongo' ? 'QR Ph'
             : (paymentKey === 'gcash' ? 'GCash'
             : (paymentKey === 'cash_on_delivery' || paymentKey === 'cod' ? 'Cash on delivery'
                 : (paymentKey === 'check' ? 'Check' : (paymentKey === 'cash' ? 'Cash' : (order.paymentMethod || '—')))));
@@ -579,7 +579,7 @@
             '<div class="order-detail-summary-row"><span>Delivery Fee</span><span>' + formatMoney(totals.deliveryFee) + '</span></div>' +
             '<div class="order-detail-summary-row order-detail-summary-total"><span>Order Total</span><span>' + totals.total + '</span></div>' +
             '<div class="order-detail-summary-row"><span>Payment Method</span><span>' + paymentLabel + '</span></div>' +
-            (order.paymongo && order.paymongo.paymentIntentId ? '<div class="order-detail-summary-row"><span>PayMongo payment</span><span>' + order.paymongo.paymentIntentId + '</span></div>' : '') +
+            (order.paymongo && order.paymongo.paymentIntentId ? '<div class="order-detail-summary-row"><span>QR Ph payment</span><span>' + order.paymongo.paymentIntentId + '</span></div>' : '') +
             (order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber ? '<div class="order-detail-summary-row"><span>Webpay reference</span><span>' + order.gcashWebpay.webpayReferenceNumber + '</span></div>' : (order.gcashReference ? '<div class="order-detail-summary-row"><span>GCash reference</span><span>' + order.gcashReference + '</span></div>' : '')) +
             (String(order.paymentMethod || '').toLowerCase() === 'gcash' ? '<div class="order-detail-summary-row"><span>Paid to</span><span>0917 800 1650</span></div>' : '') +
             (isPaymentFailed(order)

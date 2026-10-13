@@ -1,7 +1,6 @@
 const path = require("path");
 const express = require("express");
 const { MongoClient } = require("mongodb");
-const QRCode = require("qrcode");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3000;
@@ -460,21 +459,30 @@ function paymongoPublicIntent(resource) {
   };
 }
 
-function paymongoRedirectUrl(redirect) {
+const PAYMONGO_CHECKOUT_METHODS = {
+  qrph: { type: "qrph" },
+};
+
+function paymongoQrDataUri(nextAction) {
+  const code = nextAction && nextAction.code;
+  const image = code && code.image_url ? String(code.image_url).replace(/\s+/g, "") : "";
+  if (!/^data:image\/(?:png|jpeg|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(image)) return "";
+  if (image.length < 80 || image.length > 2 * 1024 * 1024) return "";
+  return image;
+}
+
+function paymongoTestUrl(nextAction) {
+  const code = nextAction && nextAction.code;
+  const raw = code && code.test_url ? String(code.test_url) : "";
   try {
-    const parsed = new URL(String(redirect || ""));
-    if (parsed.protocol !== "https:" || !parsed.hostname) return "";
+    const parsed = new URL(raw);
+    const host = parsed.hostname.toLowerCase();
+    if (parsed.protocol !== "https:" || (host !== "paymongo.com" && !host.endsWith(".paymongo.com"))) return "";
     return parsed.toString();
   } catch (error) {
     return "";
   }
 }
-
-const PAYMONGO_CHECKOUT_METHODS = {
-  gcash: { type: "gcash" },
-  paymaya: { type: "paymaya" },
-  metrobank: { type: "brankas", bankCode: "metrobank" },
-};
 
 app.use("/api/paymongo", allowLocalPaymongo);
 
@@ -488,7 +496,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   }
 
   const body = req.body || {};
-  const requested = String(body.wallet || "gcash");
+  const requested = String(body.wallet || "qrph");
   const methodInfo = PAYMONGO_CHECKOUT_METHODS[requested];
   const wallet = methodInfo ? requested : "";
   const amount = Number(body.amount);
@@ -498,7 +506,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   const phone = String(body.phone || "").trim();
   const audience = body.audience === "wholesaler" ? "wholesaler" : (body.audience === "customer" ? "customer" : "");
   if (!wallet || !audience || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    res.status(400).json({ ok: false, error: "Choose GCash, Maya, or Metrobank, and enter the payer name and email." });
+    res.status(400).json({ ok: false, error: "Enter the payer name and email before paying with QR Ph." });
     return;
   }
   if (!Number.isFinite(amount) || centavos < 10000 || centavos > 100000000) {
@@ -548,24 +556,17 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       },
     });
     const attributes = attached.data.attributes || {};
-    const redirect = attributes.next_action && attributes.next_action.redirect
-      ? String(attributes.next_action.redirect.url || "")
-      : "";
-    const sourceUrl = paymongoRedirectUrl(redirect);
-    if (!sourceUrl) {
-      res.status(502).json({ ok: false, error: "PayMongo did not return a payment link." });
+    const qrImage = paymongoQrDataUri(attributes.next_action);
+    if (!qrImage) {
+      res.status(502).json({ ok: false, error: "PayMongo did not return a QR Ph code." });
       return;
     }
-    const qrImage = await QRCode.toDataURL(sourceUrl, {
-      errorCorrectionLevel: "M",
-      margin: 2,
-      width: 590,
-    });
     res.json({
       ok: true,
       paymentIntentId: attached.data.id,
       status: attributes.status || "",
       qrImage,
+      testUrl: paymongoTestUrl(attributes.next_action),
       wallet,
     });
   } catch (error) {

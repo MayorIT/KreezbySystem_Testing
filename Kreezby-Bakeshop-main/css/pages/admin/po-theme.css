@@ -2898,3 +2898,107 @@ body.po-admin-page #stocklevel-master .sl-search-input {
     background: #fff;
     color: #3e2723;
 }
+
+/* Phone: route sheet becomes one card per location so every amount stays readable. */
+@media (max-width: 480px) {
+    body.po-admin-page .manual-route-sheet-card {
+        overflow: visible;
+    }
+
+    body.po-admin-page .manual-sheet-header {
+        align-items: flex-start;
+    }
+
+    body.po-admin-page .manual-sheet-header .sheet-edit-btn {
+        margin-left: 0 !important;
+    }
+
+    body.po-admin-page .manual-sheet-scroll {
+        overflow: visible;
+    }
+
+    body.po-admin-page table.manual-sheet-table {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100%;
+        table-layout: auto;
+    }
+
+    body.po-admin-page table.manual-sheet-table colgroup,
+    body.po-admin-page table.manual-sheet-table thead {
+        display: none;
+    }
+
+    body.po-admin-page table.manual-sheet-table tbody,
+    body.po-admin-page table.manual-sheet-table tfoot {
+        display: block;
+        width: 100%;
+    }
+
+    body.po-admin-page table.manual-sheet-table tbody tr,
+    body.po-admin-page table.manual-sheet-table tfoot tr {
+        display: block;
+        width: 100%;
+        margin: 0 0 10px;
+        padding: 8px 12px;
+        border: 1px solid #e4d8c4;
+        border-radius: 10px;
+        background: #fff;
+        box-sizing: border-box;
+    }
+
+    body.po-admin-page table.manual-sheet-table tfoot tr {
+        background: #faf6f1;
+    }
+
+    body.po-admin-page table.manual-sheet-table td {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        width: auto !important;
+        max-width: 100%;
+        padding: 4px 0 !important;
+        border: 0 !important;
+        text-align: right !important;
+        white-space: normal !important;
+        overflow: visible;
+        line-height: 1.35;
+        box-sizing: border-box;
+    }
+
+    body.po-admin-page table.manual-sheet-table td::before {
+        flex: 0 0 auto;
+        font-weight: 700;
+        color: #5d4037;
+        text-align: left;
+    }
+
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(1)::before { content: "#"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(2)::before { content: "Location"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(3)::before { content: "Account receivable"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(4)::before { content: "Cons"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(5)::before { content: "COD"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(6)::before { content: "Staff"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(7)::before { content: "Check"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(8)::before { content: "F"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(9)::before { content: "P.O"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(10)::before { content: "R"; }
+    body.po-admin-page table.manual-sheet-table tbody td:nth-child(11)::before { content: "Collected"; }
+
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(1)::before { content: "Totals"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(2)::before { content: "Cons"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(3)::before { content: "COD"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(4)::before { content: "Staff"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(5)::before { content: "Check"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(6)::before { content: "F"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(7)::before { content: "P.O"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(8)::before { content: "R"; }
+    body.po-admin-page table.manual-sheet-table tfoot td:nth-child(9)::before { content: "Collected"; }
+
+    body.po-admin-page table.manual-sheet-table td.money-cell,
+    body.po-admin-page table.manual-sheet-table td.money-cell .money-cell {
+        white-space: nowrap !important;
+    }
+}

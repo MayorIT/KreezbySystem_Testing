@@ -152,6 +152,8 @@
             maya: 'Maya',
             maribank: 'MariBank',
             metrobank: 'Metrobank',
+            paymongo: 'QR Ph',
+            qrph: 'QR Ph',
             cash_on_delivery: 'Cash on delivery'
         };
         return labels[method] || method || 'Paid';
@@ -302,7 +304,7 @@
 
     function paymentReply() {
         return {
-            text: 'Customers can pay with PayMongo or cash on delivery.\n\nPayMongo:\n1. Choose PayMongo at checkout.\n2. Enter the email for the receipt.\n3. Tap Show QR code.\n4. Scan the QR with GCash or Maya. The order is placed only after that scan succeeds.\n\nCash on delivery:\n1. Choose Cash on delivery.\n2. Place the order and pay cash when it arrives.',
+            text: 'Customers can pay with QR Ph or cash on delivery.\n\nQR Ph:\n1. Choose QR Ph at checkout.\n2. Enter the email for the receipt.\n3. Tap Show QR code.\n4. Scan the QR Ph code with any participating bank or e-wallet app. The order is placed only after that scan succeeds.\n\nCash on delivery:\n1. Choose Cash on delivery.\n2. Place the order and pay cash when it arrives.',
             chips: [
                 { label: 'Track my order', prompt: 'Track my order' },
                 { label: 'How do I place an order?', prompt: 'How do I place an order?' },
@@ -372,7 +374,7 @@
 
     function orderHowReply() {
         return {
-            text: 'To place an order:\n1. Open the shop and pick a crinkle flavor.\n2. Set the quantity and tap Add To Cart.\n3. Check out with your name, phone, and full delivery address.\n4. Choose PayMongo or cash on delivery.\n5. For PayMongo, enter your email and tap Show QR code, then scan it with GCash or Maya. For cash on delivery, pay when the order arrives.\n6. The PayMongo order is placed after the QR payment succeeds.',
+            text: 'To place an order:\n1. Open the shop and pick a crinkle flavor.\n2. Set the quantity and tap Add To Cart.\n3. Check out with your name, phone, and full delivery address.\n4. Choose QR Ph or cash on delivery.\n5. For QR Ph, enter your email and tap Show QR code, then scan the QR Ph code. For cash on delivery, pay when the order arrives.\n6. The QR Ph order is placed after the payment succeeds.',
             blocks: [{ type: 'links', links: [{ href: 'customer.html', label: 'Back to the shop' }] }],
             chips: [
                 { label: 'What crinkles do you have?', prompt: 'What crinkles do you have?' },

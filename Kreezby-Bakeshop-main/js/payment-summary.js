@@ -13,8 +13,12 @@
             icon: '<svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" fill="#007dfe"/><path d="M9 18h6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>'
         },
         paymongo: {
-            name: 'PayMongo',
-            icon: '<img src="../assets/payments/paymongo.svg" alt="">'
+            name: 'QR Ph',
+            icon: '<img src="../assets/payments/qrph.svg" alt="">'
+        },
+        qrph: {
+            name: 'QR Ph',
+            icon: '<img src="../assets/payments/qrph.svg" alt="">'
         },
         cash_on_delivery: {
             name: 'Cash on delivery',
