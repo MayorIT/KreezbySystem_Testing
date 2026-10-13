@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../js/kreezby-db-sync.js"></script>
+<script src="../js/kreezby-db-sync.js?v=20261014pkg"></script>
     <meta charset="UTF-8">
         <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
@@ -94,7 +94,7 @@
                                 <td><strong>CRK-CHO-P</strong></td>
                                 <td><span class="stock-type-badge finished-product">Finished Product</span></td>
                                 <td>Chocolate Crinkles</td>
-                                <td>Pouch (8 Pcs)</td>
+                                <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">450</td>
                                 <td style="text-align: right;">?120.00</td>
                                 <td style="text-align: right; font-weight: 600;">?54,000.00</td>
@@ -114,7 +114,7 @@
                                 <td><strong>CRK-ALM-P</strong></td>
                                 <td><span class="stock-type-badge finished-product">Finished Product</span></td>
                                 <td>Choco-Almond Crinkles</td>
-                                <td>Pouch (8 Pcs)</td>
+                                <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">320</td>
                                 <td style="text-align: right;">?125.00</td>
                                 <td style="text-align: right; font-weight: 600;">?40,000.00</td>
@@ -134,7 +134,7 @@
                                 <td><strong>CRK-LEM-P</strong></td>
                                 <td><span class="stock-type-badge finished-product">Finished Product</span></td>
                                 <td>Lemon Crinkles</td>
-                                <td>Pouch (8 Pcs)</td>
+                                <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text low-warning">85</td>
                                 <td style="text-align: right;">?120.00</td>
                                 <td style="text-align: right; font-weight: 600;">?10,200.00</td>
@@ -154,7 +154,7 @@
                                 <td><strong>CRK-BUT-J</strong></td>
                                 <td><span class="stock-type-badge finished-product">Finished Product</span></td>
                                 <td>Choco Butternut Crinkles</td>
-                                <td>Jar (250g Container)</td>
+                                <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">210</td>
                                 <td style="text-align: right;">?150.00</td>
                                 <td style="text-align: right; font-weight: 600;">?31,500.00</td>
@@ -174,7 +174,7 @@
                                 <td><strong>CRK-MNG-J</strong></td>
                                 <td><span class="stock-type-badge finished-product">Finished Product</span></td>
                                 <td>Mango Crinkles</td>
-                                <td>Jar (250g Container)</td>
+                                <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text low-warning">45</td>
                                 <td style="text-align: right;">?150.00</td>
                                 <td style="text-align: right; font-weight: 600;">?6,750.00</td>
@@ -189,173 +189,233 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-flr-01 all-purpose flour sack">
+                                                        <tr class="stock-row" data-stock-type="raw-material" data-search="rm-wfl-01 wheat flour">
                                 <td>6</td>
-                                <td><strong>RM-FLR-01</strong></td>
+                                <td><strong>RM-WFL-01</strong></td>
                                 <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>All-Purpose Flour</td>
-                                <td>25 kg Sack</td>
+                                <td>Wheat Flour</td>
+                                <td>Quantity</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">120</td>
-                                <td style="text-align: right;">?850.00</td>
-                                <td style="text-align: right; font-weight: 600;">?102,000.00</td>
+                                <td style="text-align: right;">?48.00</td>
+                                <td style="text-align: right; font-weight: 600;">?5,760.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-6')">Action ?</button>
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-6')">Action ▾</button>
                                         <div class="action-popup-menu" id="pop-6">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'All-Purpose Flour')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'All-Purpose Flour')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'All-Purpose Flour')">Archive Item</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Wheat Flour')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Wheat Flour')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Wheat Flour')">Archive Item</div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-coc-01 cocoa powder bag">
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-wsg-01 white sugar">
                                 <td>7</td>
+                                <td><strong>RM-WSG-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>White Sugar</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">90</td>
+                                <td style="text-align: right;">?42.00</td>
+                                <td style="text-align: right; font-weight: 600;">?3,780.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-7')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-7">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'White Sugar')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'White Sugar')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'White Sugar')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-oil-01 vegetable oil">
+                                <td>8</td>
+                                <td><strong>RM-OIL-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Vegetable Oil</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">48</td>
+                                <td style="text-align: right;">?95.00</td>
+                                <td style="text-align: right; font-weight: 600;">?4,560.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-8')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-8">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Vegetable Oil')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Vegetable Oil')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Vegetable Oil')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-egg-01 egg">
+                                <td>9</td>
+                                <td><strong>RM-EGG-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Egg</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">36</td>
+                                <td style="text-align: right;">?9.00</td>
+                                <td style="text-align: right; font-weight: 600;">?324.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-9')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-9">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Egg')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Egg')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Egg')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-coc-01 cocoa">
+                                <td>10</td>
                                 <td><strong>RM-COC-01</strong></td>
                                 <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Cocoa Powder</td>
-                                <td>5 kg Bag</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">45</td>
-                                <td style="text-align: right;">?1,200.00</td>
-                                <td style="text-align: right; font-weight: 600;">?54,000.00</td>
+                                <td>Cocoa</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">45</td>
+                                <td style="text-align: right;">?180.00</td>
+                                <td style="text-align: right; font-weight: 600;">?8,100.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-7')">Action ?</button>
-                                        <div class="action-popup-menu" id="pop-7">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Cocoa Powder')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Cocoa Powder')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Cocoa Powder')">Archive Item</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-sug-01 granulated sugar sack">
-                                <td>8</td>
-                                <td><strong>RM-SUG-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Granulated Sugar</td>
-                                <td>50 kg Sack</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">80</td>
-                                <td style="text-align: right;">?620.00</td>
-                                <td style="text-align: right; font-weight: 600;">?49,600.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-8')">Action ?</button>
-                                        <div class="action-popup-menu" id="pop-8">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Granulated Sugar')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Granulated Sugar')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Granulated Sugar')">Archive Item</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-but-01 unsalted butter block">
-                                <td>9</td>
-                                <td><strong>RM-BUT-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Unsalted Butter</td>
-                                <td>2.5 kg Block</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">60</td>
-                                <td style="text-align: right;">?280.00</td>
-                                <td style="text-align: right; font-weight: 600;">?16,800.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-9')">Action ?</button>
-                                        <div class="action-popup-menu" id="pop-9">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Unsalted Butter')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Unsalted Butter')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Unsalted Butter')">Archive Item</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-pou-01 crinkle pouch roll">
-                                <td>10</td>
-                                <td><strong>PKG-POU-01</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Crinkle Pouch (8 Pcs)</td>
-                                <td>Roll (500 pcs)</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">35</td>
-                                <td style="text-align: right;">?450.00</td>
-                                <td style="text-align: right; font-weight: 600;">?15,750.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-10')">Action ?</button>
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-10')">Action ▾</button>
                                         <div class="action-popup-menu" id="pop-10">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Crinkle Pouch')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Crinkle Pouch')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Crinkle Pouch')">Archive Item</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Cocoa')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Cocoa')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Cocoa')">Archive Item</div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-jar-01 glass jar lid carton">
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-bkp-01 baking powder">
                                 <td>11</td>
-                                <td><strong>PKG-JAR-01</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>250g Glass Jar with Lid</td>
-                                <td>Carton (24 pcs)</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">18</td>
-                                <td style="text-align: right;">?960.00</td>
-                                <td style="text-align: right; font-weight: 600;">?17,280.00</td>
+                                <td><strong>RM-BKP-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Baking Powder</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">22</td>
+                                <td style="text-align: right;">?35.00</td>
+                                <td style="text-align: right; font-weight: 600;">?770.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-11')">Action ?</button>
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-11')">Action ▾</button>
                                         <div class="action-popup-menu" id="pop-11">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Glass Jar with Lid')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Glass Jar with Lid')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Glass Jar with Lid')">Archive Item</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Baking Powder')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Baking Powder')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Baking Powder')">Archive Item</div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-lbl-01 product label sticker roll">
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-slt-01 salt">
                                 <td>12</td>
-                                <td><strong>PKG-LBL-01</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Product Label Sticker</td>
-                                <td>Roll (1,000 labels)</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">12</td>
-                                <td style="text-align: right;">?350.00</td>
-                                <td style="text-align: right; font-weight: 600;">?4,200.00</td>
+                                <td><strong>RM-SLT-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Salt</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">70</td>
+                                <td style="text-align: right;">?18.00</td>
+                                <td style="text-align: right; font-weight: 600;">?1,260.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-12')">Action ?</button>
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-12')">Action ▾</button>
                                         <div class="action-popup-menu" id="pop-12">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Product Label Sticker')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Product Label Sticker')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Product Label Sticker')">Archive Item</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Salt')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Salt')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Salt')">Archive Item</div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-box-01 shipping carton box bundle">
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-cfs-01 confectioner sugar">
                                 <td>13</td>
-                                <td><strong>PKG-BOX-01</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Corrugated Shipping Box</td>
-                                <td>Bundle (50 pcs)</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">25</td>
-                                <td style="text-align: right;">?420.00</td>
-                                <td style="text-align: right; font-weight: 600;">?10,500.00</td>
+                                <td><strong>RM-CFS-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Confectioner Sugar</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">30</td>
+                                <td style="text-align: right;">?55.00</td>
+                                <td style="text-align: right; font-weight: 600;">?1,650.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-13')">Action ?</button>
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-13')">Action ▾</button>
                                         <div class="action-popup-menu" id="pop-13">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Shipping Box')">View History</div>
-                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Shipping Box')">Adjust Stock</div>
-                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Shipping Box')">Archive Item</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Confectioner Sugar')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Confectioner Sugar')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Confectioner Sugar')">Archive Item</div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                        </tbody>
+                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-psb-01 potassium sorbate">
+                                <td>14</td>
+                                <td><strong>RM-PSB-01</strong></td>
+                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
+                                <td>Potassium Sorbate</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">12</td>
+                                <td style="text-align: right;">?220.00</td>
+                                <td style="text-align: right; font-weight: 600;">?2,640.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-14')">Action ▾</button>
+                                        <div class="action-popup-menu" id="pop-14">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Potassium Sorbate')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Potassium Sorbate')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Potassium Sorbate')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-sup-01 stand up pouch">
+                                <td>15</td>
+                                <td><strong>PKG-SUP-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>Stand up pouch</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text high-stock">80</td>
+                                <td style="text-align: right;">?12.00</td>
+                                <td style="text-align: right; font-weight: 600;">?960.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-15')">Action ?</button>
+                                        <div class="action-popup-menu" id="pop-15">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stand up pouch')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Stand up pouch')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Stand up pouch')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-01 stickers per flavor">
+                                <td>16</td>
+                                <td><strong>PKG-STK-01</strong></td>
+                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
+                                <td>Stickers (Per Flavor)</td>
+                                <td>Quantity</td>
+                                <td style="text-align: right;" class="inventory-count-text low-warning">12</td>
+                                <td style="text-align: right;">?3.00</td>
+                                <td style="text-align: right; font-weight: 600;">?36.00</td>
+                                <td style="text-align: center;">
+                                    <div class="action-menu-relative-container">
+                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-16')">Action ?</button>
+                                        <div class="action-popup-menu" id="pop-16">
+                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Per Flavor)')">View History</div>
+                                            <div class="action-popup-item" onclick="handleStockAction('adjust', 'Stickers (Per Flavor)')">Adjust Stock</div>
+                                            <div class="action-popup-item delete-type" onclick="handleStockAction('archive', 'Stickers (Per Flavor)')">Archive Item</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+</tbody>
                         <tfoot>
                             <tr style="background-color: #fafafa; font-weight: bold; font-size: 14px;">
                                 <td colspan="5" style="text-align: right;">Total Aggregated Inventory Assets:</td>
                                 <td style="text-align: right; color: var(--brand-brown);">Mixed Units</td>
                                 <td>-</td>
-                                <td style="text-align: right; color: #0d47a1;">?412,580.00</td>
+                                <td style="text-align: right; color: #0d47a1;">?172,290.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -416,9 +476,9 @@
             });
         }
     </script>
-    <script src="../js/staff-permissions.js?v=20261011invrep"></script>
+    <script src="../js/staff-permissions.js?v=20261013nopo"></script>
         <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
-        <script src="../js/staff-sidebar.js?v=20261010norecv"></script>
+        <script src="../js/staff-sidebar.js?v=20261013nopo"></script>
 <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

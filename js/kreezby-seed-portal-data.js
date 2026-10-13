@@ -5,7 +5,7 @@
 (function (root) {
     'use strict';
 
-    var VERSION = '20261009retail';
+    var VERSION = '20261014rm';
     var VERSION_KEY = 'kreezbyPortalSeedVersion';
 
     function clone(value) {
@@ -149,10 +149,10 @@
             id: 'recv-flour-001', supplier: 'Golden Harvest Milling', sourceType: 'Supplier',
             entity: 'Kreezby Bakeshop', dateReceived: '2026-09-14 08:15',
             type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Flour and sugar delivery complete.',
-            poOrigin: 'PO-SUP-441', reference: 'GRN-441', subTotal: 48200,
+            poOrigin: 'PO-SUP-441', reference: 'GRN-441', subTotal: 2760,
             lineItems: [
-                line(40, 'Sacks', 'All-Purpose Flour', '25kg', 980),
-                line(20, 'Sacks', 'Refined Sugar', '25kg', 450)
+                line(40, 'Quantity', 'Wheat Flour', '', 48),
+                line(20, 'Quantity', 'White Sugar', '', 42)
             ]
         },
         'recv-sidc-001': {
@@ -368,7 +368,7 @@
         },
         {
             id: 'n-alert-stock-mango', title: 'Low stock alert',
-            description: 'Mango Crinkles dropped below the safety threshold. Current stock: 45 jars.',
+            description: 'Mango Crinkles dropped below the safety threshold. Current stock: 45 pouches.',
             timestamp: '2026-09-22T07:40:00.000Z', read: false, source: 'alert'
         },
         {

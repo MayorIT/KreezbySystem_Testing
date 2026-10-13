@@ -28,7 +28,9 @@
 
             { category: 'Raw Materials', units: 98000, pct: 47 },
 
-            { category: 'Finished Products', units: 112000, pct: 53 }
+            { category: 'Finished Products', units: 104000, pct: 49 },
+
+            { category: 'Packaging', units: 8000, pct: 4 }
 
         ],
 
@@ -36,7 +38,9 @@
 
             { category: 'Raw Materials', value: 185400, pct: 31 },
 
-            { category: 'Finished Products', value: 412600, pct: 69 }
+            { category: 'Finished Products', value: 394600, pct: 66 },
+
+            { category: 'Packaging', value: 18000, pct: 3 }
 
         ],
 
@@ -70,49 +74,49 @@
 
         lowStockAlerts: [
 
-            { item: 'Chocolate', type: 'Raw Material', current: '45 kg', reorder: '100 kg', status: 'low' },
+            { item: 'Vegetable Oil', type: 'Raw Material', current: '48 Quantity', reorder: '60 Quantity', status: 'low' },
 
-            { item: 'Ube', type: 'Raw Material', current: '0 kg', reorder: '25 kg', status: 'critical' },
+            { item: 'Egg', type: 'Raw Material', current: '36 Quantity', reorder: '60 Quantity', status: 'critical' },
 
-            { item: 'Choco-Almond', type: 'Finished', current: '18 packs', reorder: '40 packs', status: 'low' },
+            { item: 'Choco-Almond', type: 'Finished', current: '18 Pouches', reorder: '40 Pouches', status: 'low' },
 
-            { item: 'Flour (Premium)', type: 'Raw Material', current: '120 kg', reorder: '200 kg', status: 'low' },
+            { item: 'Cocoa', type: 'Raw Material', current: '45 Quantity', reorder: '60 Quantity', status: 'low' },
 
-            { item: 'Butter', type: 'Raw Material', current: '8 kg', reorder: '30 kg', status: 'critical' },
+            { item: 'Baking Powder', type: 'Raw Material', current: '22 Quantity', reorder: '50 Quantity', status: 'critical' },
 
-            { item: 'Cocoa Powder', type: 'Raw Material', current: '22 kg', reorder: '50 kg', status: 'low' },
+            { item: 'Potassium Sorbate', type: 'Raw Material', current: '12 Quantity', reorder: '40 Quantity', status: 'critical' },
 
-            { item: 'Lemon Crinkles', type: 'Finished', current: '85 packs', reorder: '100 packs', status: 'low' },
+            { item: 'Lemon Crinkles', type: 'Finished', current: '85 Pouches', reorder: '100 Pouches', status: 'low' },
 
-            { item: 'Mango Crinkles', type: 'Finished', current: '45 jars', reorder: '75 jars', status: 'critical' },
+            { item: 'Mango Crinkles', type: 'Finished', current: '45 Pouches', reorder: '75 Pouches', status: 'critical' },
 
-            { item: 'Red Velvet', type: 'Finished', current: '92 packs', reorder: '120 packs', status: 'low' },
+            { item: 'Red Velvet', type: 'Finished', current: '92 Pouches', reorder: '120 Pouches', status: 'low' },
 
-            { item: 'Melon Crinkles', type: 'Finished', current: '64 packs', reorder: '100 packs', status: 'low' }
+            { item: 'Melon Crinkles', type: 'Finished', current: '64 Pouches', reorder: '100 Pouches', status: 'low' }
 
         ],
 
         healthItems: [
 
-            { item: 'Chocolate Crinkles', code: 'CRK-CHO-P', category: 'Finished Products', stock: '450 packs', reorder: '150', weeks: 8, status: 'well' },
+            { item: 'Chocolate Crinkles', code: 'CRK-CHO-P', category: 'Finished Products', stock: '450 Pouches', reorder: '150 Pouches', weeks: 8, status: 'well' },
 
-            { item: 'Choco-Almond Crinkles', code: 'CRK-ALM-P', category: 'Finished Products', stock: '320 packs', reorder: '100', weeks: 9, status: 'well' },
+            { item: 'Choco-Almond Crinkles', code: 'CRK-ALM-P', category: 'Finished Products', stock: '320 Pouches', reorder: '100 Pouches', weeks: 9, status: 'well' },
 
-            { item: 'Choco Butternut', code: 'CRK-BUT-J', category: 'Finished Products', stock: '210 jars', reorder: '80', weeks: 7, status: 'well' },
+            { item: 'Choco Butternut', code: 'CRK-BUT-J', category: 'Finished Products', stock: '210 Pouches', reorder: '80 Pouches', weeks: 7, status: 'well' },
 
-            { item: 'Ube Crinkles', code: 'CRK-UBE-P', category: 'Finished Products', stock: '180 packs', reorder: '100', weeks: 6, status: 'well' },
+            { item: 'Ube Crinkles', code: 'CRK-UBE-P', category: 'Finished Products', stock: '180 Pouches', reorder: '100 Pouches', weeks: 6, status: 'well' },
 
-            { item: 'Lemon Crinkles', code: 'CRK-LEM-P', category: 'Finished Products', stock: '85 packs', reorder: '100', weeks: 3, status: 'low' },
+            { item: 'Lemon Crinkles', code: 'CRK-LEM-P', category: 'Finished Products', stock: '85 Pouches', reorder: '100 Pouches', weeks: 3, status: 'low' },
 
-            { item: 'Mango Crinkles', code: 'CRK-MNG-J', category: 'Finished Products', stock: '45 jars', reorder: '75', weeks: 2, status: 'low' },
+            { item: 'Mango Crinkles', code: 'CRK-MNG-J', category: 'Finished Products', stock: '45 Pouches', reorder: '75 Pouches', weeks: 2, status: 'low' },
 
-            { item: 'Chocolate (Raw)', code: 'RAW-CHO', category: 'Raw Materials', stock: '45 kg', reorder: '100 kg', weeks: 1, status: 'low' },
+            { item: 'Wheat Flour', code: 'RM-WFL-01', category: 'Raw Materials', stock: '120 Quantity', reorder: '80 Quantity', weeks: 14, status: 'well' },
 
-            { item: 'Ube Flavoring', code: 'RAW-UBE', category: 'Raw Materials', stock: '0 kg', reorder: '25 kg', weeks: 0, status: 'out' },
+            { item: 'White Sugar', code: 'RM-WSG-01', category: 'Raw Materials', stock: '90 Quantity', reorder: '60 Quantity', weeks: 10, status: 'well' },
 
-            { item: 'Flour (Premium)', code: 'RAW-FLR', category: 'Raw Materials', stock: '820 kg', reorder: '200 kg', weeks: 14, status: 'well' },
+            { item: 'Egg', code: 'RM-EGG-01', category: 'Raw Materials', stock: '36 Quantity', reorder: '60 Quantity', weeks: 1, status: 'low' },
 
-            { item: 'Red Velvet Pouch', code: 'CRK-RVV-P', category: 'Finished Products', stock: '890 packs', reorder: '120', weeks: 16, status: 'well' }
+            { item: 'Red Velvet Pouch', code: 'CRK-RVV-P', category: 'Finished Products', stock: '890 Pouches', reorder: '120 Pouches', weeks: 16, status: 'well' }
 
         ],
 
@@ -128,7 +132,7 @@
 
                 tone: 'good',
 
-                items: ['Flour (Premium)', 'Chocolate (Raw)', 'Butter', 'Cocoa Powder', 'Ube Flavoring', 'Sugar', 'Eggs']
+                items: ['Wheat Flour', 'White Sugar', 'Vegetable Oil', 'Egg', 'Cocoa', 'Baking Powder', 'Salt', 'Confectioner Sugar', 'Potassium Sorbate']
 
             },
 
@@ -144,21 +148,35 @@
 
                 items: ['Chocolate Crinkles', 'Choco-Almond', 'Ube Crinkles', 'Lemon Crinkles', 'Mango Crinkles', 'Red Velvet']
 
+            },
+
+            {
+
+                name: 'Packaging',
+
+                pct: 40,
+
+                count: 2,
+
+                tone: 'warn',
+
+                items: ['Stand up pouch', 'Stickers (Per Flavor)']
+
             }
 
         ],
 
         slowMoving: [
 
-            { item: 'Product A', category: 'Finished Products', sold: '1,250', lastSold: '12/12/2023', stock: '1,250', weeks: '16', status: 'slow' },
+            { item: 'Product A', category: 'Finished Products', sold: '1,250 Pouches', lastSold: '12/12/2023', stock: '1,250 Pouches', weeks: '16', status: 'slow' },
 
-            { item: 'Red Velvet Pouch', category: 'Finished Products', sold: '420', lastSold: '01/15/2024', stock: '890', weeks: '14', status: 'slow' },
+            { item: 'Red Velvet Pouch', category: 'Finished Products', sold: '420 Pouches', lastSold: '01/15/2024', stock: '890 Pouches', weeks: '14', status: 'slow' },
 
-            { item: 'Pandan Crinkles', category: 'Finished Products', sold: '310', lastSold: '02/02/2024', stock: '640', weeks: '13', status: 'slow' },
+            { item: 'Pandan Crinkles', category: 'Finished Products', sold: '310 Pouches', lastSold: '02/02/2024', stock: '640 Pouches', weeks: '13', status: 'slow' },
 
-            { item: 'Melon Crinkles', category: 'Finished Products', sold: '280', lastSold: '02/18/2024', stock: '520', weeks: '12', status: 'slow' },
+            { item: 'Melon Crinkles', category: 'Finished Products', sold: '280 Pouches', lastSold: '02/18/2024', stock: '520 Pouches', weeks: '12', status: 'slow' },
 
-            { item: 'Strawberry Jar', category: 'Finished Products', sold: '160', lastSold: '03/10/2024', stock: '380', weeks: '10', status: 'slow' }
+            { item: 'Strawberry Crinkles', category: 'Finished Products', sold: '160 Pouches', lastSold: '03/10/2024', stock: '380 Pouches', weeks: '10', status: 'slow' }
 
         ],
 
@@ -314,7 +332,7 @@
 
         return ''
 
-            + '<svg class="sl-line-chart' + (tall ? ' sl-line-chart-tall' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Stock value versus sales chart">'
+            + '<svg class="sl-line-chart' + (tall ? ' sl-line-chart-tall' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="Stock value versus sales chart">'
 
             + grid
 
@@ -694,7 +712,7 @@
 
             + '</div>'
 
-            + '<div class="sl-panel"><div class="sl-panel-head"><h4>Low Stock Alerts</h4><span class="sl-alert-badge">' + DATA.alertCount + '</span></div>'
+            + '<div class="sl-panel"><div class="sl-panel-head"><h4>Low Stock Alert</h4><span class="sl-alert-badge">' + DATA.alertCount + '</span></div>'
 
             + '<div class="sl-table-wrap" id="sl-alerts-table-wrap">' + alertsTable(DATA.lowStockAlerts) + '</div></div>'
 
@@ -786,7 +804,7 @@
 
             + '<div class="sl-chart-legend"><span class="sl-legend-stock">● Stock Value (₱)</span><span class="sl-legend-sales">● Sales Value (₱)</span></div>'
 
-            + chartSvg(DATA.chartMonths, DATA.stockSeries, DATA.salesSeries, true)
+            + chartSvg(DATA.chartMonths, DATA.stockSeries, DATA.salesSeries, false)
 
             + '</div>'
 
@@ -856,7 +874,7 @@
 
         if (!root) return;
 
-        var view = root.getAttribute('data-view') || 'units';
+        var view = root.getAttribute('data-view') || 'value';
 
         var reportHref = root.getAttribute('data-report-href');
         if (!reportHref) {
@@ -866,7 +884,7 @@
                 : (/\/staff\//i.test(pathName) || /\/staff_names\//i.test(pathName) ? 'stocks-staff.html' : 'stocks-admin.html');
         }
 
-        var fn = RENDERERS[view] || renderUnits;
+        var fn = RENDERERS[view] || renderValue;
 
         fn(root, reportHref);
         linkStockRows(root, reportHref);

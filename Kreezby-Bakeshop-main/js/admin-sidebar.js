@@ -51,8 +51,6 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-        { key: 'po', label: 'Purchase Order', href: 'po-admin.html', icon: 'cart' },
-
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
@@ -252,8 +250,6 @@
         if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
 
         if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
-
-        if (filename.indexOf('po-') === 0) return 'po';
 
         if (filename.indexOf('receive-') === 0) return 'receive';
 

@@ -69,7 +69,6 @@
 
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
-        po: { label: 'Purchase Order', page: 'po-staff.html' },
         bo: { label: 'Back Order', page: 'bo-staff.html' },
         return: { label: 'Return/P.O List', page: 'return-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
@@ -99,7 +98,7 @@
 
     var DEFAULT_PERMISSIONS = {
         'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox', 'deliveryschedule'],
-        'staff-2': ['dashboard', 'po', 'bo', 'return', 'alert', 'deliveryschedule'],
+        'staff-2': ['dashboard', 'bo', 'return', 'alert', 'deliveryschedule'],
         'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert', 'deliveryschedule'],
         'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'],
         'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'],
@@ -108,7 +107,7 @@
     };
 
     var TASK_ORDER = [
-        'dashboard', 'po', 'bo', 'return', 'stocks',
+        'dashboard', 'bo', 'return', 'stocks',
         'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
@@ -130,11 +129,7 @@
     PAGE_TO_TASK['forecast-staff.html'] = 'aiforecast';
     PAGE_TO_TASK['insight-staff.html'] = 'aiforecast';
     PAGE_TO_TASK['stocklevel-value-staff.html'] = 'stocklevel';
-    PAGE_TO_TASK['stocklevel-capacity-staff.html'] = 'stocklevel';
-    PAGE_TO_TASK['stocklevel-weeks-staff.html'] = 'stocklevel';
-    PAGE_TO_TASK['stocklevel-health-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-alerts-staff.html'] = 'stocklevel';
-    PAGE_TO_TASK['stocklevel-category-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-slow-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-chart-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['order-tracking-staff.html'] = 'ordertracking';
@@ -213,10 +208,10 @@
             return ['dashboard', 'stocks', 'alert', 'inbox', 'deliveryschedule'];
         }
         if (text.indexOf('production') >= 0) {
-            return ['dashboard', 'po', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('admin') >= 0 || text.indexOf('executive') >= 0) {
-            return ['dashboard', 'po', 'saleslist', 'alert', 'inbox', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'alert', 'inbox', 'deliveryschedule'];
         }
         return ['dashboard', 'alert', 'deliveryschedule'];
     }

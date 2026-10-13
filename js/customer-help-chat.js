@@ -10,18 +10,18 @@
     var JNT_TRACK = 'https://www.jtexpress.ph/track-and-trace?billCodes=';
 
     var CATALOG = [
-        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['chocolate crinkles', 'plain chocolate'] },
-        { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['almond', 'choco-almond', 'choco almond'] },
-        { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['cashew', 'choco-cashew', 'choco cashew'] },
-        { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['strawberry', 'straw'] },
-        { id: 'flavor-velvet', name: 'Red Velvet Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['red velvet', 'velvet'] },
-        { id: 'flavor-lemon', name: 'Lemon Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['lemon'] },
-        { id: 'flavor-melon', name: 'Melon Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['melon'] },
-        { id: 'flavor-pandan', name: 'Pandan Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['pandan'] },
-        { id: 'flavor-ube', name: 'Ube Crinkles', variant: 'Pouch (8 Pcs)', cost: 165, keys: ['ube', 'purple yam'] },
+        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouches', cost: 165, keys: ['chocolate crinkles', 'plain chocolate'] },
+        { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouches', cost: 165, keys: ['almond', 'choco-almond', 'choco almond'] },
+        { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouches', cost: 165, keys: ['cashew', 'choco-cashew', 'choco cashew'] },
+        { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouches', cost: 165, keys: ['strawberry', 'straw'] },
+        { id: 'flavor-velvet', name: 'Red Velvet Crinkles', variant: 'Pouches', cost: 165, keys: ['red velvet', 'velvet'] },
+        { id: 'flavor-lemon', name: 'Lemon Crinkles', variant: 'Pouches', cost: 165, keys: ['lemon'] },
+        { id: 'flavor-melon', name: 'Melon Crinkles', variant: 'Pouches', cost: 165, keys: ['melon'] },
+        { id: 'flavor-pandan', name: 'Pandan Crinkles', variant: 'Pouches', cost: 165, keys: ['pandan'] },
+        { id: 'flavor-ube', name: 'Ube Crinkles', variant: 'Pouches', cost: 165, keys: ['ube', 'purple yam'] },
         { id: 'flavor-assorted', name: 'Assorted Crinkles', variant: 'Pouch (250g)', cost: 165, keys: ['assorted', 'assorted crinkles', 'mixed'] },
-        { id: 'flavor-mango', name: 'Mango Crinkles', variant: 'Jar (250g Container)', cost: 165, keys: ['mango'] },
-        { id: 'flavor-butternut', name: 'Choco Butternut Crinkles', variant: 'Jar (250g Container)', cost: 200, keys: ['butternut', 'choco butternut'] }
+        { id: 'flavor-mango', name: 'Mango Crinkles', variant: 'Pouches', cost: 165, keys: ['mango'] },
+        { id: 'flavor-butternut', name: 'Choco Butternut Crinkles', variant: 'Pouches', cost: 200, keys: ['butternut', 'choco butternut'] }
     ];
 
     var MENU = [

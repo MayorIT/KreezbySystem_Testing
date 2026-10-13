@@ -45,7 +45,6 @@
 
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
-        { key: 'po', label: 'Purchase Order', href: 'po-staff.html', icon: 'cart' },
         { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
         { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
@@ -173,7 +172,7 @@
         var items = [];
 
         var taskOrder = api.TASK_ORDER || [
-            'dashboard', 'po', 'bo', 'return', 'stocks',
+            'dashboard', 'bo', 'return', 'stocks',
             'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
         ];
@@ -223,7 +222,6 @@
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
         if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
         if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
-        if (filename === 'po-staff.html') return 'po';
         if (filename === 'receive-staff.html') return 'receive';
         if (filename === 'bo-staff.html') return 'bo';
         if (filename === 'return-staff.html') return 'return';

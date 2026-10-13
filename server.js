@@ -16,6 +16,8 @@ const LOCAL_ONLY = new Set([
   "kreezby_wholesaler_home",
   "kreezby_admin_delivery_nav_v1",
   "kreezby_staff_delivery_nav_v1",
+  "kreezbyBrowserAlertSeen",
+  "kreezbyNotifyPrompted",
 ]);
 
 function isSharedKey(key) {

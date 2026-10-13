@@ -321,12 +321,12 @@
     var pendingSave = '';
     var ITEM_KEY = 'kreezby-maintenance-items-v1';
     var DEFAULT_ITEMS = [
-        { id: 'CRK-CHO-P', name: 'Chocolate Crinkles', pack: 'Pouch (8 Pcs)', rate: 165 },
-        { id: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', pack: 'Pouch (8 Pcs)', rate: 175 },
-        { id: 'CRK-LEM-P', name: 'Lemon Crinkles', pack: 'Pouch (8 Pcs)', rate: 155 },
-        { id: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', pack: 'Jar (250g Container)', rate: 210 },
-        { id: 'CRK-MNG-J', name: 'Mango Crinkles', pack: 'Jar (250g Container)', rate: 190 },
-        { id: 'CRK-UBE-P', name: 'Ube Crinkles', pack: 'Pouch (8 Pcs)', rate: 170 }
+        { id: 'CRK-CHO-P', name: 'Chocolate Crinkles', pack: 'Pouches', rate: 165 },
+        { id: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', pack: 'Pouches', rate: 175 },
+        { id: 'CRK-LEM-P', name: 'Lemon Crinkles', pack: 'Pouches', rate: 155 },
+        { id: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', pack: 'Pouches', rate: 210 },
+        { id: 'CRK-MNG-J', name: 'Mango Crinkles', pack: 'Pouches', rate: 190 },
+        { id: 'CRK-UBE-P', name: 'Ube Crinkles', pack: 'Pouches', rate: 170 }
     ];
 
     function loadItems() {
@@ -505,7 +505,7 @@
         var items = loadItems();
         var duplicate = items.some(function (item) { return String(item.id).toLowerCase() === sku.toLowerCase(); });
         if (duplicate) return { ok: false, message: 'That SKU is already in the item list.' };
-        items.push({ id: sku, name: name, pack: fields.pack || 'Pouch (8 Pcs)', rate: rate });
+        items.push({ id: sku, name: name, pack: fields.pack || 'Pouches', rate: rate });
         saveItems(items);
         return { ok: true, message: name + ' was added to the item list.' };
     }

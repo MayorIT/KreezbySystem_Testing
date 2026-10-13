@@ -14,15 +14,15 @@
             code: 'PO-0001', dateCreated: '2021-11-03 11:20', entity: 'Retailer 101',
             entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
             remarks: 'Standard replenishment order',
-            items: [{ qty: 100, unit: 'Boxes', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 }]
+            items: [{ qty: 100, unit: 'Quantity', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 }]
         },
         'PO-0002': {
             code: 'PO-0002', dateCreated: '2021-11-03 11:50', entity: 'Retailer 102',
             entityType: 'retailer', area: 'Lipa City', status: 'PENDING', statusClass: 'pending',
             remarks: 'Sample PO Only',
             items: [
-                { qty: 300, unit: 'Boxes', name: 'Item 102', note: 'Sample only', cost: 200, total: 60000 },
-                { qty: 200, unit: 'pcs', name: 'Item 104', note: 'Sample only', cost: 205, total: 41000 }
+                { qty: 300, unit: 'Quantity', name: 'Item 102', note: 'Sample only', cost: 200, total: 60000 },
+                { qty: 200, unit: 'Quantity', name: 'Item 104', note: 'Sample only', cost: 205, total: 41000 }
             ]
         },
         'PO-C001': {
@@ -30,15 +30,15 @@
             entityType: 'customer', area: 'Lipa City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Customer walk-in order',
             items: [
-                { qty: 10, unit: 'PCS', name: 'Chocolate', note: 'Crinkles', cost: 50, total: 500 },
-                { qty: 5, unit: 'PCS', name: 'Lemon', note: 'Crinkles', cost: 45, total: 225 }
+                { qty: 10, unit: 'Pouches', name: 'Chocolate', note: 'Crinkles', cost: 50, total: 500 },
+                { qty: 5, unit: 'Pouches', name: 'Lemon', note: 'Crinkles', cost: 45, total: 225 }
             ]
         },
         'PO-C002': {
             code: 'PO-C002', dateCreated: '2021-11-03 11:20', entity: 'Maria Santos',
             entityType: 'customer', area: 'Batangas City', status: 'PROCESSING', statusClass: 'pending',
             remarks: 'Pre-order pickup',
-            items: [{ qty: 8, unit: 'Jars', name: 'Choco Butternut', note: '', cost: 120, total: 960 }]
+            items: [{ qty: 8, unit: 'Pouches', name: 'Choco Butternut', note: '', cost: 120, total: 960 }]
         }
     };
 
@@ -1287,7 +1287,7 @@
     }
 
     function addModalItemRow(item) {
-        item = item || { name: '', unit: 'PCS', qty: 1, cost: 0 };
+        item = item || { name: '', unit: 'Quantity', qty: 1, cost: 0 };
         var tbody = document.getElementById('po-modal-items-injector');
         var idx = tbody.children.length + 1;
         var tr = document.createElement('tr');
@@ -1518,7 +1518,7 @@
         } else if (type === 'retailer') {
             addModalItemRow({ name: 'Chocolate Crinkles', unit: 'Pouches', qty: 24, cost: 165 });
         } else {
-            addModalItemRow({ name: 'Chocolate', unit: 'PCS', qty: 10, cost: 50 });
+            addModalItemRow({ name: 'Chocolate', unit: 'Pouches', qty: 10, cost: 50 });
         }
         editingPoCode = order ? order.code : null;
         applyRetailerOrderForm();

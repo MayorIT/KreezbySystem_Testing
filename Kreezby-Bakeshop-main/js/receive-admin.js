@@ -16,8 +16,8 @@
             type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0002', reference: '', subTotal: 30250,
             lineItems: [
-                { qty: 100, unit: 'Boxes', name: 'Item 102', note: 'Sample only', cost: 200, total: 20000 },
-                { qty: 205, unit: 'pcs', name: 'Item 104', note: 'Sample only', cost: 50, total: 10250 }
+                { qty: 100, unit: 'Quantity', name: 'Item 102', note: 'Sample only', cost: 200, total: 20000 },
+                { qty: 205, unit: 'Quantity', name: 'Item 104', note: 'Sample only', cost: 50, total: 10250 }
             ]
         },
         'recv-101': {
@@ -25,24 +25,24 @@
             type: 'Returned Order', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0001', reference: '', subTotal: 45200,
             lineItems: [
-                { qty: 100, unit: 'Boxes', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 },
-                { qty: 120, unit: 'Boxes', name: 'Item 103', note: 'Restock', cost: 180, total: 21600 },
-                { qty: 43, unit: 'pcs', name: 'Item 105', note: 'Add-on units', cost: 200, total: 8600 }
+                { qty: 100, unit: 'Quantity', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 },
+                { qty: 120, unit: 'Quantity', name: 'Item 103', note: 'Restock', cost: 180, total: 21600 },
+                { qty: 43, unit: 'Quantity', name: 'Item 105', note: 'Add-on units', cost: 200, total: 8600 }
             ]
         },
         'recv-103': {
             id: 'recv-103', supplier: 'Customer 301', sourceType: 'Customer', dateReceived: '2024-05-15 09:05',
             type: 'Supply', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0003', reference: '', subTotal: 12500,
-            lineItems: [{ qty: 50, unit: 'Boxes', name: 'Item 106', note: 'Full delivery', cost: 250, total: 12500 }]
+            lineItems: [{ qty: 50, unit: 'Quantity', name: 'Item 106', note: 'Full delivery', cost: 250, total: 12500 }]
         },
         'recv-104': {
             id: 'recv-104', supplier: 'Supplier 104', sourceType: 'Supplier', dateReceived: '2024-05-10 16:20',
             type: 'Returned Order', status: 'PENDING', statusClass: 'pending', remarks: 'Awaiting Delivery',
             poOrigin: 'PO-0004', reference: '', subTotal: 18750,
             lineItems: [
-                { qty: 75, unit: 'Boxes', name: 'Item 107', note: 'Partial batch', cost: 150, total: 11250 },
-                { qty: 50, unit: 'pcs', name: 'Item 108', note: 'Partial batch', cost: 150, total: 7500 }
+                { qty: 75, unit: 'Quantity', name: 'Item 107', note: 'Partial batch', cost: 150, total: 11250 },
+                { qty: 50, unit: 'Quantity', name: 'Item 108', note: 'Partial batch', cost: 150, total: 7500 }
             ]
         }
     };
@@ -652,7 +652,7 @@
     }
 
     function addModalItemRow(item) {
-        item = item || { name: '', unit: 'PCS', qty: 1, cost: 0 };
+        item = item || { name: '', unit: 'Quantity', qty: 1, cost: 0 };
         var tbody = document.getElementById('received-modal-rows-injector');
         var tr = document.createElement('tr');
         tr.innerHTML = '<td>' + (tbody.children.length + 1) + '</td>' +
@@ -683,7 +683,7 @@
         if (receipt && receipt.lineItems && receipt.lineItems.length) {
             receipt.lineItems.forEach(function (it) { addModalItemRow(it); });
         } else {
-            addModalItemRow({ name: 'Chocolate', unit: 'PCS', qty: 10, cost: 50 });
+            addModalItemRow({ name: 'Chocolate', unit: 'Pouches', qty: 10, cost: 50 });
         }
         editingReceiptId = receipt ? receipt.id : null;
     }

@@ -6,6 +6,18 @@
 (function () {
   "use strict";
 
+  if (document.head && !document.querySelector('link[rel="icon"]')) {
+    var brandIcon = document.createElement("link");
+    brandIcon.rel = "icon";
+    brandIcon.type = "image/png";
+    brandIcon.href = "/assets/logo/favicon.png?v=20261013full";
+    document.head.appendChild(brandIcon);
+    var appleIcon = document.createElement("link");
+    appleIcon.rel = "apple-touch-icon";
+    appleIcon.href = "/assets/logo/favicon.png?v=20261013full";
+    document.head.appendChild(appleIcon);
+  }
+
   if (location.protocol === "file:") return;
 
   var LOCAL_ONLY = {
@@ -15,7 +27,9 @@
     kreezbyLatestOrderNumber: 1,
     kreezby_retailer_home: 1,
     kreezby_admin_delivery_nav_v1: 1,
-    kreezby_staff_delivery_nav_v1: 1
+    kreezby_staff_delivery_nav_v1: 1,
+    kreezbyBrowserAlertSeen: 1,
+    kreezbyNotifyPrompted: 1
   };
 
   function isShared(key) {
@@ -67,6 +81,7 @@
   function applyItems(items, uploadMissing) {
     if (!items) return;
     applyingRemote = true;
+    var changedKeys = [];
     try {
       Object.keys(known).forEach(function (key) {
         if (pending[key] !== undefined) return;
@@ -79,6 +94,7 @@
         if (nativeGet.call(localStorage, key) === next) return;
         if (next == null) nativeRemove.call(localStorage, key);
         else nativeSet.call(localStorage, key, next);
+        changedKeys.push(key);
         if (key === "kreezby-po-orders-v1" || key === "kreezby-bo-orders-v1" || key === "kreezby-return-records-v1") {
           try {
             var syncName = key === "kreezby-po-orders-v1" ? "kreezby:po-orders-sync" : (key === "kreezby-bo-orders-v1" ? "kreezby:bo-orders-sync" : "kreezby:return-records-sync");
@@ -88,6 +104,12 @@
       });
     } finally {
       applyingRemote = false;
+    }
+
+    if (changedKeys.length) {
+      try {
+        document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
+      } catch (e) { /* listeners are optional */ }
     }
 
     known = {};
@@ -182,4 +204,14 @@
   } else {
     fillStockProducts();
   }
+})();
+
+(function () {
+  var path = location.pathname || "";
+  if (!/\/(admin|staff|head_admin)\//i.test(path)) return;
+  if (document.getElementById("kreezby-browser-alerts-script")) return;
+  var script = document.createElement("script");
+  script.id = "kreezby-browser-alerts-script";
+  script.src = "../js/browser-alerts.js?v=20261014pkg";
+  document.head.appendChild(script);
 })();

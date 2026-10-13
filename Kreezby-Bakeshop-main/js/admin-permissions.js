@@ -26,7 +26,6 @@
 
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'admin.html' },
-        po: { label: 'Purchase Order', page: 'po-admin.html' },
         receive: { label: 'Receiving', page: 'receive-admin.html' },
         bo: { label: 'Back Order', page: 'bo-admin.html' },
         return: { label: 'Return/P.O List', page: 'return-admin.html' },
@@ -47,7 +46,7 @@
     };
 
     var TASK_ORDER = [
-        'dashboard', 'po', 'receive', 'bo', 'return', 'stocks',
+        'dashboard', 'receive', 'bo', 'return', 'stocks',
         'saleslist', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
         'maintenance', 'inbox', 'issuereports'
     ];

@@ -13,19 +13,22 @@
     var viewMode = 'active';
 
     var SEED = [
-        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouch (8 Pcs)', qty: 450, cost: 120 },
-        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouch (8 Pcs)', qty: 320, cost: 125 },
-        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouch (8 Pcs)', qty: 85, cost: 120 },
-        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Jar (250g Container)', qty: 210, cost: 150 },
-        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Jar (250g Container)', qty: 45, cost: 150 },
-        { code: 'RM-FLR-01', type: 'raw-material', name: 'All-Purpose Flour', unit: '25 kg Sack', qty: 120, cost: 850 },
-        { code: 'RM-COC-01', type: 'raw-material', name: 'Cocoa Powder', unit: '5 kg Bag', qty: 45, cost: 1200 },
-        { code: 'RM-SUG-01', type: 'raw-material', name: 'Granulated Sugar', unit: '50 kg Sack', qty: 80, cost: 620 },
-        { code: 'RM-BUT-01', type: 'raw-material', name: 'Unsalted Butter', unit: '2.5 kg Block', qty: 60, cost: 280 },
-        { code: 'PKG-POU-01', type: 'packaging-material', name: 'Crinkle Pouch (8 Pcs)', unit: 'Roll (500 pcs)', qty: 35, cost: 450 },
-        { code: 'PKG-JAR-01', type: 'packaging-material', name: '250g Glass Jar with Lid', unit: 'Carton (24 pcs)', qty: 18, cost: 960 },
-        { code: 'PKG-LBL-01', type: 'packaging-material', name: 'Product Label Sticker', unit: 'Roll (1,000 labels)', qty: 12, cost: 350 },
-        { code: 'PKG-BOX-01', type: 'packaging-material', name: 'Corrugated Shipping Box', unit: 'Bundle (50 pcs)', qty: 25, cost: 420 }
+        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouches', qty: 450, cost: 120 },
+        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouches', qty: 320, cost: 125 },
+        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouches', qty: 85, cost: 120 },
+        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Pouches', qty: 210, cost: 150 },
+        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Pouches', qty: 45, cost: 150 },
+        { code: 'RM-WFL-01', type: 'raw-material', name: 'Wheat Flour', unit: 'Quantity', qty: 120, cost: 48 },
+        { code: 'RM-WSG-01', type: 'raw-material', name: 'White Sugar', unit: 'Quantity', qty: 90, cost: 42 },
+        { code: 'RM-OIL-01', type: 'raw-material', name: 'Vegetable Oil', unit: 'Quantity', qty: 48, cost: 95 },
+        { code: 'RM-EGG-01', type: 'raw-material', name: 'Egg', unit: 'Quantity', qty: 36, cost: 9 },
+        { code: 'RM-COC-01', type: 'raw-material', name: 'Cocoa', unit: 'Quantity', qty: 45, cost: 180 },
+        { code: 'RM-BKP-01', type: 'raw-material', name: 'Baking Powder', unit: 'Quantity', qty: 22, cost: 35 },
+        { code: 'RM-SLT-01', type: 'raw-material', name: 'Salt', unit: 'Quantity', qty: 70, cost: 18 },
+        { code: 'RM-CFS-01', type: 'raw-material', name: 'Confectioner Sugar', unit: 'Quantity', qty: 30, cost: 55 },
+        { code: 'RM-PSB-01', type: 'raw-material', name: 'Potassium Sorbate', unit: 'Quantity', qty: 12, cost: 220 },
+        { code: 'PKG-SUP-01', type: 'packaging-material', name: 'Stand up pouch', unit: 'Quantity', qty: 80, cost: 12 },
+        { code: 'PKG-STK-01', type: 'packaging-material', name: 'Stickers (Per Flavor)', unit: 'Quantity', qty: 12, cost: 3 },
     ];
 
     function readJson(key, fallback) {
@@ -67,6 +70,11 @@
         return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function displayUnit(item, qty) {
+        if (item && item.type === 'finished-product') return Number(qty) === 1 ? 'Pouch' : 'Pouches';
+        return 'Quantity';
+    }
+
     function typeLabel(type) {
         if (type === 'raw-material') return 'Raw Material';
         if (type === 'packaging-material') return 'Packaging Material';
@@ -105,7 +113,7 @@
                 code: row.material_id,
                 type: 'raw-material',
                 name: row.name,
-                unit: 'Recorded material',
+                unit: 'Quantity',
                 qty: Number(row.current_stock) || 0,
                 cost: 0
             });
@@ -283,7 +291,7 @@
                     '<td class="po-col-code"><a href="#" class="po-code-link" data-stock="' + esc(item.code) + '">' + esc(item.code) + '</a></td>' +
                     '<td class="po-col-type"><span class="status-pill-badge stock-type-badge ' + esc(item.type) + '">' + esc(typeLabel(item.type)) + '</span></td>' +
                     '<td class="po-col-name">' + esc(item.name) + '</td>' +
-                    '<td class="po-col-unit">' + esc(item.unit) + '</td>' +
+                    '<td class="po-col-unit">' + esc(displayUnit(item, qty)) + '</td>' +
                     '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + qty + '</span></td>' +
                     '<td class="po-col-cost">' + peso(item.cost) + '</td>' +
                     '<td class="po-col-value">' + peso(qty * (Number(item.cost) || 0)) + '</td>' +
@@ -350,7 +358,7 @@
                 '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
                 '<div class="po-detail-facts">' +
                 '<div><span>Item code</span><strong>' + esc(item.code) + '</strong></div>' +
-                '<div><span>Unit</span><strong>' + esc(item.unit) + '</strong></div>' +
+                '<div><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>' +
                 '<div><span>In stock</span><strong>' + liveQty(item) + '</strong></div>' +
                 '<div><span>Asset value</span><strong>' + peso(liveQty(item) * (Number(item.cost) || 0)) + '</strong></div>' +
                 '</div>' +

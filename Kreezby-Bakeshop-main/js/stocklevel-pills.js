@@ -6,14 +6,9 @@
     'use strict';
 
     var VIEWS = [
-        { key: 'units', label: 'Total Stock Units', slug: 'stocklevel' },
         { key: 'value', label: 'Total Value of Stock', slug: 'stocklevel-value' },
-        { key: 'capacity', label: 'Stock Capacity', slug: 'stocklevel-capacity' },
-        { key: 'weeks', label: 'Weeks of Stock', slug: 'stocklevel-weeks' },
-        { key: 'health', label: 'Stock Health', slug: 'stocklevel-health' },
-        { key: 'alerts', label: 'Low Stock Alerts', slug: 'stocklevel-alerts' },
-        { key: 'category', label: 'Stock by Category', slug: 'stocklevel-category' },
         { key: 'slow', label: 'Slow Moving Stock', slug: 'stocklevel-slow' },
+        { key: 'alerts', label: 'Low Stock Alert', slug: 'stocklevel-alerts' },
         { key: 'chart', label: 'Stock Value vs Sales', slug: 'stocklevel-chart' }
     ];
 
@@ -41,7 +36,7 @@
             if (VIEWS.some(function (item) { return item.key === view; })) return view;
         } catch (e) {}
         var root = document.getElementById('stocklevel-dashboard-root');
-        return (root && root.getAttribute('data-view')) || 'units';
+        return (root && root.getAttribute('data-view')) || 'value';
     }
 
     function labelFor(key) {
@@ -55,10 +50,10 @@
         var activeKey = shell ? requestedView() : '';
         container.innerHTML = VIEWS.map(function (view) {
             var href = shell
-                ? ('stocklevel-' + roleSuffix() + '.html' + (view.key === 'units' ? '' : ('?view=' + view.key)))
+                ? ('stocklevel-' + roleSuffix() + '.html' + (view.key === 'value' ? '' : ('?view=' + view.key)))
                 : hrefFor(view.slug);
             var active = shell ? (view.key === activeKey) : (href === currentFile);
-            return '<a class="pill po-order-tab' + (active ? ' active' : '') + '" href="' + href + '" data-key="' + view.key + '" role="tab">' + view.label + '</a>';
+            return '<a class="pill po-order-tab' + (active ? ' active' : '') + '" href="' + href + '" data-key="' + view.key + '" role="tab" title="' + view.label + '" aria-label="' + view.label + '">' + view.label + '</a>';
         }).join('');
     }
 
@@ -95,7 +90,7 @@
         var root = document.getElementById('stocklevel-dashboard-root');
         var master = document.getElementById('stocklevel-master');
         if (!root || !master) return false;
-        if (!VIEWS.some(function (item) { return item.key === key; })) key = 'units';
+        if (!VIEWS.some(function (item) { return item.key === key; })) key = 'value';
         root.setAttribute('data-view', key);
         master.querySelectorAll('#stocklevel-filter-pills .pill').forEach(function (pill) {
             var on = pill.getAttribute('data-key') === key;
@@ -110,7 +105,7 @@
         applyRowFilter();
         if (updateHistory === false) return true;
         var url = 'stocklevel-' + roleSuffix() + '.html';
-        if (key !== 'units') url += '?view=' + encodeURIComponent(key);
+        if (key !== 'value') url += '?view=' + encodeURIComponent(key);
         try { history.pushState({ stockView: key }, '', url); } catch (e) {}
         return true;
     }

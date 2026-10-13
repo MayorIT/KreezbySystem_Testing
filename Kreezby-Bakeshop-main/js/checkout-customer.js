@@ -477,7 +477,7 @@ function saveCustomerPurchaseOrder(order) {
         const item = order.items[key] || {};
         const qty = Number(item.qty) || 0;
         const cost = Number(item.cost) || 0;
-        return { qty: qty, unit: 'pcs', name: item.name || 'Crinkles', note: '', cost: cost, total: qty * cost };
+        return { qty: qty, unit: qty === 1 ? 'Pouch' : 'Pouches', name: item.name || 'Crinkles', note: '', cost: cost, total: qty * cost };
     });
     const now = new Date();
     const pad = function (n) { return String(n).padStart(2, '0'); };

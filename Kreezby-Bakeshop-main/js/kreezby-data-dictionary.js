@@ -19,10 +19,15 @@
     ];
 
     var RAW_MATERIALS = [
-        { material_id: 'RM-FLR-01', name: 'All-Purpose Flour', current_stock: 120, expiration_date: '2027-03-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-COC-01', name: 'Cocoa Powder', current_stock: 45, expiration_date: '2026-12-20', expiry_threshold_days: 7 },
-        { material_id: 'RM-SUG-01', name: 'Granulated Sugar', current_stock: 80, expiration_date: '2027-06-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-BUT-01', name: 'Unsalted Butter', current_stock: 60, expiration_date: '2026-10-04', expiry_threshold_days: 7 }
+        { material_id: 'RM-WFL-01', name: 'Wheat Flour', current_stock: 120, expiration_date: '2027-03-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-WSG-01', name: 'White Sugar', current_stock: 90, expiration_date: '2027-06-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-OIL-01', name: 'Vegetable Oil', current_stock: 48, expiration_date: '2027-01-15', expiry_threshold_days: 7 },
+        { material_id: 'RM-EGG-01', name: 'Egg', current_stock: 36, expiration_date: '2026-10-18', expiry_threshold_days: 7 },
+        { material_id: 'RM-COC-01', name: 'Cocoa', current_stock: 45, expiration_date: '2026-12-20', expiry_threshold_days: 7 },
+        { material_id: 'RM-BKP-01', name: 'Baking Powder', current_stock: 22, expiration_date: '2027-04-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-SLT-01', name: 'Salt', current_stock: 70, expiration_date: '2028-01-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-CFS-01', name: 'Confectioner Sugar', current_stock: 30, expiration_date: '2027-05-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-PSB-01', name: 'Potassium Sorbate', current_stock: 12, expiration_date: '2027-08-01', expiry_threshold_days: 7 }
     ];
 
     var PROCUREMENT = [
@@ -204,10 +209,10 @@
 
     function alerts() {
         return [
-            { alert_type: 'low_stock', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles stock is below the reorder point. Current stock: 45 jars.', status: 'pending' },
+            { alert_type: 'low_stock', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles stock is below the reorder point. Current stock: 45 pouches.', status: 'pending' },
             { alert_type: 'reorder', target_role: 'Staff', reference_id: 'CRK-LEM-P', message: 'Lemon Crinkles should be reordered. Current stock is 85 pouches against a recommended 200.', status: 'pending' },
             { alert_type: 'near_expiry', target_role: 'Admin', reference_id: 'CRK-LEM-P', message: 'Lemon Crinkles batch BCH-2026-0920-LEM expires on 2026-09-30, inside the 3-day expiry alert.', status: 'pending' },
-            { alert_type: 'near_expiry', target_role: 'Staff', reference_id: 'RM-BUT-01', message: 'Unsalted Butter expires on 2026-10-04, inside the 7-day ingredient alert.', status: 'pending' },
+            { alert_type: 'near_expiry', target_role: 'Staff', reference_id: 'RM-EGG-01', message: 'Egg expires on 2026-10-18, inside the 7-day ingredient alert.', status: 'pending' },
             { alert_type: 'expired', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles batch BCH-2026-0908-MNG expired on 2026-09-26 and cannot be sold.', status: 'pending' },
             { alert_type: 'price_change', target_role: 'Retailer', reference_id: 'CRK-CHO-P', message: 'Chocolate Crinkles price was updated for retailer accounts.', status: 'acknowledged' },
             { alert_type: 'new_product', target_role: 'Customer', reference_id: 'CRK-UBE-P', message: 'Ube Crinkles is a newly released flavor.', status: 'resolved' }
@@ -266,10 +271,10 @@
     }
 
     var BASE_MOVEMENTS = [
-        { type: 'stock-in', reference_id: 'RM-FLR-01', quantity: 25, note: 'Flour delivery received' },
+        { type: 'stock-in', reference_id: 'RM-WFL-01', quantity: 25, note: 'Wheat Flour delivery received' },
         { type: 'stock-out', reference_id: 'CRK-CHO-P', quantity: 160, note: 'Finished goods sold on 2026-09-26' },
         { type: 'usage', reference_id: 'RM-COC-01', quantity: 4, note: 'Cocoa used in production' },
-        { type: 'adjustment', reference_id: 'RM-BUT-01', quantity: -2, note: 'Butter count corrected after inventory check' }
+        { type: 'adjustment', reference_id: 'RM-EGG-01', quantity: -2, note: 'Egg count corrected after inventory check' }
     ];
 
     function inventoryTransactions() {

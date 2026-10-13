@@ -106,7 +106,6 @@
         var pages = {
             order: 'order-tracking-staff.html',
             payment: 'order-tracking-staff.html',
-            po: 'po-staff.html',
             receive: 'receive-staff.html',
             return: 'return-staff.html',
             alert: 'alert-staff.html',
@@ -138,7 +137,6 @@
     }
 
     var ADMIN_TASK_PAGES = {
-        po: 'po',
         receive: 'receive',
         bo: 'bo',
         return: 'return',

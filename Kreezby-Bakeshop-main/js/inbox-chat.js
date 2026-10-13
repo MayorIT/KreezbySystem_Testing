@@ -49,7 +49,7 @@
                     { type: 'outgoing', text: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31' }
                 ],
                 maria: [
-                    { type: 'incoming', text: 'Hi, just checking on ORD-2026-1042 — chocolate and ube jars.', time: '09:12' },
+                    { type: 'incoming', text: 'Hi, just checking on ORD-2026-1042 — chocolate and ube pouches.', time: '09:12' },
                     { type: 'outgoing', text: 'Hi Maria, we are packing that order at the main facility now.', time: '09:18' },
                     { type: 'incoming', text: 'Order ORD-2026-1042 is still packing.', time: '09:20' }
                 ]

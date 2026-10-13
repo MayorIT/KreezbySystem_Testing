@@ -15,8 +15,8 @@
             entity: 'Retailer 102', entityType: 'retailer', status: 'RETURNED', statusClass: 'rejected',
             reason: 'Damaged item container packaging seals identified during delivery receiving validation loops.',
             items: [
-                { qty: 300, unit: 'Boxes', name: 'Item 102', note: 'Sample validation package details notes text', cost: 200, total: 60000 },
-                { qty: 200, unit: 'pcs', name: 'Item 104', note: 'Sample validation package details notes text', cost: 205, total: 41000 }
+                { qty: 300, unit: 'Quantity', name: 'Item 102', note: 'Sample validation package details notes text', cost: 200, total: 60000 },
+                { qty: 200, unit: 'Quantity', name: 'Item 104', note: 'Sample validation package details notes text', cost: 205, total: 41000 }
             ]
         },
         'RET-0002': {
@@ -24,7 +24,7 @@
             entity: 'Customer 401', entityType: 'customer', status: 'RETURNED', statusClass: 'rejected',
             reason: 'Customer reported damaged packaging on delivery.',
             items: [
-                { qty: 1, unit: 'Jars', name: 'Choco Butternut', note: 'Seal broken', cost: 120, total: 120 }
+                { qty: 1, unit: 'Pouch', name: 'Choco Butternut', note: 'Seal broken', cost: 120, total: 120 }
             ]
         }
     };

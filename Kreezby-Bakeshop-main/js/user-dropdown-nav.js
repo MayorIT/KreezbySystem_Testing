@@ -207,10 +207,20 @@
         return moduleLocalHref('report_issue-admin.html');
     }
 
+    function profileMenuHref() {
+        var path = (window.location.pathname || '').toLowerCase();
+        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('profile-staff.html');
+        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('profile-headadmin.html');
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('profile-admin.html');
+        return '';
+    }
+
     function reportIssueMenuHtml() {
         var logout = '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>';
-        if (isHeadAdminPortalPage()) return logout;
-        return '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' + logout;
+        var profileHref = profileMenuHref();
+        var profile = profileHref ? '<a href="' + profileHref + '" class="dropdown-item" data-profile-link="1">Profile</a>' : '';
+        if (isHeadAdminPortalPage()) return profile + logout;
+        return profile + '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' + logout;
     }
 
     function inboxHref() {
@@ -359,7 +369,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-portal-icon-sidebar-script';
-        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261008tabs';
+        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261013nopo';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -376,7 +386,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20260929title';
+        s.src = jsBase() + 'admin-permissions.js?v=20261013nopo';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -938,8 +948,15 @@
         ensureCss();
         ensureMenuMarkup(menu);
         wireLogoutLinks(menu);
-        if (isHeadAdminPortalPage()) {
-            trigger.textContent = 'Head Admin \u25be';
+        if (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage()) {
+            var sessionName = '';
+            try {
+                var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
+                sessionName = sess && sess.userName ? String(sess.userName) : '';
+            } catch (e) { /* keep the role label */ }
+            if (sessionName) trigger.textContent = sessionName + ' \u25be';
+            else if (isHeadAdminPortalPage()) trigger.textContent = 'Head Admin \u25be';
+            else if (isStaffPage()) trigger.textContent = 'Staff \u25be';
         }
 
         trigger.setAttribute('aria-haspopup', 'true');
