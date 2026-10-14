@@ -198,9 +198,9 @@
         if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
         if (isRetailerStoreFolder()) {
             var reportKey = retailerModuleKey();
-            return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-portal.html';
+            return reportKey ? 'report_issue-' + reportKey + '.html' : '';
         }
-        if (path.indexOf('/retailer/') !== -1) return 'report_issue-portal.html';
+        if (path.indexOf('/retailer/') !== -1) return '';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
         if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('report_issue-admin.html');
@@ -220,7 +220,9 @@
         var profileHref = profileMenuHref();
         var profile = profileHref ? '<a href="' + profileHref + '" class="dropdown-item" data-profile-link="1">Profile</a>' : '';
         if (isHeadAdminPortalPage()) return profile + logout;
-        return profile + '<a href="' + reportIssueHref() + '" class="dropdown-item">Report Issue</a>' + logout;
+        var issueHref = reportIssueHref();
+        var issue = issueHref ? '<a href="' + issueHref + '" class="dropdown-item">Report Issue</a>' : '';
+        return profile + issue + logout;
     }
 
     function inboxHref() {
@@ -234,9 +236,9 @@
         }
         if (isRetailerStoreFolder()) {
             var inboxKey = retailerModuleKey();
-            return inboxKey ? 'inbox-' + inboxKey + '.html' : 'inbox-portal.html';
+            return inboxKey ? 'inbox-' + inboxKey + '.html' : '';
         }
-        if (path.indexOf('/retailer/') !== -1) return 'inbox-portal.html';
+        if (path.indexOf('/retailer/') !== -1) return '';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('inbox-customer.html');
         if (path.indexOf('/admin/') !== -1) return moduleLocalHref('inbox-admin.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('inbox-headadmin.html');
@@ -615,10 +617,11 @@
         if (!isRetailerPage() || isRetailerHomePage()) return;
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
-        var href = 'retailer-portal.html';
+        var href = '';
         if (window.KreezbyRetailerNav && typeof window.KreezbyRetailerNav.getHomeUrl === 'function') {
-            href = window.KreezbyRetailerNav.getHomeUrl() || href;
+            href = window.KreezbyRetailerNav.getHomeUrl() || '';
         }
+        if (!href) return;
         var homes = Array.prototype.filter.call(right.querySelectorAll('a'), function (link) {
             if (!link || link.closest('.user-dropdown, .user-dropdown-menu')) return false;
             if (link.classList.contains('home-badge')) return true;
@@ -643,7 +646,7 @@
         }
         keep.className = 'top-nav-item home-badge';
         keep.removeAttribute('aria-current');
-        keep.setAttribute('href', 'retailer-portal.html');
+        keep.setAttribute('href', href);
         keep.setAttribute('aria-label', 'Dashboard');
         keep.setAttribute('title', 'Dashboard');
         keep.textContent = 'Home';

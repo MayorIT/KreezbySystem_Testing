@@ -117,19 +117,8 @@
         return pages[source] || '';
     }
 
-    function retailerHref(source) {
-        var pages = {
-            po: 'inbox-portal.html',
-            payment: 'inbox-portal.html',
-            delivery: 'inbox-portal.html',
-            bo: 'bo-portal.html',
-            return: 'inbox-portal.html',
-            alert: 'inbox-portal.html',
-            stock: 'inbox-portal.html',
-            new_product: 'inbox-portal.html',
-            price_change: 'inbox-portal.html'
-        };
-        return pages[source] || '';
+    function retailerHref() {
+        return '';
     }
 
     var ADMIN_TASK_PAGES = {

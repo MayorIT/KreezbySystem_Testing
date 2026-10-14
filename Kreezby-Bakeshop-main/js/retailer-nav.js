@@ -8,7 +8,7 @@
   document.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
 
   var STORAGE_KEY = 'kreezby_retailer_home';
-  var DIRECTORY = 'retailer/portal/retailer-portal.html';
+  var DIRECTORY = 'retailer/retailer-portal.html';
   var DEFAULT_HOME = 'retailer-portal.html';
   var PORTAL_PATTERN = /^retailer-portal\.html$/i;
   var HIDE_MODULES_PATTERN = /(^receive-|receiving-retailer\.html$|^return-retailer\.html$|pullout|pull-out|delivery)/i;

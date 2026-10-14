@@ -302,7 +302,6 @@ function buildDirectoryHtmlFromPdf(retailers) {
     <p class="intro">Select your store to open your dashboard.</p>
     ${sectionHtml}
     <a class="back-login" href="../auth/log_in.html">← Back to Log In</a>
-    <script src="../js/retailer-nav.js"></script>
 </body>
 </html>
 `;

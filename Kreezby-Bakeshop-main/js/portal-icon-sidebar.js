@@ -166,15 +166,13 @@
                 break;
             }
         }
-        if (retailerIdx < 0) return 'inbox-portal.html';
+        if (retailerIdx < 0) return '';
         var depth = parts.length - retailerIdx - 1;
         if (depth >= 2) {
             var key = retailerStoreKey();
-            return key ? 'inbox-' + key + '.html' : 'inbox-portal.html';
+            return key ? 'inbox-' + key + '.html' : '';
         }
-        var prefix = '';
-        for (var d = 0; d < depth; d++) prefix += '../';
-        return prefix + 'inbox-portal.html';
+        return '';
     }
 
     function retailerDashboardHref(key) {
@@ -183,14 +181,16 @@
 
     function retailerNavItems(key) {
         if (!key) return [];
-        return [
+        var items = [
             { href: retailerDashboardHref(key), label: 'Dashboard', icon: 'home' },
             { href: 'bo-' + key + '.html', label: 'Back Order', icon: 'layers' },
             { href: 'return-' + key + '.html', label: 'Return/P.O List', icon: 'return' },
             { href: 'saleslist-' + key + '.html', label: 'Sales List', icon: 'sales' },
-            { href: 'alert-' + key + '.html', label: 'Alert', icon: 'bell' },
-            { href: retailerInboxHref(), label: 'Inbox', icon: 'mail' }
+            { href: 'alert-' + key + '.html', label: 'Alert', icon: 'bell' }
         ];
+        var inbox = retailerInboxHref();
+        if (inbox) items.push({ href: inbox, label: 'Inbox', icon: 'mail' });
+        return items;
     }
 
     function parseNavFromAside(aside) {
