@@ -32,6 +32,7 @@
     }
 
     function ensureMeta() {
+        if (/\/retailer\//i.test(location.pathname || "")) return;
         if (!document.querySelector('meta[name="view-transition"]')) {
             var meta = document.createElement('meta');
             meta.name = 'view-transition';
@@ -507,7 +508,7 @@
             start();
             return;
         }
-        loadScript(root + 'js/aiforecast-pills.js?v=20261014prod', 'kreezby-aiforecast-pills-script-prod', start);
+        loadScript(root + 'js/aiforecast-pills.js?v=20261014nofc', 'kreezby-aiforecast-pills-script-nofc', start);
     }
 
     function activateSalesList(frame) {
@@ -575,7 +576,7 @@
 
     function syncPurchaseOrderTheme() {
         var frame = document.getElementById(FRAME_ID);
-        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block, #maintenance-grid-workspace-root'));
+        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
         if (!frame || !frame.querySelector('main, .workspace-view-canvas, .panel-data-card')) {
             var page = currentPageName();
             onPo = page === 'po-admin.html' || page === 'po-headadmin.html' || page === 'po-staff.html' ||
@@ -589,9 +590,7 @@
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
                 page === 'deliveryschedule-admin.html' || page === 'deliveryschedule-headadmin.html' || page === 'deliveryschedule-staff.html' ||
                 page === 'alert-admin.html' || page === 'alert-headadmin.html' || page === 'alert-staff.html' ||
-                page.indexOf('stocklevel-') === 0 ||
-                page === 'maintenance-admin.html' || page === 'maintenance-headadmin.html' ||
-                page === 'maintenance-staff.html';
+                page.indexOf('stocklevel-') === 0;
         }
         document.body.classList.toggle('po-admin-page', onPo);
         if (!onPo) {
@@ -601,7 +600,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261011insight2';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014mi';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');
@@ -637,9 +636,7 @@
             document.dispatchEvent(new CustomEvent('kreezby-staff-sidebar-ready'));
 
             if (window.KreezbyMaintenanceUI && frame.querySelector('#maintenance-grid-workspace-root')) {
-                try {
-                    if (typeof window.KreezbyMaintenanceUI.boot === 'function') window.KreezbyMaintenanceUI.boot();
-                } catch (e) {}
+                try { window.KreezbyMaintenanceUI.initSettingsPanel(); } catch (e) {}
             }
             if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
                 try { window.KreezbyActionMenu.scan(frame); } catch (e2) {}

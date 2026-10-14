@@ -32,6 +32,7 @@
     }
 
     function ensureMeta() {
+        if (/\/retailer\//i.test(location.pathname || "")) return;
         if (!document.querySelector('meta[name="view-transition"]')) {
             var meta = document.createElement('meta');
             meta.name = 'view-transition';
@@ -488,12 +489,26 @@
             if (window.KreezbyAiForecastPills && typeof window.KreezbyAiForecastPills.boot === 'function') {
                 try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
             }
+            if (window.KreezbyProductRecommendation && typeof window.KreezbyProductRecommendation.boot === 'function') {
+                try { window.KreezbyProductRecommendation.boot(); } catch (e2) {}
+            }
         }
-        if (window.KreezbyAiForecastPills) {
-            boot();
+        var root = moduleRelativeRoot();
+        function loadRecommendation(done) {
+            if (window.KreezbyProductRecommendation) {
+                done();
+                return;
+            }
+            loadScript(root + 'js/product-recommendation.js?v=20261014prodrec', 'kreezby-product-recommendation-script', done);
+        }
+        function start() {
+            loadRecommendation(boot);
+        }
+        if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.productRecommendation) {
+            start();
             return;
         }
-        loadScript(moduleRelativeRoot() + 'js/aiforecast-pills.js?v=20261011insights', 'kreezby-aiforecast-pills-script-word', boot);
+        loadScript(root + 'js/aiforecast-pills.js?v=20261014nofc', 'kreezby-aiforecast-pills-script-nofc', start);
     }
 
     function activateSalesList(frame) {
@@ -585,7 +600,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261008laystock2';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014mi';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');

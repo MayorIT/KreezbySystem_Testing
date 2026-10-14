@@ -276,7 +276,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014prod';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014mi';
         document.head.appendChild(s);
     }
 
