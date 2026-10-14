@@ -1,16 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../js/kreezby-db-sync.js"></script>
+<script src="../js/kreezby-db-sync.js?v=20261014edit"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
-    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261005qr">
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261013pay5">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20260925phone9">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20260925phone4">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
     <link rel="stylesheet" href="../css/shared/payment-summary.css">
     <link rel="stylesheet" href="../css/shared/customer-site-header.css?v=20261005brand">
+    <link rel="stylesheet" href="../css/shared/customer-favorites-popup.css?v=20261010tabs">
 </head>
 <body>
     <header class="site-header">
@@ -18,6 +19,12 @@
             <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo">
         </a>
         <nav class="nav-actions" aria-label="Customer account">
+            <a class="nav-btn" data-nav="home" href="customer.html">
+                <span class="nav-btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+                </span>
+                <span class="nav-btn__label">Home</span>
+            </a>
             <a class="nav-btn notifications-trigger-btn" data-nav="favorites" href="customer.html?open=favorites">
                 <span class="nav-btn__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>
@@ -95,19 +102,21 @@
                     <div class="payment-method-selector__list" role="radiogroup" aria-label="Payment method">
                         <div class="payment-method-selector__item is-selected" data-payment-id="paymongo" tabindex="0" aria-checked="true">
                             <div class="payment-method-selector__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00a3a1"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                <img src="../assets/payments/qrph.svg" alt="">
                             </div>
                             <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">PayMongo</p>
+                                <p class="payment-method-selector__label">QR Ph</p>
+                                <p class="payment-method-selector__desc">Scan to pay with any QR Ph app</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
                         <div class="payment-method-selector__item" data-payment-id="cash_on_delivery" tabindex="-1" aria-checked="false">
                             <div class="payment-method-selector__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#5d4037"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                <img src="../assets/payments/cash.svg" alt="">
                             </div>
                             <div class="payment-method-selector__body">
-                                <p class="payment-method-selector__label">Cash On Delivery</p>
+                                <p class="payment-method-selector__label">Cash on delivery</p>
+                                <p class="payment-method-selector__desc">Pay when the order arrives</p>
                             </div>
                             <div class="payment-method-selector__radio" aria-hidden="true"><span class="payment-method-selector__dot"></span></div>
                         </div>
@@ -115,19 +124,24 @@
                 </div>
 
                 <div class="qr-section gcash-pay-panel" id="paymongo-section">
-                    <h3 class="qr-title">PayMongo</h3>
-                    <p class="gcash-pay-lead">Scan the QR code with your phone. It opens a PayMongo link like secure-authentication.paymongo.com/sources?id=src_… Complete the payment there. This page checks every 5 seconds.</p>
-                    <div class="form-group">
-                        <label for="paymongo-email">Email for the receipt</label>
-                        <input type="email" id="paymongo-email" placeholder="name@email.com" autocomplete="email">
+                    <div class="paymongo-layout">
+                        <div class="paymongo-layout__copy">
+                            <h3 class="qr-title">QR Ph</h3>
+                            <p class="gcash-pay-lead">Scan the QR Ph code with any participating bank or e-wallet app. Complete the payment there. This page checks every 5 seconds.</p>
+                            <div class="form-group">
+                                <label for="paymongo-email">Email for the receipt</label>
+                                <input type="email" id="paymongo-email" placeholder="name@email.com" autocomplete="email">
+                            </div>
+                            <p class="qr-instructions" id="paymongo-status">Enter your email, then show the QR code.</p>
+                            <button type="button" class="paymongo-open-btn" id="paymongo-pay-btn">
+                                <span class="paymongo-open-btn__icon" aria-hidden="true">₱</span>
+                                <span class="paymongo-open-btn__label">Show QR code</span>
+                            </button>
+                        </div>
+                        <div class="paymongo-qr-frame" hidden>
+                            <img id="paymongo-qr" class="paymongo-qr" alt="QR Ph code" hidden>
+                        </div>
                     </div>
-                    <div class="paymongo-wallets" role="radiogroup" aria-label="PayMongo e-wallet">
-                        <label><input type="radio" name="paymongo-wallet" value="gcash" checked> GCash</label>
-                        <label><input type="radio" name="paymongo-wallet" value="paymaya"> Maya</label>
-                    </div>
-                    <img id="paymongo-qr" class="paymongo-qr" alt="PayMongo QR code" hidden>
-                    <p class="qr-instructions" id="paymongo-status">Enter your email, then show the QR code.</p>
-                    <button type="button" class="checkout-btn" id="paymongo-pay-btn">Show QR code</button>
                 </div>
 
                 <div class="qr-section gcash-pay-panel" id="cod-section">
@@ -159,8 +173,8 @@
                         <div class="payment-summary__row payment-summary__row--method">
                             <span class="payment-summary__label">Payment Method</span>
                             <div class="payment-summary__method">
-                                <span class="payment-summary__method-icon" data-ps-payment-icon aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#00a3a1"/><path d="M7 12h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-                                <span class="payment-summary__method-name" data-ps-payment-name>PayMongo</span>
+                                <span class="payment-summary__method-icon" data-ps-payment-icon aria-hidden="true"><img src="../assets/payments/qrph.svg" alt=""></span>
+                                <span class="payment-summary__method-name" data-ps-payment-name>QR Ph</span>
                             </div>
                         </div>
                         <div data-ps-items></div>
@@ -180,11 +194,13 @@
         </div>
     </div>
 
-    <script src="../js/payment-summary.js?v=20260929pay"></script>
+    <script src="../js/payment-summary.js?v=20261010logos"></script>
     <script src="../js/payment-method-selector.js"></script>
-    <script src="../js/checkout-customer.js?v=20261005srv"></script>
+    <script src="../js/checkout-customer.js?v=20261014posauto"></script>
     <script src="../js/customer-orders.js?v=20260929webpay"></script>
     <script src="../js/customer-site-header.js?v=20260928hdr"></script>
+    <script src="../js/expanding-tabs.js?v=20260925sm"></script>
+    <script src="../js/customer-favorites-popup.js?v=20261010tabs"></script>
     <script src="../js/user-dropdown-nav.js?v=20260929title"></script>
     <script src="../js/customer-phone-shop.js?v=20260925phone4"></script>
 </body>

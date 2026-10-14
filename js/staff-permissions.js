@@ -32,6 +32,7 @@
         bo: { label: 'Back Order', page: 'bo-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
+        pos: { label: 'Point of Sale', page: 'pos-staff.html' },
         dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
@@ -56,13 +57,13 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'],
-        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer']
+        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'],
+        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer']
     };
 
     var TASK_ORDER = [
         'dashboard', 'bo', 'stocks',
-        'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
+        'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
 
@@ -103,8 +104,8 @@
     function grantDeliverySchedule(stored) {
         if (!stored) return stored;
         try {
-            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return stored;
-        } catch (e) { return stored; }
+            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return grantPos(stored);
+        } catch (e) { return grantPos(stored); }
         Object.keys(stored).forEach(function (id) {
             if (Array.isArray(stored[id]) && stored[id].indexOf('deliveryschedule') === -1) {
                 stored[id].push('deliveryschedule');
@@ -114,6 +115,21 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
             localStorage.setItem('kreezby_staff_delivery_nav_v1', '1');
         } catch (e) { /* ignore */ }
+        return grantPos(stored);
+    }
+
+    function grantPos(stored) {
+        if (!stored) return stored;
+        try {
+            if (localStorage.getItem('kreezby_staff_pos_nav_v1') === '1') return stored;
+        } catch (e) { return stored; }
+        Object.keys(stored).forEach(function (id) {
+            if (Array.isArray(stored[id]) && stored[id].indexOf('pos') === -1) stored[id].push('pos');
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            localStorage.setItem('kreezby_staff_pos_nav_v1', '1');
+        } catch (e2) { /* ignore */ }
         return stored;
     }
 
@@ -154,18 +170,18 @@
     function tasksForStaff(staff) {
         var text = (String(staff.department || '') + ' ' + String(staff.role || '')).toLowerCase();
         if (text.indexOf('sales') >= 0) {
-            return ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('software') >= 0 || text.indexOf('it') >= 0) {
-            return ['dashboard', 'stocks', 'alert', 'inbox', 'deliveryschedule'];
+            return ['dashboard', 'stocks', 'pos', 'alert', 'inbox', 'deliveryschedule'];
         }
         if (text.indexOf('production') >= 0) {
-            return ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'stocks', 'pos', 'stocklevel', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('admin') >= 0 || text.indexOf('executive') >= 0) {
-            return ['dashboard', 'saleslist', 'alert', 'inbox', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'pos', 'alert', 'inbox', 'deliveryschedule'];
         }
-        return ['dashboard', 'alert', 'deliveryschedule'];
+        return ['dashboard', 'pos', 'alert', 'deliveryschedule'];
     }
 
     function pruneStoredPermissions(stored) {

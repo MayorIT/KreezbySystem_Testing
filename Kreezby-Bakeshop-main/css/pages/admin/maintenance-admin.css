@@ -1255,6 +1255,21 @@ main.workspace-canvas {
             overflow: hidden;
         }
 
+        .panel-data-card:has(#maintenance-grid-workspace-root) {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        #maintenance-grid-workspace-root {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        #maintenance-grid-workspace-root .data-display-table {
+            width: max-content;
+            min-width: 100%;
+        }
+
         .card-body-padded {
             padding: 20px;
         }

@@ -48,8 +48,7 @@
     function renderCustomers() {
         var users = window.KreezbyMaintenanceSettings.getUsers();
         var rows = users.customers.map(function (c, i) {
-            return '<tr><td>' + (i + 1) + '</td><td>' + c.user_id + '</td><td><strong>' + c.name + '</strong></td><td>' + c.dictionaryRole + '</td><td>Hashed</td><td>' + c.email + '</td><td>' + c.phone + '</td>'
-                + '<td>' + c.joined + '</td><td>'
+            return '<tr><td>' + (i + 1) + '</td><td>' + c.user_id + '</td><td><strong>' + c.name + '</strong></td><td>' + c.dictionaryRole + '</td><td>Hashed</td><td>' + (c.email || '—') + '</td><td>' + (c.phone || '—') + '</td><td>' + (c.address || '—') + '</td><td>' + (c.area || '—') + '</td><td>' + (c.joined || '—') + '</td><td>'
                 + '<button type="button" class="btn-upgrade" onclick="KreezbyMaintenanceUI.upgradeCustomer(\'' + c.id + '\',\'retailer\')">→ Retailer</button>'
                 + '</td></tr>';
         }).join('');
@@ -57,8 +56,8 @@
             + '<h4 class="settings-section-title">Customer Accounts</h4>'
             + '<p class="settings-section-desc">Upgrade a customer to retailer. Their customer account will be removed and they receive partner access instead.</p>'
             + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
-            + '<th>#</th><th>User ID</th><th>Name</th><th>Role</th><th>Password</th><th>Email</th><th>Phone</th><th>Joined</th><th>Grant Access</th>'
-            + '</tr></thead><tbody>' + (rows || '<tr><td colspan="9">No customer accounts.</td></tr>') + '</tbody></table>';
+            + '<th>#</th><th>User ID</th><th>Name</th><th>Role</th><th>Password</th><th>Email</th><th>Phone</th><th>Address</th><th>Area</th><th>Joined</th><th>Grant Access</th>'
+            + '</tr></thead><tbody>' + (rows || '<tr><td colspan="11">No customer accounts.</td></tr>') + '</tbody></table>';
     }
 
     function renderRetailers() {
@@ -215,12 +214,6 @@
             { dir: 'staff', id: 'metric-staff-count', label: 'Staff', theme: 'staff-theme' },
             { dir: 'admins', id: 'metric-admins-count', label: 'Admins', theme: 'admin-theme' }
         ];
-        if (isHeadAdminPage()) {
-            specs = specs.filter(function (spec) {
-                return spec.dir === 'retailer' || spec.dir === 'customer';
-            });
-        }
-
         specs.forEach(function (spec) {
             var card = grid.querySelector('[data-maint-dir="' + spec.dir + '"]');
             if (!card) {
@@ -244,7 +237,7 @@
         });
 
         var row = document.querySelector('.maintenance-directory-tabs-row');
-        if (!isHeadAdminPage() && row && !row.querySelector('[data-maint-tab="staff"]')) {
+        if (row && !row.querySelector('[data-maint-tab="staff"]')) {
             ['staff', 'admins'].forEach(function (dir) {
                 var btn = document.createElement('button');
                 btn.type = 'button';
@@ -277,7 +270,10 @@
                 + '.maint-status-btn{border:0;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;}'
                 + '.maint-status-btn.is-off{background:#c62828;color:#fff;}'
                 + '.maint-status-btn.is-on{background:#2e7d32;color:#fff;}'
-                + '.maint-status-btn:disabled{opacity:.55;cursor:not-allowed;}';
+                + '.maint-status-btn:disabled{opacity:.55;cursor:not-allowed;}'
+                + '.panel-data-card:has(#maintenance-grid-workspace-root){overflow-x:auto !important;max-width:100%;}'
+                + '#maintenance-grid-workspace-root{max-width:100%;overflow-x:auto;}'
+                + '#maintenance-grid-workspace-root .data-display-table{width:max-content;min-width:100%;}';
             document.head.appendChild(style);
         }
     }
@@ -351,6 +347,9 @@
         var manage = canManageAccounts();
         var locked = bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
         box.innerHTML = '<p><strong>' + esc(user.name) + '</strong> · ' + esc(user.dictionaryRole || bucket) + '</p>'
+            + (user.phone ? '<p>Phone: ' + esc(user.phone) + '</p>' : '')
+            + (user.email ? '<p>Email: ' + esc(user.email) + '</p>' : '')
+            + (user.address ? '<p>Address: ' + esc(user.address) + '</p>' : '')
             + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · Head admin stays active.' : '') + '</p>'
             + (manage ? '' : '<p>Only an admin or head admin can change this.</p>');
     }
@@ -390,7 +389,7 @@
         document.querySelectorAll('.overview-card-box[data-maint-dir]').forEach(function (card) {
             if (card.dataset.kreezbyBound === '1') return;
             card.dataset.kreezbyBound = '1';
-            if (isHeadAdminPage()) return;
+            if (isHeadAdminPage() && card.getAttribute('onclick')) return;
             function go() { openDirectory(card.getAttribute('data-maint-dir')); }
             card.addEventListener('click', go);
             card.addEventListener('keydown', function (ev) {

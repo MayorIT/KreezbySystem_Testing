@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../js/kreezby-db-sync.js?v=20261014edit"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
+    <title>Kreezby Bakeshop - Profile (Admin)</title>
+    <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
+    <link rel="stylesheet" href="../css/shared/portal-profile.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+</head>
+<body>
+    <header class="top-navbar-node">
+        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+        <div class="top-nav-links-right">
+            <a class="top-nav-item home-badge" href="admin.html">Home</a>
+            <div class="user-dropdown">
+                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Admin ▾</button>
+                <div class="user-dropdown-menu" id="user-dropdown-menu">
+                    <a href="profile-admin.html" class="dropdown-item" data-profile-link="1">Profile</a>
+                    <a href="issue-reports-admin.html" class="dropdown-item">Report Issue</a>
+                    <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="core-viewport-wrapper">
+        <aside class="dark-sidebar-panel" aria-label="Admin navigation"></aside>
+        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+        <main class="workspace-view-canvas">
+            <div class="portal-profile" id="portal-profile">
+                <section class="portal-profile__card">
+                    <h3>Admin profile</h3>
+                    <p class="portal-profile__lead">Update the name and contact details for this admin account.</p>
+                    <p id="profile-account-note" class="portal-profile__lead" hidden></p>
+                    <div class="portal-profile__layout">
+                        <div>
+                            <div class="portal-profile__avatar" id="profile-avatar-preview">A</div>
+                            <button type="button" class="secondary portal-profile__photo-btn" id="profile-photo-btn">Change photo</button>
+                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
+                        </div>
+                        <div class="portal-profile__fields">
+                            <label>Full name<input id="profile-full-name" type="text" autocomplete="name"></label>
+                            <label>Username<input id="profile-username" type="text" disabled></label>
+                            <label>Email<input id="profile-email" type="email" autocomplete="email"></label>
+                            <label>Contact number<input id="profile-phone" type="tel" autocomplete="tel"></label>
+                            <label>Role<input id="profile-role" type="text" disabled></label>
+                            <label id="profile-department-wrap">Department<input id="profile-department" type="text" disabled></label>
+                        </div>
+                    </div>
+                </section>
+                <section class="portal-profile__card">
+                    <h3>Browser notifications</h3>
+                    <p class="portal-profile__lead" id="profile-notify-state">Allow notifications in this browser. Chrome, Edge, and other browsers notify this device on their own.</p>
+                    <div class="portal-profile__notify-actions">
+                        <button type="button" id="profile-notify-btn">Allow notifications</button>
+                        <button type="button" class="secondary" id="profile-test-btn">Send a test notification</button>
+                    </div>
+                </section>
+                <div class="portal-profile__actions">
+                    <button type="button" id="profile-save">Save profile</button>
+                </div>
+                <p class="portal-profile__status" id="profile-status" role="status"></p>
+            </div>
+        </main>
+        </turbo-frame>
+    </div>
+    <script src="../js/maintenance-settings.js"></script>
+    <script src="../js/browser-alerts.js?v=20261013b"></script>
+    <script src="../js/portal-profile.js?v=20261014photo"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261013profile"></script>
+    <script src="../js/admin-sidebar.js?v=20261014pos"></script>
+    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
+    <script>
+        document.getElementById('profile-photo-btn').addEventListener('click', function () {
+            document.getElementById('profile-avatar-input').click();
+        });
+    </script>
+</body>
+</html>

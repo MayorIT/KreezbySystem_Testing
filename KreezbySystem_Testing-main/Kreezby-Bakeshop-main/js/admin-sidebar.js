@@ -51,7 +51,6 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
@@ -60,11 +59,14 @@
 
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-admin.html', icon: 'sales' },
 
+        { key: 'pos', label: 'Point of Sale', href: 'pos-admin.html', icon: 'cart' },
+
         { key: 'ordertracking', label: 'Order Tracking', href: 'order-tracking-admin.html', icon: 'truck' },
 
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-admin.html' },
-            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' }
+            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' },
+            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-admin.html?tab=product-recommendation' }
         ] },
 
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-admin.html', icon: 'truck' },
@@ -249,8 +251,6 @@
 
         if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
 
-        if (filename.indexOf('po-') === 0) return 'po';
-
         if (filename.indexOf('receive-') === 0) return 'receive';
 
         if (filename.indexOf('bo-') === 0) return 'bo';
@@ -260,6 +260,8 @@
         if (filename.indexOf('stocks-') === 0) return 'stocks';
 
         if (filename.indexOf('saleslist-') === 0) return 'saleslist';
+
+        if (filename.indexOf('pos-') === 0) return 'pos';
 
         if (filename.indexOf('order-tracking-') === 0) return 'ordertracking';
 
@@ -344,6 +346,7 @@
         var head = isHeadAdminPortal() || (api && typeof api.isHeadAdmin === 'function' && api.isHeadAdmin());
         if (api && !head) {
             items = items.filter(function (item) {
+                if (item.key === 'pos' && !(api.TASKS && api.TASKS.pos)) return true;
                 return api.adminCanAccessTask(item.key);
             });
         }

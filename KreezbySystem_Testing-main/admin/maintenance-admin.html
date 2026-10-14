@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../js/kreezby-db-sync.js"></script>
+<script src="../js/kreezby-db-sync.js?v=20261014edit"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - System Configuration Maintenance</title>
-    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css">
+    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css?v=20261015maint">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
 </head>
@@ -132,7 +132,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>1</td><td><strong>CRK-BUT-J</strong></td><td>Choco Butternut Specialty</td><td>Jar (250g)</td><td>₱200.00</td>
+                            <td>1</td><td><strong>CRK-BUT-J</strong></td><td>Choco Butternut Specialty</td><td>Pouches</td><td>₱200.00</td>
                             <td><button class="action-trigger-btn">Action ▾</button></td>
                         </tr>
                     </tbody>
@@ -179,7 +179,7 @@
             'Flavor Item': `
                 <div class="form-field-unit"><label>Item SKU Code *</label><input type="text" placeholder="e.g. CRK-CHO-P" required></div>
                 <div class="form-field-unit"><label>Flavor Name *</label><input type="text" placeholder="e.g. Chocolate Crinkles" required></div>
-                <div class="form-field-unit"><label>Packaging Variant Category</label><select><option>Pouch (8 Pcs)</option><option>Jar (250g Container)</option></select></div>
+                <div class="form-field-unit"><label>Packaging Variant Category</label><select><option>Pouches</option></select></div>
                 <div class="form-field-unit"><label>Base Unit Rate Cost (₱) *</label><input type="number" placeholder="165.00" required></div>`,
             'User Account': `
                 <div class="form-field-unit"><label>Full Employee Name *</label><input type="text" placeholder="e.g. Elton McJosh" required></div>
@@ -280,12 +280,12 @@
             toggleMaintenanceFormModal(false);
         }
     </script>
-    <script src="../js/maintenance-settings.js?v=20261009acct"></script>
-    <script src="../js/staff-permissions.js?v=20261006perm2"></script>
-    <script src="../js/maintenance-settings-ui.js?v=20261010nosupplier"></script>
+    <script src="../js/maintenance-settings.js?v=20261015phcust"></script>
+    <script src="../js/staff-permissions.js?v=20261014pos"></script>
+    <script src="../js/maintenance-settings-ui.js?v=20261015maint"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
         <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
-    <script src="../js/admin-sidebar.js?v=20261006perm"></script>
+    <script src="../js/admin-sidebar.js?v=20261014pos"></script>
     <script src="../js/sidebar-toggle.js?v=20260927row"></script>
 </body>
 </html>

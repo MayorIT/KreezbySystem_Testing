@@ -3,6 +3,7 @@ let cartData = {};
 let isPaymentVerified = false;
 let gcashWebpay = null;
 let paymongoPayment = null;
+let paymongoTestUrl = '';
 let paymongoPollTimer = null;
 const PAYMONGO_DRAFT_KEY = 'kreezbyPaymongoCheckout';
 let orderNumber = '';
@@ -25,6 +26,7 @@ function ensureCheckoutDialog() {
         '<div class="checkout-alert-icon" id="checkout-alert-icon" aria-hidden="true">!</div>',
         '<h3 class="checkout-alert-title" id="checkout-alert-title">Notice</h3>',
         '<p class="checkout-alert-message" id="checkout-alert-message"></p>',
+        '<dl class="checkout-alert-details" id="checkout-alert-details" hidden></dl>',
         '<div class="checkout-alert-actions">',
         '<button type="button" class="checkout-alert-btn" id="checkout-alert-ok-btn">OK</button>',
         '</div>',
@@ -65,13 +67,23 @@ function showCheckoutDialog(message, options) {
     const iconEl = overlay.querySelector('#checkout-alert-icon');
     const titleEl = overlay.querySelector('#checkout-alert-title');
     const messageEl = overlay.querySelector('#checkout-alert-message');
+    const detailsEl = overlay.querySelector('#checkout-alert-details');
     const okBtn = overlay.querySelector('#checkout-alert-ok-btn');
+    const details = Array.isArray(opts.details) ? opts.details.filter(function (row) {
+        return row && row.label && row.value;
+    }) : [];
 
-    dialog.classList.remove('is-warning', 'is-success', 'is-info');
+    dialog.classList.remove('is-warning', 'is-success', 'is-info', 'has-details');
     dialog.classList.add('is-' + type);
+    if (details.length) dialog.classList.add('has-details');
     iconEl.textContent = iconMap[type] || '!';
     titleEl.textContent = title;
     messageEl.textContent = message || '';
+    messageEl.hidden = !message;
+    detailsEl.hidden = details.length === 0;
+    detailsEl.innerHTML = details.map(function (row) {
+        return '<div class="checkout-alert-row' + (row.emphasis ? ' is-emphasis' : '') + (row.mono ? ' is-mono' : '') + '"><dt>' + escapeHtml(row.label) + '</dt><dd>' + escapeHtml(row.value) + '</dd></div>';
+    }).join('');
     okBtn.textContent = opts.buttonText || 'OK';
 
     overlay.removeAttribute('hidden');
@@ -100,7 +112,8 @@ function formatCurrency(value) {
 function paymentMethodLabel(methodId) {
     const labels = {
         gcash: 'GCash',
-        paymongo: 'PayMongo',
+        paymongo: 'QR Ph',
+        qrph: 'QR Ph',
         cash_on_delivery: 'Cash on delivery',
         cod: 'Cash on delivery'
     };
@@ -179,90 +192,144 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;');
 }
 
-function ensureKreezbyPrintSheet() {
-    if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
-    var src = '../js/kreezby-print-sheet.js?v=20261010roles';
-    var scripts = document.getElementsByTagName('script');
-    for (var i = 0; i < scripts.length; i++) {
-        var url = scripts[i].getAttribute('src') || '';
-        if (/checkout-customer\.js/i.test(url)) {
-            src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
-            break;
-        }
-    }
-    var tag = document.createElement('script');
-    tag.id = 'kreezby-print-sheet-js';
-    tag.src = src;
-    document.head.appendChild(tag);
-}
-
-function whenKreezbyPrintSheet(done) {
-    if (window.KreezbyPrintSheet) { done(window.KreezbyPrintSheet); return; }
-    ensureKreezbyPrintSheet();
-    var node = document.getElementById('kreezby-print-sheet-js');
-    if (!node) { done(null); return; }
-    var settled = false;
-    var finish = function (sheet) {
-        if (settled) return;
-        settled = true;
-        done(sheet || null);
-    };
-    node.addEventListener('load', function () { finish(window.KreezbyPrintSheet); });
-    node.addEventListener('error', function () { finish(null); });
-    setTimeout(function () { if (window.KreezbyPrintSheet) finish(window.KreezbyPrintSheet); }, 0);
-}
-
 function openReceiptWindow(receipt, heading) {
     if (!receipt) return;
-    whenKreezbyPrintSheet(function (sheet) {
-        if (!sheet) return;
-        var issuedAt = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString('en-PH') : '';
-        var subtotal = Number(receipt.subtotal) || 0;
-        var deliveryFee = Number(receipt.deliveryFee) || 0;
-        var grossTotal = Number(receipt.total) || 0;
-        var netTotal = Math.max(grossTotal, 0);
-        var vatableSales = netTotal / 1.12;
-        var vatAmount = netTotal - vatableSales;
-        var payment = paymentMethodLabel(receipt.paymentMethod);
-        var opened = sheet.openPreview({
-            title: heading || 'Official Receipt',
-            docNo: receipt.receiptNumber || receipt.orderNumber,
-            status: receipt.paymentStatus || 'Awaiting verification',
-            totalLabel: 'Grand total',
-            totalValue: formatCurrency(netTotal),
-            facts: [
-                { label: 'Order', value: receipt.orderNumber },
-                { label: 'Date', value: issuedAt },
-                { label: 'Payment', value: payment },
-                { label: 'GCash ref', value: receipt.gcashReference || (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber) || '' },
-                { label: 'PayMongo', value: receipt.paymongoPaymentIntentId },
-                { label: 'Customer', value: receipt.customerName },
-                { label: 'Phone', value: receipt.customerPhone },
-                { label: 'Address', value: receipt.customerAddress },
-                { label: 'Subtotal', value: formatCurrency(subtotal) },
-                { label: 'Delivery fee', value: formatCurrency(deliveryFee) },
-                { label: 'VATable sales', value: formatCurrency(vatableSales) },
-                { label: 'VAT', value: formatCurrency(vatAmount) }
-            ],
-            note: { label: 'Notes', text: receipt.shippingNotes },
-            columns: [
-                { label: 'Item' },
-                { label: 'Qty', align: 'right' },
-                { label: 'Price', align: 'right' },
-                { label: 'Total', align: 'right' }
-            ],
-            rows: (receipt.items || []).map(function (item) {
-                return [item.name, String(item.qty), formatCurrency(item.price), formatCurrency(item.lineTotal)];
-            }),
-            signs: ['Cashier', 'Customer']
+
+    const rows = (receipt.items || []).map((item) => {
+        return `<tr><td>${escapeHtml(item.name)}</td><td class="num">${item.qty}</td><td class="num">${formatCurrency(item.price)}</td><td class="num">${formatCurrency(item.lineTotal)}</td></tr>`;
+    }).join('');
+
+    const issuedAt = new Date(receipt.issuedAt).toLocaleString('en-PH');
+    const notes = escapeHtml(receipt.shippingNotes || '-');
+    const copyTitle = escapeHtml(heading || 'Receipt');
+    const subtotal = Number(receipt.subtotal) || 0;
+    const deliveryFee = Number(receipt.deliveryFee) || 0;
+    const grossTotal = Number(receipt.total) || 0;
+    const discount = 0;
+    const netTotal = Math.max(grossTotal - discount, 0);
+    const vatableSales = netTotal / 1.12;
+    const vatAmount = netTotal - vatableSales;
+
+    const buildCopy = (label) => {
+        const isCustomerCopy = label === 'CUSTOMER COPY';
+        return `
+<section class="receipt-copy ${isCustomerCopy ? 'customer-copy' : 'owner-copy'}">
+    <div class="center brand">KREEZBY BAKESHOP</div>
+    <div class="center sub">The Crinkle Factory</div>
+    <div class="center sub">Batangas City, Philippines</div>
+    <div class="rule"></div>
+    <div class="center copy-type">${label}</div>
+    ${isCustomerCopy ? '<div class="customer-copy-banner">Keep this copy for order tracking and support follow-up.</div>' : ''}
+    <div class="center title">OFFICIAL RECEIPT</div>
+    <div class="meta-block">
+        <div><span>OR No:</span> <strong>${escapeHtml(receipt.receiptNumber)}</strong></div>
+        <div><span>Order:</span> <strong>${escapeHtml(receipt.orderNumber)}</strong></div>
+        <div><span>Date:</span> <strong>${issuedAt}</strong></div>
+        <div><span>Pay:</span> <strong>${escapeHtml(receipt.paymentMethod)}${receipt.gcashReference ? ' ' + escapeHtml(GCASH_SHOP_NUMBER_LABEL) : ''}</strong></div>
+        ${receipt.paymongoPaymentIntentId ? '<div><span>QR Ph:</span> <strong>' + escapeHtml(receipt.paymongoPaymentIntentId) + '</strong></div>' : (receipt.gcashWebpay && receipt.gcashWebpay.webpayReferenceNumber ? '<div><span>Webpay ref:</span> <strong>' + escapeHtml(receipt.gcashWebpay.webpayReferenceNumber) + '</strong></div>' : (receipt.gcashReference ? '<div><span>GCash ref:</span> <strong>' + escapeHtml(receipt.gcashReference) + '</strong></div>' : ''))}
+        <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
+        <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
+        <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
+        <div><span>Address:</span> <strong>${escapeHtml(receipt.customerAddress || '-')}</strong></div>
+    </div>
+    <table>
+        <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+            <tr><td colspan="3" class="num">Subtotal</td><td class="num">${formatCurrency(subtotal)}</td></tr>
+            <tr><td colspan="3" class="num">Delivery Fee</td><td class="num">${formatCurrency(deliveryFee)}</td></tr>
+            <tr><td colspan="3" class="num">Discount</td><td class="num">${formatCurrency(discount)}</td></tr>
+            <tr><td colspan="3" class="num grand">Grand Total</td><td class="num grand">${formatCurrency(netTotal)}</td></tr>
+        </tfoot>
+    </table>
+    <div class="tax-block">
+        <div><span>VATable Sales</span><strong>${formatCurrency(vatableSales)}</strong></div>
+        <div><span>VAT-Exempt</span><strong>${formatCurrency(0)}</strong></div>
+        <div><span>Zero-Rated</span><strong>${formatCurrency(0)}</strong></div>
+    </div>
+    <div class="line"><span>Notes:</span> ${notes}</div>
+    <div class="line"><span>Cashier:</span> Online Checkout</div>
+    <div class="line">--------------------------------</div>
+    <div class="center thanks">THANK YOU FOR YOUR ORDER</div>
+    <div class="center tiny">${copyTitle} | This serves as official receipt.</div>
+</section>`;
+    };
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kreezby Receipt ${escapeHtml(receipt.receiptNumber)}</title>
+<style>
+body { font-family: 'Courier New', Courier, monospace; margin: 0; color: #111; background: #eceff3; }
+.sheet { width: 100%; max-width: 340px; margin: 12px auto; }
+.receipt-copy { background: #fff; border: 1px solid #222; padding: 10px; }
+.receipt-copy.customer-copy { border: 1px solid #7a543b; background: linear-gradient(180deg, #fffdf8 0%, #ffffff 24%, #fbfdff 100%); box-shadow: 0 16px 28px rgba(40, 28, 14, 0.12); }
+.center { text-align: center; }
+.brand { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
+.customer-copy .brand { color: #5d4037; }
+.sub { font-size: 11px; margin-bottom: 4px; }
+.copy-type { font-size: 11px; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 3px 0; margin-bottom: 4px; }
+.customer-copy .copy-type { border-color: #7a543b; color: #5d4037; font-weight: 700; background: rgba(248, 220, 170, 0.22); }
+.customer-copy-banner { margin: 6px 0 7px; padding: 6px 7px; border: 1px dashed #d09b3c; background: #fff5dd; color: #7a4d00; font-size: 10px; line-height: 1.35; text-align: center; }
+.title { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.rule { border-top: 1px dashed #222; margin: 4px 0; }
+.customer-copy .rule { border-color: #7a543b; }
+.meta-block { font-size: 11px; line-height: 1.45; margin-bottom: 6px; }
+.customer-copy .meta-block { padding: 6px 7px; border: 1px dashed #d7c1a4; background: rgba(255, 250, 239, 0.72); }
+.meta-block div { margin-bottom: 1px; }
+.line { font-size: 11px; margin-top: 6px; }
+.tax-block { font-size: 11px; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 4px 0; margin-top: 6px; }
+.tax-block div { display: flex; justify-content: space-between; margin: 1px 0; }
+.customer-copy .tax-block { border-color: #7a543b; background: rgba(255, 250, 239, 0.55); padding-left: 5px; padding-right: 5px; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { text-align: left; border-top: 1px dashed #222; border-bottom: 1px dashed #222; padding: 3px 2px; font-weight: 700; }
+.customer-copy th { border-color: #7a543b; background: rgba(248, 220, 170, 0.18); }
+td { padding: 3px 2px; border-bottom: 1px dotted #999; vertical-align: top; }
+.customer-copy td { border-bottom-color: #cab8a5; }
+.num { text-align: right; white-space: nowrap; }
+.grand { font-weight: 700; }
+.customer-copy .grand { color: #5d4037; }
+.thanks { font-size: 11px; margin-top: 6px; }
+.customer-copy .thanks { color: #5d4037; }
+.tiny { font-size: 10px; color: #444; margin-top: 2px; }
+.cut-line { border-top: 2px dashed #222; margin: 10px 0; text-align: center; position: relative; }
+.cut-line span { background: #eceff3; font-size: 10px; padding: 0 4px; position: relative; top: -7px; }
+.actions { margin: 8px auto 14px; display: flex; gap: 6px; justify-content: center; }
+button { padding: 8px 10px; border: 1px solid #222; background: #fff; cursor: pointer; font-family: inherit; font-size: 11px; }
+.print { font-weight: 700; }
+@media print {
+    body { background: #fff; }
+    .actions { display: none; }
+    .sheet { max-width: 340px; margin: 0 auto; }
+    .receipt-copy { border: none; page-break-inside: avoid; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+${buildCopy('CUSTOMER COPY')}
+<div class="actions">
+<button class="print" onclick="window.print()">Print Receipt</button>
+<button class="close" onclick="window.close()">Close</button>
+</div>
+</div>
+</body>
+</html>`;
+
+    const receiptWin = window.open('', '_blank', 'width=920,height=760');
+    if (!receiptWin) {
+        showCheckoutDialog('Receipt pop-up was blocked by your browser. Please allow pop-ups to print receipt.', {
+            type: 'warning',
+            title: 'Pop-up Blocked'
         });
-        if (!opened) {
-            showCheckoutDialog('Receipt pop-up was blocked by your browser. Please allow pop-ups to print receipt.', {
-                type: 'warning',
-                title: 'Pop-up Blocked'
-            });
-        }
-    });
+        return;
+    }
+
+    receiptWin.document.open();
+    receiptWin.document.write(html);
+    receiptWin.document.close();
 }
 
 function normalizeCartData(rawCart) {
@@ -319,7 +386,7 @@ function updateActionButtons() {
     if (placeOrderBtn) {
         const paymongoReady = !isPaymongoCheckout() || paymongoSucceeded();
         placeOrderBtn.disabled = !canPay || !paymongoReady;
-        placeOrderBtn.textContent = isPaymongoCheckout() && !paymongoReady ? 'Pay with PayMongo first' : 'Place Order';
+        placeOrderBtn.textContent = isPaymongoCheckout() && !paymongoReady ? 'Pay with QR Ph first' : 'Place Order';
     }
 }
 
@@ -332,11 +399,36 @@ function syncPaymentPanels() {
     if (codPanel) codPanel.classList.toggle('active', selectedPaymentMethod === 'cash_on_delivery');
 }
 
+function setPaymongoButtonLabel(text) {
+    const button = document.getElementById('paymongo-pay-btn');
+    if (!button) return;
+    const label = button.querySelector('.paymongo-open-btn__label');
+    if (label) label.textContent = text;
+    else button.textContent = text;
+}
+
+function resetPaymongoButton() {
+    paymongoTestUrl = '';
+    const qr = document.getElementById('paymongo-qr');
+    const frame = document.querySelector('.paymongo-qr-frame');
+    if (qr) {
+        qr.hidden = true;
+        qr.removeAttribute('src');
+    }
+    if (frame) frame.hidden = true;
+    const button = document.getElementById('paymongo-pay-btn');
+    if (button) {
+        button.disabled = false;
+        setPaymongoButtonLabel('Show QR code');
+    }
+}
+
 function resetVerification() {
     isPaymentVerified = false;
     gcashWebpay = null;
     paymongoPayment = null;
     stopPaymongoPoll();
+    resetPaymongoButton();
     const result = document.getElementById('gcash-webpay-result');
     if (result) {
         result.hidden = true;
@@ -401,7 +493,7 @@ function saveCustomerPurchaseOrder(order) {
         status: 'PROCESSING',
         statusClass: 'pending',
         remarks: order.paymentMethod === 'paymongo'
-            ? ('PayMongo paid. Payment intent ' + ((order.paymongo && order.paymongo.paymentIntentId) || '') + '.')
+            ? ('QR Ph paid. Payment intent ' + ((order.paymongo && order.paymongo.paymentIntentId) || '') + '.')
             : (order.paymentMethod === 'gcash'
                 ? ('GCash webpay paid. Reference ' + ((order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber) || order.gcashReference) + '.')
                 : 'Cash on delivery is waiting for verification.'),
@@ -414,7 +506,7 @@ function saveCustomerPurchaseOrder(order) {
         paymongo: order.paymongo || null,
         paymentVerified: order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo',
         paymentStatus: (order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo') ? 'paid' : 'pending',
-        inventoryDeducted: order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo',
+        inventoryDeducted: !!order.inventoryDeducted,
         shopOrderNumber: order.orderNumber,
         accountType: order.accountType || 'Regular Customer',
         accountName: order.accountName || shipping.fullName || '',
@@ -509,7 +601,16 @@ function initCheckout() {
         });
     }
     const paymongoBtn = document.getElementById('paymongo-pay-btn');
-    if (paymongoBtn) paymongoBtn.addEventListener('click', startPaymongo);
+    if (paymongoBtn) {
+        paymongoBtn.addEventListener('click', function () {
+            if (paymongoTestUrl) {
+                window.open(paymongoTestUrl, '_blank', 'noopener');
+                setPaymongoStatus('Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.');
+                return;
+            }
+            startPaymongo();
+        });
+    }
     resumePaymongoReturn();
 }
 
@@ -613,15 +714,48 @@ function checkoutTotalAmount() {
 }
 
 function selectedPaymongoWallet() {
-    const picked = document.querySelector('input[name="paymongo-wallet"]:checked');
-    return picked && picked.value === 'paymaya' ? 'paymaya' : 'gcash';
+    return 'qrph';
+}
+
+function paymongoTestPageUrl(value) {
+    try {
+        const parsed = new URL(String(value || ''));
+        const host = parsed.hostname.toLowerCase();
+        if (parsed.protocol !== 'https:' || (host !== 'paymongo.com' && !host.endsWith('.paymongo.com'))) return '';
+        return parsed.toString();
+    } catch (error) {
+        return '';
+    }
+}
+
+function claimPaymongoOrder(paymentIntentId) {
+    const key = 'kreezbyPaymongoPlaced:' + paymentIntentId;
+    try {
+        if (localStorage.getItem(key) === '1') return false;
+        localStorage.setItem(key, '1');
+        return true;
+    } catch (error) {
+        return true;
+    }
+}
+
+function paymongoWalletLabel(wallet) {
+    const labels = {
+        qrph: 'QR Ph',
+        gcash: 'GCash',
+        paymaya: 'Maya',
+        metrobank: 'Metrobank'
+    };
+    return labels[wallet] || '';
 }
 
 function showPaymongoQr(image) {
     const qr = document.getElementById('paymongo-qr');
+    const frame = document.querySelector('.paymongo-qr-frame');
     if (!qr || !String(image || '').startsWith('data:image/')) return false;
     qr.src = image;
     qr.hidden = false;
+    if (frame) frame.hidden = false;
     return true;
 }
 
@@ -671,8 +805,6 @@ function restoreShippingFields(draft) {
     if (address && draft.address) address.value = draft.address;
     if (notes && draft.notes) notes.value = draft.notes;
     if (email && draft.email) email.value = draft.email;
-    const wallet = document.querySelector('input[name="paymongo-wallet"][value="' + (draft.wallet || 'gcash') + '"]');
-    if (wallet) wallet.checked = true;
 }
 
 function validCheckoutContact(fields) {
@@ -689,7 +821,7 @@ function validCheckoutContact(fields) {
         return false;
     }
     if (isPaymongoCheckout() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-        showCheckoutDialog('Enter an email address so PayMongo can send the receipt.', {
+        showCheckoutDialog('Enter an email address so the QR Ph receipt can be sent.', {
             type: 'warning',
             title: 'Email Needed'
         });
@@ -722,7 +854,7 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                     amount: data.amount
                 };
                 isPaymentVerified = true;
-                setPaymongoStatus('Payment successful. PayMongo reference ' + data.paymentIntentId + '.');
+                setPaymongoStatus('Payment successful. QR Ph reference ' + data.paymentIntentId + '.');
                 updateActionButtons();
                 if (typeof onSucceeded === 'function') onSucceeded();
                 return;
@@ -734,7 +866,9 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                 updateActionButtons();
                 return;
             }
-            setPaymongoStatus('Scan the QR code. It opens the PayMongo payment link. This page checks every 5 seconds.');
+            setPaymongoStatus(paymongoTestUrl
+                ? 'Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.'
+                : 'Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
             if (ticks > 36) {
                 stopPaymongoPoll();
                 setPaymongoStatus('The QR code is still waiting. Show it again if you need a new one.');
@@ -785,7 +919,7 @@ async function paymongoFetch(path, options) {
 
 async function startPaymongo() {
     if (!hasCartItems()) {
-        showCheckoutDialog('Your cart is empty. Add items before paying with PayMongo.', { type: 'warning', title: 'Cart Empty' });
+        showCheckoutDialog('Your cart is empty. Add items before paying with QR Ph.', { type: 'warning', title: 'Cart Empty' });
         return;
     }
     const fields = shippingFields();
@@ -825,13 +959,23 @@ async function startPaymongo() {
             return;
         }
         if (!showPaymongoQr(data.qrImage)) {
-            setPaymongoStatus('PayMongo did not return a QR code.');
+            setPaymongoStatus('QR Ph did not return a code.');
             return;
         }
         showedQr = true;
-        if (button) {
+        paymongoTestUrl = paymongoTestPageUrl(data.testUrl);
+        const lead = document.querySelector('#paymongo-section .gcash-pay-lead');
+        if (paymongoTestUrl) {
+            if (button) {
+                button.disabled = false;
+                setPaymongoButtonLabel('Open PayMongo payment');
+            }
+            if (lead) lead.textContent = 'A bank app cannot finish this test payment. Open the PayMongo page and choose Authorize. This checkout places the order after that.';
+            setPaymongoStatus('Open the PayMongo payment page, then choose Authorize.');
+        } else if (button) {
             button.disabled = true;
-            button.textContent = 'QR code ready';
+            setPaymongoButtonLabel('QR code ready');
+            setPaymongoStatus('Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
         }
         writePaymongoDraft(Object.assign({}, fields, {
             wallet,
@@ -840,7 +984,7 @@ async function startPaymongo() {
         }));
         watchPaymongo(data.paymentIntentId, function () {
             const current = readPaymongoDraft() || {};
-            if (current.placed) return;
+            if (current.placed || !claimPaymongoOrder(data.paymentIntentId)) return;
             current.placed = true;
             writePaymongoDraft(current);
             placeOrder();
@@ -861,7 +1005,7 @@ function resumePaymongoReturn() {
     setPaymongoStatus('Checking PayMongo…');
     watchPaymongo(draft.paymentIntentId, function () {
         const current = readPaymongoDraft() || draft;
-        if (current.placed) return;
+        if (current.placed || !claimPaymongoOrder(draft.paymentIntentId)) return;
         current.placed = true;
         writePaymongoDraft(current);
         placeOrder();
@@ -878,7 +1022,7 @@ function placeOrder() {
     const fields = shippingFields();
     if (!validCheckoutContact(fields)) return;
     if (payingWithPaymongo && !paymongoSucceeded()) {
-        showCheckoutDialog('Pay with PayMongo before placing the order.', { type: 'warning', title: 'Payment Needed' });
+        showCheckoutDialog('Pay with QR Ph before placing the order.', { type: 'warning', title: 'Payment Needed' });
         return;
     }
 
@@ -897,7 +1041,6 @@ function placeOrder() {
     const accountArea = (accountType === 'Regular Customer')
         ? fields.address
         : (session.accountArea || fields.address);
-    const walletLabel = paymongoPayment && paymongoPayment.wallet === 'paymaya' ? 'Maya' : 'GCash';
 
     const order = {
         orderNumber: orderNumber,
@@ -924,7 +1067,7 @@ function placeOrder() {
         status: 'Processing',
         date: new Date().toISOString(),
         paymentVerified: payingWithPaymongo,
-        inventoryDeducted: payingWithPaymongo
+        inventoryDeducted: false
     };
 
     order.poCode = order.orderNumber;
@@ -942,11 +1085,26 @@ function placeOrder() {
     localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
 
     if (window.KreezbyDictionary && typeof KreezbyDictionary.recordSale === 'function') {
+        var stockPosted = true;
         Object.keys(cartData).forEach(function (key) {
             var item = cartData[key];
             if (!item || !item.name) return;
-            KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10));
+            var known = typeof KreezbyDictionary.productId === 'function' && KreezbyDictionary.productId(item.name);
+            if (!known) return;
+            if (KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10)) == null) stockPosted = false;
         });
+        if (stockPosted) {
+            order.inventoryDeducted = true;
+            orders.forEach(function (row) {
+                if (row && row.orderNumber === order.orderNumber) row.inventoryDeducted = true;
+            });
+            localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+            var postedOrders = parseStoredJson('kreezby-po-orders-v1', {});
+            if (postedOrders && postedOrders[order.orderNumber]) {
+                postedOrders[order.orderNumber].inventoryDeducted = true;
+                localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(postedOrders));
+            }
+        }
     }
 
     try {
@@ -954,7 +1112,7 @@ function placeOrder() {
             id: 'n-order-' + orderNumber,
             title: 'Customer Order Placed',
             description: payingWithPaymongo
-                ? ('New PayMongo order ' + orderNumber + ' from ' + fields.fullName + '. ' + walletLabel + ' payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
+                ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + '. Payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
                 : ('New cash on delivery order ' + orderNumber + ' from ' + fields.fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
             read: false,
@@ -978,9 +1136,20 @@ function placeOrder() {
 
     showCheckoutDialog(
         payingWithPaymongo
-            ? `Order placed. Order Number: ${orderNumber}. PayMongo ${walletLabel} payment succeeded. Payment intent ${paymongoPayment.paymentIntentId}. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`
-            : `Order placed. Order Number: ${orderNumber}. Cash on delivery is waiting for Kreezby to verify after the cash is collected. Receipt Number: ${order.receiptNumber}. Total: ${order.total}.`,
-        { type: 'success', title: 'Order Confirmed', buttonText: 'Go To Shop' }
+            ? 'Your payment went through. Keep this receipt for the order.'
+            : 'Cash on delivery is waiting for Kreezby to verify after the cash is collected.',
+        {
+            type: 'success',
+            title: 'Order Confirmed',
+            buttonText: 'Go To Shop',
+            details: [
+                { label: 'Order number', value: orderNumber },
+                { label: 'Payment', value: payingWithPaymongo ? 'QR Ph' : 'Cash on delivery' },
+                payingWithPaymongo ? { label: 'Payment intent', value: paymongoPayment.paymentIntentId, mono: true } : null,
+                { label: 'Receipt', value: order.receiptNumber },
+                { label: 'Total', value: order.total, emphasis: true }
+            ]
+        }
     ).then(function () {
         localStorage.setItem('kreezbyOpenOrdersAfterCheckout', '1');
         localStorage.setItem('kreezbyLatestOrderNumber', orderNumber);

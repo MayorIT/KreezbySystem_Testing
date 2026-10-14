@@ -30,6 +30,7 @@
         bo: { label: 'Back Order', page: 'bo-admin.html' },
         stocks: { label: 'Stocks', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-admin.html' },
+        pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-admin.html' },
         deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-admin.html' },
@@ -41,12 +42,12 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        ailore: ['dashboard', 'saleslist', 'aiforecast', 'ordertracking', 'alert', 'inbox', 'deliveryschedule']
+        ailore: ['dashboard', 'saleslist', 'pos', 'aiforecast', 'ordertracking', 'alert', 'inbox', 'deliveryschedule']
     };
 
     var TASK_ORDER = [
         'dashboard', 'receive', 'bo', 'stocks',
-        'saleslist', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
+        'saleslist', 'pos', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
         'maintenance', 'inbox', 'issuereports'
     ];
 
@@ -136,23 +137,13 @@
         return String(admin.id || admin.username);
     }
 
-    function maintenanceAdminForPermissionId(adminId) {
-        var settings = window.KreezbyMaintenanceSettings;
-        if (!settings || typeof settings.getUsers !== 'function') return null;
-        var admins = settings.getUsers().admins || [];
-        for (var i = 0; i < admins.length; i++) {
-            if (admins[i] && permissionIdForAdmin(admins[i]) === adminId) return admins[i];
-        }
-        return null;
-    }
-
     function databaseAdminAccounts() {
         if (!window.KreezbyMaintenanceSettings || typeof window.KreezbyMaintenanceSettings.getUsers !== 'function') return null;
         var admins = window.KreezbyMaintenanceSettings.getUsers().admins || [];
         if (!admins.length) return null;
         var mapped = {};
         admins.forEach(function (admin) {
-            if (!admin || admin.active === false || admin.archived === true) return;
+            if (!admin || admin.active === false) return;
             var id = permissionIdForAdmin(admin);
             var head = window.KreezbyMaintenanceSettings.isHeadAdminAccount(admin);
             mapped[id] = {
@@ -251,6 +242,17 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
                     localStorage.setItem('kreezby_admin_delivery_nav_v1', '1');
                 } catch (e) { /* ignore */ }
+            }
+            var posReady = false;
+            try { posReady = localStorage.getItem('kreezby_admin_pos_nav_v1') === '1'; } catch (e2) { posReady = true; }
+            if (!posReady) {
+                Object.keys(parsed).forEach(function (id) {
+                    if (Array.isArray(parsed[id]) && parsed[id].indexOf('pos') === -1) parsed[id].push('pos');
+                });
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                    localStorage.setItem('kreezby_admin_pos_nav_v1', '1');
+                } catch (e3) { /* ignore */ }
             }
             return parsed;
         } catch (e) {
@@ -542,13 +544,11 @@
             if (!selectedId) {
                 titleEl.textContent = 'No active admin';
                 matrixBody.innerHTML = '';
-                if (archiveBtn) archiveBtn.hidden = true;
                 return;
             }
             var profile = getAdminProfile(selectedId);
             titleEl.textContent = 'Module access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedId);
-            if (archiveBtn) archiveBtn.hidden = isHeadAdminAccountId(selectedId);
             if (isHeadAdminAccountId(selectedId)) {
                 showPermissionStatus(root, profile.name + ' keeps every module.');
             }
@@ -583,20 +583,12 @@
 
         if (archiveBtn) {
             archiveBtn.onclick = function () {
-                if (!selectedId || isHeadAdminAccountId(selectedId)) return;
-                var record = maintenanceAdminForPermissionId(selectedId);
-                var archive = window.KreezbyAccountArchive;
-                if (!record || !archive) return;
-                archive.open({
-                    bucket: 'admins',
-                    id: record.id,
-                    name: getAdminProfile(selectedId).name,
-                    onDone: function (result) {
-                        renderLists();
-                        renderPanel();
-                        if (result && result.message) showPermissionStatus(root, result.message);
-                    }
-                });
+                if (!selectedId) return;
+                var name = getAdminProfile(selectedId).name;
+                setAdminAccountStatus(selectedId, 'archived');
+                renderLists();
+                renderPanel();
+                alert(name + ' was archived and can no longer sign in.');
             };
         }
 
@@ -627,7 +619,7 @@
         if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
         if (isHeadAdmin()) return;
         var filename = getCurrentPageFilename();
-        if (filename === 'report_issue-admin.html' || filename === 'issue-reports-admin.html') return;
+        if (filename === 'report_issue-admin.html') return;
         var taskKey = getTaskForPage(filename);
         if (!taskKey) return;
         if (!adminCanAccessTask(taskKey)) {

@@ -576,7 +576,7 @@
 
     function syncPurchaseOrderTheme() {
         var frame = document.getElementById(FRAME_ID);
-        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
+        var onPo = !!(frame && frame.querySelector('#pos-master, #stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
         if (!frame || !frame.querySelector('main, .workspace-view-canvas, .panel-data-card')) {
             var page = currentPageName();
             onPo = page === 'po-admin.html' || page === 'po-headadmin.html' || page === 'po-staff.html' ||
@@ -590,6 +590,7 @@
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
                 page === 'deliveryschedule-admin.html' || page === 'deliveryschedule-headadmin.html' || page === 'deliveryschedule-staff.html' ||
                 page === 'alert-admin.html' || page === 'alert-headadmin.html' || page === 'alert-staff.html' ||
+                page === 'pos-admin.html' || page === 'pos-headadmin.html' || page === 'pos-staff.html' ||
                 page.indexOf('stocklevel-') === 0;
         }
         document.body.classList.toggle('po-admin-page', onPo);

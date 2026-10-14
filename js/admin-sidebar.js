@@ -59,6 +59,8 @@
 
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-admin.html', icon: 'sales' },
 
+        { key: 'pos', label: 'Point of Sale', href: 'pos-admin.html', icon: 'cart' },
+
         { key: 'ordertracking', label: 'Order Tracking', href: 'order-tracking-admin.html', icon: 'truck' },
 
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'chart', children: [
@@ -259,6 +261,8 @@
 
         if (filename.indexOf('saleslist-') === 0) return 'saleslist';
 
+        if (filename.indexOf('pos-') === 0) return 'pos';
+
         if (filename.indexOf('order-tracking-') === 0) return 'ordertracking';
 
         if (filename.indexOf('alert-') === 0) return 'alert';
@@ -342,6 +346,7 @@
         var head = isHeadAdminPortal() || (api && typeof api.isHeadAdmin === 'function' && api.isHeadAdmin());
         if (api && !head) {
             items = items.filter(function (item) {
+                if (item.key === 'pos' && !(api.TASKS && api.TASKS.pos)) return true;
                 return api.adminCanAccessTask(item.key);
             });
         }
