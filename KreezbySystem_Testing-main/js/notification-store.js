@@ -102,13 +102,12 @@
         var pages = {
             order: 'order-tracking-staff.html',
             payment: 'order-tracking-staff.html',
-            po: 'po-staff.html',
             receive: 'receive-staff.html',
             return: 'return-staff.html',
             alert: 'alert-staff.html',
             stock: 'stocks-staff.html',
             delivery: 'deliveryschedule-staff.html',
-            forecast: 'forecast-staff.html'
+            forecast: 'aiforecast_salesanalysis-staff.html?tab=forecast'
         };
         if (source === 'inbox') {
             var api = window.KreezbyStaffPermissions;

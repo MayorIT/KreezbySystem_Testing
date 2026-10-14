@@ -126,8 +126,6 @@
     PAGE_TO_TASK['report_issue-staff.html'] = null;
     PAGE_TO_TASK['deliveryschedule-staff.html'] = 'deliveryschedule';
     PAGE_TO_TASK['aiforecast_salesanalysis-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['forecast-staff.html'] = 'aiforecast';
-    PAGE_TO_TASK['insight-staff.html'] = 'aiforecast';
     PAGE_TO_TASK['stocklevel-value-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-alerts-staff.html'] = 'stocklevel';
     PAGE_TO_TASK['stocklevel-slow-staff.html'] = 'stocklevel';

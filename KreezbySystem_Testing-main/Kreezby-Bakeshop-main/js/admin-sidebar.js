@@ -51,7 +51,6 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-        { key: 'po', label: 'Purchase Order', href: 'po-admin.html', icon: 'cart' },
 
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 

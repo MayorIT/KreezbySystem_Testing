@@ -45,7 +45,6 @@
 
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
-        { key: 'po', label: 'Purchase Order', href: 'po-staff.html', icon: 'cart' },
         { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
         { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
@@ -173,7 +172,7 @@
         var items = [];
 
         var taskOrder = api.TASK_ORDER || [
-            'dashboard', 'po', 'bo', 'return', 'stocks',
+            'dashboard', 'bo', 'return', 'stocks',
             'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
         ];

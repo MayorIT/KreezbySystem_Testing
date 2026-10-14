@@ -51,6 +51,10 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> b372d80 (Save my changes)
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
