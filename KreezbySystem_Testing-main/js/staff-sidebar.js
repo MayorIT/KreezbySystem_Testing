@@ -46,12 +46,10 @@
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
         { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
-        { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
             { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
         ] },
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
@@ -205,7 +203,6 @@
                 entry.href = 'aiforecast_salesanalysis-staff.html';
                 entry.children = [
                     { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-                    { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
                     { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
                 ];
             }
@@ -326,7 +323,7 @@
         if (document.getElementById('kreezby-delivery-schedule-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-delivery-schedule-script';
-        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20260929pouch';
+        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20261014delone';
         s.onload = function () {
             if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
         };

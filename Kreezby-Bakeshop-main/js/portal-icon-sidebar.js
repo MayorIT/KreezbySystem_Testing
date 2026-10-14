@@ -184,7 +184,6 @@
         var items = [
             { href: retailerDashboardHref(key), label: 'Dashboard', icon: 'home' },
             { href: 'bo-' + key + '.html', label: 'Back Order', icon: 'layers' },
-            { href: 'return-' + key + '.html', label: 'Return/P.O List', icon: 'return' },
             { href: 'saleslist-' + key + '.html', label: 'Sales List', icon: 'sales' },
             { href: 'alert-' + key + '.html', label: 'Alert', icon: 'bell' }
         ];

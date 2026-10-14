@@ -34,12 +34,6 @@
         { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', current_stock: 180, recommended_quantity: 200 }
     ];
 
-    function average(list) {
-        var sum = 0;
-        for (var i = 0; i < list.length; i++) sum += Number(list[i]) || 0;
-        return list.length ? Math.round((sum / list.length) * 10) / 10 : 0;
-    }
-
     var FLAVOR_CHOICES = [
         'Chocolate Crinkles',
         'Choco-Almond Crinkles',
@@ -185,23 +179,6 @@
         return rows;
     }
 
-    function forecasts() {
-        return PRODUCTS.map(function (product) {
-            var recent = salesTransactions().filter(function (row) {
-                return row.product_id === product.product_id;
-            }).sort(function (a, b) {
-                return String(a.sales_date).localeCompare(String(b.sales_date));
-            });
-            var windowRows = recent.slice(-7);
-            return {
-                product_id: product.product_id,
-                product_name: product.product_name,
-                forecast_date: FORECAST_DATE,
-                forecast_value: average(windowRows.map(function (row) { return row.quantity_sold; }))
-            };
-        });
-    }
-
     function alerts() {
         return [
             { alert_type: 'low_stock', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles stock is below the reorder point. Current stock: 45 jars.', status: 'pending' },
@@ -282,10 +259,6 @@
             if (!row || !row.product_id) return;
             salesByProduct[row.product_id] = (salesByProduct[row.product_id] || 0) + (Number(row.quantity_sold) || 0);
         });
-        var forecastByProduct = {};
-        forecasts().forEach(function (row) {
-            forecastByProduct[row.product_id] = row.forecast_value;
-        });
         var materialStock = materialStockMap();
         return {
             asOf: new Date().toISOString().slice(0, 10),
@@ -294,8 +267,7 @@
                     name: row.product_name,
                     stock: row.current_stock,
                     recommendedStock: row.recommended_quantity,
-                    recentSales: salesByProduct[row.product_id] || 0,
-                    forecastDemand: forecastByProduct[row.product_id] == null ? null : forecastByProduct[row.product_id]
+                    recentSales: salesByProduct[row.product_id] || 0
                 };
             }),
             materials: RAW_MATERIALS.map(function (item) {
@@ -341,7 +313,6 @@
             inventory_transactions: inventoryTransactions(),
             sales_transactions: sales,
             orders: orders(),
-            forecasts: forecasts(),
             alerts: alerts(),
             procurement_recommendations: liveProcurement().map(function (row) {
                 var shortage = row.current_stock - row.recommended_quantity;
@@ -603,38 +574,6 @@
                 body.appendChild(row);
             });
         });
-    }
-
-    function decorateForecasts() {
-        var host = document.getElementById('reorder-recommendation');
-        if (!host || host.getAttribute('data-dict-forecast') === '1') return;
-        ensureForecastStyles();
-        host.setAttribute('data-dict-forecast', '1');
-        var box = document.createElement('div');
-        box.className = 'dict-sales-window';
-        var lines = forecasts().map(function (forecast) {
-            var qty = salesTransactions().filter(function (row) {
-                return row.product_id === forecast.product_id && SALES_DATES.indexOf(row.sales_date) >= 0;
-            }).map(function (row) { return row.quantity_sold; }).join(', ');
-            var rec = null;
-            liveProcurement().forEach(function (item) {
-                if (item.product_id === forecast.product_id) rec = item;
-            });
-            var reorder = '';
-            if (rec && rec.current_stock < rec.recommended_quantity) {
-                var need = rec.recommended_quantity - rec.current_stock;
-                reorder = '<a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="' + esc(stocksPageHref()) + '">Reorder ' + esc(need) + '</a>'
-                    + '<span class="dict-sales-stock">Stock ' + esc(rec.current_stock) + ' · recommended ' + esc(rec.recommended_quantity) + '</span>';
-            }
-            return '<div class="dict-sales-row">'
-                + '<div><strong>' + esc(forecast.product_name) + '</strong><span class="dict-sales-id">' + esc(forecast.product_id) + '</span></div>'
-                + '<div><span class="dict-sales-k">Sales</span> ' + esc(qty) + '</div>'
-                + '<div><span class="dict-sales-k">Forecast</span> ' + esc(forecast.forecast_value) + ' on ' + esc(forecast.forecast_date) + '</div>'
-                + '<div class="dict-sales-action">' + reorder + '</div>'
-                + '</div>';
-        }).join('');
-        box.innerHTML = lines;
-        host.appendChild(box);
     }
 
     function decorateSaleCards() {
@@ -949,7 +888,7 @@
         paintStockCells();
         hideArchivedStock();
         decorateAlerts();
-        decorateForecasts();
+        ensureForecastStyles();
         decorateSaleCards();
         mountStockTools();
         seedPartnerAlerts();
@@ -976,7 +915,6 @@
             return map[material.material_id] == null ? null : map[material.material_id];
         },
         alerts: alerts,
-        forecasts: forecasts,
         salesTransactions: salesTransactions,
         insightSnapshot: insightSnapshot
     };
@@ -988,5 +926,5 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('kreezby:page-load', apply);
-    document.addEventListener('content:replaced', decorateForecasts);
+    document.addEventListener('content:replaced', ensureForecastStyles);
 })();

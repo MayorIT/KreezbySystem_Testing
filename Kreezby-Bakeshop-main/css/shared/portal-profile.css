@@ -155,3 +155,20 @@
         grid-template-columns: 1fr;
     }
 }
+
+.kreezby-threshold-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.kreezby-threshold-bar select {
+    height: 34px;
+    max-width: 220px;
+    border: 1px solid #111;
+    border-radius: 8px;
+    padding: 0 8px;
+    background: #fff;
+    font: inherit;
+}

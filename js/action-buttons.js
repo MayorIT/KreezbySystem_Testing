@@ -185,6 +185,7 @@
     switch (module) {
       case 'stocks':
         return [
+          { key: 'edit', label: 'Edit' },
           { key: 'view', label: 'View History' },
           { key: 'adjust', label: 'Adjust Stock' },
           { key: 'archive', label: 'Archive Item', danger: true }
@@ -400,6 +401,42 @@
     }
   }
 
+  function showStockThreshold(name, row) {
+    var alerts = window.KreezbyBrowserAlerts;
+    var code = '';
+    if (row) {
+      var strong = row.querySelector('strong');
+      if (strong) code = strong.textContent.trim();
+    }
+    if (alerts && typeof alerts.codeForName === 'function') {
+      code = alerts.codeForName(code) || alerts.codeForName(name) || code;
+    }
+    var current = alerts && typeof alerts.thresholdFor === 'function' ? alerts.thresholdFor(code) : '';
+    var host = document.getElementById('stocks-staff-master-block') || document.querySelector('.workspace-view-canvas, .page-shell') || document.body;
+    var panel = document.getElementById('kreezby-stock-threshold');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'kreezby-stock-threshold';
+      host.insertBefore(panel, host.firstChild);
+    }
+    panel.style.cssText = 'position:relative;margin:0 0 14px;padding:12px 44px 12px 14px;border:1px solid #eadfce;border-radius:12px;background:#fff8e8;display:flex;flex-wrap:wrap;gap:8px;align-items:center;';
+    panel.innerHTML = '<button type="button" aria-label="Close" style="position:absolute;top:8px;right:10px;width:28px;height:28px;border:0;border-radius:50%;background:#5d4037;color:#fff;font-size:18px;font-weight:700;line-height:28px;text-align:center;cursor:pointer;padding:0;">×</button>'
+      + '<strong>' + name + '</strong>'
+      + '<span>alerts at</span>'
+      + '<input type="number" min="0" step="1" value="' + current + '" aria-label="Alert quantity" style="width:88px;height:34px;border:1px solid #e4d8c4;border-radius:8px;padding:0 8px;">'
+      + '<button type="button" data-save-threshold="1" style="height:34px;border:0;border-radius:999px;padding:0 14px;background:#e6a817;color:#3e2723;font-weight:700;cursor:pointer;">Save</button>';
+    panel.querySelector('button[aria-label="Close"]').addEventListener('click', function () { panel.remove(); });
+    panel.querySelector('[data-save-threshold]').addEventListener('click', function () {
+      var input = panel.querySelector('input');
+      if (!alerts || typeof alerts.setItemThreshold !== 'function' || !alerts.setItemThreshold(code, input.value)) {
+        toast('Enter a quantity of 0 or more.', 'warn');
+        return;
+      }
+      toast(name + ' alerts at ' + Number(input.value) + '.', 'success');
+      panel.remove();
+    });
+  }
+
   function performStockAction(action, label, row) {
     var name = label || 'Item';
     var dict = window.KreezbyDictionary;
@@ -410,6 +447,10 @@
       try { localStorage.setItem('kreezby_archived_stock', JSON.stringify(archived)); } catch (e) { /* ignore */ }
       if (row) row.hidden = true;
       toast('"' + name + '" is archived and hidden from the active list.', 'success');
+      return;
+    }
+    if (action === 'edit') {
+      showStockThreshold(name, row);
       return;
     }
     if (action === 'adjust') {
@@ -517,12 +558,8 @@
     }
 
     if (action === 'print') {
-      var printBtn = document.querySelector('#po-details-print-btn, #bo-details-print-btn, #return-details-print-btn, #recv-details-print-btn, #sales-details-print-btn');
-      if (printBtn) {
-        printBtn.click();
-        return;
-      }
-      toast('Open the record first, then print it.', 'info');
+      if (typeof window.print === 'function') window.print();
+      toast('Print dialog opened for "' + label + '".', 'success');
       return;
     }
 
@@ -726,7 +763,7 @@
           e.stopPropagation();
           var key = item.getAttribute('data-action') || actionKeyFromText(item.textContent);
           var itemModule = module;
-          if (key === 'adjust' || key === 'archive' || (key === 'view' && itemModule === 'stocks')) itemModule = 'stocks';
+          if (key === 'edit' || key === 'adjust' || key === 'archive' || (key === 'view' && itemModule === 'stocks')) itemModule = 'stocks';
           if (key === 'dismiss' || key === 'restock' || key === 'modify') itemModule = 'alert';
           runRowAction(itemModule, key, label, row);
         });
@@ -745,10 +782,36 @@
     btn.dataset.kreezbyActionWired = '1';
   }
 
+  function ensureStockEditItems() {
+    document.querySelectorAll('.action-popup-menu').forEach(function (menu) {
+      if (menu.querySelector('[data-action="edit"]') || menu.closest('[data-kreezby-page-menu]')) return;
+      if ((menu.textContent || '').indexOf('Adjust Stock') < 0) return;
+      var row = menu.closest('tr');
+      var name = 'Item';
+      if (row) {
+        var cells = row.querySelectorAll('td');
+        if (cells[3] && cells[3].textContent.trim()) name = cells[3].textContent.trim();
+      }
+      var item = document.createElement('div');
+      item.className = 'action-popup-item';
+      item.setAttribute('data-action', 'edit');
+      item.dataset.kreezbyWired = '1';
+      item.textContent = 'Edit';
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAllMenus();
+        runStockAction('edit', name, row);
+      });
+      menu.insertBefore(item, menu.firstChild);
+    });
+  }
+
   function initAll() {
     injectStyles();
     wireExistingPopupItems();
     document.querySelectorAll('.action-trigger-btn, .btn-row-action').forEach(wireButton);
+    ensureStockEditItems();
   }
 
   window.handleStockAction = function (actionType, itemName, row) {

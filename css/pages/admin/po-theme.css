@@ -2414,7 +2414,8 @@ body.po-admin-page #sales-analysis-master .dict-reorder {
 }
 
 body.po-admin-page #sales-analysis-master .management-insight__refresh,
-body.po-admin-page #sales-analysis-master #management-insight-refresh {
+body.po-admin-page #sales-analysis-master #management-insight-refresh,
+body.po-admin-page #sales-analysis-master #product-recommendation-refresh {
     height: 36px;
     border: 0;
     border-radius: 999px;

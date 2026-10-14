@@ -273,7 +273,6 @@ function sanitizeInsightSnapshot(input) {
       stock: insightNumber(row && row.stock),
       recommendedStock: insightNumber(row && row.recommendedStock),
       recentSales: insightNumber(row && row.recentSales),
-      forecastDemand: insightNumber(row && row.forecastDemand),
     })).filter((row) => row.name),
     materials: materials.map((row) => ({
       name: cleanInsightText(row && row.name, 80),
@@ -292,7 +291,7 @@ function insightAllowed(ip) {
   return true;
 }
 
-async function writeManagementInsight(apiKey, snapshot) {
+async function writeOwnerNote(apiKey, snapshot, instructions) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -307,7 +306,7 @@ async function writeManagementInsight(apiKey, snapshot) {
       messages: [
         {
           role: "system",
-          content: "You write a short note for the owner of Kreezby Bakeshop, a crinkles bakery. Summarize notable sales, inventory, and demand in simple everyday language. Use 4 to 6 short sentences. Name the products and use only the numbers in the data when a figure matters. Say what is selling, what is running low against the recommended stock, and what demand looks like next. Mention an ingredient only if it is close to expiring or very low. Do not use business jargon. Do not invent figures.",
+          content: instructions,
         },
         {
           role: "user",
@@ -335,6 +334,47 @@ async function writeManagementInsight(apiKey, snapshot) {
   return text;
 }
 
+function writeManagementInsight(apiKey, snapshot) {
+  return writeOwnerNote(
+    apiKey,
+    snapshot,
+    "You write a short note for the owner of Kreezby Bakeshop, a crinkles bakery. Summarize notable sales and inventory in simple everyday language. Use 4 to 6 short sentences. Name the products and use only the numbers in the data when a figure matters. Say what is selling and what is running low against the recommended stock. Do not forecast future demand. Mention an ingredient only if it is close to expiring or very low. Do not use business jargon. Do not invent figures."
+  );
+}
+
+const productRecommendationLastCall = new Map();
+
+function sanitizeProductRecommendation(input) {
+  const source = input && typeof input === "object" ? input : {};
+  const products = Array.isArray(source.products) ? source.products.slice(0, 12) : [];
+  return {
+    asOf: cleanInsightText(source.asOf, 20),
+    products: products.map((row) => ({
+      name: cleanInsightText(row && row.name, 80),
+      finishedStock: insightNumber(row && row.finishedStock),
+      pendingOrders: insightNumber(row && row.pendingOrders),
+      pendingStillToCover: insightNumber(row && row.pendingStillToCover),
+      suggestedBake: insightNumber(row && row.suggestedBake),
+    })).filter((row) => row.name),
+  };
+}
+
+function productRecommendationAllowed(ip) {
+  const now = Date.now();
+  const last = productRecommendationLastCall.get(ip) || 0;
+  if (now - last < 8000) return false;
+  productRecommendationLastCall.set(ip, now);
+  return true;
+}
+
+function writeProductRecommendation(apiKey, snapshot) {
+  return writeOwnerNote(
+    apiKey,
+    snapshot,
+    "You write a short production recommendation for the owner of Kreezby Bakeshop, a crinkles bakery. Base it only on available finished products and pending orders. Use 4 to 6 short sentences in simple everyday language. suggestedBake is the number of pouches to bake. It is open orders not yet taken from finished stock, minus finishedStock. When suggestedBake is above 0, name the product and say to bake that many pouches. When suggestedBake is 0, say that product is covered. Mention finishedStock or pendingOrders only to explain a bake amount, and use only numbers from the data. If pendingStillToCover is 0, open orders are already taken out of finished stock, so do not add pendingOrders again. Do not forecast future demand. Do not invent figures. Do not use business jargon."
+  );
+}
+
 app.post("/api/management-insight", async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -346,7 +386,7 @@ app.post("/api/management-insight", async (req, res) => {
   if (!snapshot.products.length) {
     res.json({
       ok: true,
-      insight: "There is not enough sales, stock, or demand data yet to summarize. Once products have stock and recent sales, this note will tell you what stands out.",
+      insight: "There is not enough sales or stock data yet to summarize. Once products have stock and recent sales, this note will tell you what stands out.",
       model: OPENAI_MODEL,
     });
     return;
@@ -376,6 +416,51 @@ app.post("/api/management-insight", async (req, res) => {
       error: status === 401
         ? "The management insight service rejected the API key."
         : "The management insight could not be written just now.",
+    });
+  }
+});
+
+app.post("/api/product-recommendation", async (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    res.status(503).json({ ok: false, error: "Production recommendation is not configured." });
+    return;
+  }
+
+  const snapshot = sanitizeProductRecommendation(req.body && req.body.snapshot);
+  if (!snapshot.products.length) {
+    res.json({
+      ok: true,
+      recommendation: "There is not enough finished product or pending order data yet to recommend a bake.",
+      model: OPENAI_MODEL,
+    });
+    return;
+  }
+
+  const ip = req.ip || "local";
+  if (!productRecommendationAllowed(ip)) {
+    res.status(429).json({ ok: false, error: "Please wait a few seconds before asking for another recommendation." });
+    return;
+  }
+
+  try {
+    const recommendation = await writeProductRecommendation(apiKey, snapshot);
+    res.json({ ok: true, recommendation, model: OPENAI_MODEL });
+  } catch (error) {
+    const code = error && error.code;
+    if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
+      res.status(402).json({
+        ok: false,
+        error: "The GPT-4o mini account has no credits left. Add credits in OpenAI billing, then refresh this note.",
+      });
+      return;
+    }
+    const status = error && error.status === 401 ? 401 : 502;
+    res.status(status).json({
+      ok: false,
+      error: status === 401
+        ? "The production recommendation service rejected the API key."
+        : "The production recommendation could not be written just now.",
     });
   }
 });

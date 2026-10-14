@@ -461,6 +461,17 @@ body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby
     line-height: 1.65;
 }
 
+.product-recommendation-note {
+    margin: 12px 0 0;
+    color: #7a6558;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+#product-recommendation-table {
+    margin-bottom: 16px;
+}
+
 .card-body-padded > .management-insight {
     margin: 0 0 18px;
     border-radius: 12px;

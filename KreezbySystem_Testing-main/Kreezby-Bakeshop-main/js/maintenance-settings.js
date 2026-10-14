@@ -16,7 +16,10 @@
             { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Head Administrator' },
             { id: 'admin-marketing', name: 'Ailore Embalzado', username: 'ailore_admin', role: 'Marketing', accountType: 'Administrator' }
         ],
-        staff: [],
+        staff: [
+            { id: 'staff-imelda', name: 'Imelda Atienza', username: 'imelda_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true },
+            { id: 'staff-nichole', name: 'Nichole Ramos', username: 'nichole_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true }
+        ],
         retailers: [
             {"id":"ret-chickn_j_ibaan","name":"Chick'N J Ibaan","username":"chickn_j_ibaan","temporaryPassword":"KzDPJVE2","role":"Retailer","area":"Rosario","pcs":10,"active":true},
             {"id":"ret-sidc_ibaan","name":"SIDC Ibaan","username":"sidc_ibaan","temporaryPassword":"Kz3TUF3M","role":"Retailer","area":"Rosario","pcs":15,"active":true},
@@ -42,6 +45,7 @@
             {"id":"ret-jhorjhanes_balagtas","name":"Jhorjhanes Balagtas","username":"jhorjhanes_balagtas","temporaryPassword":"KzQJSY3K","role":"Retailer","area":"Batangas","pcs":30,"active":true},
             {"id":"ret-wanam_sa_bukid_balagtas","name":"Wanam sa Bukid Balagtas","username":"wanam_sa_bukid_balagtas","temporaryPassword":"KzAC3EVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-aa_lomi_balagtas","name":"AA Lomi Balagtas","username":"aa_lomi_balagtas","temporaryPassword":"KzGSXDM2","role":"Retailer","area":"Batangas","pcs":40,"active":true},
+            {"id":"ret-aa_san_pascual","name":"AA San Pascual","username":"aa_san_pascual","temporaryPassword":"Kz4SPAA9","role":"Retailer","area":"Batangas","pcs":10,"active":true},
             {"id":"ret-butch_alangilan","name":"Butch Alangilan","username":"butch_alangilan","temporaryPassword":"KzHSS8EN","role":"Retailer","area":"Batangas","pcs":35,"active":true},
             {"id":"ret-gracias_pasalubong","name":"Gracias Pasalubong","username":"gracias_pasalubong","temporaryPassword":"KzE7VWVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-shell_select_kumintang_ibaba","name":"Shell Select Kumintang Ibaba","username":"shell_select_kumintang_ibaba","temporaryPassword":"Kz8C3MFF","role":"Retailer","area":"Batangas","pcs":10,"active":true},
@@ -172,6 +176,31 @@
         return fresh;
     }
 
+    function usesOfficialStaff(list) {
+        var official = DEFAULT_USERS.staff;
+        if (!Array.isArray(list) || list.length !== official.length) return false;
+        for (var i = 0; i < official.length; i++) {
+            if (!list[i] || list[i].id !== official[i].id || list[i].name !== official[i].name) return false;
+        }
+        return true;
+    }
+
+    function mergeMissingRetailers(users) {
+        var have = {};
+        users.retailers = users.retailers || [];
+        users.retailers.forEach(function (row) {
+            if (row && row.id) have[row.id] = 1;
+        });
+        var added = false;
+        DEFAULT_USERS.retailers.forEach(function (row) {
+            if (row && row.id && !have[row.id]) {
+                users.retailers.push(JSON.parse(JSON.stringify(row)));
+                added = true;
+            }
+        });
+        if (added) saveJson(USERS_KEY, users);
+    }
+
     function getUsers() {
         var seeded = '';
         try { seeded = localStorage.getItem(USERS_SEED_VERSION_KEY) || ''; } catch (e) { seeded = ''; }
@@ -184,14 +213,11 @@
                 users[bucket] = JSON.parse(JSON.stringify(DEFAULT_USERS[bucket]));
             }
         });
-        if (!users.staff.length && DEFAULT_USERS.staff.length) {
+        if (!usesOfficialStaff(users.staff)) {
             users.staff = JSON.parse(JSON.stringify(DEFAULT_USERS.staff));
             saveJson(USERS_KEY, users);
         }
-        if (!users.retailers.length && DEFAULT_USERS.retailers.length) {
-            users.retailers = JSON.parse(JSON.stringify(DEFAULT_USERS.retailers));
-            saveJson(USERS_KEY, users);
-        }
+        mergeMissingRetailers(users);
         if (users.wholesalers && users.wholesalers.length) {
             users.wholesalers = [];
             saveJson(USERS_KEY, users);

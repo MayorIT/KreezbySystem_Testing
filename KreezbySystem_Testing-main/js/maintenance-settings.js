@@ -16,7 +16,10 @@
             { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Head Administrator' },
             { id: 'admin-marketing', name: 'Ailore Embalzado', username: 'ailore_admin', role: 'Marketing', accountType: 'Administrator' }
         ],
-        staff: [],
+        staff: [
+            { id: 'staff-imelda', name: 'Imelda Atienza', username: 'imelda_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true },
+            { id: 'staff-nichole', name: 'Nichole Ramos', username: 'nichole_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true }
+        ],
         retailers: [
             {"id":"ret-chickn_j_ibaan","name":"Chick'N J Ibaan","username":"chickn_j_ibaan","temporaryPassword":"KzDPJVE2","role":"Retailer","area":"Rosario","pcs":10,"active":true},
             {"id":"ret-sidc_ibaan","name":"SIDC Ibaan","username":"sidc_ibaan","temporaryPassword":"Kz3TUF3M","role":"Retailer","area":"Rosario","pcs":15,"active":true},
@@ -42,6 +45,7 @@
             {"id":"ret-jhorjhanes_balagtas","name":"Jhorjhanes Balagtas","username":"jhorjhanes_balagtas","temporaryPassword":"KzQJSY3K","role":"Retailer","area":"Batangas","pcs":30,"active":true},
             {"id":"ret-wanam_sa_bukid_balagtas","name":"Wanam sa Bukid Balagtas","username":"wanam_sa_bukid_balagtas","temporaryPassword":"KzAC3EVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-aa_lomi_balagtas","name":"AA Lomi Balagtas","username":"aa_lomi_balagtas","temporaryPassword":"KzGSXDM2","role":"Retailer","area":"Batangas","pcs":40,"active":true},
+            {"id":"ret-aa_san_pascual","name":"AA San Pascual","username":"aa_san_pascual","temporaryPassword":"Kz4SPAA9","role":"Retailer","area":"Batangas","pcs":10,"active":true},
             {"id":"ret-butch_alangilan","name":"Butch Alangilan","username":"butch_alangilan","temporaryPassword":"KzHSS8EN","role":"Retailer","area":"Batangas","pcs":35,"active":true},
             {"id":"ret-gracias_pasalubong","name":"Gracias Pasalubong","username":"gracias_pasalubong","temporaryPassword":"KzE7VWVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-shell_select_kumintang_ibaba","name":"Shell Select Kumintang Ibaba","username":"shell_select_kumintang_ibaba","temporaryPassword":"Kz8C3MFF","role":"Retailer","area":"Batangas","pcs":10,"active":true},
@@ -97,11 +101,7 @@
         ],
         wholesalers: [],
         suppliers: [],
-        customers: [
-            { id: 'cust-kyla-ramos', name: 'Kyla Ramos', username: 'kyla_ramos', email: 'kyla.ramos@email.com', phone: '0917 555 0142', contact: '0917 555 0142', role: 'Customer', accountType: 'Customer', active: true },
-            { id: 'cust-ana-delacruz', name: 'Ana Dela Cruz', username: 'ana_delacruz', email: 'ana.delacruz@email.com', phone: '0918 555 2201', contact: '0918 555 2201', role: 'Customer', accountType: 'Customer', active: true },
-            { id: 'cust-paolo-reyes', name: 'Paolo Reyes', username: 'paolo_reyes', email: 'paolo.reyes@email.com', phone: '0919 555 3340', contact: '0919 555 3340', role: 'Customer', accountType: 'Customer', active: true }
-        ]
+        customers: []
     };
 
     var DEFAULT_LOGIN_HISTORY = [];
@@ -176,6 +176,31 @@
         return fresh;
     }
 
+    function usesOfficialStaff(list) {
+        var official = DEFAULT_USERS.staff;
+        if (!Array.isArray(list) || list.length !== official.length) return false;
+        for (var i = 0; i < official.length; i++) {
+            if (!list[i] || list[i].id !== official[i].id || list[i].name !== official[i].name) return false;
+        }
+        return true;
+    }
+
+    function mergeMissingRetailers(users) {
+        var have = {};
+        users.retailers = users.retailers || [];
+        users.retailers.forEach(function (row) {
+            if (row && row.id) have[row.id] = 1;
+        });
+        var added = false;
+        DEFAULT_USERS.retailers.forEach(function (row) {
+            if (row && row.id && !have[row.id]) {
+                users.retailers.push(JSON.parse(JSON.stringify(row)));
+                added = true;
+            }
+        });
+        if (added) saveJson(USERS_KEY, users);
+    }
+
     function getUsers() {
         var seeded = '';
         try { seeded = localStorage.getItem(USERS_SEED_VERSION_KEY) || ''; } catch (e) { seeded = ''; }
@@ -188,18 +213,11 @@
                 users[bucket] = JSON.parse(JSON.stringify(DEFAULT_USERS[bucket]));
             }
         });
-        if (!users.staff.length && DEFAULT_USERS.staff.length) {
+        if (!usesOfficialStaff(users.staff)) {
             users.staff = JSON.parse(JSON.stringify(DEFAULT_USERS.staff));
             saveJson(USERS_KEY, users);
         }
-        if (!users.retailers.length && DEFAULT_USERS.retailers.length) {
-            users.retailers = JSON.parse(JSON.stringify(DEFAULT_USERS.retailers));
-            saveJson(USERS_KEY, users);
-        }
-        if (!users.customers.length && DEFAULT_USERS.customers.length) {
-            users.customers = JSON.parse(JSON.stringify(DEFAULT_USERS.customers));
-            saveJson(USERS_KEY, users);
-        }
+        mergeMissingRetailers(users);
         if (users.wholesalers && users.wholesalers.length) {
             users.wholesalers = [];
             saveJson(USERS_KEY, users);
@@ -250,7 +268,6 @@
         for (var i = 0; i < pools.length; i++) {
             var pool = pools[i];
             for (var j = 0; j < pool.list.length; j++) {
-                if (isArchivedUser(pool.list[j])) continue;
                 if (pool.match(pool.list[j])) {
                     return {
                         userName: pool.label(pool.list[j]),
@@ -284,9 +301,11 @@
 
     function upgradeCustomerToRole(customerId, targetRole) {
         var users = getUsers();
+        var idx = -1;
         var customer = null;
         for (var i = 0; i < users.customers.length; i++) {
             if (users.customers[i].id === customerId) {
+                idx = i;
                 customer = users.customers[i];
                 break;
             }
@@ -296,15 +315,7 @@
             return { ok: false, message: 'Invalid upgrade role.' };
         }
 
-        if (customer.archived) {
-            return { ok: false, message: 'That customer account is already archived.' };
-        }
-
-        customer.archived = true;
-        customer.active = false;
-        customer.archiveReason = 'partner';
-        customer.archiveNote = 'Changed from customer to retailer.';
-        customer.archivedAt = new Date().toISOString();
+        users.customers.splice(idx, 1);
 
         var newRecord = {
             id: 'ret-' + Date.now(),
@@ -313,9 +324,7 @@
             email: customer.email,
             area: '—',
             upgradedFrom: customer.id,
-            phone: customer.phone,
-            active: true,
-            accountType: 'Retailer'
+            phone: customer.phone
         };
 
         users.retailers.push(newRecord);
@@ -323,23 +332,8 @@
         saveUsers(users);
         return {
             ok: true,
-            message: customer.name + ' is now a Retailer. The old customer account was archived as a changed business partner.'
+            message: customer.name + ' is now a Retailer. Their customer account has been removed.'
         };
-    }
-
-    var ARCHIVE_REASONS = {
-        missing: "Didn't exist",
-        deleted: 'Deleted account',
-        partner: 'Changed business partner',
-        other: 'Other'
-    };
-
-    function isArchivedUser(user) {
-        return !!(user && user.archived === true);
-    }
-
-    function archiveReasonLabel(reason) {
-        return ARCHIVE_REASONS[reason] || 'Archived';
     }
 
     function isActive(user) {
@@ -355,7 +349,7 @@
         return name === 'brent_admin' || name === 'marcela_admin' || name === 'admin-owner' || name === 'admin-ops';
     }
 
-    function findRecord(identity, includeArchived) {
+    function findRecord(identity) {
         var q = String(identity || '').trim().toLowerCase();
         if (!q) return null;
         var users = getUsers();
@@ -364,8 +358,6 @@
             var list = users[buckets[b]] || [];
             for (var i = 0; i < list.length; i++) {
                 var user = list[i];
-                if (!includeArchived && isArchivedUser(user)) continue;
-                if (includeArchived && !isArchivedUser(user)) continue;
                 var fields = [user.email, user.username, user.name, user.user_id, user.id, user.contact];
                 for (var f = 0; f < fields.length; f++) {
                     if (fields[f] && String(fields[f]).trim().toLowerCase() === q) {
@@ -377,94 +369,9 @@
         return null;
     }
 
-    function accountAccessState(identity, userName) {
-        var live = findRecord(identity) || findRecord(userName);
-        if (live && live.user.active === false) return 'deactivated';
-        if (!live && (findRecord(identity, true) || findRecord(userName, true))) return 'archived';
-        return 'ok';
-    }
-
     function isLoginBlocked(identity, userName) {
-        var state = accountAccessState(identity, userName);
-        return state === 'deactivated' || state === 'archived';
-    }
-
-    function archiveAccount(bucket, id, reason, note) {
-        if (!ARCHIVE_REASONS[reason]) return { ok: false, message: 'Choose why this account is being archived.' };
-        var detail = String(note || '').trim();
-        if (reason === 'other' && !detail) return { ok: false, message: 'Add a short note for Other.' };
-        var users = getUsers();
-        var list = users[bucket];
-        if (!list) return { ok: false, message: 'That account group was not found.' };
-        var user = null;
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].id === id) {
-                user = list[i];
-                break;
-            }
-        }
-        if (!user) return { ok: false, message: 'Account not found.' };
-        if (bucket === 'admins' && isHeadAdminAccount(user)) {
-            return { ok: false, message: 'Head Admin accounts stay active.' };
-        }
-        user.archived = true;
-        user.active = false;
-        user.archiveReason = reason;
-        user.archiveNote = detail;
-        user.archivedAt = new Date().toISOString();
-        saveUsers(users);
-        return {
-            ok: true,
-            message: user.name + ' was archived (' + ARCHIVE_REASONS[reason] + ') and can no longer sign in.'
-        };
-    }
-
-    function restoreAccount(bucket, id) {
-        var users = getUsers();
-        var list = users[bucket];
-        if (!list) return { ok: false, message: 'That account group was not found.' };
-        var user = null;
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].id === id) {
-                user = list[i];
-                break;
-            }
-        }
-        if (!user) return { ok: false, message: 'Account not found.' };
-        user.archived = false;
-        user.active = true;
-        user.archiveReason = '';
-        user.archiveNote = '';
-        user.archivedAt = '';
-        saveUsers(users);
-        return { ok: true, message: user.name + ' is active again.' };
-    }
-
-    function listArchivedAccounts() {
-        var users = getUsers();
-        var buckets = [
-            { bucket: 'admins', type: 'Admin' },
-            { bucket: 'staff', type: 'Staff' },
-            { bucket: 'retailers', type: 'Retailer' },
-            { bucket: 'customers', type: 'Customer' }
-        ];
-        var rows = [];
-        buckets.forEach(function (spec) {
-            (users[spec.bucket] || []).forEach(function (user) {
-                if (!isArchivedUser(user)) return;
-                rows.push({
-                    bucket: spec.bucket,
-                    type: user.accountType || spec.type,
-                    id: user.id,
-                    name: user.name || 'Account',
-                    detail: user.username || user.email || user.contact || '',
-                    reason: user.archiveReason || 'other',
-                    reasonLabel: archiveReasonLabel(user.archiveReason),
-                    note: user.archiveNote || ''
-                });
-            });
-        });
-        return rows;
+        var hit = findRecord(identity) || findRecord(userName);
+        return !!(hit && hit.user.active === false);
     }
 
     function setAccountStatus(bucket, id, active) {
@@ -514,36 +421,14 @@
             if (!record.username) return { ok: false, message: 'Username is required.' };
         } else {
             record.email = String((fields && fields.email) || '').trim();
-            record.contact = String((fields && (fields.contact || fields.phone)) || '').trim();
+            record.contact = String((fields && fields.contact) || '').trim();
             record.phone = record.contact;
             record.area = String((fields && fields.area) || '').trim();
-            record.username = String((fields && fields.username) || '').trim().toLowerCase().replace(/\s+/g, '_');
-            if (!record.username && record.email) {
-                record.username = record.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-            }
-            record.accountType = dictionaryRole(bucket);
-            if (bucket === 'customers' && !record.email) return { ok: false, message: 'Email is required.' };
-            if (bucket === 'retailers' && !record.username && !record.email) {
-                return { ok: false, message: 'Username or email is required.' };
-            }
-        }
-        var duplicate = false;
-        ['admins', 'staff', 'retailers', 'customers'].forEach(function (key) {
-            (users[key] || []).forEach(function (user) {
-                if (record.username && user.username && String(user.username).toLowerCase() === record.username.toLowerCase()) duplicate = true;
-                if (record.email && user.email && String(user.email).toLowerCase() === record.email.toLowerCase()) duplicate = true;
-            });
-        });
-        if (duplicate) {
-            return { ok: false, message: 'That account already exists. Restore it from Archived if it should sign in again.' };
+            if (!record.email) return { ok: false, message: 'Email is required.' };
         }
         users[bucket].push(record);
         saveUsers(withDictionaryFields(users));
-        return {
-            ok: true,
-            message: name + ' was added. Archive the account if it didn\'t exist, was deleted, or changed business partner.',
-            id: record.id
-        };
+        return { ok: true, message: name + ' was added and can be activated or deactivated from this list.', id: record.id };
     }
 
     var BACKUP_KEYS = [
@@ -602,11 +487,6 @@
         findUserByIdentity: findUserByIdentity,
         getPasswordForIdentity: getPasswordForIdentity,
         isLoginBlocked: isLoginBlocked,
-        accountAccessState: accountAccessState,
-        archiveAccount: archiveAccount,
-        restoreAccount: restoreAccount,
-        listArchivedAccounts: listArchivedAccounts,
-        archiveReasonLabel: archiveReasonLabel,
         setAccountStatus: setAccountStatus,
         isHeadAdminAccount: isHeadAdminAccount,
         createAccount: createAccount,

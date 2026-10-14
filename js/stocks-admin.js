@@ -245,6 +245,7 @@
         return '<div class="action-menu-relative-container" data-kreezby-page-menu>' +
             '<button type="button" class="action-trigger-btn" data-menu="' + menuId + '">Action ▾</button>' +
             '<div class="action-popup-menu" id="' + menuId + '">' +
+            '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>' +
             '<div class="action-popup-item" data-action="view" data-stock="' + esc(item.code) + '">View History</div>' +
             '<div class="action-popup-item" data-action="adjust" data-stock="' + esc(item.code) + '">Adjust Stock</div>' +
             (viewMode === 'archive'
@@ -365,6 +366,45 @@
                 '<h3 class="po-detail-subtitle">Movement history</h3>' +
                 '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Type</th><th>Quantity</th><th>Note</th></tr></thead><tbody>' +
                 lines + '</tbody></table></div>';
+        }
+        showDetails(item.code);
+    }
+
+    function alertAt(code) {
+        var alerts = window.KreezbyBrowserAlerts;
+        if (alerts && typeof alerts.thresholdFor === 'function') return alerts.thresholdFor(code);
+        var item = findItem(code);
+        return item ? lowLimit(item.type) : 0;
+    }
+
+    function openEdit(code) {
+        var item = findItem(code);
+        if (!item) return;
+        openCode = code;
+        var current = alertAt(code);
+        var content = document.getElementById('stocks-details-content');
+        if (content) {
+            content.innerHTML =
+                '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
+                '<form id="stocks-edit-form">' +
+                '<p>On hand is ' + liveQty(item) + '. Head admin, admin, and staff are alerted when it is at or below this number.</p>' +
+                '<label>Alert at<input name="threshold" type="number" min="0" step="1" value="' + current + '"></label>' +
+                '<button class="btn-call-to-action" type="submit">Save</button>' +
+                '</form>';
+            var form = document.getElementById('stocks-edit-form');
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    var value = new FormData(form).get('threshold');
+                    var alerts = window.KreezbyBrowserAlerts;
+                    if (!alerts || typeof alerts.setItemThreshold !== 'function' || !alerts.setItemThreshold(item.code, value)) {
+                        showToast('Enter a quantity of 0 or more.');
+                        return;
+                    }
+                    showToast(item.name + ' alerts at ' + Number(value) + '.');
+                    backToList();
+                });
+            }
         }
         showDetails(item.code);
     }
@@ -525,7 +565,8 @@
             var code = actionItem.getAttribute('data-stock');
             var action = actionItem.getAttribute('data-action');
             closeAllMenus();
-            if (action === 'view') openHistory(code);
+            if (action === 'edit') openEdit(code);
+            else if (action === 'view') openHistory(code);
             else if (action === 'adjust') openAdjust(code);
             else if (action === 'archive') archiveItem(code);
             else if (action === 'retrieve') retrieveItem(code);

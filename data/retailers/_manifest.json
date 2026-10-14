@@ -15,6 +15,14 @@
     "lastDate": null,
     "json": "data/retailers/batangas_aalomibalagtas.json"
   },
+  "batangas_aasanpascual": {
+    "area": "batangas",
+    "slug": "aasanpascual",
+    "storeName": "AA San Pascual",
+    "count": 0,
+    "lastDate": null,
+    "json": "data/retailers/batangas_aasanpascual.json"
+  },
   "batangas_butchalangilan": {
     "area": "batangas",
     "slug": "butchalangilan",

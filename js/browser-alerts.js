@@ -15,22 +15,22 @@
     var DEFAULT_THRESHOLD = 50;
 
     var CATALOG = [
-        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', kind: 'finished', qty: 450 },
-        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', kind: 'finished', qty: 320 },
-        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', kind: 'finished', qty: 85 },
-        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', kind: 'finished', qty: 210 },
-        { code: 'CRK-MNG-J', name: 'Mango Crinkles', kind: 'finished', qty: 45 },
-        { code: 'RM-WFL-01', name: 'Wheat Flour', kind: 'material', qty: 120 },
-        { code: 'RM-WSG-01', name: 'White Sugar', kind: 'material', qty: 90 },
-        { code: 'RM-OIL-01', name: 'Vegetable Oil', kind: 'material', qty: 48 },
-        { code: 'RM-EGG-01', name: 'Egg', kind: 'material', qty: 36 },
-        { code: 'RM-COC-01', name: 'Cocoa', kind: 'material', qty: 45 },
-        { code: 'RM-BKP-01', name: 'Baking Powder', kind: 'material', qty: 22 },
-        { code: 'RM-SLT-01', name: 'Salt', kind: 'material', qty: 70 },
-        { code: 'RM-CFS-01', name: 'Confectioner Sugar', kind: 'material', qty: 30 },
-        { code: 'RM-PSB-01', name: 'Potassium Sorbate', kind: 'material', qty: 12 },
-        { code: 'PKG-SUP-01', name: 'Stand up pouch', kind: 'material', qty: 80 },
-        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', kind: 'material', qty: 12 },
+        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', kind: 'finished', qty: 450, alert: 100 },
+        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', kind: 'finished', qty: 320, alert: 80 },
+        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', kind: 'finished', qty: 85, alert: 90 },
+        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', kind: 'finished', qty: 210, alert: 70 },
+        { code: 'CRK-MNG-J', name: 'Mango Crinkles', kind: 'finished', qty: 45, alert: 60 },
+        { code: 'RM-WFL-01', name: 'Wheat Flour', kind: 'material', qty: 120, alert: 40 },
+        { code: 'RM-WSG-01', name: 'White Sugar', kind: 'material', qty: 90, alert: 30 },
+        { code: 'RM-OIL-01', name: 'Vegetable Oil', kind: 'material', qty: 48, alert: 20 },
+        { code: 'RM-EGG-01', name: 'Egg', kind: 'material', qty: 36, alert: 24 },
+        { code: 'RM-COC-01', name: 'Cocoa', kind: 'material', qty: 45, alert: 20 },
+        { code: 'RM-BKP-01', name: 'Baking Powder', kind: 'material', qty: 22, alert: 10 },
+        { code: 'RM-SLT-01', name: 'Salt', kind: 'material', qty: 70, alert: 15 },
+        { code: 'RM-CFS-01', name: 'Confectioner Sugar', kind: 'material', qty: 30, alert: 12 },
+        { code: 'RM-PSB-01', name: 'Potassium Sorbate', kind: 'material', qty: 12, alert: 5 },
+        { code: 'PKG-SUP-01', name: 'Stand up pouch', kind: 'material', qty: 80, alert: 25 },
+        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', kind: 'material', qty: 12, alert: 8 }
     ];
 
     function readJson(key, fallback) {
@@ -83,12 +83,22 @@
         scanStock();
     }
 
+    function catalogItem(code) {
+        var i;
+        for (i = 0; i < CATALOG.length; i++) {
+            if (CATALOG[i].code === code) return CATALOG[i];
+        }
+        return null;
+    }
+
     function thresholdFor(code) {
         var current = settings();
         if (code && current.items && current.items[code] != null && current.items[code] !== '') {
             var itemValue = Number(current.items[code]);
             if (Number.isFinite(itemValue) && itemValue >= 0) return itemValue;
         }
+        var item = catalogItem(code);
+        if (item && Number.isFinite(Number(item.alert)) && Number(item.alert) >= 0) return Number(item.alert);
         return Number(current.shop);
     }
 
@@ -106,6 +116,22 @@
         if (!code || !Number.isFinite(number) || number < 0) return false;
         var current = settings();
         current.items[code] = number;
+        saveSettings(current);
+        return true;
+    }
+
+    function setItemThresholds(map) {
+        var current = settings();
+        var codes = Object.keys(map || {});
+        var i;
+        for (i = 0; i < codes.length; i++) {
+            var number = Number(map[codes[i]]);
+            if (!codes[i] || !Number.isFinite(number) || number < 0) return false;
+        }
+        if (!current.items) current.items = {};
+        codes.forEach(function (code) {
+            current.items[code] = Number(map[code]);
+        });
         saveSettings(current);
         return true;
     }
@@ -373,36 +399,85 @@
         if (window.AlertAdmin && typeof window.AlertAdmin.filter === 'function') window.AlertAdmin.filter();
     }
 
+    function codeForName(name) {
+        var wanted = String(name || '').trim().toLowerCase();
+        var i;
+        if (!wanted) return '';
+        for (i = 0; i < CATALOG.length; i++) {
+            if (CATALOG[i].name.toLowerCase() === wanted || CATALOG[i].code.toLowerCase() === wanted) return CATALOG[i].code;
+        }
+        return '';
+    }
+
     function renderThresholdBar() {
-        var host = document.getElementById('alert-master');
+        if (document.getElementById('stocks-master-list-panel-view') || document.getElementById('stocks-staff-master-block')) {
+            var stocksBar = document.getElementById('kreezby-threshold-bar');
+            if (stocksBar) stocksBar.remove();
+            return;
+        }
+        var dash = document.getElementById('stocklevel-dashboard-root');
+        var host = document.getElementById('stocklevel-master')
+            || (dash && dash.parentNode)
+            || document.getElementById('alert-master');
         if (!host) return;
         var bar = document.getElementById('kreezby-threshold-bar');
         if (!bar) {
             bar = document.createElement('div');
             bar.id = 'kreezby-threshold-bar';
             bar.className = 'kreezby-threshold-bar';
-            var list = document.getElementById('alert-list-panel') || host;
-            list.insertBefore(bar, list.firstChild);
+            host.insertBefore(bar, host.firstChild);
+        } else if (bar.parentNode !== host) {
+            host.insertBefore(bar, host.firstChild);
         }
         var shop = settings().shop;
-        if (bar.dataset.bound === '1' && bar.dataset.shopValue === String(shop)) return;
+        var rows = stockRows();
+        var signature = rows.map(function (row) { return row.code + '=' + row.threshold; }).join('|');
+        var selected = bar.dataset.selected || '';
+        var chosen = null;
+        var i;
+        for (i = 0; i < rows.length; i++) {
+            if (rows[i].code === selected) chosen = rows[i];
+        }
+        if (!chosen) chosen = rows[0];
+        if (bar.dataset.bound === '1' && bar.dataset.signature === signature) return;
         if (document.activeElement && bar.contains(document.activeElement)) return;
+        var options = rows.map(function (row) {
+            var picked = chosen && row.code === chosen.code ? ' selected' : '';
+            return '<option value="' + escapeHtml(row.code) + '"' + picked + '>' + escapeHtml(row.name) + '</option>';
+        }).join('');
         bar.innerHTML = '<strong>Alert threshold</strong>'
-            + '<span>Notify head admin, admin, and staff when quantity is at or below</span>'
-            + '<input id="kreezby-shop-threshold" type="number" min="0" step="1" value="' + shop + '" aria-label="Alert threshold">'
-            + '<span>units.</span>'
-            + '<button type="button" id="kreezby-shop-threshold-save">Save threshold</button>'
-            + '<a href="' + profileHref() + '">Profile</a>';
+            + '<select id="kreezby-threshold-item" aria-label="Item">' + options + '</select>'
+            + '<span>alerts at</span>'
+            + '<input id="kreezby-item-threshold" type="number" min="0" step="1" value="' + (chosen ? chosen.threshold : 0) + '" aria-label="Alert quantity">'
+            + '<button type="button" id="kreezby-shop-threshold-save">Save</button>'
+            + '<span id="kreezby-shop-threshold-note"></span>';
         bar.dataset.bound = '1';
+        bar.dataset.signature = signature;
+        bar.dataset.selected = chosen ? chosen.code : '';
         bar.dataset.shopValue = String(shop);
+        var select = document.getElementById('kreezby-threshold-item');
+        var input = document.getElementById('kreezby-item-threshold');
+        if (select && input) {
+            select.addEventListener('change', function () {
+                bar.dataset.selected = select.value;
+                input.value = String(thresholdFor(select.value));
+                var note = document.getElementById('kreezby-shop-threshold-note');
+                if (note) note.textContent = '';
+            });
+        }
         var save = document.getElementById('kreezby-shop-threshold-save');
-        if (save) {
+        if (save && select && input) {
             save.addEventListener('click', function () {
-                var input = document.getElementById('kreezby-shop-threshold');
-                var ok = setShopThreshold(input ? input.value : '');
-                if (!ok && window.KreezbyAlert) {
-                    window.KreezbyAlert.show({ title: 'Threshold', description: 'Enter a quantity of 0 or more.', variant: 'warning', toast: true, close: true, autoDismissMs: 2400 });
+                var note = document.getElementById('kreezby-shop-threshold-note');
+                var code = select.value;
+                if (!setItemThreshold(code, input.value)) {
+                    if (note) note.textContent = 'Enter a quantity of 0 or more.';
+                    return;
                 }
+                bar.dataset.selected = code;
+                bar.dataset.signature = stockRows().map(function (row) { return row.code + '=' + row.threshold; }).join('|');
+                var item = catalogItem(code);
+                if (note) note.textContent = 'Saved. ' + (item ? item.name : code) + ' alerts at ' + Number(input.value) + '.';
             });
         }
     }
@@ -469,11 +544,16 @@
     }
 
     function ensureCss() {
-        if (document.getElementById('kreezby-portal-profile-style')) return;
-        var link = document.createElement('link');
+        var href = '../css/shared/portal-profile.css?v=20261014compact';
+        var link = document.getElementById('kreezby-portal-profile-style');
+        if (link) {
+            if (link.getAttribute('href') !== href) link.href = href;
+            return;
+        }
+        link = document.createElement('link');
         link.id = 'kreezby-portal-profile-style';
         link.rel = 'stylesheet';
-        link.href = '../css/shared/portal-profile.css';
+        link.href = href;
         document.head.appendChild(link);
     }
 
@@ -484,6 +564,9 @@
         watchProfileLink();
         renderPermissionBanner();
         renderThresholdBar();
+        document.addEventListener('content:replaced', renderThresholdBar);
+        document.addEventListener('kreezby:page-load', renderThresholdBar);
+        document.addEventListener('turbo:frame-load', renderThresholdBar);
         var start = function () {
             rewriteStoredCounts();
             flushUnseen();
@@ -524,8 +607,10 @@
     window.KreezbyBrowserAlerts = {
         settings: settings,
         thresholdFor: thresholdFor,
+        codeForName: codeForName,
         setShopThreshold: setShopThreshold,
         setItemThreshold: setItemThreshold,
+        setItemThresholds: setItemThresholds,
         clearItemThreshold: clearItemThreshold,
         stockRows: stockRows,
         acknowledge: acknowledge,

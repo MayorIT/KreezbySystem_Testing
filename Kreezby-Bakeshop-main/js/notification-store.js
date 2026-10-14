@@ -107,7 +107,7 @@
             alert: 'alert-staff.html',
             stock: 'stocks-staff.html',
             delivery: 'deliveryschedule-staff.html',
-            forecast: 'aiforecast_salesanalysis-staff.html?tab=forecast'
+            forecast: 'aiforecast_salesanalysis-staff.html'
         };
         if (source === 'inbox') {
             var api = window.KreezbyStaffPermissions;

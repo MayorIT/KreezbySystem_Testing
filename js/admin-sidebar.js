@@ -51,15 +51,9 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b372d80 (Save my changes)
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
-
-        { key: 'return', label: 'Return/P.O List', href: 'return-admin.html', icon: 'return' },
 
         { key: 'stocks', label: 'Stocks', href: 'stocks-admin.html', icon: 'boxes' },
 
@@ -69,8 +63,8 @@
 
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-admin.html' },
-            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-admin.html?tab=forecast' },
-            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' }
+            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' },
+            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-admin.html?tab=product-recommendation' }
         ] },
 
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-admin.html', icon: 'truck' },
@@ -483,7 +477,7 @@
         if (document.getElementById('kreezby-delivery-schedule-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-delivery-schedule-script';
-        s.src = assetPrefix() + 'js/delivery-schedule.js?v=20261008del';
+        s.src = assetPrefix() + 'js/delivery-schedule.js?v=20261014delone';
         s.onload = function () {
             if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
         };

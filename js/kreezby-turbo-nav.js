@@ -488,12 +488,26 @@
             if (window.KreezbyAiForecastPills && typeof window.KreezbyAiForecastPills.boot === 'function') {
                 try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
             }
+            if (window.KreezbyProductRecommendation && typeof window.KreezbyProductRecommendation.boot === 'function') {
+                try { window.KreezbyProductRecommendation.boot(); } catch (e2) {}
+            }
         }
-        if (window.KreezbyAiForecastPills) {
-            boot();
+        var root = moduleRelativeRoot();
+        function loadRecommendation(done) {
+            if (window.KreezbyProductRecommendation) {
+                done();
+                return;
+            }
+            loadScript(root + 'js/product-recommendation.js?v=20261014prodrec', 'kreezby-product-recommendation-script', done);
+        }
+        function start() {
+            loadRecommendation(boot);
+        }
+        if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.productRecommendation) {
+            start();
             return;
         }
-        loadScript(moduleRelativeRoot() + 'js/aiforecast-pills.js?v=20261011insights', 'kreezby-aiforecast-pills-script-word', boot);
+        loadScript(root + 'js/aiforecast-pills.js?v=20261014prod', 'kreezby-aiforecast-pills-script-prod', start);
     }
 
     function activateSalesList(frame) {

@@ -127,58 +127,23 @@
       accountType: 'IT Support',
       redirectUrl: 'it_kreezby/index.html'
     },
-    staff1: {
-      userName: 'Claire Mendoza (Staff 1)',
+    imeldastaff: {
+      userName: 'Imelda Atienza',
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
     },
-    staff2: {
-      userName: 'Ryan Santos (Staff 2)',
+    imeldaatienza: {
+      userName: 'Imelda Atienza',
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
     },
-    staff3: {
-      userName: 'Isabel Cruz (Staff 3)',
+    nicholestaff: {
+      userName: 'Nichole Ramos',
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
     },
-    staff4: {
-      userName: 'Derek Lim (Staff 4)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    derekstaff: {
-      userName: 'Derek Lim (Staff 4)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    staff5: {
-      userName: 'Nina Garcia (Staff 5)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    ninastaff: {
-      userName: 'Nina Garcia (Staff 5)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    staff6: {
-      userName: 'Omar Reyes (Staff 6)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    omarstaff: {
-      userName: 'Omar Reyes (Staff 6)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    staff7: {
-      userName: 'Grace Tan (Staff 7)',
-      accountType: 'Staff',
-      redirectUrl: 'staff/staff.html'
-    },
-    gracestaff: {
-      userName: 'Grace Tan (Staff 7)',
+    nicholeramos: {
+      userName: 'Nichole Ramos',
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
     },
@@ -419,13 +384,9 @@
         if (sid === id || username === id || name === id) return s.id;
       }
     }
-    if (id.indexOf('staff-7') >= 0 || id.indexOf('staff7') >= 0 || id.indexOf('grace') >= 0) return 'staff-7';
-    if (id.indexOf('staff-6') >= 0 || id.indexOf('staff6') >= 0 || id.indexOf('omar') >= 0 || id.indexOf('dispatch') >= 0) return 'staff-6';
-    if (id.indexOf('staff-5') >= 0 || id.indexOf('staff5') >= 0 || id.indexOf('nina') >= 0 || id.indexOf('packaging') >= 0) return 'staff-5';
-    if (id.indexOf('staff-4') >= 0 || id.indexOf('staff4') >= 0 || id.indexOf('derek') >= 0) return 'staff-4';
-    if (id.indexOf('staff-3') >= 0 || id.indexOf('staff3') >= 0 || id.indexOf('isabel') >= 0 || id.indexOf('inv') >= 0) return 'staff-3';
-    if (id.indexOf('staff-2') >= 0 || id.indexOf('staff2') >= 0 || id.indexOf('ryan') >= 0 || id.indexOf('recv') >= 0) return 'staff-2';
-    return 'staff-1';
+    if (id.indexOf('imelda') >= 0) return 'staff-imelda';
+    if (id.indexOf('nichole') >= 0) return 'staff-nichole';
+    return 'staff-imelda';
   }
 
   function staffDashboardFromIdentity(identity) {

@@ -270,7 +270,6 @@ function sanitizeInsightSnapshot(input) {
       stock: insightNumber(row && row.stock),
       recommendedStock: insightNumber(row && row.recommendedStock),
       recentSales: insightNumber(row && row.recentSales),
-      forecastDemand: insightNumber(row && row.forecastDemand),
     })).filter((row) => row.name),
     materials: materials.map((row) => ({
       name: cleanInsightText(row && row.name, 80),

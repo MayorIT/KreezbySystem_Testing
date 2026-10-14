@@ -9,59 +9,19 @@
     var SESSION_STAFF_KEY = 'kreezby_current_staff';
 
     var STAFF_PROFILES = {
-        'staff-1': {
-            id: 'staff-1',
-            name: 'Claire (Staff 1)',
-            role: 'Frontline Staff',
-            welcome: 'Frontline Staff',
+        'staff-imelda': {
+            id: 'staff-imelda',
+            name: 'Imelda Atienza',
+            role: 'Staff',
+            welcome: 'Staff',
             dashboard: 'staff.html',
             inbox: 'inbox-staff.html'
         },
-        'staff-2': {
-            id: 'staff-2',
-            name: 'Staff 2',
-            role: 'Receiving Team',
-            welcome: 'Receiving Team',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-3': {
-            id: 'staff-3',
-            name: 'Staff 3',
-            role: 'Inventory Team',
-            welcome: 'Inventory Team',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-4': {
-            id: 'staff-4',
-            name: 'Derek Lim (Staff 4)',
-            role: 'Sales Floor Staff',
-            welcome: 'Sales Floor Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-5': {
-            id: 'staff-5',
-            name: 'Nina Garcia (Staff 5)',
-            role: 'Packaging Staff',
-            welcome: 'Packaging Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-6': {
-            id: 'staff-6',
-            name: 'Omar Reyes (Staff 6)',
-            role: 'Dispatch Staff',
-            welcome: 'Dispatch Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-7': {
-            id: 'staff-7',
-            name: 'Grace Tan (Staff 7)',
-            role: 'Customer Service Staff',
-            welcome: 'Customer Service',
+        'staff-nichole': {
+            id: 'staff-nichole',
+            name: 'Nichole Ramos',
+            role: 'Staff',
+            welcome: 'Staff',
             dashboard: 'staff.html',
             inbox: 'inbox-staff.html'
         }
@@ -70,7 +30,6 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
         bo: { label: 'Back Order', page: 'bo-staff.html' },
-        return: { label: 'Return/P.O List', page: 'return-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
         dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
@@ -97,17 +56,12 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox', 'deliveryschedule'],
-        'staff-2': ['dashboard', 'bo', 'return', 'alert', 'deliveryschedule'],
-        'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert', 'deliveryschedule'],
-        'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'],
-        'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'],
-        'staff-6': ['dashboard', 'bo', 'return', 'alert', 'ordertracking', 'deliveryschedule'],
-        'staff-7': ['dashboard', 'inbox', 'inbox_retailer', 'saleslist', 'alert', 'ordertracking', 'deliveryschedule']
+        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'],
+        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer']
     };
 
     var TASK_ORDER = [
-        'dashboard', 'bo', 'return', 'stocks',
+        'dashboard', 'bo', 'stocks',
         'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
@@ -176,7 +130,7 @@
 
     function accountStaffList() {
         return (readUsersBlob().staff || []).filter(function (staff) {
-            return staff && staff.id && staff.active !== false && staff.archived !== true;
+            return staff && staff.id && staff.active !== false;
         });
     }
 
@@ -214,8 +168,24 @@
         return ['dashboard', 'alert', 'deliveryschedule'];
     }
 
+    function pruneStoredPermissions(stored) {
+        if (!stored) return stored;
+        var allowed = {};
+        accountStaffList().forEach(function (staff) { allowed[staff.id] = 1; });
+        Object.keys(STAFF_PROFILES).forEach(function (id) { allowed[id] = 1; });
+        var changed = false;
+        Object.keys(stored).forEach(function (id) {
+            if (!allowed[id]) {
+                delete stored[id];
+                changed = true;
+            }
+        });
+        if (changed) saveAllPermissions(stored);
+        return stored;
+    }
+
     function getAllPermissions() {
-        var stored = grantDeliverySchedule(getStoredPermissions()) || {};
+        var stored = pruneStoredPermissions(grantDeliverySchedule(getStoredPermissions())) || {};
         var merged = {};
         var accounts = accountStaffList();
         if (accounts.length) {
@@ -295,7 +265,7 @@
             return fromSession;
         }
         if (accounts.length) return accounts[0].id;
-        return 'staff-1';
+        return 'staff-imelda';
     }
 
     function setCurrentStaffId(staffId) {
@@ -343,7 +313,7 @@
             }
         }
         if (accounts.length) return getStaffProfile(accounts[0].id);
-        return STAFF_PROFILES['staff-1'];
+        return STAFF_PROFILES['staff-imelda'];
     }
 
     function getStaffTasks(staffId) {
@@ -545,90 +515,49 @@
         var saveBtn = root.querySelector('#staff-btn-save-permissions, #btn-save-permissions');
         if (!matrixBody || !titleEl || !saveBtn) return null;
 
-        var listEl = root.querySelector('[data-account-list]');
-        var searchEl = root.querySelector('[data-account-search]');
-        var archiveBtn = root.querySelector('#staff-btn-archive');
-        var selectedStaffPermissionsId = '';
-
-        function visibleAccounts() {
-            var query = searchEl ? String(searchEl.value || '').trim().toLowerCase() : '';
-            return accountStaffList().filter(function (staff) {
-                if (!query) return true;
-                return (staff.name + ' ' + (staff.username || '') + ' ' + (staff.role || '')).toLowerCase().indexOf(query) !== -1;
+        var host = root.querySelector('.roles-navigator-card');
+        var accounts = accountStaffList();
+        if (host && accounts.length) {
+            host.querySelectorAll('.archived-empty, .role-selection-pill').forEach(function (node) { node.remove(); });
+            accounts.forEach(function (staff, index) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'role-selection-pill' + (index === 0 ? ' active-role' : '');
+                button.setAttribute('data-staff-id', staff.id);
+                button.innerHTML = staff.name + '<br><span class="staff-task-hint">' +
+                    (staff.username || '') + ' · ' + (staff.role || 'Staff') + '</span>';
+                host.appendChild(button);
             });
         }
+        var pills = root.querySelectorAll('.role-selection-pill');
+        if (!pills.length) {
+            titleEl.textContent = 'No staff accounts';
+            matrixBody.innerHTML = '<tr><td colspan="2">No staff accounts yet.</td></tr>';
+            saveBtn.disabled = true;
+            return null;
+        }
 
-        function renderAccounts() {
-            var accounts = visibleAccounts();
-            if (listEl) {
-                listEl.innerHTML = '';
-                if (!accounts.length) {
-                    listEl.innerHTML = '<p class="archived-empty">No staff accounts yet.</p>';
-                }
-                accounts.forEach(function (staff) {
-                    var button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = 'role-selection-pill' + (staff.id === selectedStaffPermissionsId ? ' active-role' : '');
-                    button.setAttribute('data-staff-id', staff.id);
-                    button.innerHTML = staff.name + '<br><span class="staff-task-hint">' +
-                        (staff.username || '') + ' · ' + (staff.role || 'Staff') + '</span>';
-                    button.onclick = function () {
-                        selectedStaffPermissionsId = staff.id;
-                        renderAccounts();
-                        renderPanel();
-                        showPermissionStatus(root, '');
-                    };
-                    listEl.appendChild(button);
-                });
-            }
-            if (!accounts.some(function (staff) { return staff.id === selectedStaffPermissionsId; })) {
-                selectedStaffPermissionsId = accounts[0] ? accounts[0].id : '';
-                if (listEl) {
-                    var first = listEl.querySelector('.role-selection-pill');
-                    if (first) first.classList.add('active-role');
-                }
-            }
-            saveBtn.disabled = !selectedStaffPermissionsId;
-            if (archiveBtn) archiveBtn.disabled = !selectedStaffPermissionsId;
+        var selectedStaffPermissionsId = pills[0].getAttribute('data-staff-id') || 'staff-imelda';
+        var activePill = root.querySelector('.role-selection-pill.active-role');
+        if (activePill) {
+            selectedStaffPermissionsId = activePill.getAttribute('data-staff-id') || selectedStaffPermissionsId;
         }
 
         function renderPanel() {
-            if (!selectedStaffPermissionsId) {
-                titleEl.textContent = 'No staff accounts';
-                matrixBody.innerHTML = '<tr><td colspan="2">No staff accounts yet.</td></tr>';
-                return;
-            }
             var profile = getStaffProfile(selectedStaffPermissionsId);
             titleEl.textContent = 'Task Access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedStaffPermissionsId);
         }
 
-        if (searchEl) {
-            searchEl.addEventListener('input', function () {
-                renderAccounts();
+        pills.forEach(function (pill) {
+            pill.onclick = function () {
+                pills.forEach(function (p) { p.classList.remove('active-role'); });
+                pill.classList.add('active-role');
+                selectedStaffPermissionsId = pill.getAttribute('data-staff-id');
                 renderPanel();
-            });
-        }
-
-        if (archiveBtn) {
-            archiveBtn.onclick = function () {
-                var archive = window.KreezbyAccountArchive;
-                if (!selectedStaffPermissionsId || !archive) return;
-                var profile = getStaffProfile(selectedStaffPermissionsId);
-                archive.open({
-                    bucket: 'staff',
-                    id: selectedStaffPermissionsId,
-                    name: profile.name,
-                    onDone: function (result) {
-                        renderAccounts();
-                        renderPanel();
-                        if (result && result.message) showPermissionStatus(root, result.message);
-                    }
-                });
+                showPermissionStatus(root, '');
             };
-        }
-
-        renderAccounts();
+        });
 
         function applyCheckedAccess(sourceBox) {
             var tasks = persistStaffAccess(selectedStaffPermissionsId, checkedTasks(matrixBody));
@@ -669,7 +598,7 @@
         if (filename.indexOf('-staff.html') === -1 && filename.indexOf('staff-') !== 0 && !/^inbox-staff(-\d+)?\.html$/i.test(filename)) {
             return;
         }
-        if (filename === 'report_issue-staff.html' || filename === 'issue-reports-staff.html') return;
+        if (filename === 'report_issue-staff.html') return;
         if (filename === 'receive-staff.html') {
             window.location.replace(getDashboardHref(getCurrentStaffId()));
             return;

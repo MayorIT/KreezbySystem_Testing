@@ -1,6 +1,7 @@
 /**
  * Delivery Schedule on the AI Forecast page.
  * Head admin, admin, and staff set a stop and review upcoming deliveries by area.
+ * Now loads store data dynamically from retailer manifest.
  */
 (function () {
     'use strict';
@@ -11,52 +12,28 @@
     }
 
     var STORE_KEY = 'kreezby_delivery_schedule_v5';
+    var REMOVED_KEY = 'kreezby_delivery_schedule_removed_v5';
     var PRODUCT = 'Chocolate Crinkles';
-    var PAYMENTS = ['GCash', 'Check', 'Cash'];
-    var AREAS = [
-        {
-            name: 'Lucena',
-            stores: ['Chick\'N J Ibaan', 'SIDC IBAAN', 'Balkonahe', 'Citimart Rosario', 'Chick\'N J Namunga', 'SIDC Tiaong', 'Mr.Fields Coffe+', 'Bangihan', 'Girasoles', 'Shell Select Sariaya', 'Kope Right Sariaya', 'Kope Right Lucena', 'Shell Select Domoit', 'SIDC San Juan', 'Chick\'N J Baybayin', 'Matteos Liquiwan', 'Yummies', 'Hang Out']
-        },
-        {
-            name: 'Batangas',
-            stores: ['SIDC Main', 'SIDC Soro-Soro Ilaya', '3M', 'Jhorjhanes Balagtas', 'Wanam sa Bukid Balagtas', 'AA Lomi Balagtas', 'Butch Alangilan', 'Gracias Pasalubong', 'Shell Select Kumintang Ibaba', 'SIDC Tulo', 'SIDC Libjo', 'SIDC Pallocan', 'Wanam sa Bukid Gulod', 'Wanam sa Bukid Palengke']
-        },
-        {
-            name: 'Sto. Tomas',
-            stores: ['Kubo sa Halamanan Malarayat', 'LBN Marawoy', 'Kubo sa Halamanan Marawoy', 'Lucias Cafe Lipa', 'Citimart Tanauan', 'Lucias Cafe Sto Tomas', 'JMA', 'Rose & Grace', 'D\'Vinias', 'Tita Chu', 'Laong Laan', 'Avilles']
-        },
-        {
-            name: 'Lipa',
-            stores: ['SIDC Mahabang Parang', 'SIDC San Jose', 'Banay-banay Eatery', 'AA Lomi Lipa', 'Butch Lipa', 'Shell Select Tambo', 'Shell Select Balintawak', 'Lipa Grill Lipa', 'Lipa Grill San Felipe', 'AA Lomi Padre Garcia', 'Chick\'N J Padre Garcia', 'Ben & Cha']
-        },
-        {
-            name: 'Tagaytay',
-            stores: ['HMM Muzon', 'SIDC Bauan', 'SIDC Sta. Teresita', 'AA Lomi Taal', 'Citimart Lemery', 'Jaytees Acienda', 'RSM Silvinas', 'Pamana', 'Jaytees Main', 'Balinsasayaw Tagaytay', 'Green Ats', 'Jaytees 9th']
-        },
-        {
-            name: 'Citimart',
-            stores: ['Citimart Caedo', 'Citimart Nuciti', 'Citimart Baystar/Baymall', 'Citimart Shop on/ Rizal Ave', 'Citimart Bauan', 'Dyan\'s', 'Ofels', 'Jorjhanes Sta. Rita']
-        }
-    ];
+    var PAYMENTS = ['GCash', 'Check', 'Cash', 'Cons'];
+    var AREAS = []; // Will be populated from manifest
 
     var SEED = [
-        { id: 'po-0002', area: 'Batangas', day: 1, po: 'PO-0002', stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-btg-003', area: 'Batangas', day: 1, po: 'PO-BTG-003', stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-btg-014', area: 'Batangas', day: 1, po: 'PO-BTG-014', stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-0012', area: 'Lipa', day: 1, po: 'PO-0012', stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lpa-021', area: 'Sto. Tomas', day: 1, po: 'PO-LPA-021', stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-bau-008', area: 'Tagaytay', day: 2, po: 'PO-BAU-008', stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-bau-011', area: 'Citimart', day: 2, po: 'PO-BAU-011', stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-ctm-002', area: 'Lucena', day: 2, po: 'PO-CTM-002', stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-ctm-006', area: 'Citimart', day: 2, po: 'PO-CTM-006', stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-lcn-004', area: 'Lucena', day: 2, po: 'PO-LCN-004', stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lcn-009', area: 'Lucena', day: 2, po: 'PO-LCN-009', stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-rsr-005', area: 'Lucena', day: 3, po: 'PO-RSR-005', stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-sto-003', area: 'Sto. Tomas', day: 4, po: 'PO-STO-003', stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-sto-007', area: 'Sto. Tomas', day: 4, po: 'PO-STO-007', stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-tgy-002', area: 'Tagaytay', day: 4, po: 'PO-TGY-002', stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-tgy-008', area: 'Tagaytay', day: 4, po: 'PO-TGY-008', stop: 'Jaytees Main', detail: '36 pouches Chocolate Crinkles', payment: 'GCash' }
+        { id: 'po-0002', area: 'Batangas', day: 1, stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-btg-003', area: 'Batangas', day: 1, stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-btg-014', area: 'Batangas', day: 1, stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-0012', area: 'Lipa', day: 1, stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-lpa-021', area: 'Sto. Tomas', day: 1, stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-bau-008', area: 'Tagaytay', day: 2, stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-bau-011', area: 'Citimart', day: 2, stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-ctm-002', area: 'Lucena', day: 2, stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-ctm-006', area: 'Citimart', day: 2, stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-lcn-004', area: 'Lucena', day: 2, stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-lcn-009', area: 'Lucena', day: 2, stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-rsr-005', area: 'Lucena', day: 3, stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-sto-003', area: 'Sto. Tomas', day: 4, stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-sto-007', area: 'Sto. Tomas', day: 4, stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-tgy-002', area: 'Tagaytay', day: 4, stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-tgy-008', area: 'Tagaytay', day: 4, stop: 'Jaytees Main', detail: '36 pouches Chocolate Crinkles', payment: 'GCash' }
     ];
 
     function areaByName(name) {
@@ -84,23 +61,46 @@
         });
     }
 
+    function removedIds() {
+        try {
+            var raw = localStorage.getItem(REMOVED_KEY);
+            var parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function rememberRemoved(ids) {
+        var current = removedIds();
+        (ids || []).forEach(function (id) {
+            if (id && current.indexOf(id) < 0) current.push(id);
+        });
+        try { localStorage.setItem(REMOVED_KEY, JSON.stringify(current)); } catch (e) { /* ignore */ }
+    }
+
     function readRows() {
         var seed = seedRows();
+        var dropped = {};
+        removedIds().forEach(function (id) { dropped[id] = true; });
         try {
             var raw = localStorage.getItem(STORE_KEY);
             var parsed = raw ? JSON.parse(raw) : null;
             if (Array.isArray(parsed)) {
+                parsed = parsed.filter(function (row) {
+                    return row && !dropped[row.id];
+                });
                 var ids = {};
                 parsed.forEach(function (row) {
                     if (row && row.id) ids[row.id] = true;
                 });
                 seed.forEach(function (row) {
-                    if (!ids[row.id]) parsed.push(row);
+                    if (!ids[row.id] && !dropped[row.id]) parsed.push(row);
                 });
                 return parsed;
             }
         } catch (e) { /* use seed */ }
-        return seed;
+        return seed.filter(function (row) { return !dropped[row.id]; });
     }
 
     function writeRows(rows) {
@@ -122,11 +122,6 @@
         return now.getFullYear() + '-' + month + '-' + day;
     }
 
-    function nextPo(area) {
-        var code = area.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase();
-        return 'PO-' + code + '-' + String(Date.now()).slice(-4);
-    }
-
     function ensureStyles() {
         if (document.getElementById('delivery-schedule-style')) return;
         var style = document.createElement('style');
@@ -143,6 +138,14 @@
             + '.delivery-schedule__bar label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#5d4037;}'
             + '.delivery-schedule__bar input,.delivery-schedule__bar select{height:34px;border:1px solid #e6e7eb;border-radius:8px;padding:0 10px;font:inherit;background:#fff;}'
             + '.delivery-schedule__search{width:180px;max-width:100%;}'
+            + '.delivery-schedule__hint{font-size:12px;font-weight:600;color:#7a6558;}'
+            + '.delivery-schedule__date{border:0;padding:0;background:transparent;color:#5d4037;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}'
+            + '.delivery-schedule__date:hover,.delivery-schedule__date.is-pending{color:#b42318;}'
+            + '.delivery-schedule__confirm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid #f3d0cb;border-radius:10px;background:#fff6f5;color:#7a271a;font-size:13px;font-weight:700;}'
+            + '.delivery-schedule__confirm[hidden]{display:none;}'
+            + '.delivery-schedule__delete{height:34px;border:0;border-radius:999px;padding:0 14px;background:#b42318;color:#fff;font-weight:700;cursor:pointer;}'
+            + '.delivery-schedule__delete:hover{background:#8f1d14;}'
+            + '.delivery-schedule__confirm-cancel{height:34px;border:1px solid #e6e7eb;border-radius:999px;padding:0 14px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer;}'
             + '.delivery-area{border:1px solid #eadfce;border-radius:12px;overflow-x:auto;background:#fff;}'
             + '.delivery-area__head{display:flex;justify-content:space-between;gap:8px;padding:10px 14px;background:#f8f4ee;font-weight:700;color:#5d4037;}'
             + '.delivery-stop-table{width:100%;border-collapse:collapse;font-size:13px;}'
@@ -196,8 +199,14 @@
             + '</form>'
             + '<div class="delivery-schedule__bar">'
             + '<h4>Upcoming deliveries</h4>'
+            + '<span class="delivery-schedule__hint">Click a date to delete that retailer.</span>'
             + '<label>Area <select class="delivery-schedule__filter"><option value="">Every area</option>' + areaOptions + '</select></label>'
-            + '<label>Search <input class="delivery-schedule__search" type="search" placeholder="Store or P.O."></label>'
+            + '<label>Search <input class="delivery-schedule__search" type="search" placeholder="Store"></label>'
+            + '</div>'
+            + '<div class="delivery-schedule__confirm" hidden>'
+            + '<span class="delivery-schedule__confirm-text"></span>'
+            + '<button class="delivery-schedule__delete" type="button">Delete</button>'
+            + '<button class="delivery-schedule__confirm-cancel" type="button">Cancel</button>'
             + '</div>'
             + '<div class="delivery-schedule__list"></div>'
             + '</div>';
@@ -205,9 +214,23 @@
         var list = host.querySelector('.delivery-schedule__list');
         var filter = host.querySelector('.delivery-schedule__filter');
         var search = host.querySelector('.delivery-schedule__search');
+        var confirmBox = host.querySelector('.delivery-schedule__confirm');
+        var confirmText = host.querySelector('.delivery-schedule__confirm-text');
         var areaSelect = host.querySelector('[name="area"]');
         var stopSelect = host.querySelector('[name="stop"]');
         var note = host.querySelector('.delivery-schedule__note');
+        var pendingId = '';
+
+        function dateButton(row) {
+            return '<button type="button" class="delivery-schedule__date" data-id="' + esc(row.id) + '">' + esc(row.date) + '</button>';
+        }
+
+        function rowById(id) {
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i] && rows[i].id === id) return rows[i];
+            }
+            return null;
+        }
 
         areaSelect.addEventListener('change', function () {
             stopSelect.innerHTML = storeOptions(areaSelect.value);
@@ -215,23 +238,33 @@
 
         function paintPo(visible) {
             if (!visible.length) {
-                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="7">No upcoming deliveries for this filter.</td></tr></tbody></table></div>';
+                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="6">No upcoming deliveries for this filter.</td></tr></tbody></table></div>';
                 return;
             }
             var body = visible.map(function (row, index) {
                 return '<tr>'
                     + '<td class="po-col-num">' + (index + 1) + '</td>'
-                    + '<td>' + esc(row.date) + '</td>'
+                    + '<td>' + dateButton(row) + '</td>'
                     + '<td>' + esc(row.area) + '</td>'
-                    + '<td><strong>' + esc(row.po) + '</strong></td>'
                     + '<td>' + esc(row.stop) + '</td>'
                     + '<td>' + esc(row.detail) + '</td>'
                     + '<td>' + esc(row.payment || '') + '</td>'
                     + '</tr>';
             }).join('');
             list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><thead><tr>'
-                + '<th class="po-col-num">#</th><th>Date</th><th>Area</th><th>P.O. Code</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                + '<th class="po-col-num">#</th><th>Date</th><th>Area</th><th>Retailer</th><th>Order</th><th>Payment</th>'
                 + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+        }
+
+        function markPending() {
+            if (!pendingId || !rowById(pendingId)) {
+                pendingId = '';
+                confirmBox.hidden = true;
+                return;
+            }
+            list.querySelectorAll('.delivery-schedule__date').forEach(function (button) {
+                if (button.getAttribute('data-id') === pendingId) button.classList.add('is-pending');
+            });
         }
 
         function paint() {
@@ -240,7 +273,7 @@
             var visible = upcoming(rows).filter(function (row) {
                 if (chosen && row.area !== chosen) return false;
                 if (!query) return true;
-                return (row.stop + ' ' + row.po + ' ' + row.detail + ' ' + row.payment + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
+                return (row.stop + ' ' + row.detail + ' ' + row.payment + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
             });
             var count = document.getElementById('delivery-schedule-count');
             if (count) count.textContent = visible.length ? String(visible.length) : '';
@@ -248,6 +281,7 @@
             if (summary) summary.textContent = visible.length ? ('Showing ' + visible.length + (visible.length === 1 ? ' stop' : ' stops')) : 'No upcoming deliveries';
             if (poShell) {
                 paintPo(visible);
+                markPending();
                 return;
             }
             var groups = {};
@@ -261,13 +295,13 @@
             });
             if (!order.length) {
                 list.innerHTML = '<p>No upcoming deliveries for this area.</p>';
+                markPending();
                 return;
             }
             list.innerHTML = order.map(function (area) {
                 var stops = groups[area].map(function (row) {
                     return '<tr>'
-                        + '<td>' + esc(row.date) + '</td>'
-                        + '<td><strong>' + esc(row.po) + '</strong></td>'
+                        + '<td>' + dateButton(row) + '</td>'
                         + '<td>' + esc(row.stop) + '</td>'
                         + '<td>' + esc(row.detail) + '</td>'
                         + '<td>' + esc(row.payment || '') + '</td>'
@@ -276,9 +310,10 @@
                 return '<section class="delivery-area">'
                     + '<div class="delivery-area__head"><span>' + esc(area) + '</span><span>' + groups[area].length + ' stops</span></div>'
                     + '<table class="delivery-stop-table"><thead><tr>'
-                    + '<th>Date</th><th>P.O. Code</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                    + '<th>Date</th><th>Retailer</th><th>Order</th><th>Payment</th>'
                     + '</tr></thead><tbody>' + stops + '</tbody></table></section>';
             }).join('');
+            markPending();
         }
 
         host.querySelector('form').addEventListener('submit', function (event) {
@@ -291,7 +326,6 @@
                 id: 'sched-' + Date.now(),
                 area: area,
                 date: String(data.get('date') || ''),
-                po: nextPo(area),
                 stop: stop,
                 detail: qty + ' pouches ' + PRODUCT,
                 payment: String(data.get('payment') || 'Cash')
@@ -303,16 +337,88 @@
             paint();
             if (note) {
                 note.hidden = false;
-                note.textContent = created.po + ' is scheduled for ' + stop + ' on ' + created.date + '.';
+                note.textContent = stop + ' is scheduled on ' + created.date + '.';
             }
         });
         filter.addEventListener('change', paint);
         search.addEventListener('input', paint);
+        list.addEventListener('click', function (event) {
+            var button = event.target.closest ? event.target.closest('.delivery-schedule__date') : null;
+            if (!button) return;
+            var id = button.getAttribute('data-id') || '';
+            var row = rowById(id);
+            if (!row) return;
+            pendingId = id;
+            confirmText.textContent = 'Delete ' + row.stop + ' on ' + row.date + '? This removes only that retailer.';
+            confirmBox.hidden = false;
+            list.querySelectorAll('.delivery-schedule__date').forEach(function (item) {
+                item.classList.toggle('is-pending', item.getAttribute('data-id') === id);
+            });
+        });
+        host.querySelector('.delivery-schedule__confirm-cancel').addEventListener('click', function () {
+            pendingId = '';
+            confirmBox.hidden = true;
+            list.querySelectorAll('.delivery-schedule__date.is-pending').forEach(function (button) {
+                button.classList.remove('is-pending');
+            });
+        });
+        host.querySelector('.delivery-schedule__delete').addEventListener('click', function () {
+            var row = rowById(pendingId);
+            if (!row) {
+                pendingId = '';
+                confirmBox.hidden = true;
+                return;
+            }
+            var stop = row.stop;
+            var date = row.date;
+            rememberRemoved([row.id]);
+            rows = rows.filter(function (item) { return !item || item.id !== row.id; });
+            writeRows(rows);
+            pendingId = '';
+            confirmBox.hidden = true;
+            paint();
+            if (note) {
+                note.hidden = false;
+                note.textContent = 'Removed ' + stop + ' scheduled on ' + date + '.';
+            }
+        });
         paint();
     }
 
+    function initializeFromManifest() {
+        // Wait for manifest loader and load areas dynamically
+        if (window.KreezbyRetailerManifest && typeof window.KreezbyRetailerManifest.getAreaConfiguration === 'function') {
+            return window.KreezbyRetailerManifest.getAreaConfiguration().then(function(areasConfig) {
+                AREAS = areasConfig;
+                return AREAS;
+            }).catch(function(error) {
+                console.warn('Failed to load areas from manifest, using fallback:', error);
+                // Fallback: create basic area structure from a simple list
+                return window.KreezbyRetailerManifest.getStoresByArea().then(function(byArea) {
+                    Object.keys(byArea).sort().forEach(function(areaSlug) {
+                        AREAS.push({
+                            name: window.KreezbyRetailerManifest.getAreaLabel(areaSlug),
+                            slug: areaSlug,
+                            stores: byArea[areaSlug].map(function(s) { return s.storeName; })
+                        });
+                    });
+                    return AREAS;
+                });
+            });
+        }
+        return Promise.resolve(AREAS);
+    }
+
     function boot() {
-        document.querySelectorAll('#delivery-schedule').forEach(render);
+        if (AREAS && AREAS.length > 0) {
+            // Already initialized
+            document.querySelectorAll('#delivery-schedule').forEach(render);
+            return;
+        }
+        // Initialize from manifest before rendering
+        initializeFromManifest().then(function() {
+            document.querySelectorAll('#delivery-schedule').forEach(render);
+        });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

@@ -10,11 +10,11 @@
     var brandIcon = document.createElement("link");
     brandIcon.rel = "icon";
     brandIcon.type = "image/png";
-    brandIcon.href = "/assets/logo/favicon.png?v=20261013full";
+    brandIcon.href = "/assets/logo/favicon.png?v=20261014big";
     document.head.appendChild(brandIcon);
     var appleIcon = document.createElement("link");
     appleIcon.rel = "apple-touch-icon";
-    appleIcon.href = "/assets/logo/favicon.png?v=20261013full";
+    appleIcon.href = "/assets/logo/favicon.png?v=20261014big";
     document.head.appendChild(appleIcon);
   }
 
@@ -224,6 +224,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261014pkg";
+  script.src = "../js/browser-alerts.js?v=20261014edit";
   document.head.appendChild(script);
 })();

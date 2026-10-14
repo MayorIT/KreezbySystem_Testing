@@ -253,7 +253,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261008alert';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261014nofc';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -278,7 +278,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261010flash';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014prod';
         document.head.appendChild(s);
     }
 
@@ -1011,7 +1011,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261011staffbtns';
+        s.src = jsBase() + 'action-buttons.js?v=20261014edit';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {

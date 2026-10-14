@@ -195,16 +195,16 @@
 
     function reportIssueHref() {
         var path = (window.location.pathname || '').toLowerCase();
-        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('issue-reports-staff.html');
+        if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('report_issue-staff.html');
         if (isRetailerStoreFolder()) {
             var reportKey = retailerModuleKey();
             return reportKey ? 'report_issue-' + reportKey + '.html' : 'report_issue-portal.html';
         }
         if (path.indexOf('/retailer/') !== -1) return 'report_issue-portal.html';
         if (path.indexOf('/customer/') !== -1) return moduleLocalHref('report_issue-customer.html');
-        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('issue-reports-headadmin.html');
-        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('issue-reports-admin.html');
-        return moduleLocalHref('issue-reports-admin.html');
+        if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('report_issue-headadmin.html');
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('report_issue-admin.html');
+        return moduleLocalHref('report_issue-admin.html');
     }
 
     function profileMenuHref() {
@@ -251,7 +251,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261008alert';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261014nofc';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -276,7 +276,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261010fix';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014prod';
         document.head.appendChild(s);
     }
 
@@ -660,15 +660,16 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
+            style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
         }
-        style.textContent = 'body.kreezby-admin-home .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
+        style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');
         if (!header) return;
-        if (isHeadAdminPortalPage()) document.body.classList.add('kreezby-head-admin');
         header.querySelectorAll('.hamburger-toggle, a.home-badge, a.top-nav-item.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
             if (el.closest('.user-dropdown')) return;
+            if (isRetailerHomePage() && el.classList.contains('hamburger-toggle')) return;
             el.remove();
         });
     }
@@ -684,6 +685,12 @@
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             var label = btn.querySelector('.admin-home-menu-btn__label');
             if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+            var ham = document.querySelector('.top-navbar-node .hamburger-toggle');
+            if (ham) {
+                ham.setAttribute('aria-expanded', open ? 'true' : 'false');
+                ham.setAttribute('aria-pressed', open ? 'true' : 'false');
+                ham.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+            }
         }
 
         function closeAdminMenu() {
@@ -1001,7 +1008,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261011staffbtns';
+        s.src = jsBase() + 'action-buttons.js?v=20261014edit';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {
