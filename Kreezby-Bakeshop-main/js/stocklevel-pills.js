@@ -8,11 +8,7 @@
     var VIEWS = [
         { key: 'value', label: 'Total Value of Stock', slug: 'stocklevel-value' },
         { key: 'slow', label: 'Slow Moving Stock', slug: 'stocklevel-slow' },
-<<<<<<< HEAD
-        { key: 'alerts', label: 'Low Stock Alert', slug: 'stocklevel-alerts' },
-=======
         { key: 'alerts', label: 'Low Stock Alerts', slug: 'stocklevel-alerts' },
->>>>>>> b372d80 (Save my changes)
         { key: 'chart', label: 'Stock Value vs Sales', slug: 'stocklevel-chart' }
     ];
 
@@ -72,6 +68,9 @@
             });
             if (!found && pills[0]) pills[0].classList.add('active');
         });
+        if (window.KreezbyExpandingTabs && window.KreezbyExpandingTabs.init) {
+            window.KreezbyExpandingTabs.init();
+        }
     }
 
     function applyRowFilter() {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../js/kreezby-db-sync.js?v=20261014edit"></script>
+<script src="../js/kreezby-db-sync.js?v=20261014nostockbar"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
@@ -98,7 +98,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr data-source="CRK-MNG-J" data-time="2026-05-16 14:20" data-severity="Critical" data-actions="restock,modify,dismiss">
+                                    <tr data-source="CRK-MNG-J" data-time="2026-05-16 14:20" data-severity="Critical" data-actions="restock,dismiss">
                                         <td class="po-col-num">1</td>
                                         <td>2026-05-16 14:20</td>
                                         <td><strong>CRK-MNG-J</strong></td>
@@ -109,13 +109,12 @@
                                                 <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
                                                 <div class="action-popup-menu">
                                                     <button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>
-                                                    <button type="button" class="action-popup-item" data-alert-action="modify">Adjust Threshold</button>
                                                     <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-source="CRK-LEM-P" data-time="2026-05-16 11:05" data-severity="Warning" data-actions="restock,modify,dismiss">
+                                    <tr data-source="CRK-LEM-P" data-time="2026-05-16 11:05" data-severity="Warning" data-actions="restock,dismiss">
                                         <td class="po-col-num">2</td>
                                         <td>2026-05-16 11:05</td>
                                         <td><strong>CRK-LEM-P</strong></td>
@@ -126,7 +125,6 @@
                                                 <button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>
                                                 <div class="action-popup-menu">
                                                     <button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>
-                                                    <button type="button" class="action-popup-item" data-alert-action="modify">Adjust Threshold</button>
                                                     <button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>
                                                 </div>
                                             </div>
@@ -210,7 +208,7 @@
                 if (document.getElementById('kreezby-alert-frame-script')) return;
                 var script = document.createElement('script');
                 script.id = 'kreezby-alert-frame-script';
-                script.src = '../js/alert-admin.js?v=20261010tabs';
+                script.src = '../js/alert-admin.js?v=20261014noalertbar';
                 script.onload = function () {
                     if (window.AlertAdmin && window.AlertAdmin.bind) window.AlertAdmin.bind();
                 };
@@ -225,8 +223,8 @@
     </div>
 
     <script src="../js/kreezby-alert.js"></script>
-    <script src="../js/alert-admin.js?v=20261010tabs"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+    <script src="../js/alert-admin.js?v=20261014noalertbar"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261014noalertbar"></script>
     <script src="../js/admin-sidebar.js?v=20261014noreturn"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>

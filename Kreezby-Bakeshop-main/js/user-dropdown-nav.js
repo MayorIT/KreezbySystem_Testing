@@ -278,7 +278,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014mi';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014iconfix';
         document.head.appendChild(s);
     }
 
@@ -1011,7 +1011,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261014edit';
+        s.src = jsBase() + 'action-buttons.js?v=20261014noalertbar';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {

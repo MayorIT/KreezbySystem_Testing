@@ -53,7 +53,7 @@
                 ? ('stocklevel-' + roleSuffix() + '.html' + (view.key === 'value' ? '' : ('?view=' + view.key)))
                 : hrefFor(view.slug);
             var active = shell ? (view.key === activeKey) : (href === currentFile);
-            return '<a class="pill po-order-tab' + (active ? ' active' : '') + '" href="' + href + '" data-key="' + view.key + '" role="tab">' + view.label + '</a>';
+            return '<a class="pill po-order-tab' + (active ? ' active' : '') + '" href="' + href + '" data-key="' + view.key + '" role="tab" title="' + view.label + '" aria-label="' + view.label + '">' + view.label + '</a>';
         }).join('');
     }
 
@@ -68,6 +68,9 @@
             });
             if (!found && pills[0]) pills[0].classList.add('active');
         });
+        if (window.KreezbyExpandingTabs && window.KreezbyExpandingTabs.init) {
+            window.KreezbyExpandingTabs.init();
+        }
     }
 
     function applyRowFilter() {

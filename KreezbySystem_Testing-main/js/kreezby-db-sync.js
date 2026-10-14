@@ -6,6 +6,40 @@
 (function () {
   "use strict";
 
+  if (document.head && !document.querySelector('link[rel="icon"]')) {
+    var brandIcon = document.createElement("link");
+    brandIcon.rel = "icon";
+    brandIcon.type = "image/png";
+    brandIcon.href = "/assets/logo/favicon.png?v=20261014big";
+    document.head.appendChild(brandIcon);
+    var appleIcon = document.createElement("link");
+    appleIcon.rel = "apple-touch-icon";
+    appleIcon.href = "/assets/logo/favicon.png?v=20261014big";
+    document.head.appendChild(appleIcon);
+  }
+
+  if (/\/retailer\//i.test(location.pathname || "")) {
+    document.documentElement.classList.add("kreezby-retailer-account");
+    function stripViewTransition(node) {
+      if (!node || node.nodeType !== 1) return;
+      if (node.matches && node.matches('meta[name="view-transition"]')) node.remove();
+      if (node.querySelectorAll) {
+        node.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
+      }
+    }
+    stripViewTransition(document.head);
+    if (window.MutationObserver && document.documentElement) {
+      new MutationObserver(function (records) {
+        records.forEach(function (record) {
+          record.addedNodes.forEach(stripViewTransition);
+        });
+      }).observe(document.documentElement, { childList: true, subtree: true });
+    }
+    setTimeout(function () {
+      document.documentElement.classList.add("kreezby-module-ready");
+    }, 1200);
+  }
+
   if (location.protocol === "file:") return;
 
   var LOCAL_ONLY = {
@@ -15,7 +49,9 @@
     kreezbyLatestOrderNumber: 1,
     kreezby_retailer_home: 1,
     kreezby_admin_delivery_nav_v1: 1,
-    kreezby_staff_delivery_nav_v1: 1
+    kreezby_staff_delivery_nav_v1: 1,
+    kreezbyBrowserAlertSeen: 1,
+    kreezbyNotifyPrompted: 1
   };
 
   function isShared(key) {
@@ -67,6 +103,7 @@
   function applyItems(items, uploadMissing) {
     if (!items) return;
     applyingRemote = true;
+    var changedKeys = [];
     try {
       Object.keys(known).forEach(function (key) {
         if (pending[key] !== undefined) return;
@@ -79,6 +116,7 @@
         if (nativeGet.call(localStorage, key) === next) return;
         if (next == null) nativeRemove.call(localStorage, key);
         else nativeSet.call(localStorage, key, next);
+        changedKeys.push(key);
         if (key === "kreezby-po-orders-v1" || key === "kreezby-bo-orders-v1" || key === "kreezby-return-records-v1") {
           try {
             var syncName = key === "kreezby-po-orders-v1" ? "kreezby:po-orders-sync" : (key === "kreezby-bo-orders-v1" ? "kreezby:bo-orders-sync" : "kreezby:return-records-sync");
@@ -88,6 +126,12 @@
       });
     } finally {
       applyingRemote = false;
+    }
+
+    if (changedKeys.length) {
+      try {
+        document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
+      } catch (e) { /* listeners are optional */ }
     }
 
     known = {};
@@ -104,34 +148,24 @@
     }
   }
 
-  var initial = null;
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/state", false);
-    xhr.send();
-    if (xhr.status === 200) initial = JSON.parse(xhr.responseText);
-  } catch (e) {
-    initial = null;
-  }
-
   var synced = false;
-  if (initial && initial.items) {
-    applyItems(initial.items, true);
-    synced = true;
-  }
 
-  setInterval(function () {
+  function pull(uploadMissing) {
     var poll = new XMLHttpRequest();
     poll.open("GET", "/api/state", true);
+    poll.timeout = 2500;
     poll.onload = function () {
       if (poll.status !== 200) return;
       try {
-        applyItems(JSON.parse(poll.responseText).items, !synced);
+        applyItems(JSON.parse(poll.responseText).items, uploadMissing && !synced);
         synced = true;
       } catch (e) { /* ignore */ }
     };
     poll.send();
-  }, 4000);
+  }
+
+  pull(true);
+  setInterval(function () { pull(false); }, 4000);
 })();
 
 (function () {
@@ -182,4 +216,14 @@
   } else {
     fillStockProducts();
   }
+})();
+
+(function () {
+  var path = location.pathname || "";
+  if (!/\/(admin|staff|head_admin)\//i.test(path)) return;
+  if (document.getElementById("kreezby-browser-alerts-script")) return;
+  var script = document.createElement("script");
+  script.id = "kreezby-browser-alerts-script";
+  script.src = "../js/browser-alerts.js?v=20261014nostockbar";
+  document.head.appendChild(script);
 })();

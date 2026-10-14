@@ -600,7 +600,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014mi';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014iconfix';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');

@@ -126,7 +126,7 @@
         var source = row.getAttribute('data-source') || '';
         var severity = row.getAttribute('data-severity') || '';
         var message = (row.querySelector('.al-message') || {}).textContent || '';
-        var actions = (row.getAttribute('data-actions') || '').split(',').filter(Boolean);
+        var actions = (row.getAttribute('data-actions') || '').split(',').filter(function (key) { return key && key !== 'modify'; });
         var buttons = actions.map(function (key) {
             var label = key === 'restock' ? 'Create Restock P.O.'
                 : key === 'modify' ? 'Adjust Threshold'
@@ -162,39 +162,6 @@
         if (action === 'restock') {
             toast('Opening purchase orders so you can restock "' + name + '".');
             go(portalPage('po'));
-            return;
-        }
-        if (action === 'modify') {
-            var code = row.getAttribute('data-source') || name;
-            var current = '50';
-            if (window.KreezbyBrowserAlerts && typeof window.KreezbyBrowserAlerts.thresholdFor === 'function') {
-                current = String(window.KreezbyBrowserAlerts.thresholdFor(code));
-            } else {
-                try {
-                    var storedSettings = JSON.parse(localStorage.getItem('kreezbyAlertSettings') || '{}');
-                    if (storedSettings.items && storedSettings.items[code] != null) current = String(storedSettings.items[code]);
-                    else if (storedSettings.shop != null) current = String(storedSettings.shop);
-                } catch (e) { /* keep the default */ }
-            }
-            var next = window.prompt('Alert when "' + name + '" is at or below this quantity:', current);
-            if (next === null) return;
-            var amount = Number(next);
-            if (!Number.isFinite(amount) || amount < 0) {
-                toast('Enter a quantity of 0 or more.');
-                return;
-            }
-            if (window.KreezbyBrowserAlerts && typeof window.KreezbyBrowserAlerts.setItemThreshold === 'function') {
-                window.KreezbyBrowserAlerts.setItemThreshold(code, amount);
-            } else {
-                try {
-                    var saved = JSON.parse(localStorage.getItem('kreezbyAlertSettings') || '{}');
-                    if (saved.shop == null) saved.shop = 50;
-                    saved.items = saved.items || {};
-                    saved.items[code] = amount;
-                    localStorage.setItem('kreezbyAlertSettings', JSON.stringify(saved));
-                } catch (e) { /* the prompt still confirms the number */ }
-            }
-            toast('"' + name + '" alerts when quantity is at or below ' + amount + '.');
             return;
         }
         if (action === 'view') {

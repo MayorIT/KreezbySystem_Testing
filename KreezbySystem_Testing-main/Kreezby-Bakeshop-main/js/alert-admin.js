@@ -126,7 +126,7 @@
         var source = row.getAttribute('data-source') || '';
         var severity = row.getAttribute('data-severity') || '';
         var message = (row.querySelector('.al-message') || {}).textContent || '';
-        var actions = (row.getAttribute('data-actions') || '').split(',').filter(Boolean);
+        var actions = (row.getAttribute('data-actions') || '').split(',').filter(function (key) { return key && key !== 'modify'; });
         var buttons = actions.map(function (key) {
             var label = key === 'restock' ? 'Create Restock P.O.'
                 : key === 'modify' ? 'Adjust Threshold'
@@ -153,6 +153,7 @@
             if (!window.confirm('Dismiss the alert for "' + name + '"?')) return;
             row.setAttribute('data-dismissed', '1');
             row.hidden = true;
+            if (window.KreezbyBrowserAlerts) window.KreezbyBrowserAlerts.acknowledge(row.getAttribute('data-source'));
             closeDetails();
             applyFilter();
             toast('Alert for "' + name + '" is dismissed.');
@@ -161,12 +162,6 @@
         if (action === 'restock') {
             toast('Opening purchase orders so you can restock "' + name + '".');
             go(portalPage('po'));
-            return;
-        }
-        if (action === 'modify') {
-            var next = window.prompt('New reorder threshold for "' + name + '":', '100');
-            if (next === null) return;
-            toast('Threshold for "' + name + '" is now ' + next + '.');
             return;
         }
         if (action === 'view') {

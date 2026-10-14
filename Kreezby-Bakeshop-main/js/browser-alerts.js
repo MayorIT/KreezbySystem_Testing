@@ -391,7 +391,6 @@
                 + '<button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>'
                 + '<div class="action-popup-menu">'
                 + '<button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>'
-                + '<button type="button" class="action-popup-item" data-alert-action="modify">Adjust Threshold</button>'
                 + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>'
                 + '</div></div></td>';
             table.insertBefore(tr, table.firstChild);
@@ -410,76 +409,8 @@
     }
 
     function renderThresholdBar() {
-        if (document.getElementById('stocks-master-list-panel-view') || document.getElementById('stocks-staff-master-block')) {
-            var stocksBar = document.getElementById('kreezby-threshold-bar');
-            if (stocksBar) stocksBar.remove();
-            return;
-        }
-        var dash = document.getElementById('stocklevel-dashboard-root');
-        var host = document.getElementById('stocklevel-master')
-            || (dash && dash.parentNode)
-            || document.getElementById('alert-master');
-        if (!host) return;
         var bar = document.getElementById('kreezby-threshold-bar');
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'kreezby-threshold-bar';
-            bar.className = 'kreezby-threshold-bar';
-            host.insertBefore(bar, host.firstChild);
-        } else if (bar.parentNode !== host) {
-            host.insertBefore(bar, host.firstChild);
-        }
-        var shop = settings().shop;
-        var rows = stockRows();
-        var signature = rows.map(function (row) { return row.code + '=' + row.threshold; }).join('|');
-        var selected = bar.dataset.selected || '';
-        var chosen = null;
-        var i;
-        for (i = 0; i < rows.length; i++) {
-            if (rows[i].code === selected) chosen = rows[i];
-        }
-        if (!chosen) chosen = rows[0];
-        if (bar.dataset.bound === '1' && bar.dataset.signature === signature) return;
-        if (document.activeElement && bar.contains(document.activeElement)) return;
-        var options = rows.map(function (row) {
-            var picked = chosen && row.code === chosen.code ? ' selected' : '';
-            return '<option value="' + escapeHtml(row.code) + '"' + picked + '>' + escapeHtml(row.name) + '</option>';
-        }).join('');
-        bar.innerHTML = '<strong>Alert threshold</strong>'
-            + '<select id="kreezby-threshold-item" aria-label="Item">' + options + '</select>'
-            + '<span>alerts at</span>'
-            + '<input id="kreezby-item-threshold" type="number" min="0" step="1" value="' + (chosen ? chosen.threshold : 0) + '" aria-label="Alert quantity">'
-            + '<button type="button" id="kreezby-shop-threshold-save">Save</button>'
-            + '<span id="kreezby-shop-threshold-note"></span>';
-        bar.dataset.bound = '1';
-        bar.dataset.signature = signature;
-        bar.dataset.selected = chosen ? chosen.code : '';
-        bar.dataset.shopValue = String(shop);
-        var select = document.getElementById('kreezby-threshold-item');
-        var input = document.getElementById('kreezby-item-threshold');
-        if (select && input) {
-            select.addEventListener('change', function () {
-                bar.dataset.selected = select.value;
-                input.value = String(thresholdFor(select.value));
-                var note = document.getElementById('kreezby-shop-threshold-note');
-                if (note) note.textContent = '';
-            });
-        }
-        var save = document.getElementById('kreezby-shop-threshold-save');
-        if (save && select && input) {
-            save.addEventListener('click', function () {
-                var note = document.getElementById('kreezby-shop-threshold-note');
-                var code = select.value;
-                if (!setItemThreshold(code, input.value)) {
-                    if (note) note.textContent = 'Enter a quantity of 0 or more.';
-                    return;
-                }
-                bar.dataset.selected = code;
-                bar.dataset.signature = stockRows().map(function (row) { return row.code + '=' + row.threshold; }).join('|');
-                var item = catalogItem(code);
-                if (note) note.textContent = 'Saved. ' + (item ? item.name : code) + ' alerts at ' + Number(input.value) + '.';
-            });
-        }
+        if (bar) bar.remove();
     }
 
     function renderPermissionBanner() {

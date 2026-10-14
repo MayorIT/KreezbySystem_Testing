@@ -2798,12 +2798,9 @@ body.po-admin-page #stocklevel-master {
 body.po-admin-page #stocklevel-master > #stocklevel-filter-pills.po-order-tabs {
     display: flex !important;
     flex-wrap: wrap;
-<<<<<<< HEAD
     justify-content: flex-start;
-=======
     width: fit-content;
     max-width: calc(100% - 28px);
->>>>>>> b372d80 (Save my changes)
     flex: 0 0 auto;
     align-items: center;
     margin: 14px 14px 0 !important;
@@ -2817,25 +2814,16 @@ body.po-admin-page #stocklevel-master > #stocklevel-filter-pills.po-order-tabs {
 }
 
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .pill,
-<<<<<<< HEAD
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .po-order-tab,
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab.is-expanded {
-=======
-body.po-admin-page #stocklevel-master #stocklevel-filter-pills .po-order-tab {
->>>>>>> b372d80 (Save my changes)
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: 40px !important;
     height: 40px !important;
-<<<<<<< HEAD
     max-width: 40px !important;
     min-width: 40px !important;
     overflow: hidden !important;
-=======
-    min-width: 40px !important;
-    max-width: 40px !important;
->>>>>>> b372d80 (Save my changes)
     padding: 0 !important;
     gap: 0 !important;
     border: 0 !important;
@@ -2843,17 +2831,13 @@ body.po-admin-page #stocklevel-master #stocklevel-filter-pills .po-order-tab {
     background: transparent !important;
     color: #5d4037 !important;
     box-shadow: none !important;
-<<<<<<< HEAD
     font-size: 13px !important;
     line-height: 1 !important;
     text-align: center !important;
-=======
->>>>>>> b372d80 (Save my changes)
 }
 
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__icon {
     display: inline-flex !important;
-<<<<<<< HEAD
     width: 20px;
     height: 20px;
     opacity: 1 !important;
@@ -2862,11 +2846,6 @@ body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__i
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__icon svg {
     width: 20px;
     height: 20px;
-=======
-    width: 18px;
-    height: 18px;
-    opacity: 1;
->>>>>>> b372d80 (Save my changes)
 }
 
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab__label,
@@ -2874,10 +2853,7 @@ body.po-admin-page #stocklevel-master #stocklevel-filter-pills .expanding-tab.is
     display: none !important;
     max-width: 0 !important;
     opacity: 0 !important;
-<<<<<<< HEAD
     overflow: hidden !important;
-=======
->>>>>>> b372d80 (Save my changes)
 }
 
 body.po-admin-page #stocklevel-master #stocklevel-filter-pills .pill.active,

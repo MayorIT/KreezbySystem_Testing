@@ -193,7 +193,6 @@
       case 'alert':
         return [
           { key: 'restock', label: 'Create Restock P.O.' },
-          { key: 'modify', label: 'Adjust Threshold' },
           { key: 'dismiss', label: 'Dismiss Alert', danger: true }
         ];
       case 'po':
@@ -496,12 +495,6 @@
     if (action === 'restock') {
       toast('Opening purchase orders so you can restock "' + name + '".', 'success');
       location.href = portalModuleFile('po');
-      return;
-    }
-    if (action === 'modify') {
-      var next = prompt('New reorder threshold for "' + name + '":', '100');
-      if (next === null) return;
-      toast('Threshold for "' + name + '" is now ' + next + '.', 'success');
       return;
     }
     if (action === 'view') {
