@@ -370,7 +370,10 @@
     var suffix = '-admin.html';
     if (path.indexOf('/head_admin/') >= 0) suffix = '-headadmin.html';
     else if (path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) suffix = '-staff.html';
-    else if (path.indexOf('/retailer/') >= 0) suffix = '-portal.html';
+    else if (path.indexOf('/retailer/') >= 0) {
+      suffix = '-portal.html';
+      if (prefix === 'order-tracking' || prefix === 'return' || prefix === 'po') prefix = 'bo';
+    }
     return prefix + suffix;
   }
 
@@ -493,13 +496,13 @@
       return;
     }
     if (action === 'restock') {
-      toast('Opening purchase orders so you can restock "' + name + '".', 'success');
-      location.href = portalModuleFile('po');
+      toast('Opening back orders so you can restock "' + name + '".', 'success');
+      location.href = portalModuleFile('bo');
       return;
     }
     if (action === 'view') {
       var text = String(name || '');
-      var dest = /return|ret-/i.test(text) ? 'return' : 'bo';
+      var dest = /return|ret-/i.test(text) ? 'order-tracking' : 'bo';
       location.href = portalModuleFile(dest);
       return;
     }

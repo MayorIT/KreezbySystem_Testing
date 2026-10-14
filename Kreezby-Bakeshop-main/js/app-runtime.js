@@ -519,8 +519,8 @@
       return;
     }
     if (action === 'restock') {
-      toast('Opening purchase orders so you can restock "' + (context || 'this item') + '".', 'success');
-      location.href = moduleFile('po');
+      toast('Opening back orders so you can restock "' + (context || 'this item') + '".', 'success');
+      location.href = moduleFile('bo');
       return;
     }
     if (action === 'modify') {
@@ -531,7 +531,7 @@
     }
     if (action === 'view') {
       var text = String(context || '');
-      var dest = /return|ret-/i.test(text) ? 'return' : /back|bo-|po-000/i.test(text) ? 'bo' : 'alert';
+      var dest = /return|ret-/i.test(text) ? 'order-tracking' : /back|bo-|po-000/i.test(text) ? 'bo' : 'alert';
       location.href = moduleFile(dest);
       return;
     }

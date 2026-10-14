@@ -970,8 +970,8 @@ async function startPaymongo() {
                 button.disabled = false;
                 setPaymongoButtonLabel('Open PayMongo payment');
             }
-            if (lead) lead.textContent = 'A bank app cannot finish this test payment. Open the PayMongo page and choose Authorize. This checkout places the order after that.';
-            setPaymongoStatus('Open the PayMongo payment page, then choose Authorize.');
+            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the PayMongo page. Choose Authorize, and this checkout places the order after that.';
+            setPaymongoStatus('Scan the code with your phone camera, then choose Authorize.');
         } else if (button) {
             button.disabled = true;
             setPaymongoButtonLabel('QR code ready');

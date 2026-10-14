@@ -511,7 +511,7 @@
             else {
                 var script = document.createElement('script');
                 script.id = 'kreezby-notification-store-script';
-                script.src = '../js/notification-store.js?v=20261013profile';
+                script.src = '../js/notification-store.js?v=20261015fix';
                 script.onload = start;
                 document.head.appendChild(script);
             }

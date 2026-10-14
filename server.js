@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const { MongoClient } = require("mongodb");
+const QRCode = require("qrcode");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3000;
@@ -569,6 +570,17 @@ function paymongoTestUrl(nextAction) {
   }
 }
 
+async function scannableQr(text) {
+  const value = String(text || "").trim();
+  if (!value || value.length > 2000) return "";
+  return QRCode.toDataURL(value, {
+    errorCorrectionLevel: "M",
+    margin: 4,
+    width: 360,
+    color: { dark: "#111111", light: "#ffffff" },
+  });
+}
+
 app.use("/api/paymongo", allowLocalPaymongo);
 
 app.post("/api/paymongo/e-wallet", async (req, res) => {
@@ -641,7 +653,10 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       },
     });
     const attributes = attached.data.attributes || {};
-    const qrImage = paymongoQrDataUri(attributes.next_action);
+    const paymongoImage = paymongoQrDataUri(attributes.next_action);
+    const testUrl = paymongoTestUrl(attributes.next_action);
+    const scanImage = testUrl ? await scannableQr(testUrl) : "";
+    const qrImage = scanImage || paymongoImage;
     if (!qrImage) {
       res.status(502).json({ ok: false, error: "PayMongo did not return a QR Ph code." });
       return;
@@ -651,7 +666,7 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       paymentIntentId: attached.data.id,
       status: attributes.status || "",
       qrImage,
-      testUrl: paymongoTestUrl(attributes.next_action),
+      testUrl,
       wallet,
     });
   } catch (error) {

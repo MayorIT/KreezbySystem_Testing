@@ -354,7 +354,7 @@
         if (!window.KreezbyNotifications && !document.getElementById('kreezby-notification-store-script')) {
             var store = document.createElement('script');
             store.id = 'kreezby-notification-store-script';
-            store.src = base + 'notification-store.js?v=20261007proc';
+            store.src = base + 'notification-store.js?v=20261015fix';
             store.onload = loadPopover;
             store.defer = true;
             document.head.appendChild(store);
@@ -1011,7 +1011,7 @@
         if (document.getElementById('kreezby-action-buttons-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-action-buttons-script';
-        s.src = jsBase() + 'action-buttons.js?v=20261014noalertbar';
+        s.src = jsBase() + 'action-buttons.js?v=20261015fix';
         s.async = false;
         s.onload = function () {
             if (window.KreezbyActions && typeof window.KreezbyActions.init === 'function') {

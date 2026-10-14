@@ -223,7 +223,7 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = assetPrefix() + 'js/notification-store.js?v=20261007proc';
+        script.src = assetPrefix() + 'js/notification-store.js?v=20261015fix';
 
         script.defer = true;
 
