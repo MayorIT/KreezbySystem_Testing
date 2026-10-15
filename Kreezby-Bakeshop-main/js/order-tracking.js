@@ -25,6 +25,39 @@
         }
     }
 
+    var databasePull = null;
+
+    function mergeRemoteOrders(remote) {
+        if (!Array.isArray(remote) || !remote.length) return false;
+        var local = loadOrders();
+        var seen = {};
+        local.forEach(function (order) {
+            if (order && order.orderNumber) seen[order.orderNumber] = true;
+        });
+        var added = false;
+        remote.forEach(function (order) {
+            if (!order || !order.orderNumber || seen[order.orderNumber]) return;
+            local.push(order);
+            seen[order.orderNumber] = true;
+            added = true;
+        });
+        if (!added) return false;
+        saveOrders(local);
+        return true;
+    }
+
+    function pullDatabaseOrders() {
+        if (databasePull) return databasePull;
+        databasePull = fetch('/api/customer-orders', { credentials: 'same-origin', cache: 'no-store' })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (payload) {
+                if (payload && mergeRemoteOrders(payload.orders)) init();
+            })
+            .catch(function () { /* keep orders already on this browser */ })
+            .then(function () { databasePull = null; });
+        return databasePull;
+    }
+
     function saveOrders(orders) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
         updateDashboardCounts();
@@ -992,6 +1025,7 @@
         if (pageSize) pageSize.addEventListener('change', function () { root._otPage = 1; refresh(); });
 
         refresh();
+        pullDatabaseOrders();
     }
 
     function init() {

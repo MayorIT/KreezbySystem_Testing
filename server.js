@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const { MongoClient } = require("mongodb");
@@ -7,6 +8,8 @@ require("dotenv").config();
 const PORT = process.env.PORT || 3000;
 const DB_NAME = "kreezby";
 const SITE_ROOT = path.join(__dirname, "Kreezby-Bakeshop-main");
+const SALES_LIST_FILE = path.join(SITE_ROOT, "data", "kreezby-sales-fake-admin.json");
+const CUSTOMER_ORDERS_FILE = path.join(SITE_ROOT, "data", "customer-orders.json");
 const KEY_RE = /^kreezby[A-Za-z0-9_-]{0,120}$/;
 const LOCAL_ONLY = new Set([
   "kreezbySidebarCollapsed",
@@ -70,7 +73,9 @@ async function activateMongo() {
   await client.connect();
   await client.db(DB_NAME).command({ ping: 1 });
   if (!mongoReady) {
+    await ensureSalesList();
     await refreshCache();
+    await ensureCustomerOrders();
     if (cache.kreezby_maintenance_users) {
       await syncAccountCollections(cache.kreezby_maintenance_users);
     }
@@ -115,6 +120,145 @@ const ACCOUNT_TYPES = {
 
 function collection() {
   return client.db(DB_NAME).collection("app_state");
+}
+
+function salesListCollection() {
+  return client.db(DB_NAME).collection("sales_route_sheets");
+}
+
+async function ensureSalesList() {
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(SALES_LIST_FILE, "utf8"));
+  } catch (error) {
+    console.error("Sales list file unavailable. " + error.message);
+    return;
+  }
+  const reports = Array.isArray(raw.dailyReports) ? raw.dailyReports : [];
+  const ids = reports.map((report) => report && report.id ? String(report.id) : "").filter(Boolean);
+  const col = salesListCollection();
+  const meta = await col.findOne({ _id: "_meta" });
+  if (meta && meta.reportCount === ids.length && meta.importedAt === (raw.importedAt || null)) return;
+
+  const ops = [];
+  for (const report of reports) {
+    if (!report || !report.id) continue;
+    const doc = { ...report, updatedAt: new Date() };
+    delete doc._id;
+    ops.push({
+      updateOne: {
+        filter: { _id: String(report.id) },
+        update: { $set: doc },
+        upsert: true,
+      },
+    });
+  }
+  for (let i = 0; i < ops.length; i += 400) {
+    await col.bulkWrite(ops.slice(i, i + 400), { ordered: false });
+  }
+  await col.updateOne(
+    { _id: "_meta" },
+    {
+      $set: {
+        importedAt: raw.importedAt || null,
+        dateRange: raw.dateRange || null,
+        sources: raw.sources || {},
+        note: raw.note || "",
+        isTestData: !!raw.isTestData,
+        adminOnly: !!raw.adminOnly,
+        dataset: raw.dataset || "",
+        reportCount: ids.length,
+        updatedAt: new Date(),
+      },
+    },
+    { upsert: true }
+  );
+  console.log("Sales list stored: " + ids.length + " route sheets");
+}
+
+function customerOrderId(order) {
+  return String((order && (order.orderNumber || order.Order_ID)) || "").trim();
+}
+
+function readJsonArrayFile(file) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Could not read " + path.basename(file) + ". " + error.message);
+    return [];
+  }
+}
+
+function readCachedCustomerOrders() {
+  if (!cache.kreezbyOrders) return [];
+  try {
+    const parsed = JSON.parse(cache.kreezbyOrders);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function salesOrderRecord(order) {
+  const items = order.items && typeof order.items === "object" ? Object.values(order.items) : [];
+  const quantity = items.reduce((sum, item) => sum + (Number(item && item.qty) || 0), 0);
+  const products = items.map((item) => item && item.name).filter(Boolean).join(", ");
+  const customer = (order.shippingInfo && order.shippingInfo.fullName) || order.poEntity || "Customer";
+  return {
+    Order_ID: customerOrderId(order),
+    Order_Status: order.status || "Processing",
+    Customer_ID: customer,
+    Product_ID: products,
+    Order_Quantity: quantity,
+    Order_Date: order.date ? String(order.date).slice(0, 10) : "",
+    Order_Total: order.total || "",
+    updatedAt: new Date(),
+  };
+}
+
+async function syncCustomerOrderDocs(orders) {
+  const customerCol = client.db(DB_NAME).collection("customer_orders");
+  const salesCol = client.db(DB_NAME).collection("sales_orders");
+  const customerOps = [];
+  const salesOps = [];
+  for (const order of orders) {
+    const id = customerOrderId(order);
+    if (!id) continue;
+    const doc = { ...order, updatedAt: new Date() };
+    delete doc._id;
+    customerOps.push({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: doc },
+        upsert: true,
+      },
+    });
+    salesOps.push({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: salesOrderRecord(order) },
+        upsert: true,
+      },
+    });
+  }
+  if (customerOps.length) await customerCol.bulkWrite(customerOps, { ordered: false });
+  if (salesOps.length) await salesCol.bulkWrite(salesOps, { ordered: false });
+  return customerOps.length;
+}
+
+async function ensureCustomerOrders() {
+  const byId = new Map();
+  for (const order of readJsonArrayFile(CUSTOMER_ORDERS_FILE)) {
+    const id = customerOrderId(order);
+    if (id) byId.set(id, order);
+  }
+  for (const order of readCachedCustomerOrders()) {
+    const id = customerOrderId(order);
+    if (id) byId.set(id, order);
+  }
+  const count = await syncCustomerOrderDocs([...byId.values()]);
+  console.log("Customer orders stored: " + count);
 }
 
 async function syncAccountCollections(raw) {
@@ -195,6 +339,50 @@ const RECORD_COLLECTIONS = {
   sales_procurement: 1,
 };
 
+app.get("/api/sales-list", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const col = salesListCollection();
+    const meta = await col.findOne({ _id: "_meta" }) || {};
+    const reports = await col.find({ _id: { $ne: "_meta" } }).sort({ reportDate: 1, _id: 1 }).toArray();
+    const dailyReports = reports.map((doc) => {
+      const report = { ...doc, id: doc.id || String(doc._id) };
+      delete report._id;
+      delete report.updatedAt;
+      return report;
+    });
+    res.json({
+      importedAt: meta.importedAt || null,
+      dateRange: meta.dateRange || null,
+      sources: meta.sources || {},
+      note: meta.note || "",
+      isTestData: !!meta.isTestData,
+      adminOnly: !!meta.adminOnly,
+      dataset: meta.dataset || "",
+      dailyReports,
+      sales: [],
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.get("/api/customer-orders", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const records = await client.db(DB_NAME).collection("customer_orders").find({}).sort({ date: -1 }).toArray();
+    const orders = records.map((doc) => {
+      const order = { ...doc, orderNumber: doc.orderNumber || String(doc._id) };
+      delete order._id;
+      delete order.updatedAt;
+      return order;
+    });
+    res.json({ ok: true, orders });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.get("/api/records/:name", async (req, res) => {
   if (!databaseReady(res)) return;
   const name = String(req.params.name || "");
@@ -243,6 +431,9 @@ app.post("/api/state", async (req, res) => {
     if (ops.length) await collection().bulkWrite(ops, { ordered: false });
     if (typeof items.kreezby_maintenance_users === "string") {
       await syncAccountCollections(items.kreezby_maintenance_users);
+    }
+    if (typeof items.kreezbyOrders === "string") {
+      await syncCustomerOrderDocs(readCachedCustomerOrders());
     }
     res.json({ ok: true });
   } catch (error) {
@@ -339,8 +530,37 @@ function writeManagementInsight(apiKey, snapshot) {
   return writeOwnerNote(
     apiKey,
     snapshot,
-    "You write a short note for the owner of Kreezby Bakeshop, a crinkles bakery. Summarize notable sales and inventory in simple everyday language. Use 4 to 6 short sentences. Name the products and use only the numbers in the data when a figure matters. Say what is selling and what is running low against the recommended stock. Do not forecast future demand. Mention an ingredient only if it is close to expiring or very low. Do not use business jargon. Do not invent figures."
+    "Reply with JSON only, no markdown: {\"insights\":[{\"name\":\"\",\"text\":\"\"}]}. Write one object for every product. Each text is one or two short sentences for that product alone. Include that product's stock, recommended stock, and recent sales, using the exact numbers from the data. Say whether its stock is below, equal to, or above the recommended stock. Do not combine products into one summary. Do not invent products or numbers. Do not forecast. Do not use business jargon."
   );
+}
+
+function insightIncludesNumber(text, value) {
+  if (value == null) return true;
+  const digits = String(value).replace(/\.0$/, "");
+  return new RegExp("(^|[^0-9])" + digits.replace(".", "\\.") + "([^0-9]|$)").test(String(text || ""));
+}
+
+function parseManagementInsights(text, snapshot) {
+  const raw = String(text || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    return [];
+  }
+  const list = parsed && Array.isArray(parsed.insights) ? parsed.insights : [];
+  const byName = new Map();
+  snapshot.products.forEach((product) => byName.set(product.name.toLowerCase(), product));
+  return list.map((item) => {
+    const name = cleanInsightText(item && item.name, 80);
+    const product = byName.get(name.toLowerCase());
+    const sentence = cleanInsightText(item && item.text, 320);
+    if (!product || !sentence) return null;
+    if (!insightIncludesNumber(sentence, product.stock)
+      || !insightIncludesNumber(sentence, product.recommendedStock)
+      || !insightIncludesNumber(sentence, product.recentSales)) return null;
+    return { name: product.name, text: sentence };
+  }).filter(Boolean);
 }
 
 const productRecommendationLastCall = new Map();
@@ -401,7 +621,15 @@ app.post("/api/management-insight", async (req, res) => {
 
   try {
     const insight = await writeManagementInsight(apiKey, snapshot);
-    res.json({ ok: true, insight, model: OPENAI_MODEL });
+    const insights = parseManagementInsights(insight, snapshot);
+    res.json({
+      ok: true,
+      insight: insights.length
+        ? insights.map((item) => item.text).join(" ")
+        : insight,
+      insights,
+      model: OPENAI_MODEL,
+    });
   } catch (error) {
     const code = error && error.code;
     if (code === "credit_balance_exhausted" || code === "insufficient_quota") {

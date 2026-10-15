@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css">
-    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261014mi">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261015micenter">
 
 </head>
 <body class="po-admin-page" data-kreezby-portal="admin-analysis">
@@ -151,20 +151,20 @@
                         <div class="po-table-scroll-wrap">
                             <table class="data-display-table insights-table" id="management-insight-table">
                                 <colgroup>
-                                    <col class="mi-col-flavor"><col class="mi-col-stock"><col class="mi-col-rec"><col class="mi-col-sales"><col class="mi-col-action">
+                                    <col class="mi-col-flavor"><col class="mi-col-stock"><col class="mi-col-rec"><col class="mi-col-sales">
                                 </colgroup>
                                 <thead>
                                     <tr>
-                                        <th>Flavor</th><th>Stock</th><th>Recommended stock</th><th>Recent sales</th><th>Action</th>
+                                        <th>Flavor</th><th>Stock</th><th>Recommended stock</th><th>Recent sales</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Almond Crinkles</strong></td><td class="sa-num" data-label="Stock">120</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">45</td><td class="sa-num variance-text positive" data-label="Action">Covered</td></tr>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Butternut Crinkles</strong></td><td class="sa-num" data-label="Stock">140</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">38</td><td class="sa-num variance-text positive" data-label="Action">Covered</td></tr>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Chocolate Crinkles</strong></td><td class="sa-num" data-label="Stock">85</td><td class="sa-num" data-label="Recommended stock">400</td><td class="sa-num" data-label="Recent sales">62</td><td data-label="Action"><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-admin.html">Reorder</a></td></tr>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Lemon Crinkles</strong></td><td class="sa-num" data-label="Stock">90</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">41</td><td data-label="Action"><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-admin.html">Reorder</a></td></tr>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Mango Crinkles</strong></td><td class="sa-num" data-label="Stock">70</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">55</td><td data-label="Action"><a class="dict-reorder" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="stocks-admin.html">Reorder</a></td></tr>
-                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Ube Crinkles</strong></td><td class="sa-num" data-label="Stock">110</td><td class="sa-num" data-label="Recommended stock">150</td><td class="sa-num" data-label="Recent sales">28</td><td class="sa-num variance-text positive" data-label="Action">Covered</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Almond Crinkles</strong></td><td class="sa-num" data-label="Stock">120</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">45</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Butternut Crinkles</strong></td><td class="sa-num" data-label="Stock">140</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">38</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Chocolate Crinkles</strong></td><td class="sa-num" data-label="Stock">85</td><td class="sa-num" data-label="Recommended stock">400</td><td class="sa-num" data-label="Recent sales">62</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Lemon Crinkles</strong></td><td class="sa-num" data-label="Stock">90</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">41</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Mango Crinkles</strong></td><td class="sa-num" data-label="Stock">70</td><td class="sa-num" data-label="Recommended stock">200</td><td class="sa-num" data-label="Recent sales">55</td></tr>
+                                    <tr><td class="sa-flavor" data-label="Flavor"><strong>Ube Crinkles</strong></td><td class="sa-num" data-label="Stock">110</td><td class="sa-num" data-label="Recommended stock">150</td><td class="sa-num" data-label="Recent sales">28</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -215,7 +215,7 @@
                 document.head.appendChild(theme);
             }
             theme.disabled = false;
-            if (theme.href.indexOf('20261014mi') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261014mi';
+            if (theme.href.indexOf('20261014mi') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261015micenter';
             if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.boot) {
                 try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
             }
@@ -223,11 +223,11 @@
         </script>
 </turbo-frame>
 </div>
-    <script src="../js/aiforecast-pills.js?v=20261014nofc"></script>
+    <script src="../js/aiforecast-pills.js?v=20261015micenter"></script>
     <script src="../js/user-dropdown-nav.js?v=20261014mi"></script>
     <script src="../js/admin-sidebar.js?v=20261014pos"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
-    <script src="../js/management-insight.js?v=20261005insight"></script>
+    <script src="../js/management-insight.js?v=20261015micenter"></script>
     <script src="../js/product-recommendation.js?v=20261014prodrec"></script>
 </body>
 </html>

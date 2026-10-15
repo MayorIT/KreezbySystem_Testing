@@ -174,7 +174,7 @@
         }
         theme.id = 'po-theme-sheet';
         theme.disabled = false;
-        theme.href = '../css/pages/admin/po-theme.css?v=20261011insight2';
+        theme.href = '../css/pages/admin/po-theme.css?v=20261015micenter';
     }
 
     function bootSalesAnalysis() {

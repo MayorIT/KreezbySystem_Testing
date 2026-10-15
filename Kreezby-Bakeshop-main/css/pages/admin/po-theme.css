@@ -2460,11 +2460,10 @@ body.po-admin-page #sales-analysis-master .po-table-scroll-wrap tbody tr:last-ch
     border-bottom: none !important;
 }
 
-body.po-admin-page #management-insight-table .mi-col-flavor { width: 28%; }
-body.po-admin-page #management-insight-table .mi-col-stock { width: 14%; }
-body.po-admin-page #management-insight-table .mi-col-rec { width: 22%; }
-body.po-admin-page #management-insight-table .mi-col-sales { width: 18%; }
-body.po-admin-page #management-insight-table .mi-col-action { width: 18%; }
+body.po-admin-page #management-insight-table .mi-col-flavor { width: 40%; }
+body.po-admin-page #management-insight-table .mi-col-stock { width: 16%; }
+body.po-admin-page #management-insight-table .mi-col-rec { width: 24%; }
+body.po-admin-page #management-insight-table .mi-col-sales { width: 20%; }
 
 body.po-admin-page #management-insight-table td:nth-child(2),
 body.po-admin-page #management-insight-table td:nth-child(3),
@@ -2472,11 +2471,6 @@ body.po-admin-page #management-insight-table td:nth-child(4),
 body.po-admin-page #management-insight-table th:nth-child(2),
 body.po-admin-page #management-insight-table th:nth-child(3),
 body.po-admin-page #management-insight-table th:nth-child(4) {
-    text-align: right;
-}
-
-body.po-admin-page #management-insight-table td:last-child,
-body.po-admin-page #management-insight-table th:last-child {
     text-align: center;
 }
 

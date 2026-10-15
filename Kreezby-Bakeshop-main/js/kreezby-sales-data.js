@@ -81,8 +81,35 @@
     invalidateIndexes();
   }
 
+  function loadFromDatabase() {
+    if (!window.__kreezbySalesListRequest) {
+      window.__kreezbySalesListRequest = fetch('/api/sales-list', { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+        if (!res.ok) throw new Error('sales list ' + res.status);
+        return res.json();
+      }).then(function (data) {
+        if (!data || !data.dailyReports || !data.dailyReports.length) throw new Error('empty sales list');
+        return data;
+      }).catch(function (err) {
+        window.__kreezbySalesListRequest = null;
+        throw err;
+      });
+    }
+    return window.__kreezbySalesListRequest;
+  }
+
+  function loadLocalSales() {
+    var embedded = adminTestPayload();
+    if (embedded) return Promise.resolve(applyBasePayload(embedded));
+    if (!isAdminContext()) return Promise.resolve(applyBasePayload(zeroPayload()));
+    return loadFakeAdminJson().then(function (data) {
+      return applyBasePayload(data);
+    }).catch(function () {
+      return applyBasePayload(zeroPayload());
+    });
+  }
+
   function load() {
-    if (CACHE && embeddedAdminSales()) {
+    if (CACHE && !CACHE._fromDatabase && embeddedAdminSales()) {
       var waiting = embeddedAdminSales();
       if (waiting && waiting.dailyReports && waiting.dailyReports.length) {
         var cacheRange = CACHE.dateRange || {};
@@ -99,23 +126,12 @@
       sessionStorage.removeItem(SESSION_CACHE_KEY);
     } catch (e) { /* ignore */ }
 
-    var embedded = adminTestPayload();
-    if (embedded) {
-      loadPromise = Promise.resolve(applyBasePayload(embedded));
-      return loadPromise;
-    }
-
-    if (!isAdminContext()) {
-      BASE_CACHE = zeroPayload();
-      CACHE = applyCache(mergeOverrides(BASE_CACHE));
-      loadPromise = Promise.resolve(CACHE);
-      return loadPromise;
-    }
-
-    loadPromise = loadFakeAdminJson().then(function (data) {
-      return applyBasePayload(data);
+    loadPromise = loadFromDatabase().then(function (data) {
+      var applied = applyBasePayload(data);
+      if (applied) applied._fromDatabase = true;
+      return applied;
     }).catch(function () {
-      return applyBasePayload(zeroPayload());
+      return loadLocalSales();
     });
     return loadPromise;
   }
@@ -634,6 +650,8 @@
       return !!(CACHE && CACHE.isTestData);
     },
     reload: function () {
+      if (CACHE && CACHE._fromDatabase) return Promise.resolve(CACHE);
+      if (loadPromise) return loadPromise;
       resetLoadState();
       return load();
     },

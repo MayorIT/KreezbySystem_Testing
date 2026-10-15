@@ -1,0 +1,130 @@
+[
+  {
+    "orderNumber": "ORD-2026-1042",
+    "poCode": "PO-C-MS-001",
+    "poEntity": "Maria Santos",
+    "items": {
+      "ms-choco": { "name": "Chocolate Crinkles", "cost": 165, "qty": 3 },
+      "ms-ube": { "name": "Ube Crinkles", "cost": 165, "qty": 2 }
+    },
+    "subtotal": 825,
+    "deliveryFee": 50,
+    "total": "₱875.00",
+    "paymentMethod": "gcash",
+    "gcashReference": "8291042165831",
+    "gcashPaidTo": "09178001650",
+    "paymentStatus": "pending",
+    "receiptNumber": "RCP-2026-00012",
+    "shippingInfo": {
+      "fullName": "Maria Santos",
+      "phone": "09171234567",
+      "address": "18 Dolorosa St., Poblacion, Batangas City",
+      "notes": "Please call at the gate"
+    },
+    "status": "Processing",
+    "date": "2026-09-22T08:20:00.000Z",
+    "paymentVerified": false,
+    "source": "customer-shop"
+  },
+  {
+    "orderNumber": "ORD-2026-1038",
+    "poCode": "PO-C-MS-002",
+    "poEntity": "Maria Santos",
+    "items": { "ms-lemon": { "name": "Lemon Crinkles", "cost": 165, "qty": 4 } },
+    "subtotal": 660,
+    "deliveryFee": 50,
+    "total": "₱710.00",
+    "paymentMethod": "cash_on_delivery",
+    "receiptNumber": "RCP-2026-00011",
+    "shippingInfo": {
+      "fullName": "Maria Santos",
+      "phone": "09171234567",
+      "address": "18 Dolorosa St., Poblacion, Batangas City",
+      "notes": ""
+    },
+    "status": "Shipped",
+    "trackingNumber": "JT6049281735001",
+    "carrier": "J&T Express Philippines",
+    "date": "2026-09-18T16:10:00.000Z",
+    "shippedAt": "2026-09-19T09:00:00.000Z",
+    "statusUpdatedAt": "2026-09-19T09:00:00.000Z",
+    "paymentVerified": true,
+    "source": "customer-shop"
+  },
+  {
+    "orderNumber": "ORD-2026-1021",
+    "poCode": "PO-C-MS-003",
+    "poEntity": "Maria Santos",
+    "items": {
+      "ms-choco-2": { "name": "Chocolate Crinkles", "cost": 165, "qty": 2 },
+      "ms-straw": { "name": "Strawberry Crinkles", "cost": 165, "qty": 1 }
+    },
+    "subtotal": 495,
+    "deliveryFee": 50,
+    "total": "₱545.00",
+    "paymentMethod": "maya",
+    "receiptNumber": "RCP-2026-00008",
+    "shippingInfo": {
+      "fullName": "Maria Santos",
+      "phone": "09171234567",
+      "address": "18 Dolorosa St., Poblacion, Batangas City",
+      "notes": ""
+    },
+    "status": "Completed",
+    "trackingNumber": "JT6049281734888",
+    "carrier": "J&T Express Philippines",
+    "date": "2026-09-10T10:00:00.000Z",
+    "shippedAt": "2026-09-10T15:00:00.000Z",
+    "statusUpdatedAt": "2026-09-11T11:20:00.000Z",
+    "paymentVerified": true,
+    "source": "customer-shop"
+  },
+  {
+    "orderNumber": "ORD-2026-1015",
+    "poCode": "PO-C-KR-001",
+    "poEntity": "Kyla Ramos",
+    "items": { "kr-almond": { "name": "Choco Almond Crinkles", "cost": 175, "qty": 6 } },
+    "subtotal": 1050,
+    "deliveryFee": 50,
+    "total": "₱1,100.00",
+    "paymentMethod": "gcash",
+    "gcashReference": "7049182635501",
+    "gcashPaidTo": "09178001650",
+    "paymentStatus": "verified",
+    "receiptNumber": "RCP-2026-00007",
+    "shippingInfo": {
+      "fullName": "Kyla Ramos",
+      "phone": "09181112202",
+      "address": "42 Marawoy Ave., Lipa City",
+      "notes": "Office drop-off"
+    },
+    "status": "Completed",
+    "trackingNumber": "JT6049281734500",
+    "carrier": "J&T Express Philippines",
+    "date": "2026-09-05T13:45:00.000Z",
+    "statusUpdatedAt": "2026-09-07T16:00:00.000Z",
+    "paymentVerified": true,
+    "source": "customer-shop"
+  },
+  {
+    "orderNumber": "ORD-2026-1008",
+    "poCode": "PO-C-BA-001",
+    "poEntity": "Bryle Atienza",
+    "items": { "ba-mango": { "name": "Mango Crinkles", "cost": 165, "qty": 2 } },
+    "subtotal": 330,
+    "deliveryFee": 50,
+    "total": "₱380.00",
+    "paymentMethod": "cash_on_delivery",
+    "receiptNumber": "RCP-2026-00006",
+    "shippingInfo": {
+      "fullName": "Bryle Atienza",
+      "phone": "09189876543",
+      "address": "9 Taray St., Lipa City",
+      "notes": ""
+    },
+    "status": "Processing",
+    "date": "2026-09-20T19:05:00.000Z",
+    "paymentVerified": true,
+    "source": "customer-shop"
+  }
+]

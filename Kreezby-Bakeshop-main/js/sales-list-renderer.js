@@ -1046,13 +1046,17 @@
       return res.ok ? res.json() : null;
     }).then(function (payload) {
       var records = payload && payload.records ? payload.records : [];
+      var seen = {};
+      customerCache.forEach(function (row) { if (row.invoice) seen[row.invoice] = true; });
       records.forEach(function (row, index) {
+        var invoice = row.Order_ID || '';
+        if (invoice && seen[invoice]) return;
+        seen[invoice] = true;
         var status = String(row.Order_Status || 'Processing');
         var statusKey = status.toLowerCase();
         var statusClass = statusKey === 'completed' ? 'received' : statusKey === 'shipped' ? 'shipped' : 'pending';
         var customer = row.Customer_ID || 'Customer';
         var items = (row.Product_ID || '') + ' · qty ' + (row.Order_Quantity || '');
-        var invoice = row.Order_ID || '';
         var key = 'db-' + index;
         customerCache.push({
           key: key,
