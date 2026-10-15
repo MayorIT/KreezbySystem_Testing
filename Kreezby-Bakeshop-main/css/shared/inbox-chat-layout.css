@@ -1337,3 +1337,121 @@
     background: #fbc02d;
     color: #2b241c;
 }
+
+.inbox-help-queue-summary {
+    margin: 0;
+    padding: 8px 14px;
+    background: #fff6df;
+    color: #8a4b08;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.inbox-queue-pill {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fff3d2;
+    color: #e65100;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.inbox-queue-pill.is-live {
+    background: #e7f6ee;
+    color: #1b7f4a;
+}
+
+.inbox-queue-pill.is-resolved {
+    background: #eef1f4;
+    color: #5c6770;
+}
+
+.inbox-resolved-btn {
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #65676b;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inbox-resolved-summary {
+    margin: 28px auto;
+    max-width: 360px;
+    text-align: center;
+    color: #65676b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.inbox-help-assist {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff8e8;
+    border-bottom: 1px solid #f0e2c4;
+    color: #3f2f14;
+    font-size: 13px;
+}
+
+.inbox-help-assist[hidden] {
+    display: none;
+}
+
+.inbox-help-assist strong {
+    display: block;
+    font-size: 13px;
+}
+
+.inbox-help-assist span {
+    display: block;
+    color: #6d645b;
+    font-size: 12px;
+}
+
+.inbox-help-assist button {
+    flex: 0 0 auto;
+    height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #fbc02d;
+    color: #2b241c;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inbox-help-assist button:hover {
+    background: #f4aa1c;
+}
+
+.inbox-messenger.is-dark .inbox-help-queue-summary,
+.inbox-messenger.is-dark .inbox-help-assist {
+    background: #3a2e14;
+    border-color: #5c4a22;
+    color: #ffe7a3;
+}
+
+.inbox-messenger.is-dark .inbox-help-assist span {
+    color: #f0d48a;
+}
+
+.inbox-messenger.is-dark .inbox-queue-pill {
+    background: #5c4a22;
+    color: #ffe7a3;
+}
+
+.inbox-messenger.is-dark .inbox-queue-pill.is-live {
+    background: #1d3b2a;
+    color: #b7ebc9;
+}

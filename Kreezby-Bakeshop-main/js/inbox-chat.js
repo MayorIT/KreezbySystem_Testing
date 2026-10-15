@@ -38,7 +38,6 @@
         admin: {
             contacts: [
                 { id: 'sidc', name: 'SIDC Batangas Hub', preview: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31', initials: 'S', online: true, unread: true },
-                { id: 'maria', name: 'Maria Santos', preview: 'Order ORD-2026-1042 is still packing.', time: 'Today', initials: 'M', unread: true },
                 { id: 'claire', name: 'Claire (Staff 1)', preview: 'Stock check is finished.', time: 'May 14', initials: 'C', online: true, archived: true }
             ],
             messages: {
@@ -47,11 +46,6 @@
                     { type: 'incoming', text: 'Are there any active back-order dispatch batches this afternoon?', time: '15:25' },
                     { type: 'outgoing', text: 'Hello SIDC Team! Yes, the ingredient allocation is already in progress.', time: '15:30' },
                     { type: 'outgoing', text: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31' }
-                ],
-                maria: [
-                    { type: 'incoming', text: 'Hi, just checking on ORD-2026-1042 — chocolate and ube pouches.', time: '09:12' },
-                    { type: 'outgoing', text: 'Hi Maria, we are packing that order at the main facility now.', time: '09:18' },
-                    { type: 'incoming', text: 'Order ORD-2026-1042 is still packing.', time: '09:20' }
                 ]
             }
         },
@@ -156,12 +150,14 @@
                                     '</button>' +
                                 '</div>' +
                             '</div>' +
+                            '<button type="button" class="inbox-resolved-btn" id="inbox-resolved-view-btn" aria-pressed="false">Resolved</button>' +
                             '<button type="button" class="inbox-icon-btn" id="inbox-archive-view-btn" title="View archived chats" aria-pressed="false">' + SVG.archive + '</button>' +
                         '</div>' +
                     '</div>' +
                     '<div class="inbox-chat-search">' + SVG.search +
                         '<input type="text" id="inbox-search-input" placeholder="Search chats" aria-label="Search chats">' +
                     '</div>' +
+                    '<p class="inbox-help-queue-summary" id="inbox-help-queue-summary" hidden></p>' +
                     '<div class="inbox-contact-scroll" id="inbox-contact-list">' +
                         '<p id="inbox-threads-empty" class="inbox-threads-empty" style="display:none;">No conversations available.</p>' +
                     '</div>' +
@@ -184,6 +180,7 @@
                         '</div>' +
                     '</div>' +
                     '<div id="inbox-retailer-access-banner" class="inbox-retailer-access-banner" style="display:none;"></div>' +
+                    '<div id="inbox-help-assist" class="inbox-help-assist" hidden></div>' +
                     '<div class="inbox-messages-viewport messages-scroll-viewport" id="chat-messages-container"></div>' +
                     '<div class="inbox-composer-bar chat-composition-footer-bar">' +
                         '<div class="inbox-attach-preview" id="inbox-attach-preview" hidden></div>' +
@@ -233,6 +230,7 @@
                 (contact.archived ? ' is-archived' : '');
             row.setAttribute('data-thread-id', contact.id);
             if (contact.channel) row.setAttribute('data-channel', contact.channel);
+            if (contact.helpStatus) row.setAttribute('data-help-status', contact.helpStatus);
 
             var avatarClass = 'inbox-avatar' + (contact.online ? ' is-online' : '');
             var avatarStyle = root.classList.contains('inbox-messenger')
@@ -241,6 +239,12 @@
             var avatarHtml = contact.image
                 ? '<img src="' + escapeHtml(contact.image) + '" alt="">'
                 : escapeHtml(contact.initials || contact.name.charAt(0));
+
+            var queueHtml = contact.helpResolved
+                ? '<span class="inbox-queue-pill is-resolved">Resolved</span>'
+                : (contact.queueLine
+                    ? '<span class="inbox-queue-pill">Line ' + contact.queueLine + '</span>'
+                    : (contact.helpStatus === 'active' ? '<span class="inbox-queue-pill is-live">Live</span>' : ''));
 
             var statusHtml = contact.archived
                 ? '<span class="inbox-status-pill is-archived">' + SVG.archive + 'Archived</span>'
@@ -259,7 +263,7 @@
                             '<span class="inbox-contact-time thread-timestamp">' + escapeHtml(contact.time || '') + '</span>' +
                         '</div>' +
                         '<div class="inbox-contact-preview thread-snippet-preview">' + escapeHtml(contact.preview || '') + '</div>' +
-                        '<div class="inbox-contact-status-row">' + statusHtml + '</div>' +
+                        '<div class="inbox-contact-status-row">' + queueHtml + statusHtml + '</div>' +
                     '</div>' +
                 '</button>' +
                 '<button type="button" class="inbox-thread-archive" data-archive-id="' + escapeHtml(contact.id) + '" title="' + archiveLabel + '" aria-label="' + archiveLabel + '">' +
@@ -551,6 +555,10 @@
         var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
 
         var messenger = mount.classList.contains('inbox-messenger');
+        var helpDesk = role === 'admin' || role === 'staff';
+        var isHeadAdmin = /\/head_admin\//i.test(String(location.pathname || '').replace(/\\/g, '/'));
+        var helpSignature = '';
+        var helpPaintAt = '';
         mount.classList.add('inbox-chat-root');
         mount.innerHTML = buildShell(role, messenger);
 
@@ -586,6 +594,11 @@
 
         function visibleContacts() {
             return contacts.filter(function (contact) {
+                if (listFilter === 'resolved') {
+                    if (!isHeadAdmin || !contact.helpResolved) return false;
+                } else if (contact.helpResolved) {
+                    return false;
+                }
                 var archived = Boolean(contact.archived);
                 var unread = Boolean(contact.unread) && !archived;
                 if (listFilter === 'unread' && !unread) return false;
@@ -607,9 +620,11 @@
         function syncFilterUi() {
             var title = mount.querySelector('.inbox-chat-list-title');
             if (title) {
-                title.textContent = listFilter === 'archive'
-                    ? 'Archived'
-                    : (listFilter === 'unread' ? 'Unread' : (listFilter === 'read' ? 'Read' : 'Chats'));
+                title.textContent = listFilter === 'resolved'
+                    ? 'Resolved'
+                    : (listFilter === 'archive'
+                        ? 'Archived'
+                        : (listFilter === 'unread' ? 'Unread' : (listFilter === 'read' ? 'Read' : 'Chats')));
             }
 
             mount.querySelectorAll('[data-dropdown="filter"] [data-filter]').forEach(function (other) {
@@ -633,9 +648,17 @@
                 archiveViewBtn.setAttribute('aria-pressed', onArchive ? 'true' : 'false');
                 archiveViewBtn.title = onArchive ? 'Back to all chats' : 'View archived chats';
             }
+
+            var resolvedViewBtn = mount.querySelector('#inbox-resolved-view-btn');
+            if (resolvedViewBtn) {
+                var onResolved = listFilter === 'resolved';
+                resolvedViewBtn.classList.toggle('is-open', onResolved);
+                resolvedViewBtn.setAttribute('aria-pressed', onResolved ? 'true' : 'false');
+            }
         }
 
         function setListFilter(nextFilter) {
+            if (nextFilter === 'resolved' && !isHeadAdmin) nextFilter = 'all';
             listFilter = nextFilter || 'all';
             syncFilterUi();
             refreshContactList();
@@ -654,15 +677,234 @@
                 if (!shown.length) {
                     empty.textContent = searchQuery
                         ? 'No chats match your search.'
-                        : (listFilter === 'archive' ? 'No archived chats.' : 'No conversations in this filter.');
+                        : (listFilter === 'resolved'
+                            ? 'No resolved customer chats.'
+                            : (listFilter === 'archive' ? 'No archived chats.' : 'No conversations in this filter.'));
                 }
             }
             bindContactClicks();
         }
 
+        function helpQueueApi() {
+            return helpDesk ? window.KreezbyHelpQueue : null;
+        }
+
+        function setHelpControls(waiting) {
+            ['#inbox-voice-btn', '.btn-attachment-trigger', '#inbox-emoji-btn', '#inbox-compose-send'].forEach(function (selector) {
+                var button = mount.querySelector(selector);
+                if (button) button.disabled = !!waiting;
+            });
+        }
+
+        function applyHelpComposer(contact) {
+            var waiting = !!(contact && contact.helpTicket && contact.helpStatus === 'waiting');
+            var resolved = !!(contact && contact.helpResolved);
+            if (waiting || resolved) {
+                mount.setAttribute('data-help-lock', '1');
+                if (input) {
+                    input.disabled = true;
+                    input.placeholder = resolved
+                        ? 'This concern is in Resolved.'
+                        : 'Assist this customer before you reply';
+                }
+                setHelpControls(true);
+                return;
+            }
+            if (mount.getAttribute('data-help-lock') === '1') {
+                mount.removeAttribute('data-help-lock');
+                setHelpControls(false);
+                if (input) {
+                    input.disabled = false;
+                    input.placeholder = messenger ? 'Aa' : 'Type a message';
+                }
+            }
+            if (contact && contact.helpTicket && input) {
+                input.disabled = false;
+                input.placeholder = messenger ? 'Aa' : 'Reply to customer';
+                setHelpControls(false);
+            }
+        }
+
+        function showResolvedSummary(contact) {
+            if (!messageContainer) return;
+            messageContainer.innerHTML = '';
+            var note = document.createElement('p');
+            note.className = 'inbox-resolved-summary';
+            note.textContent = 'Taken by ' + (contact && contact.takenBy ? contact.takenBy : 'someone') + '.';
+            messageContainer.appendChild(note);
+        }
+
+        function paintHelpAssist(contact) {
+            var bar = mount.querySelector('#inbox-help-assist');
+            var queue = helpQueueApi();
+            if (!bar || !queue) return;
+            if (!contact || !contact.helpTicket) {
+                bar.hidden = true;
+                bar.removeAttribute('data-sig');
+                bar.innerHTML = '';
+                return;
+            }
+            var ticket = queue.get(contact.id);
+            var markup;
+            if (contact.helpResolved) {
+                var whoTook = contact.takenBy || 'someone';
+                markup = '<div><strong>Resolved</strong><span>Taken by ' + escapeHtml(whoTook) + '.</span></div>';
+            } else if (contact.helpStatus === 'waiting') {
+                markup = '<div><strong>Line ' + contact.queueLine + '</strong><span>This customer is waiting. Assist them to take them out of the line.</span></div>' +
+                    '<button type="button" id="inbox-help-accept">Assist</button>';
+            } else {
+                var agent = ticket && ticket.agent;
+                var who = agent ? (agent.name + ' (' + agent.title + ')') : 'An employee';
+                markup = '<div><strong>Live</strong><span>' + escapeHtml(who) + ' is assisting this customer.</span></div>';
+            }
+            if (bar.getAttribute('data-sig') === markup) {
+                bar.hidden = false;
+                return;
+            }
+            bar.hidden = false;
+            bar.setAttribute('data-sig', markup);
+            bar.innerHTML = markup;
+        }
+
+        function syncHelpQueue() {
+            var queue = helpQueueApi();
+            if (!queue) return;
+            var tickets = queue.listForAgents();
+            var seen = {};
+            var waitingCount = 0;
+            tickets.forEach(function (ticket) {
+                seen[ticket.id] = true;
+                var spot = queue.position(ticket.id);
+                var last = (ticket.messages || []).filter(function (message) { return message.from !== 'system'; }).slice(-1)[0];
+                var preview = last ? last.text : 'Waiting for help';
+                var existing = getContact(ticket.id);
+                var contact = existing || {
+                    id: ticket.id,
+                    helpTicket: true,
+                    channel: 'customer-help',
+                    initials: String(ticket.customerName || 'C').charAt(0).toUpperCase(),
+                    archived: false
+                };
+                var me = queue.agentProfile();
+                var mine = ticket.agent && ticket.agent.id === me.id;
+                var takenByOther = ticket.status === 'active' && !mine;
+                var closed = ticket.status === 'closed';
+                var takenBy = 'Someone';
+                if (ticket.agent && ticket.agent.name) {
+                    takenBy = ticket.agent.title
+                        ? (ticket.agent.name + ' (' + ticket.agent.title + ')')
+                        : ticket.agent.name;
+                }
+                contact.name = ticket.customerName || 'Customer';
+                contact.helpTicket = true;
+                contact.helpResolved = takenByOther || closed;
+                contact.takenBy = takenBy;
+                contact.helpStatus = contact.helpResolved ? 'resolved' : ticket.status;
+                contact.queueLine = ticket.status === 'waiting' && spot ? spot.line : 0;
+                contact.online = ticket.status === 'active' && mine;
+                contact.updatedAt = ticket.updatedAt || 0;
+                contact.time = contact.queueLine ? ('Line ' + contact.queueLine) : (contact.helpResolved ? 'Resolved' : 'Live');
+                contact.preview = contact.helpResolved
+                    ? ('Taken by ' + takenBy)
+                    : (contact.queueLine ? ('In line #' + contact.queueLine + ' · ' + preview) : preview);
+                contact.unread = contact.helpResolved ? false : queue.isUnread(ticket);
+                if (ticket.status === 'waiting') waitingCount += 1;
+                if (!existing) contacts.unshift(contact);
+                messages[ticket.id] = contact.helpResolved ? [] : queue.toAgentMessages(ticket);
+            });
+            for (var i = contacts.length - 1; i >= 0; i--) {
+                if (contacts[i].helpTicket && !seen[contacts[i].id]) {
+                    if (activeId === contacts[i].id) activeId = null;
+                    contacts.splice(i, 1);
+                }
+            }
+            var queued = contacts.filter(function (contact) { return contact.helpTicket; });
+            var seenNames = {};
+            queued.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+            queued = queued.filter(function (contact) {
+                var key = String(contact.name || '').trim().toLowerCase() + (contact.helpResolved ? ':resolved' : ':open');
+                if (!key || seenNames[key]) return false;
+                seenNames[key] = true;
+                return true;
+            });
+            queued.sort(function (a, b) {
+                if (a.helpStatus !== b.helpStatus) return a.helpStatus === 'waiting' ? -1 : 1;
+                return (a.queueLine || 99) - (b.queueLine || 99);
+            });
+            var preset = contacts.filter(function (contact) {
+                if (contact.helpTicket) return false;
+                var presetName = String(contact.name || '').trim().toLowerCase();
+                return !queued.some(function (helpContact) {
+                    return String(helpContact.name || '').trim().toLowerCase() === presetName;
+                });
+            });
+            contacts.splice(0, contacts.length);
+            queued.concat(preset).forEach(function (contact) { contacts.push(contact); });
+
+            if (activeId) {
+                var openHelp = getContact(activeId);
+                if (openHelp && openHelp.helpTicket) {
+                    queue.markSeen(openHelp.id);
+                    openHelp.unread = false;
+                }
+            }
+
+            var signature = queued.map(function (contact) {
+                return contact.id + ':' + contact.helpStatus + ':' + contact.queueLine + ':' + contact.updatedAt + ':' + (contact.unread ? '1' : '0') + ':' + (contact.helpResolved ? 'r' : 'o');
+            }).join('|');
+            var summary = mount.querySelector('#inbox-help-queue-summary');
+            if (summary) {
+                summary.hidden = waitingCount === 0;
+                summary.textContent = waitingCount === 1
+                    ? '1 customer is waiting in line'
+                    : (waitingCount + ' customers are waiting in line');
+            }
+            if (signature !== helpSignature) {
+                helpSignature = signature;
+                refreshContactList();
+            }
+            var current = activeId ? getContact(activeId) : null;
+            if (current && current.helpResolved && listFilter !== 'resolved') {
+                activeId = null;
+                helpPaintAt = '';
+                if (nameEl) nameEl.textContent = 'Select a chat';
+                if (statusEl) {
+                    statusEl.textContent = isHeadAdmin ? 'Moved to Resolved' : 'Select a chat';
+                    statusEl.classList.remove('is-live');
+                }
+                if (messageContainer) messageContainer.innerHTML = '';
+                paintHelpAssist(null);
+                applyHelpComposer(null);
+                return;
+            }
+            if (current && current.helpTicket) {
+                var paintKey = current.id + ':' + current.updatedAt + ':' + current.helpStatus + ':' + current.queueLine + ':' + (current.helpResolved ? 'r' : 'o');
+                nameEl.textContent = current.name;
+                statusEl.textContent = current.helpResolved
+                    ? ('Taken by ' + (current.takenBy || 'someone'))
+                    : (current.helpStatus === 'waiting'
+                        ? ('Waiting · line ' + current.queueLine)
+                        : 'Assisting now');
+                statusEl.classList.toggle('is-live', current.helpStatus === 'active' && !current.helpResolved);
+                avatarEl.textContent = current.initials || current.name.charAt(0);
+                if (paintKey !== helpPaintAt) {
+                    helpPaintAt = paintKey;
+                    if (current.helpResolved) showResolvedSummary(current);
+                    else renderMessages(messageContainer, messages[current.id] || []);
+                }
+                paintHelpAssist(current);
+                applyHelpComposer(current);
+                if (current.helpStatus === 'waiting' && window.KreezbyStaffInbox && typeof window.KreezbyStaffInbox.onThreadSelected === 'function') {
+                    window.KreezbyStaffInbox.onThreadSelected(current);
+                }
+            } else if (!current) {
+                paintHelpAssist(null);
+            }
+        }
+
         function toggleArchive(id) {
             var contact = getContact(id);
-            if (!contact) return;
+            if (!contact || contact.helpTicket) return;
             contact.archived = !contact.archived;
             if (contact.archived) contact.unread = false;
             refreshContactList();
@@ -704,10 +946,29 @@
                     avatarEl.style.background = avatarColor(contact.name);
                 }
 
-                if (!messages[id]) messages[id] = [];
-                renderMessages(messageContainer, messages[id]);
-                refreshContactList();
+                if (contact.helpTicket && helpQueueApi()) {
+                    helpQueueApi().markSeen(contact.id);
+                    contact.unread = false;
+                    statusEl.textContent = contact.helpResolved
+                        ? ('Taken by ' + (contact.takenBy || 'someone'))
+                        : (contact.helpStatus === 'waiting'
+                            ? ('Waiting · line ' + contact.queueLine)
+                            : 'Assisting now');
+                    statusEl.classList.toggle('is-live', contact.helpStatus === 'active' && !contact.helpResolved);
+                }
 
+                if (contact.helpResolved) {
+                    showResolvedSummary(contact);
+                } else {
+                    if (!messages[id]) messages[id] = [];
+                    renderMessages(messageContainer, messages[id]);
+                }
+                helpPaintAt = contact.helpTicket
+                    ? (contact.id + ':' + contact.updatedAt + ':' + contact.helpStatus + ':' + contact.queueLine)
+                    : '';
+                refreshContactList();
+                paintHelpAssist(contact);
+                applyHelpComposer(contact);
                 if (window.KreezbyStaffInbox && typeof window.KreezbyStaffInbox.onThreadSelected === 'function') {
                     window.KreezbyStaffInbox.onThreadSelected(contact);
                 }
@@ -988,6 +1249,32 @@
             var text = input.value.trim();
             if ((!text && !pendingFiles.length) || !activeId) return;
 
+            var helpContact = getContact(activeId);
+            if (helpContact && helpContact.helpTicket) {
+                var queue = helpQueueApi();
+                if (!queue) return;
+                if (helpContact.helpResolved) {
+                    showAttachNote('This concern is in Resolved.');
+                    return;
+                }
+                if (helpContact.helpStatus === 'waiting') {
+                    showAttachNote('Assist this customer before you reply.');
+                    return;
+                }
+                if (!text) {
+                    showAttachNote('Customer help shares the written message with the line.');
+                    return;
+                }
+                pendingFiles.forEach(releasePending);
+                pendingFiles = [];
+                renderPending();
+                queue.agentReply(activeId, text);
+                input.value = '';
+                helpPaintAt = '';
+                syncHelpQueue();
+                return;
+            }
+
             if (!messages[activeId]) messages[activeId] = [];
             var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             var attachments = pendingFiles.map(function (item) {
@@ -1031,8 +1318,21 @@
         }
 
         refreshContactList();
+        syncHelpQueue();
         var firstVisible = visibleContacts()[0];
         if (firstVisible) selectContact(firstVisible.id, { keepUnread: true });
+        if (helpDesk && window.KreezbyHelpQueue) {
+            window.KreezbyHelpQueue.subscribe(syncHelpQueue);
+            window.setInterval(syncHelpQueue, 2000);
+            mount.addEventListener('click', function (event) {
+                var acceptBtn = event.target.closest('#inbox-help-accept');
+                if (!acceptBtn || !activeId || !helpQueueApi()) return;
+                event.preventDefault();
+                helpQueueApi().accept(activeId);
+                helpPaintAt = '';
+                syncHelpQueue();
+            });
+        }
 
         var searchInput = mount.querySelector('#inbox-search-input');
         var headerSearchBtn = mount.querySelector('#inbox-header-search-btn');
@@ -1078,6 +1378,15 @@
                 closeFilterMenu();
             });
         });
+
+        var resolvedViewBtn = mount.querySelector('#inbox-resolved-view-btn');
+        if (resolvedViewBtn) {
+            resolvedViewBtn.hidden = !isHeadAdmin;
+            resolvedViewBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                setListFilter(listFilter === 'resolved' ? 'all' : 'resolved');
+            });
+        }
 
         var archiveViewBtn = mount.querySelector('#inbox-archive-view-btn');
         if (archiveViewBtn) {

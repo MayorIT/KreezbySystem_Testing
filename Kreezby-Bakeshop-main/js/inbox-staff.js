@@ -25,16 +25,24 @@
         var attachBtn = document.querySelector('.btn-attachment-trigger');
         var banner = document.getElementById('inbox-retailer-access-banner');
         var readOnly = isRetailerChannel(activeChannel) && !canRetailer;
+        var selected = document.querySelector('.inbox-contact-item.is-active, .thread-item-card.selected-active');
+        var helpWaiting = selected && selected.getAttribute('data-help-status') === 'waiting';
+        var helpResolved = selected && selected.getAttribute('data-help-status') === 'resolved';
+        if (helpWaiting || helpResolved) readOnly = true;
 
         if (banner) {
-            banner.style.display = readOnly ? 'block' : 'none';
+            banner.style.display = readOnly && !helpWaiting && !helpResolved ? 'block' : 'none';
             banner.textContent = 'Retailer chat access is disabled for your account. You can view internal conversations only.';
         }
         if (input) {
             input.disabled = readOnly;
-            input.placeholder = readOnly
-                ? 'Retailer replies are disabled for your account. Contact your administrator.'
-                : (document.querySelector('.inbox-messenger') ? 'Aa' : 'Type a message');
+            input.placeholder = helpResolved
+                ? 'This concern is in Resolved.'
+                : (helpWaiting
+                    ? 'Assist this customer before you reply'
+                    : (readOnly
+                        ? 'Retailer replies are disabled for your account. Contact your administrator.'
+                        : (document.querySelector('.inbox-messenger') ? 'Aa' : 'Type a message')));
         }
         if (attachBtn) attachBtn.disabled = readOnly;
         if (footer) footer.classList.toggle('composer-readonly', readOnly);
