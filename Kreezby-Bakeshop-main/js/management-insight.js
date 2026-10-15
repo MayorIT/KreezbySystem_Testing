@@ -16,7 +16,8 @@
             + '#management-insight-table .mi-col-flavor{width:40%;}'
             + 'body.po-admin-page #management-insight-table td:first-child{white-space:normal;text-align:left;}'
             + 'body.po-admin-page #management-insight-table th:nth-child(n+2),body.po-admin-page #management-insight-table td:nth-child(n+2){text-align:center;}'
-            + '#management-insight-table .mi-insight{display:block;margin-top:6px;font-size:12px;font-weight:600;line-height:1.45;color:#5d4037;}';
+            + '#management-insight-table .mi-insight{display:block;margin-top:6px;font-size:12px;font-weight:600;line-height:1.45;color:#5d4037;}'
+            + '#management-insight-status{margin-left:10px;font-size:13px;font-weight:700;color:#5d4037;}';
         document.head.appendChild(style);
     }
 
@@ -55,6 +56,18 @@
         if (!body) return;
         body.textContent = text;
         body.setAttribute('data-default', text);
+    }
+
+    function setStatus(text) {
+        var button = document.getElementById('management-insight-refresh');
+        if (!button) return;
+        var note = document.getElementById('management-insight-status');
+        if (!note) {
+            note = document.createElement('span');
+            note.id = 'management-insight-status';
+            button.insertAdjacentElement('afterend', note);
+        }
+        note.textContent = text || '';
     }
 
     function setBusy(busy) {
@@ -136,35 +149,38 @@
         if (!document.getElementById('management-insight-body') && !document.getElementById('management-insight-table')) return;
         var snapshot = currentSnapshot();
         if (!snapshot) {
-            setBody('Shop records are still loading. Refresh this note in a moment.');
+            setStatus('Shop records are still loading. Try again in a moment.');
             return;
         }
-        paintTable(snapshot);
+        if (!document.querySelector('#management-insight-table tbody tr[data-flavor]')) paintTable(snapshot);
         var id = ++requestId;
         setBusy(true);
+        setStatus('Writing…');
         fetch('/api/management-insight', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ snapshot: snapshot })
         }).then(function (res) {
             return res.json().then(function (data) {
-                return { data: data || {} };
+                return { status: res.status, data: data || {} };
             });
         }).then(function (result) {
             if (id !== requestId) return;
             var insights = result.data && result.data.insights;
             if (insights && insights.length) {
                 applyRemoteInsights(insights);
+                setStatus('Updated from GPT-4o mini');
                 return;
             }
-            if (result.data && result.data.error && !document.querySelector('#management-insight-table .mi-insight')) {
-                setBody(result.data.error);
+            if (result.data && result.data.insight) {
+                setBody(result.data.insight);
+                setStatus('Updated from GPT-4o mini');
+                return;
             }
+            setStatus((result.data && result.data.error) || 'The note could not be written just now.');
         }).catch(function () {
             if (id !== requestId) return;
-            if (!document.querySelector('#management-insight-table .mi-insight')) {
-                setBody('The management insight could not be written just now.');
-            }
+            setStatus('The note could not be written just now.');
         }).then(function () {
             if (id === requestId) setBusy(false);
         });
