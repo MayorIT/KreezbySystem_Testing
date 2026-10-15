@@ -91,6 +91,7 @@ function collectLocationsFromHtml() {
 }
 
 function buildChunksFromSalesJson() {
+  if (!fs.existsSync(SALES_JSON)) return {};
   const full = JSON.parse(fs.readFileSync(SALES_JSON, 'utf8'));
   const chunks = {};
   for (const s of full.sales || []) {
@@ -151,8 +152,7 @@ function writeManifest(chunks) {
       slug: c.slug,
       storeName: c.storeName,
       count: sales.length,
-      lastDate: sales.length ? sales[0].reportDate : null,
-      json: 'data/retailers/' + key + '.json'
+      lastDate: sales.length ? sales[0].reportDate : null
     };
   });
   fs.writeFileSync(
@@ -174,7 +174,6 @@ function generateAllRetailerLocationFiles() {
     if (!data.storeName) data.storeName = storeNameFromPortalHtml(data.area, data.slug);
     if (!data.sales) data.sales = [];
     data.sales = sortSales(data.sales);
-    writeRetailerChunkJson(key, data);
   });
   const manifestCount = writeManifest(chunks);
   return { locations: keys.length, manifestCount: manifestCount };

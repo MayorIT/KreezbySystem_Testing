@@ -808,7 +808,6 @@
                     ? ('Taken by ' + takenBy)
                     : (contact.queueLine ? ('In line #' + contact.queueLine + ' · ' + preview) : preview);
                 contact.unread = contact.helpResolved ? false : queue.isUnread(ticket);
-                if (ticket.status === 'waiting') waitingCount += 1;
                 if (!existing) contacts.unshift(contact);
                 messages[ticket.id] = contact.helpResolved ? [] : queue.toAgentMessages(ticket);
             });
@@ -831,6 +830,9 @@
                 if (a.helpStatus !== b.helpStatus) return a.helpStatus === 'waiting' ? -1 : 1;
                 return (a.queueLine || 99) - (b.queueLine || 99);
             });
+            waitingCount = queued.filter(function (contact) {
+                return contact.helpStatus === 'waiting';
+            }).length;
             var preset = contacts.filter(function (contact) {
                 if (contact.helpTicket) return false;
                 var presetName = String(contact.name || '').trim().toLowerCase();

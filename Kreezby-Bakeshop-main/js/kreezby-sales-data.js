@@ -10,8 +10,6 @@
   var STORAGE_KEY = 'kreezby-sales-overrides';
   var INDEX = { byRetailer: {}, routeOptions: null, importSummary: null };
   var loadPromise = null;
-  var LITE_URL = 'data/kreezby-sales-lite.json';
-  var FULL_URL = 'data/kreezby-sales-2026.json';
   var SESSION_CACHE_KEY = 'kreezby-sales-lite-v2';
   var FAKE_ADMIN_URL = '../data/kreezby-sales-fake-admin.json';
 
