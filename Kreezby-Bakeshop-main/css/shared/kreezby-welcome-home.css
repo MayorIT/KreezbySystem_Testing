@@ -481,22 +481,28 @@ body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby
 }
 
 @media (max-width: 860px) {
+    body.kreezby-retailer-home {
+        --kreezby-admin-header-height: 56px;
+    }
+
     body.kreezby-admin-home:has(#admin-dashboard-root) {
         height: auto !important;
         max-height: none !important;
         min-height: 100dvh !important;
-        overflow: visible !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
     body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-canvas,
     body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas {
         height: auto !important;
-        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px)) !important;
+        min-height: calc(100dvh - var(--kreezby-admin-header-height, 56px)) !important;
         overflow: visible !important;
     }
 
     body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
-        min-height: calc(100dvh - var(--kreezby-admin-header-height, 72px)) !important;
+        min-height: 0 !important;
+        align-content: start;
     }
 
     .admin-home-stage {
@@ -504,14 +510,81 @@ body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby
     }
 
     .admin-home-copy {
-        padding: 28px 22px 8px;
+        justify-content: flex-start;
+        padding: 22px 18px 6px;
+    }
+
+    .admin-home-kicker {
+        letter-spacing: 0.14em;
     }
 
     .admin-home-copy h2 {
-        font-size: 32px;
+        font-size: 28px;
+        line-height: 1.1;
     }
 
+    .admin-home-tagline {
+        font-size: 17px;
+        margin-bottom: 10px;
+    }
+
+    .admin-home-lead {
+        max-width: none;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .admin-home-menu-btn {
+        margin-top: 18px;
+    }
+
+    body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-photo {
+        min-height: 0 !important;
+        height: auto !important;
+        width: auto;
+        margin: 8px 16px 18px;
+        border-radius: 18px;
+    }
+
+    body.kreezby-admin-home:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-photo img,
     .admin-home-photo img {
-        max-height: 280px;
+        height: auto !important;
+        max-height: 220px !important;
+        width: 100%;
+        object-fit: contain;
+    }
+
+    body.kreezby-retailer-home .top-navbar-node {
+        min-height: 56px;
+        padding: 8px 14px;
+        gap: 8px;
+    }
+
+    body.kreezby-retailer-home .top-nav-links-right {
+        flex-wrap: nowrap;
+        gap: 12px;
+    }
+
+    body.kreezby-retailer-home .brand-logo-panel img {
+        height: 32px;
+        max-width: 120px;
+    }
+
+    body.kreezby-retailer-home .notification-popover-root {
+        margin-right: 2px;
+    }
+
+    body.kreezby-retailer-home.kreezby-nav-open .core-viewport-wrapper > .kreezby-turbo-main,
+    body.kreezby-retailer-home.kreezby-nav-open .system-dashboard-wrapper > .kreezby-turbo-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    body.kreezby-retailer-home.kreezby-nav-open::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.48);
+        z-index: 1300;
     }
 }

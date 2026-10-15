@@ -43,7 +43,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-notification-popover-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css?v=20261005rbell';
+        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css?v=20261015phone';
         document.head.appendChild(link);
     }
 

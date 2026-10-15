@@ -56,15 +56,16 @@
             '<div class="coverflow-ambience"><img alt="" /><div class="coverflow-ambience__shade"></div></div>' +
             '<div class="coverflow-inner">' +
                 '<div class="coverflow-label"><span></span><h2>Best sellers</h2><span></span></div>' +
-                '<div class="coverflow-stage"></div>' +
+                '<div class="coverflow-stage">' +
+                    '<button type="button" class="coverflow-arrow coverflow-arrow--prev" aria-label="Previous flavor">' +
+                        '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>' +
+                    '</button>' +
+                    '<button type="button" class="coverflow-arrow coverflow-arrow--next" aria-label="Next flavor">' +
+                        '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>' +
+                    '</button>' +
+                '</div>' +
                 '<div class="coverflow-dots"></div>' +
-            '</div>' +
-            '<button type="button" class="coverflow-arrow coverflow-arrow--prev" aria-label="Previous flavor">' +
-                '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>' +
-            '</button>' +
-            '<button type="button" class="coverflow-arrow coverflow-arrow--next" aria-label="Next flavor">' +
-                '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>' +
-            '</button>';
+            '</div>';
 
         var ambience = host.querySelector('.coverflow-ambience img');
         var stage = host.querySelector('.coverflow-stage');
@@ -101,12 +102,18 @@
 
         function metrics() {
             var width = stage.clientWidth || 360;
-            var cardW = Math.max(180, Math.min(330, width * 0.46));
+            var narrow = width < 700;
+            var cardW = narrow
+                ? Math.max(214, Math.min(280, Math.round(width * 0.66)))
+                : Math.max(220, Math.min(330, Math.round(width * 0.46)));
+            var cardH = narrow
+                ? Math.max(268, Math.min(Math.round(window.innerHeight * 0.5), Math.round(cardW * 1.28)))
+                : Math.min(500, Math.round(cardW * 1.45));
             return {
                 w: cardW,
-                h: Math.min(500, cardW * 1.45),
-                near: Math.min(285, width * 0.3),
-                far: Math.min(510, width * 0.48)
+                h: cardH,
+                near: narrow ? Math.round(Math.min(width * 0.16, cardW * 0.38)) : Math.min(285, Math.round(width * 0.3)),
+                far: narrow ? Math.round(width * 0.7) : Math.min(510, Math.round(width * 0.48))
             };
         }
 

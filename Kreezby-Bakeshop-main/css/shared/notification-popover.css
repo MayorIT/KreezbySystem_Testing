@@ -199,6 +199,27 @@ body.kreezby-notification-popover-active .notification-modal-overlay {
     display: none !important;
 }
 
+@media (max-width: 900px) {
+    .notification-popover-panel {
+        position: fixed;
+        top: calc(var(--kreezby-admin-header-height, 56px) + 8px);
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        max-height: min(70dvh, calc(100dvh - 88px));
+    }
+
+    .notification-popover-item-time {
+        white-space: normal;
+        text-align: right;
+    }
+
+    .notification-popover-item-top {
+        align-items: flex-start;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .notification-popover-panel,
     .notification-popover-btn {

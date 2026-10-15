@@ -37,9 +37,10 @@
         display: flex !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
+        justify-content: space-between !important;
         gap: 8px !important;
-        min-height: 56px;
-        padding: 8px 10px !important;
+        min-height: 60px;
+        padding: 6px 10px !important;
         padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
         background: linear-gradient(90deg, #1565c0 0%, #1e88e5 55%, #42a5f5 100%) !important;
         border-bottom: 0 !important;
@@ -48,9 +49,18 @@
         color: #fff;
     }
 
-    .kreezby-phone-shop-home .logo-area,
-    .kreezby-phone-shop-home .logo-title {
-        display: none !important;
+    .kreezby-phone-shop-home .logo-area {
+        display: inline-flex !important;
+        flex: 0 0 auto;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .kreezby-phone-shop-home .logo-area img {
+        height: 32px !important;
+        width: auto !important;
+        max-width: 78px !important;
+        display: block;
     }
 
     .logo-tagline {
@@ -151,25 +161,32 @@
         display: flex !important;
         flex-wrap: nowrap !important;
         align-items: center;
+        justify-content: flex-end !important;
         gap: 2px !important;
         padding: 0 !important;
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
         width: auto !important;
+        flex: 1 1 auto;
+        min-width: 0;
         border-radius: 0 !important;
     }
 
     .nav-actions .nav-btn {
-        width: 36px;
-        height: 36px;
-        padding: 0 !important;
+        width: auto;
+        min-width: 44px;
+        height: auto;
+        min-height: 46px;
+        padding: 4px 6px !important;
+        flex-direction: column;
+        gap: 2px;
         justify-content: center;
         color: #fff !important;
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
-        border-radius: 50% !important;
+        border-radius: 12px !important;
     }
 
     .nav-actions .nav-btn.is-active {
@@ -179,19 +196,34 @@
 
     .nav-actions .nav-btn__icon,
     .nav-actions .nav-btn__icon svg {
-        width: 22px !important;
-        height: 22px !important;
+        width: 18px !important;
+        height: 18px !important;
         fill: currentColor;
     }
 
-    .nav-actions .nav-btn__label,
+    .nav-actions .nav-btn__label {
+        display: block !important;
+        max-width: 68px;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: 0;
+        text-align: center;
+        white-space: nowrap;
+        color: #fff;
+    }
+
     .nav-actions .nav-btn__caret {
         display: none !important;
     }
 
-    .nav-actions .profile-trigger-btn,
-    .nav-actions [data-nav="customer"] {
+    .nav-actions [data-nav="home"],
+    .nav-actions .profile-trigger-btn {
         display: none !important;
+    }
+
+    .nav-actions [data-nav="customer"] {
+        display: inline-flex !important;
     }
 
     .customer-inbox-header-actions,
@@ -200,11 +232,14 @@
     }
 
     .notifications-trigger-badge {
+        position: absolute;
         min-width: 16px;
         height: 16px;
+        padding: 0 4px;
         font-size: 10px;
-        top: 0;
-        right: 0;
+        line-height: 16px;
+        top: 2px;
+        right: 2px;
         background: #fff;
         color: #1e88e5;
         border: 0;
@@ -597,11 +632,40 @@
         right: 0 !important;
     }
 
+    body.cart-sidebar-open .cart-sidebar.open {
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        transform: none !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        z-index: 1600 !important;
+    }
+
+    body.cart-sidebar-open .cart-sidebar.open .cart-items-container {
+        max-height: none !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+    }
+
     .cart-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
         background: #1e88e5 !important;
         color: #fff;
         padding: 14px 16px !important;
         padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+    }
+
+    .cart-header-copy {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .cart-title,
@@ -610,18 +674,29 @@
         color: #fff !important;
     }
 
+    .cart-header-pill {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: transparent !important;
+    }
+
     .cart-title {
         font-size: 18px !important;
     }
 
     .cart-close-btn {
+        position: static !important;
+        flex: 0 0 auto;
+        align-self: center;
         color: #fff !important;
         background: rgba(255, 255, 255, 0.16) !important;
         border: 0 !important;
+        box-shadow: none !important;
     }
 
     .cart-footer .checkout-btn,
     .checkout-btn {
+        width: 100%;
+        min-height: 46px;
         background: #fbc02d !important;
         border: 0 !important;
         color: #111 !important;
@@ -850,7 +925,65 @@
     #profile-settings-modal,
     .modal-box {
         max-width: 100% !important;
-        width: calc(100vw - 12px) !important;
+        width: calc(100vw - 20px) !important;
+        max-height: calc(100dvh - 88px) !important;
+    }
+
+    .modal-overlay.active {
+        z-index: 1550 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        padding: 12px 10px calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+        align-items: center;
+        background: rgba(12, 10, 9, 0.45) !important;
+    }
+
+    .modal-header {
+        gap: 10px;
+        padding: 14px 16px !important;
+    }
+
+    .modal-header h2,
+    #profile-settings-modal .modal-header h2,
+    .notifications-title-wrap h2 {
+        font-size: 22px !important;
+        line-height: 1.2 !important;
+        min-width: 0;
+    }
+
+    #profile-settings-modal .modal-tabs,
+    .modal-box.orders-modal .modal-tabs {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+    }
+
+    #profile-settings-modal .tab-link,
+    .modal-box.orders-modal .tab-link {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+    }
+
+    .profile-status-actions,
+    .profile-status-actions .btn-action-primary,
+    #profile-settings-modal .btn-action-primary {
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    #profile-settings-modal .profile-status-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #profile-settings-modal .status-field strong {
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     /* Home, Shop, Help, Cart, and Me fill the space above the tab bar. */
@@ -861,10 +994,28 @@
         overflow: hidden;
     }
 
-    body.kreezby-phone-shop .coverflow-home,
+    body.kreezby-phone-shop .main-layout {
+        flex: 0 0 auto !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    body.kreezby-phone-shop .coverflow-home {
+        flex: 1 1 auto !important;
+        display: flex !important;
+        align-items: stretch !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: hidden !important;
+        padding: 12px 0 8px !important;
+    }
+
     body.kreezby-phone-shop .help-bot,
     body.kreezby-phone-shop main.customer-inbox-main,
-    body.kreezby-phone-shop .main-layout,
     body.kreezby-phone-shop .content-workspace {
         min-height: 0 !important;
         height: auto;
