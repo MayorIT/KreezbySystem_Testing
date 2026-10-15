@@ -489,12 +489,26 @@
             if (window.KreezbyAiForecastPills && typeof window.KreezbyAiForecastPills.boot === 'function') {
                 try { window.KreezbyAiForecastPills.boot(); } catch (e) {}
             }
+            if (window.KreezbyProductRecommendation && typeof window.KreezbyProductRecommendation.boot === 'function') {
+                try { window.KreezbyProductRecommendation.boot(); } catch (e2) {}
+            }
         }
-        if (window.KreezbyAiForecastPills) {
-            boot();
+        var root = moduleRelativeRoot();
+        function loadRecommendation(done) {
+            if (window.KreezbyProductRecommendation) {
+                done();
+                return;
+            }
+            loadScript(root + 'js/product-recommendation.js?v=20261014prodrec', 'kreezby-product-recommendation-script', done);
+        }
+        function start() {
+            loadRecommendation(boot);
+        }
+        if (window.KreezbyAiForecastPills && window.KreezbyAiForecastPills.productRecommendation) {
+            start();
             return;
         }
-        loadScript(moduleRelativeRoot() + 'js/aiforecast-pills.js?v=20261011insights', 'kreezby-aiforecast-pills-script-word', boot);
+        loadScript(root + 'js/aiforecast-pills.js?v=20261014nofc', 'kreezby-aiforecast-pills-script-nofc', start);
     }
 
     function activateSalesList(frame) {
@@ -562,7 +576,7 @@
 
     function syncPurchaseOrderTheme() {
         var frame = document.getElementById(FRAME_ID);
-        var onPo = !!(frame && frame.querySelector('#stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
+        var onPo = !!(frame && frame.querySelector('#pos-master, #stocklevel-master, #alert-master, #delivery-schedule-master, #sales-analysis-master, #ai-filter-pills, #ot-master-list-panel, #saleslist-master-directory-panel-view, #stocks-master-list-panel-view, #returns-master-list-panel-view, #bo-master-dashboard-split-view, #bo-retailer-dashboard-view, #po-master-lists-container-block, #po-retailer-directory-block'));
         if (!frame || !frame.querySelector('main, .workspace-view-canvas, .panel-data-card')) {
             var page = currentPageName();
             onPo = page === 'po-admin.html' || page === 'po-headadmin.html' || page === 'po-staff.html' ||
@@ -576,6 +590,7 @@
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
                 page === 'deliveryschedule-admin.html' || page === 'deliveryschedule-headadmin.html' || page === 'deliveryschedule-staff.html' ||
                 page === 'alert-admin.html' || page === 'alert-headadmin.html' || page === 'alert-staff.html' ||
+                page === 'pos-admin.html' || page === 'pos-headadmin.html' || page === 'pos-staff.html' ||
                 page.indexOf('stocklevel-') === 0;
         }
         document.body.classList.toggle('po-admin-page', onPo);
@@ -586,7 +601,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261008laystock2';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014iconfix';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');

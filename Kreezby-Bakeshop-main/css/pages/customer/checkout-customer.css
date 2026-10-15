@@ -1413,6 +1413,11 @@ main.workspace-canvas {
             display: flex;
             justify-content: center;
             margin: 0;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #efe6d4;
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(43, 33, 24, 0.08);
         }
 
         .paymongo-qr-frame[hidden] {
@@ -1421,14 +1426,14 @@ main.workspace-canvas {
 
         .paymongo-qr {
             display: block;
-            width: min(100%, 340px);
+            width: min(100%, 280px);
             height: auto;
             margin: 0;
-            padding: 16px;
+            padding: 0;
             background: #fff;
-            border: 1px solid #efe6d4;
-            border-radius: 18px;
-            box-shadow: 0 10px 24px rgba(43, 33, 24, 0.08);
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
         }
 
         .paymongo-qr[hidden] {

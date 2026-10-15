@@ -506,7 +506,7 @@ function saveCustomerPurchaseOrder(order) {
         paymongo: order.paymongo || null,
         paymentVerified: order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo',
         paymentStatus: (order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo') ? 'paid' : 'pending',
-        inventoryDeducted: order.paymentMethod === 'gcash' || order.paymentMethod === 'paymongo',
+        inventoryDeducted: !!order.inventoryDeducted,
         shopOrderNumber: order.orderNumber,
         accountType: order.accountType || 'Regular Customer',
         accountName: order.accountName || shipping.fullName || '',
@@ -970,8 +970,8 @@ async function startPaymongo() {
                 button.disabled = false;
                 setPaymongoButtonLabel('Open PayMongo payment');
             }
-            if (lead) lead.textContent = 'A bank app cannot finish this test payment. Open the PayMongo page and choose Authorize. This checkout places the order after that.';
-            setPaymongoStatus('Open the PayMongo payment page, then choose Authorize.');
+            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the PayMongo page. Choose Authorize, and this checkout places the order after that.';
+            setPaymongoStatus('Scan the code with your phone camera, then choose Authorize.');
         } else if (button) {
             button.disabled = true;
             setPaymongoButtonLabel('QR code ready');
@@ -1067,7 +1067,7 @@ function placeOrder() {
         status: 'Processing',
         date: new Date().toISOString(),
         paymentVerified: payingWithPaymongo,
-        inventoryDeducted: payingWithPaymongo
+        inventoryDeducted: false
     };
 
     order.poCode = order.orderNumber;
@@ -1085,11 +1085,26 @@ function placeOrder() {
     localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
 
     if (window.KreezbyDictionary && typeof KreezbyDictionary.recordSale === 'function') {
+        var stockPosted = true;
         Object.keys(cartData).forEach(function (key) {
             var item = cartData[key];
             if (!item || !item.name) return;
-            KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10));
+            var known = typeof KreezbyDictionary.productId === 'function' && KreezbyDictionary.productId(item.name);
+            if (!known) return;
+            if (KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10)) == null) stockPosted = false;
         });
+        if (stockPosted) {
+            order.inventoryDeducted = true;
+            orders.forEach(function (row) {
+                if (row && row.orderNumber === order.orderNumber) row.inventoryDeducted = true;
+            });
+            localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+            var postedOrders = parseStoredJson('kreezby-po-orders-v1', {});
+            if (postedOrders && postedOrders[order.orderNumber]) {
+                postedOrders[order.orderNumber].inventoryDeducted = true;
+                localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(postedOrders));
+            }
+        }
     }
 
     try {

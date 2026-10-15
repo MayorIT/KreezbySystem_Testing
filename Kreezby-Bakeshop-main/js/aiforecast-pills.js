@@ -76,7 +76,6 @@
         var shown = 0;
         var stock = 0;
         var sales = 0;
-        var forecast = 0;
         rows.forEach(function (row) {
             var match = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
             var visible = match && shown < size;
@@ -87,7 +86,6 @@
             if (num) num.textContent = String(shown);
             stock += Number(row.getAttribute('data-stock')) || 0;
             sales += Number(row.getAttribute('data-sales')) || 0;
-            forecast += Number(row.getAttribute('data-forecast')) || 0;
         });
         var count = panel.querySelector('.po-list-count');
         if (count) count.textContent = shown ? String(shown) : '';
@@ -105,12 +103,10 @@
             return;
         }
         if (!query && shown === rows.length) {
-            totals.textContent = '1,290 stock · 4,880 sales · 4,860 forecast · +0.4% net variance';
+            totals.textContent = '1,290 stock · 4,880 sales';
             return;
         }
-        var net = sales ? ((forecast - sales) / sales) * 100 : 0;
-        var netLabel = (net >= 0 ? '+' : '') + net.toFixed(1) + '% net variance';
-        totals.textContent = formatCount(stock) + ' stock · ' + formatCount(sales) + ' sales · ' + formatCount(forecast) + ' forecast · ' + netLabel;
+        totals.textContent = formatCount(stock) + ' stock · ' + formatCount(sales) + ' sales';
     }
 
     function applySalesAnalysisFilter() {
@@ -127,7 +123,7 @@
     function requestedTab() {
         try {
             var tab = new URLSearchParams(location.search).get('tab') || '';
-            if (tab === 'forecast' || tab === 'management-insight') return tab;
+            if (tab === 'management-insight' || tab === 'product-recommendation') return tab;
         } catch (e) {}
         return 'sales-analysis';
     }
@@ -135,7 +131,7 @@
     function showInsightsTab(key, updateHistory) {
         var master = document.getElementById('sales-analysis-master');
         if (!master || !master.querySelector('.insights-panel')) return false;
-        if (key !== 'forecast' && key !== 'management-insight') key = 'sales-analysis';
+        if (key !== 'management-insight' && key !== 'product-recommendation') key = 'sales-analysis';
         master.querySelectorAll('.insights-panel').forEach(function (panel) {
             var on = panel.getAttribute('data-insights-panel') === key;
             panel.classList.toggle('is-active', on);
@@ -146,6 +142,9 @@
         });
         var active = master.querySelector('.insights-panel.is-active');
         if (active) applyPanelFilter(active);
+        try {
+            document.dispatchEvent(new CustomEvent('kreezby:insights-tab', { detail: { key: key } }));
+        } catch (e) {}
         if (updateHistory === false) return true;
         var file = ((location.pathname || '').split('/').pop() || '').split('?')[0];
         var url = file.indexOf('aiforecast_salesanalysis-') === 0 ? file : 'aiforecast_salesanalysis-admin.html';
@@ -181,14 +180,24 @@
     function bootSalesAnalysis() {
         ensureAnalysisTheme();
         if (document.querySelector('#sales-analysis-master .insights-panel')) {
-            showInsightsTab(requestedTab(), false);
+            var tab = requestedTab();
+            showInsightsTab(tab, false);
+            try {
+                var current = new URLSearchParams(location.search).get('tab') || '';
+                if (current && current !== tab) {
+                    var file = ((location.pathname || '').split('/').pop() || '').split('?')[0];
+                    var url = tab === 'sales-analysis' ? file : file + '?tab=' + encodeURIComponent(tab);
+                    history.replaceState({ insightsTab: tab }, '', url);
+                }
+            } catch (e) {}
             return;
         }
         syncActivePills();
         applySalesAnalysisFilter();
     }
 
-    if (!window.__kreezbyAiPillsBound) {
+    if (window.__kreezbyAiPillsVersion !== '20261014nofc') {
+        window.__kreezbyAiPillsVersion = '20261014nofc';
         window.__kreezbyAiPillsBound = true;
         document.addEventListener('click', function (ev) {
             var target = ev.target.closest ? ev.target.closest('#ai-filter-pills .pill') : null;
@@ -225,7 +234,7 @@
         document.addEventListener('kreezby:page-load', bootSalesAnalysis);
     }
 
-    window.KreezbyAiForecastPills = { boot: bootSalesAnalysis, loadPanel: loadPanel, filter: applySalesAnalysisFilter };
+    window.KreezbyAiForecastPills = { boot: bootSalesAnalysis, loadPanel: loadPanel, filter: applySalesAnalysisFilter, productRecommendation: true };
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', bootSalesAnalysis);
     } else {

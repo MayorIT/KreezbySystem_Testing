@@ -9,59 +9,19 @@
     var SESSION_STAFF_KEY = 'kreezby_current_staff';
 
     var STAFF_PROFILES = {
-        'staff-1': {
-            id: 'staff-1',
-            name: 'Claire (Staff 1)',
-            role: 'Frontline Staff',
-            welcome: 'Frontline Staff',
+        'staff-imelda': {
+            id: 'staff-imelda',
+            name: 'Imelda Atienza',
+            role: 'Staff',
+            welcome: 'Staff',
             dashboard: 'staff.html',
             inbox: 'inbox-staff.html'
         },
-        'staff-2': {
-            id: 'staff-2',
-            name: 'Staff 2',
-            role: 'Receiving Team',
-            welcome: 'Receiving Team',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-3': {
-            id: 'staff-3',
-            name: 'Staff 3',
-            role: 'Inventory Team',
-            welcome: 'Inventory Team',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-4': {
-            id: 'staff-4',
-            name: 'Derek Lim (Staff 4)',
-            role: 'Sales Floor Staff',
-            welcome: 'Sales Floor Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-5': {
-            id: 'staff-5',
-            name: 'Nina Garcia (Staff 5)',
-            role: 'Packaging Staff',
-            welcome: 'Packaging Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-6': {
-            id: 'staff-6',
-            name: 'Omar Reyes (Staff 6)',
-            role: 'Dispatch Staff',
-            welcome: 'Dispatch Staff',
-            dashboard: 'staff.html',
-            inbox: 'inbox-staff.html'
-        },
-        'staff-7': {
-            id: 'staff-7',
-            name: 'Grace Tan (Staff 7)',
-            role: 'Customer Service Staff',
-            welcome: 'Customer Service',
+        'staff-nichole': {
+            id: 'staff-nichole',
+            name: 'Nichole Ramos',
+            role: 'Staff',
+            welcome: 'Staff',
             dashboard: 'staff.html',
             inbox: 'inbox-staff.html'
         }
@@ -70,9 +30,9 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
         bo: { label: 'Back Order', page: 'bo-staff.html' },
-        return: { label: 'Return/P.O List', page: 'return-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
+        pos: { label: 'Point of Sale', page: 'pos-staff.html' },
         dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
@@ -97,18 +57,13 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-1': ['dashboard', 'saleslist', 'dailysales', 'alert', 'ordertracking', 'inbox', 'deliveryschedule'],
-        'staff-2': ['dashboard', 'bo', 'return', 'alert', 'deliveryschedule'],
-        'staff-3': ['dashboard', 'stocks', 'stocklevel', 'inventoryreport', 'alert', 'deliveryschedule'],
-        'staff-4': ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'],
-        'staff-5': ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'],
-        'staff-6': ['dashboard', 'bo', 'return', 'alert', 'ordertracking', 'deliveryschedule'],
-        'staff-7': ['dashboard', 'inbox', 'inbox_retailer', 'saleslist', 'alert', 'ordertracking', 'deliveryschedule']
+        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'],
+        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer']
     };
 
     var TASK_ORDER = [
-        'dashboard', 'bo', 'return', 'stocks',
-        'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
+        'dashboard', 'bo', 'stocks',
+        'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
     ];
 
@@ -149,8 +104,8 @@
     function grantDeliverySchedule(stored) {
         if (!stored) return stored;
         try {
-            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return stored;
-        } catch (e) { return stored; }
+            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return grantPos(stored);
+        } catch (e) { return grantPos(stored); }
         Object.keys(stored).forEach(function (id) {
             if (Array.isArray(stored[id]) && stored[id].indexOf('deliveryschedule') === -1) {
                 stored[id].push('deliveryschedule');
@@ -160,6 +115,21 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
             localStorage.setItem('kreezby_staff_delivery_nav_v1', '1');
         } catch (e) { /* ignore */ }
+        return grantPos(stored);
+    }
+
+    function grantPos(stored) {
+        if (!stored) return stored;
+        try {
+            if (localStorage.getItem('kreezby_staff_pos_nav_v1') === '1') return stored;
+        } catch (e) { return stored; }
+        Object.keys(stored).forEach(function (id) {
+            if (Array.isArray(stored[id]) && stored[id].indexOf('pos') === -1) stored[id].push('pos');
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            localStorage.setItem('kreezby_staff_pos_nav_v1', '1');
+        } catch (e2) { /* ignore */ }
         return stored;
     }
 
@@ -200,22 +170,38 @@
     function tasksForStaff(staff) {
         var text = (String(staff.department || '') + ' ' + String(staff.role || '')).toLowerCase();
         if (text.indexOf('sales') >= 0) {
-            return ['dashboard', 'saleslist', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('software') >= 0 || text.indexOf('it') >= 0) {
-            return ['dashboard', 'stocks', 'alert', 'inbox', 'deliveryschedule'];
+            return ['dashboard', 'stocks', 'pos', 'alert', 'inbox', 'deliveryschedule'];
         }
         if (text.indexOf('production') >= 0) {
-            return ['dashboard', 'stocks', 'stocklevel', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'stocks', 'pos', 'stocklevel', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('admin') >= 0 || text.indexOf('executive') >= 0) {
-            return ['dashboard', 'saleslist', 'alert', 'inbox', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'pos', 'alert', 'inbox', 'deliveryschedule'];
         }
-        return ['dashboard', 'alert', 'deliveryschedule'];
+        return ['dashboard', 'pos', 'alert', 'deliveryschedule'];
+    }
+
+    function pruneStoredPermissions(stored) {
+        if (!stored) return stored;
+        var allowed = {};
+        accountStaffList().forEach(function (staff) { allowed[staff.id] = 1; });
+        Object.keys(STAFF_PROFILES).forEach(function (id) { allowed[id] = 1; });
+        var changed = false;
+        Object.keys(stored).forEach(function (id) {
+            if (!allowed[id]) {
+                delete stored[id];
+                changed = true;
+            }
+        });
+        if (changed) saveAllPermissions(stored);
+        return stored;
     }
 
     function getAllPermissions() {
-        var stored = grantDeliverySchedule(getStoredPermissions()) || {};
+        var stored = pruneStoredPermissions(grantDeliverySchedule(getStoredPermissions())) || {};
         var merged = {};
         var accounts = accountStaffList();
         if (accounts.length) {
@@ -295,7 +281,7 @@
             return fromSession;
         }
         if (accounts.length) return accounts[0].id;
-        return 'staff-1';
+        return 'staff-imelda';
     }
 
     function setCurrentStaffId(staffId) {
@@ -343,7 +329,7 @@
             }
         }
         if (accounts.length) return getStaffProfile(accounts[0].id);
-        return STAFF_PROFILES['staff-1'];
+        return STAFF_PROFILES['staff-imelda'];
     }
 
     function getStaffTasks(staffId) {
@@ -567,7 +553,7 @@
             return null;
         }
 
-        var selectedStaffPermissionsId = pills[0].getAttribute('data-staff-id') || 'staff-1';
+        var selectedStaffPermissionsId = pills[0].getAttribute('data-staff-id') || 'staff-imelda';
         var activePill = root.querySelector('.role-selection-pill.active-role');
         if (activePill) {
             selectedStaffPermissionsId = activePill.getAttribute('data-staff-id') || selectedStaffPermissionsId;

@@ -33,6 +33,7 @@
         return: 'return',
         stocks: 'boxes',
         saleslist: 'sales',
+        pos: 'cart',
         dailysales: 'calendar',
         aiforecast: 'chart',
         deliveryschedule: 'truck',
@@ -46,13 +47,13 @@
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
         { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
-        { key: 'return', label: 'Return/P.O List', href: 'return-staff.html', icon: 'return' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
+        { key: 'pos', label: 'Point of Sale', href: 'pos-staff.html', icon: 'cart' },
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
-            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
+            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' },
+            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-staff.html?tab=product-recommendation' }
         ] },
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
@@ -173,7 +174,7 @@
 
         var taskOrder = api.TASK_ORDER || [
             'dashboard', 'bo', 'return', 'stocks',
-            'saleslist', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
+            'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
         ];
 
@@ -205,13 +206,23 @@
                 entry.href = 'aiforecast_salesanalysis-staff.html';
                 entry.children = [
                     { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-                    { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-staff.html?tab=forecast' },
-                    { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' }
+                    { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' },
+                    { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-staff.html?tab=product-recommendation' }
                 ];
             }
             items.push(entry);
         });
 
+        if (!items.some(function (item) { return item.key === 'pos'; })) {
+            var knowsPos = api && api.TASKS && api.TASKS.pos;
+            if (!knowsPos) {
+                var posItem = { key: 'pos', label: 'Point of Sale', href: 'pos-staff.html', icon: 'cart' };
+                var afterSales = -1;
+                items.forEach(function (item, index) { if (item.key === 'saleslist') afterSales = index; });
+                if (afterSales >= 0) items.splice(afterSales + 1, 0, posItem);
+                else items.push(posItem);
+            }
+        }
         return items.length ? items : [{ key: 'dashboard', label: 'Dashboard', href: dashboardHref, icon: 'home' }];
     }
 
@@ -227,6 +238,7 @@
         if (filename === 'return-staff.html') return 'return';
         if (filename === 'stocks-staff.html') return 'stocks';
         if (filename === 'saleslist-staff.html') return 'saleslist';
+        if (filename.indexOf('pos-') === 0) return 'pos';
         if (filename === 'alert-staff.html') return 'alert';
         if (filename === 'dailysales-staff.html') return 'dailysales';
         if (filename === 'inventoryreport-staff.html') return 'inventoryreport';
@@ -325,7 +337,7 @@
         if (document.getElementById('kreezby-delivery-schedule-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-delivery-schedule-script';
-        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20260929pouch';
+        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20261014delone';
         s.onload = function () {
             if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
         };

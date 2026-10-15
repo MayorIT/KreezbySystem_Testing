@@ -51,26 +51,22 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b372d80 (Save my changes)
         { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
 
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
-
-        { key: 'return', label: 'Return/P.O List', href: 'return-admin.html', icon: 'return' },
 
         { key: 'stocks', label: 'Stocks', href: 'stocks-admin.html', icon: 'boxes' },
 
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-admin.html', icon: 'sales' },
 
+        { key: 'pos', label: 'Point of Sale', href: 'pos-admin.html', icon: 'cart' },
+
         { key: 'ordertracking', label: 'Order Tracking', href: 'order-tracking-admin.html', icon: 'truck' },
 
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'chart', children: [
             { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-admin.html' },
-            { key: 'moving-average', label: 'Moving Average Computation Forecast', href: 'aiforecast_salesanalysis-admin.html?tab=forecast' },
-            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' }
+            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-admin.html?tab=management-insight' },
+            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-admin.html?tab=product-recommendation' }
         ] },
 
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-admin.html', icon: 'truck' },
@@ -227,7 +223,7 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = assetPrefix() + 'js/notification-store.js?v=20261007proc';
+        script.src = assetPrefix() + 'js/notification-store.js?v=20261015fix';
 
         script.defer = true;
 
@@ -264,6 +260,8 @@
         if (filename.indexOf('stocks-') === 0) return 'stocks';
 
         if (filename.indexOf('saleslist-') === 0) return 'saleslist';
+
+        if (filename.indexOf('pos-') === 0) return 'pos';
 
         if (filename.indexOf('order-tracking-') === 0) return 'ordertracking';
 
@@ -348,6 +346,7 @@
         var head = isHeadAdminPortal() || (api && typeof api.isHeadAdmin === 'function' && api.isHeadAdmin());
         if (api && !head) {
             items = items.filter(function (item) {
+                if (item.key === 'pos' && !(api.TASKS && api.TASKS.pos)) return true;
                 return api.adminCanAccessTask(item.key);
             });
         }
@@ -483,7 +482,7 @@
         if (document.getElementById('kreezby-delivery-schedule-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-delivery-schedule-script';
-        s.src = assetPrefix() + 'js/delivery-schedule.js?v=20261008del';
+        s.src = assetPrefix() + 'js/delivery-schedule.js?v=20261014delone';
         s.onload = function () {
             if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
         };

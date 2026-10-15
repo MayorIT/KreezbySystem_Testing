@@ -16,7 +16,10 @@
             { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Head Administrator' },
             { id: 'admin-marketing', name: 'Ailore Embalzado', username: 'ailore_admin', role: 'Marketing', accountType: 'Administrator' }
         ],
-        staff: [],
+        staff: [
+            { id: 'staff-imelda', name: 'Imelda Atienza', username: 'imelda_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true },
+            { id: 'staff-nichole', name: 'Nichole Ramos', username: 'nichole_staff', role: 'Staff', accountType: 'Staff', temporaryPassword: 'kreezby123', active: true }
+        ],
         retailers: [
             {"id":"ret-chickn_j_ibaan","name":"Chick'N J Ibaan","username":"chickn_j_ibaan","temporaryPassword":"KzDPJVE2","role":"Retailer","area":"Rosario","pcs":10,"active":true},
             {"id":"ret-sidc_ibaan","name":"SIDC Ibaan","username":"sidc_ibaan","temporaryPassword":"Kz3TUF3M","role":"Retailer","area":"Rosario","pcs":15,"active":true},
@@ -42,6 +45,7 @@
             {"id":"ret-jhorjhanes_balagtas","name":"Jhorjhanes Balagtas","username":"jhorjhanes_balagtas","temporaryPassword":"KzQJSY3K","role":"Retailer","area":"Batangas","pcs":30,"active":true},
             {"id":"ret-wanam_sa_bukid_balagtas","name":"Wanam sa Bukid Balagtas","username":"wanam_sa_bukid_balagtas","temporaryPassword":"KzAC3EVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-aa_lomi_balagtas","name":"AA Lomi Balagtas","username":"aa_lomi_balagtas","temporaryPassword":"KzGSXDM2","role":"Retailer","area":"Batangas","pcs":40,"active":true},
+            {"id":"ret-aa_san_pascual","name":"AA San Pascual","username":"aa_san_pascual","temporaryPassword":"Kz4SPAA9","role":"Retailer","area":"Batangas","pcs":10,"active":true},
             {"id":"ret-butch_alangilan","name":"Butch Alangilan","username":"butch_alangilan","temporaryPassword":"KzHSS8EN","role":"Retailer","area":"Batangas","pcs":35,"active":true},
             {"id":"ret-gracias_pasalubong","name":"Gracias Pasalubong","username":"gracias_pasalubong","temporaryPassword":"KzE7VWVV","role":"Retailer","area":"Batangas","pcs":15,"active":true},
             {"id":"ret-shell_select_kumintang_ibaba","name":"Shell Select Kumintang Ibaba","username":"shell_select_kumintang_ibaba","temporaryPassword":"Kz8C3MFF","role":"Retailer","area":"Batangas","pcs":10,"active":true},
@@ -97,7 +101,18 @@
         ],
         wholesalers: [],
         suppliers: [],
-        customers: []
+        customers: [
+            { id: 'cust-maria-santos', user_id: 'cust-maria-santos', name: 'Maria Santos', username: 'maria_santos', email: 'maria.santos@email.com', phone: '09171234567', contact: '09171234567', address: '18 Dolorosa St., Poblacion, Batangas City, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1996-05-12', joined: '2026-01-12', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-bryle-atienza', user_id: 'cust-bryle-atienza', name: 'Bryle Atienza', username: 'bryle_atienza', email: 'bryle.atienza@email.com', phone: '09184561230', contact: '09184561230', address: '27 Evangelista St., Poblacion, Batangas City, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1998-02-08', joined: '2026-02-03', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-kyla-ramos', user_id: 'cust-kyla-ramos', name: 'Kyla Ramos', username: 'kyla_ramos', email: 'kyla.ramos@email.com', phone: '09205551248', contact: '09205551248', address: '14 Rizal Avenue, Brgy. Sabang, Lipa City, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1999-09-19', joined: '2026-02-18', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-ana-reyes', user_id: 'cust-ana-reyes', name: 'Ana Reyes', username: 'ana_reyes', email: 'ana.reyes@email.com', phone: '09175664021', contact: '09175664021', address: '7 Mabini Street, Poblacion, Rosario, Batangas', area: 'Rosario', country: 'Philippines', birthday: '1997-11-03', joined: '2026-03-04', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-mark-cruz', user_id: 'cust-mark-cruz', name: 'Mark Anthony Cruz', username: 'mark_cruz', email: 'mark.cruz@email.com', phone: '09190882176', contact: '09190882176', address: '22 General Luna St., Poblacion, San Juan, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1994-01-30', joined: '2026-03-21', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-christine-bautista', user_id: 'cust-christine-bautista', name: 'Christine Bautista', username: 'christine_bautista', email: 'christine.bautista@email.com', phone: '09217846305', contact: '09217846305', address: '11 Quezon Avenue, Ibabang Dupay, Lucena City, Quezon', area: 'Lucena', country: 'Philippines', birthday: '1995-06-18', joined: '2026-04-09', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-paolo-mendoza', user_id: 'cust-paolo-mendoza', name: 'Paolo Mendoza', username: 'paolo_mendoza', email: 'paolo.mendoza@email.com', phone: '09173221980', contact: '09173221980', address: '9 A. Mabini St., Poblacion 4, Tanauan City, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1993-09-09', joined: '2026-05-14', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-jericho-villanueva', user_id: 'cust-jericho-villanueva', name: 'Jericho Villanueva', username: 'jericho_villanueva', email: 'jericho.villanueva@email.com', phone: '09185550946', contact: '09185550946', address: '31 Burgos Street, Poblacion, Bauan, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1991-12-05', joined: '2026-06-02', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-angela-flores', user_id: 'cust-angela-flores', name: 'Angela Flores', username: 'angela_flores', email: 'angela.flores@email.com', phone: '09206671480', contact: '09206671480', address: '14 National Highway, San Roque, Sto. Tomas, Batangas', area: 'Batangas', country: 'Philippines', birthday: '1999-04-27', joined: '2026-07-11', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true },
+            { id: 'cust-nicole-garcia', user_id: 'cust-nicole-garcia', name: 'Nicole Garcia', username: 'nicole_garcia', email: 'nicole.garcia@email.com', phone: '09176778815', contact: '09176778815', address: '6 Rizal Street, Poblacion, Ibaan, Batangas', area: 'Rosario', country: 'Philippines', birthday: '1996-07-16', joined: '2026-08-06', role: 'Customer', accountType: 'Customer', temporaryPassword: 'kreezby123', active: true }
+        ]
     };
 
     var DEFAULT_LOGIN_HISTORY = [];
@@ -140,7 +155,6 @@
             nina_staff: 1, omar_staff: 1, grace_staff: 1
         };
         var demoEmails = {
-            'maria.santos@email.com': 1,
             'rico@sidc-batangas.com': 1,
             'lisa@makaticorner.com': 1,
             'james@metrobulk.com': 1,
@@ -172,6 +186,31 @@
         return fresh;
     }
 
+    function usesOfficialStaff(list) {
+        var official = DEFAULT_USERS.staff;
+        if (!Array.isArray(list) || list.length !== official.length) return false;
+        for (var i = 0; i < official.length; i++) {
+            if (!list[i] || list[i].id !== official[i].id || list[i].name !== official[i].name) return false;
+        }
+        return true;
+    }
+
+    function mergeMissingRetailers(users) {
+        var have = {};
+        users.retailers = users.retailers || [];
+        users.retailers.forEach(function (row) {
+            if (row && row.id) have[row.id] = 1;
+        });
+        var added = false;
+        DEFAULT_USERS.retailers.forEach(function (row) {
+            if (row && row.id && !have[row.id]) {
+                users.retailers.push(JSON.parse(JSON.stringify(row)));
+                added = true;
+            }
+        });
+        if (added) saveJson(USERS_KEY, users);
+    }
+
     function getUsers() {
         var seeded = '';
         try { seeded = localStorage.getItem(USERS_SEED_VERSION_KEY) || ''; } catch (e) { seeded = ''; }
@@ -184,19 +223,53 @@
                 users[bucket] = JSON.parse(JSON.stringify(DEFAULT_USERS[bucket]));
             }
         });
-        if (!users.staff.length && DEFAULT_USERS.staff.length) {
+        if (!usesOfficialStaff(users.staff)) {
             users.staff = JSON.parse(JSON.stringify(DEFAULT_USERS.staff));
             saveJson(USERS_KEY, users);
         }
-        if (!users.retailers.length && DEFAULT_USERS.retailers.length) {
-            users.retailers = JSON.parse(JSON.stringify(DEFAULT_USERS.retailers));
-            saveJson(USERS_KEY, users);
-        }
+        mergeMissingRetailers(users);
         if (users.wholesalers && users.wholesalers.length) {
             users.wholesalers = [];
             saveJson(USERS_KEY, users);
         }
+        if (importedCustomerList(users.customers)) {
+            users.customers = JSON.parse(JSON.stringify(DEFAULT_USERS.customers));
+            saveJson(USERS_KEY, users);
+        } else {
+            fillOfficialCustomerFields(users);
+        }
         return withDictionaryFields(users);
+    }
+
+    function fillOfficialCustomerFields(users) {
+        var byId = {};
+        DEFAULT_USERS.customers.forEach(function (row) { byId[row.id] = row; });
+        var changed = false;
+        (users.customers || []).forEach(function (row) {
+            var official = byId[row && row.id];
+            if (!official) return;
+            ['username', 'email', 'phone', 'contact', 'address', 'area', 'country', 'birthday', 'joined', 'temporaryPassword'].forEach(function (key) {
+                if (!row[key] && official[key]) {
+                    row[key] = official[key];
+                    changed = true;
+                }
+            });
+        });
+        if (changed) saveJson(USERS_KEY, users);
+    }
+
+    function importedCustomerList(list) {
+        if (!Array.isArray(list) || !list.length) return true;
+        for (var i = 0; i < list.length; i++) {
+            var user = list[i] || {};
+            var country = String(user.country || '').toLowerCase();
+            var email = String(user.email || '').toLowerCase();
+            if (user.dataset) return true;
+            if (country && country !== 'philippines') return true;
+            if (email.indexOf('@example.') >= 0) return true;
+            if (/^cust-\d+$/.test(String(user.id || ''))) return true;
+        }
+        return false;
     }
 
     function saveUsers(users) {

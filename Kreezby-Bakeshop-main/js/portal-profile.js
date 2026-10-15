@@ -101,7 +101,9 @@
         var note = document.getElementById('profile-account-note');
         if (note) {
             note.hidden = !!account;
-            note.textContent = 'Sign in as head admin, admin, or staff to save a name, email, and photo. The alert threshold and browser notifications still apply on this device.';
+            note.textContent = document.getElementById('profile-full-name')
+                ? 'Sign in as head admin, admin, or staff to save a name, email, and photo.'
+                : 'Sign in as head admin to save the photo.';
         }
         renderOverrides();
         renderPermission();
@@ -178,8 +180,14 @@
         if (!saveThreshold()) return;
         var api = window.KreezbyMaintenanceSettings;
         var account = findAccount();
+        var nameField = document.getElementById('profile-full-name');
+        var emailField = document.getElementById('profile-email');
+        var phoneField = document.getElementById('profile-phone');
+        var photoOnly = !nameField && !emailField && !phoneField;
         if (!api || !account) {
-            setStatus('Alert threshold saved for head admin, admin, and staff. Sign in to save name and contact details.');
+            setStatus(photoOnly
+                ? 'Sign in as head admin to save the photo.'
+                : 'Sign in to save name and contact details.');
             return;
         }
         var users = api.getUsers();
@@ -193,33 +201,40 @@
             setStatus('This account could not be updated.');
             return;
         }
-        var name = (document.getElementById('profile-full-name').value || '').trim();
-        var email = (document.getElementById('profile-email').value || '').trim();
-        var phone = (document.getElementById('profile-phone').value || '').trim();
-        if (!name) {
-            setStatus('Enter a full name.');
-            return;
+        var next = Object.assign({}, list[index]);
+        if (!photoOnly) {
+            var name = (nameField.value || '').trim();
+            var email = emailField ? (emailField.value || '').trim() : '';
+            var phone = phoneField ? (phoneField.value || '').trim() : '';
+            if (!name) {
+                setStatus('Enter a full name.');
+                return;
+            }
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setStatus('Enter a valid email, or leave it blank.');
+                return;
+            }
+            next.name = name;
+            next.email = email;
+            next.phone = phone;
+            next.contact = phone;
         }
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setStatus('Enter a valid email, or leave it blank.');
-            return;
-        }
-        var next = Object.assign({}, list[index], {
-            name: name,
-            email: email,
-            phone: phone,
-            contact: phone
-        });
         if (avatarDataUrl) next.avatarDataUrl = avatarDataUrl;
+        else if (photoOnly) {
+            setStatus('Choose a photo first.');
+            return;
+        }
         list[index] = next;
         users[account.bucket] = list;
         api.saveUsers(users);
-        try {
-            var current = session();
-            current.userName = name;
-            localStorage.setItem('kreezby_session', JSON.stringify(current));
-        } catch (e) { /* session stays as it was */ }
-        setStatus('Profile saved.');
+        if (!photoOnly) {
+            try {
+                var current = session();
+                current.userName = next.name;
+                localStorage.setItem('kreezby_session', JSON.stringify(current));
+            } catch (e) { /* session stays as it was */ }
+        }
+        setStatus(photoOnly ? 'Photo saved.' : 'Profile saved.');
         fill(findAccount());
     }
 
@@ -248,7 +263,7 @@
                 if (!chosen) return;
                 compressImage(chosen).then(function (url) {
                     pendingAvatar = url;
-                    paintAvatar({ avatarDataUrl: url, name: document.getElementById('profile-full-name').value });
+                    paintAvatar({ avatarDataUrl: url, name: (document.getElementById('profile-full-name') || {}).value });
                 }).catch(function () {
                     setStatus('That photo could not be used. Choose a JPG or PNG.');
                 });

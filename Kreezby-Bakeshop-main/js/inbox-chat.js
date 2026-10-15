@@ -39,13 +39,13 @@
             contacts: [
                 { id: 'sidc', name: 'SIDC Batangas Hub', preview: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31', initials: 'S', online: true, unread: true },
                 { id: 'maria', name: 'Maria Santos', preview: 'Order ORD-2026-1042 is still packing.', time: 'Today', initials: 'M', unread: true },
-                { id: 'claire', name: 'Claire (Staff 1)', preview: 'AI Forecasting report compiled successfully.', time: 'May 14', initials: 'C', online: true, archived: true }
+                { id: 'claire', name: 'Claire (Staff 1)', preview: 'Stock check is finished.', time: 'May 14', initials: 'C', online: true, archived: true }
             ],
             messages: {
                 sidc: [
                     { type: 'incoming', text: 'Hello Admin, we have processed the weekly stock evaluation check.', time: '15:24' },
                     { type: 'incoming', text: 'Are there any active back-order dispatch batches this afternoon?', time: '15:25' },
-                    { type: 'outgoing', text: 'Hello SIDC Team! Yes, the AI demand forecasting engine has auto-allocated an ingredient boost.', time: '15:30' },
+                    { type: 'outgoing', text: 'Hello SIDC Team! Yes, the ingredient allocation is already in progress.', time: '15:30' },
                     { type: 'outgoing', text: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31' }
                 ],
                 maria: [
@@ -59,7 +59,7 @@
             contacts: [
                 { id: 'sidc', name: 'SIDC Retailer', preview: 'You: Next delivery inventory data is auto-synced...', time: '15:31', initials: 'S', online: true, channel: 'retailer', unread: true },
                 { id: 'r101', name: 'Retailer 101', preview: 'Stock reorder verification flag code updated...', time: 'Yesterday', initials: 'R', channel: 'retailer', unread: false },
-                { id: 'claire', name: 'Claire (Staff 1)', preview: 'AI Forecasting report compiled successfully.', time: 'May 14', initials: 'C', online: true, channel: 'staff', archived: true }
+                { id: 'claire', name: 'Claire (Staff 1)', preview: 'Stock check is finished.', time: 'May 14', initials: 'C', online: true, channel: 'staff', archived: true }
             ],
             messages: {
                 sidc: [

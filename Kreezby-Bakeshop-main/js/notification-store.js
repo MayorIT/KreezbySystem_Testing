@@ -48,7 +48,7 @@
         payment: ['ordertracking', 'saleslist', 'dailysales'],
         po: ['po', 'receive', 'bo'],
         receive: ['receive'],
-        return: ['return'],
+        return: ['ordertracking'],
         alert: ['alert', 'stocklevel', 'stocks', 'inventoryreport'],
         stock: ['stocks', 'stocklevel', 'inventoryreport'],
         delivery: ['deliveryschedule', 'ordertracking'],
@@ -103,11 +103,11 @@
             order: 'order-tracking-staff.html',
             payment: 'order-tracking-staff.html',
             receive: 'receive-staff.html',
-            return: 'return-staff.html',
+            return: 'order-tracking-staff.html',
             alert: 'alert-staff.html',
             stock: 'stocks-staff.html',
             delivery: 'deliveryschedule-staff.html',
-            forecast: 'aiforecast_salesanalysis-staff.html?tab=forecast'
+            forecast: 'aiforecast_salesanalysis-staff.html'
         };
         if (source === 'inbox') {
             var api = window.KreezbyStaffPermissions;

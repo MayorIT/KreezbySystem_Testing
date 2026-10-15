@@ -28,9 +28,9 @@
         dashboard: { label: 'Dashboard', page: 'admin.html' },
         receive: { label: 'Receiving', page: 'receive-admin.html' },
         bo: { label: 'Back Order', page: 'bo-admin.html' },
-        return: { label: 'Return/P.O List', page: 'return-admin.html' },
         stocks: { label: 'Stocks', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-admin.html' },
+        pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-admin.html' },
         deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-admin.html' },
@@ -42,12 +42,12 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        ailore: ['dashboard', 'saleslist', 'aiforecast', 'ordertracking', 'alert', 'inbox', 'deliveryschedule']
+        ailore: ['dashboard', 'saleslist', 'pos', 'aiforecast', 'ordertracking', 'alert', 'inbox', 'deliveryschedule']
     };
 
     var TASK_ORDER = [
-        'dashboard', 'receive', 'bo', 'return', 'stocks',
-        'saleslist', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
+        'dashboard', 'receive', 'bo', 'stocks',
+        'saleslist', 'pos', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
         'maintenance', 'inbox', 'issuereports'
     ];
 
@@ -242,6 +242,17 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
                     localStorage.setItem('kreezby_admin_delivery_nav_v1', '1');
                 } catch (e) { /* ignore */ }
+            }
+            var posReady = false;
+            try { posReady = localStorage.getItem('kreezby_admin_pos_nav_v1') === '1'; } catch (e2) { posReady = true; }
+            if (!posReady) {
+                Object.keys(parsed).forEach(function (id) {
+                    if (Array.isArray(parsed[id]) && parsed[id].indexOf('pos') === -1) parsed[id].push('pos');
+                });
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                    localStorage.setItem('kreezby_admin_pos_nav_v1', '1');
+                } catch (e3) { /* ignore */ }
             }
             return parsed;
         } catch (e) {
