@@ -118,6 +118,10 @@
                 cost: 0
             });
         });
+        var costs = localStore().cost || {};
+        items.forEach(function (row) {
+            if (costs[row.code] != null && costs[row.code] !== '') row.cost = Number(costs[row.code]) || 0;
+        });
         return items;
     }
 

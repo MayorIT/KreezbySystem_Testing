@@ -52,6 +52,39 @@
         return null;
     }
 
+    function roleLabel(user, current) {
+        if (user && user.accountType === 'Head Administrator') return 'Head Administrator';
+        if (user && user.role) return user.role;
+        if (current && current.accountType) return current.accountType;
+        if (portalKind() === 'head') return 'Head Administrator';
+        if (portalKind() === 'staff') return 'Staff';
+        return 'Administrator';
+    }
+
+    function paintIdentity(user, current) {
+        var display = document.getElementById('profile-display-name');
+        var chip = document.getElementById('profile-role-chip');
+        var handle = document.getElementById('profile-handle');
+        var kind = portalKind();
+        var fallback = kind === 'head' ? 'Head Admin' : (kind === 'staff' ? 'Staff' : 'Admin');
+        var name = (user && (user.name || user.username)) || (current && (current.userName || current.identity)) || fallback;
+        if (display) {
+            display.textContent = name;
+            display.dataset.fallback = fallback;
+        }
+        if (chip) chip.textContent = roleLabel(user || {}, current || {});
+        if (handle) {
+            var raw = String((user && (user.username || user.email)) || (current && current.identity) || '').trim();
+            if (!raw || raw === name) {
+                handle.hidden = true;
+                handle.textContent = '';
+            } else {
+                handle.hidden = false;
+                handle.textContent = raw.indexOf('@') >= 0 ? raw : '@' + raw;
+            }
+        }
+    }
+
     function initials(name) {
         var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         if (!parts.length) return 'K';
@@ -84,11 +117,7 @@
         if (username) username.value = user.username || current.identity || '';
         if (email) email.value = user.email || '';
         if (phone) phone.value = user.phone || user.contact || '';
-        if (role) {
-            role.value = user.accountType === 'Head Administrator'
-                ? 'Head Administrator'
-                : (user.role || current.accountType || (portalKind() === 'staff' ? 'Staff' : 'Administrator'));
-        }
+        if (role) role.value = roleLabel(user, current);
         if (department) {
             department.value = user.department || '';
             var wrap = document.getElementById('profile-department-wrap');
@@ -96,6 +125,7 @@
         }
         if (threshold && window.KreezbyBrowserAlerts) threshold.value = String(window.KreezbyBrowserAlerts.settings().shop);
         paintAvatar(user);
+        paintIdentity(user, current);
         var locked = !account;
         [name, email, phone].forEach(function (field) { if (field) field.disabled = locked; });
         var note = document.getElementById('profile-account-note');
@@ -254,6 +284,14 @@
             renderOverrides();
             renderPermission();
         }, 100);
+        var nameField = document.getElementById('profile-full-name');
+        if (nameField) {
+            nameField.addEventListener('input', function () {
+                var display = document.getElementById('profile-display-name');
+                if (!display) return;
+                display.textContent = nameField.value.trim() || display.dataset.fallback || '';
+            });
+        }
         var save = document.getElementById('profile-save');
         var file = document.getElementById('profile-avatar-input');
         var pendingAvatar = '';

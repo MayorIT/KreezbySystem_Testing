@@ -1717,3 +1717,155 @@ main.workspace-canvas {
         .sl-trend-month { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: center; }
         .sl-trend-month span { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
         .sl-trend-month strong { font-size: 14px; color: #222; }
+
+        .sl-view-breakdown {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 72px;
+            height: 32px;
+            padding: 0 14px;
+            border: 1px solid #111;
+            border-radius: 999px;
+            background: #fbc02d;
+            color: #111;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .sl-view-breakdown:hover { background: #f9a825; }
+
+        .sl-breakdown-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(17, 17, 17, 0.45);
+        }
+
+        .sl-breakdown-dialog {
+            width: min(860px, 100%);
+            max-height: min(86vh, 760px);
+            overflow: auto;
+            background: #fff;
+            border: 1px solid #ead98a;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(17, 17, 17, 0.18);
+            padding: 18px 18px 16px;
+        }
+
+        .sl-breakdown-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .sl-breakdown-kicker {
+            margin: 0 0 4px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #8a6a00;
+        }
+
+        .sl-breakdown-head h4 { margin: 0; font-size: 22px; }
+
+        .sl-breakdown-close {
+            border: 1px solid #111;
+            border-radius: 999px;
+            background: #fff;
+            padding: 8px 14px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .sl-breakdown-totals {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .sl-breakdown-totals div {
+            background: #fff9c4;
+            border: 1px solid #ead98a;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        .sl-breakdown-totals span,
+        .sl-breakdown-totals strong { display: block; }
+
+        .sl-breakdown-totals span { font-size: 12px; font-weight: 700; color: #555; }
+
+        .sl-breakdown-totals strong { margin-top: 4px; font-size: 18px; }
+
+        .sl-breakdown-note { margin: 0 0 12px; color: #555; font-size: 13px; }
+
+        .sl-breakdown-cat td { background: #fff8e1; font-weight: 800; }
+
+        .sl-breakdown-item td:first-child { padding-left: 28px; }
+
+        @media (max-width: 720px) {
+            .sl-breakdown-totals { grid-template-columns: 1fr; }
+            .sl-view-breakdown, .sl-breakdown-close { width: 100%; }
+        }
+
+        .sl-action { position: relative; margin-left: auto; }
+        .sl-action-btn,
+        .sl-value-footer-actions button {
+            border: 1px solid #111;
+            border-radius: 999px;
+            background: #fbc02d;
+            color: #111;
+            padding: 8px 14px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .sl-action-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            z-index: 5;
+            min-width: 140px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid #ead98a;
+            border-radius: 12px;
+            box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
+        }
+        .sl-action-menu[hidden] { display: none !important; }
+        .sl-action-item {
+            display: block;
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            padding: 8px 10px;
+            text-align: left;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .sl-action-item:hover { background: #fff9c4; }
+        .sl-value-list { overflow: auto; display: grid; gap: 14px; }
+        .sl-value-group h5 { margin: 0 0 8px; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: #8a6a00; }
+        .sl-value-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 12px; align-items: center; margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+        .sl-value-row input { width: 100%; border: 1px solid #d5d5d5; border-radius: 10px; padding: 8px 10px; font: inherit; }
+        .sl-value-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee; }
+        .sl-value-status { margin: 0; color: #c62828; font-weight: 700; }
+        .sl-value-footer-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+        @media (max-width: 720px) {
+            .sl-value-row { grid-template-columns: 1fr; }
+        }

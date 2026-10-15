@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Profile (Head Admin)</title>
     <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
-    <link rel="stylesheet" href="../css/shared/portal-profile.css">
+    <link rel="stylesheet" href="../css/shared/portal-profile.css?v=20261015layout6">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
 </head>
 <body>
@@ -30,29 +30,32 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
             <div class="portal-profile" id="portal-profile">
-                <section class="portal-profile__card">
-                    <h3>Head admin profile</h3>
-                    <p class="portal-profile__lead">Change the photo for this head admin account.</p>
-                    <p id="profile-account-note" class="portal-profile__lead" hidden></p>
-                    <div class="portal-profile__layout">
-                        <div>
-                            <div class="portal-profile__avatar" id="profile-avatar-preview">H</div>
-                            <button type="button" class="secondary portal-profile__photo-btn" id="profile-photo-btn">Change photo</button>
-                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
-                        </div>
+                <section class="portal-profile__hero portal-profile__hero--photo">
+                    <div class="portal-profile__avatar" id="profile-avatar-preview" aria-hidden="true">H</div>
+                    <button type="button" class="secondary portal-profile__photo-btn" id="profile-photo-btn">Change photo</button>
+                    <input type="file" id="profile-avatar-input" accept="image/*" hidden>
+                    <div class="portal-profile__hero-copy">
+                        <p class="portal-profile__kicker">Head admin</p>
+                        <h2 class="portal-profile__name" id="profile-display-name">Head Admin</h2>
+                        <p class="portal-profile__meta">
+                            <span class="portal-profile__chip" id="profile-role-chip">Head Administrator</span>
+                            <span class="portal-profile__handle" id="profile-handle" hidden></span>
+                        </p>
+                        <p class="portal-profile__lead">Your photo is the detail you can change here. Name and contact stay with the account record.</p>
+                        <p id="profile-account-note" class="portal-profile__note" hidden></p>
+                    </div>
+                    <div class="portal-profile__hero-actions">
+                        <button type="button" id="profile-save">Save photo</button>
+                        <p class="portal-profile__status" id="profile-status" role="status"></p>
                     </div>
                 </section>
-                <div class="portal-profile__actions">
-                    <button type="button" id="profile-save">Save photo</button>
-                </div>
-                <p class="portal-profile__status" id="profile-status" role="status"></p>
             </div>
         </main>
         </turbo-frame>
     </div>
     <script src="../js/maintenance-settings.js"></script>
     <script src="../js/browser-alerts.js?v=20261013b"></script>
-    <script src="../js/portal-profile.js?v=20261014photo"></script>
+    <script src="../js/portal-profile.js?v=20261015layout6"></script>
     <script src="../js/user-dropdown-nav.js?v=20261013profile"></script>
     <script src="../js/admin-sidebar.js?v=20261014pos"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>

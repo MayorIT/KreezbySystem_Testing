@@ -524,7 +524,7 @@
 
         panel.innerHTML =
             (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">Edit ' + escapeHtml(order.orderNumber) + '</h3>') +
-            '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + (order.deliverySchedule ? ' · Delivery ' + escapeHtml(order.deliverySchedule) : '') + '</p>' +
+            '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + '</p>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
                 : '') +
@@ -552,10 +552,6 @@
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-tracking">J&amp;T Express tracking ID</label>' +
                 '<input type="text" id="ot-tracking" placeholder="e.g. JT1234567890123" value="' + escapeHtml(order.trackingNumber || '') + '">' +
-            '</div>' +
-            '<div class="order-tracking-form-group">' +
-                '<label for="ot-schedule">Delivery schedule</label>' +
-                '<input type="date" id="ot-schedule" value="' + escapeHtml(order.deliverySchedule || '') + '">' +
             '</div>' +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-notes">Internal notes (optional)</label>' +
@@ -602,12 +598,10 @@
         var statusEl = root.querySelector('#ot-status');
         var trackingEl = root.querySelector('#ot-tracking');
         var notesEl = root.querySelector('#ot-notes');
-        var scheduleEl = root.querySelector('#ot-schedule');
 
         var nextStatus = statusEl ? statusEl.value : order.status;
         var tracking = trackingEl ? trackingEl.value.trim() : '';
         var notes = notesEl ? notesEl.value.trim() : '';
-        var schedule = scheduleEl ? scheduleEl.value : '';
 
         if ((nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
             showToast(root, 'Enter a J&T tracking ID before marking the order ' + nextStatus + '.');
@@ -618,7 +612,6 @@
         order.trackingNumber = tracking;
         order.carrier = CARRIER;
         order.staffNotes = notes;
-        order.deliverySchedule = schedule;
         order.statusUpdatedAt = new Date().toISOString();
 
         if (nextStatus === 'Shipped' && tracking && !order.shippedAt) {

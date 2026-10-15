@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Profile (Admin)</title>
     <link rel="stylesheet" href="../css/pages/admin/alert-admin.css">
-    <link rel="stylesheet" href="../css/shared/portal-profile.css">
+    <link rel="stylesheet" href="../css/shared/portal-profile.css?v=20261015layout6">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
 </head>
 <body>
@@ -31,45 +31,76 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
             <div class="portal-profile" id="portal-profile">
-                <section class="portal-profile__card">
-                    <h3>Admin profile</h3>
-                    <p class="portal-profile__lead">Update the name and contact details for this admin account.</p>
-                    <p id="profile-account-note" class="portal-profile__lead" hidden></p>
-                    <div class="portal-profile__layout">
-                        <div>
-                            <div class="portal-profile__avatar" id="profile-avatar-preview">A</div>
-                            <button type="button" class="secondary portal-profile__photo-btn" id="profile-photo-btn">Change photo</button>
-                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
-                        </div>
-                        <div class="portal-profile__fields">
-                            <label>Full name<input id="profile-full-name" type="text" autocomplete="name"></label>
-                            <label>Username<input id="profile-username" type="text" disabled></label>
-                            <label>Email<input id="profile-email" type="email" autocomplete="email"></label>
-                            <label>Contact number<input id="profile-phone" type="tel" autocomplete="tel"></label>
-                            <label>Role<input id="profile-role" type="text" disabled></label>
-                            <label id="profile-department-wrap">Department<input id="profile-department" type="text" disabled></label>
-                        </div>
+                <section class="portal-profile__hero">
+                    <div class="portal-profile__avatar-block">
+                        <div class="portal-profile__avatar" id="profile-avatar-preview" aria-hidden="true">A</div>
+                        <button type="button" class="secondary portal-profile__photo-btn" id="profile-photo-btn">Change photo</button>
+                        <input type="file" id="profile-avatar-input" accept="image/*" hidden>
+                    </div>
+                    <div class="portal-profile__hero-copy">
+                        <p class="portal-profile__kicker">Admin</p>
+                        <h2 class="portal-profile__name" id="profile-display-name">Admin</h2>
+                        <p class="portal-profile__meta">
+                            <span class="portal-profile__chip" id="profile-role-chip">Administrator</span>
+                            <span class="portal-profile__handle" id="profile-handle" hidden></span>
+                        </p>
+                        <p class="portal-profile__lead">Update the name and contact details for this admin account.</p>
+                        <p id="profile-account-note" class="portal-profile__note" hidden></p>
                     </div>
                 </section>
                 <section class="portal-profile__card">
-                    <h3>Browser notifications</h3>
-                    <p class="portal-profile__lead" id="profile-notify-state">Allow notifications in this browser. Chrome, Edge, and other browsers notify this device on their own.</p>
+                    <div class="portal-profile__card-head">
+                        <h3>Personal details</h3>
+                        <p>Name and contact information used across the portal.</p>
+                    </div>
+                    <div class="portal-profile__fields">
+                        <label class="portal-profile__field--wide">
+                            <span class="portal-profile__label-row"><span>Full name</span></span>
+                            <input id="profile-full-name" type="text" autocomplete="name">
+                        </label>
+                        <label>
+                            <span class="portal-profile__label-row"><span>Email</span></span>
+                            <input id="profile-email" type="email" autocomplete="email">
+                        </label>
+                        <label>
+                            <span class="portal-profile__label-row"><span>Contact number</span></span>
+                            <input id="profile-phone" type="tel" autocomplete="tel">
+                        </label>
+                        <label>
+                            <span class="portal-profile__label-row"><span>Username</span><span class="portal-profile__lock">Read only</span></span>
+                            <input id="profile-username" type="text" disabled>
+                        </label>
+                        <label>
+                            <span class="portal-profile__label-row"><span>Role</span><span class="portal-profile__lock">Read only</span></span>
+                            <input id="profile-role" type="text" disabled>
+                        </label>
+                        <label id="profile-department-wrap">
+                            <span class="portal-profile__label-row"><span>Department</span><span class="portal-profile__lock">Read only</span></span>
+                            <input id="profile-department" type="text" disabled>
+                        </label>
+                    </div>
+                    <div class="portal-profile__footer">
+                        <p class="portal-profile__status" id="profile-status" role="status"></p>
+                        <button type="button" id="profile-save">Save profile</button>
+                    </div>
+                </section>
+                <section class="portal-profile__card portal-profile__notify">
+                    <div class="portal-profile__notify-copy">
+                        <h3>Browser notifications</h3>
+                        <p id="profile-notify-state">Allow notifications in this browser. Chrome, Edge, and other browsers notify this device on their own.</p>
+                    </div>
                     <div class="portal-profile__notify-actions">
                         <button type="button" id="profile-notify-btn">Allow notifications</button>
                         <button type="button" class="secondary" id="profile-test-btn">Send a test notification</button>
                     </div>
                 </section>
-                <div class="portal-profile__actions">
-                    <button type="button" id="profile-save">Save profile</button>
-                </div>
-                <p class="portal-profile__status" id="profile-status" role="status"></p>
             </div>
         </main>
         </turbo-frame>
     </div>
     <script src="../js/maintenance-settings.js"></script>
     <script src="../js/browser-alerts.js?v=20261013b"></script>
-    <script src="../js/portal-profile.js?v=20261014photo"></script>
+    <script src="../js/portal-profile.js?v=20261015layout6"></script>
     <script src="../js/user-dropdown-nav.js?v=20261013profile"></script>
     <script src="../js/admin-sidebar.js?v=20261014pos"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>

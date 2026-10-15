@@ -475,7 +475,7 @@
     }
 
     function ensureCss() {
-        var href = '../css/shared/portal-profile.css?v=20261014compact';
+        var href = '../css/shared/portal-profile.css?v=20261015layout6';
         var link = document.getElementById('kreezby-portal-profile-style');
         if (link) {
             if (link.getAttribute('href') !== href) link.href = href;

@@ -194,6 +194,33 @@
 
     };
 
+    var VALUE_KEY = 'kreezbyStockItemValues';
+    var STOCK_KEY = 'kreezby-stock-local-v1';
+    var BASE_CATEGORY_VALUE = {};
+    DATA.valueByCategory.forEach(function (row) {
+        BASE_CATEGORY_VALUE[row.category] = row.value;
+    });
+
+    var INVENTORY_ITEMS = [
+        { code: 'RM-WFL-01', name: 'Wheat Flour', category: 'Raw Materials', qty: 120 },
+        { code: 'RM-WSG-01', name: 'White Sugar', category: 'Raw Materials', qty: 90 },
+        { code: 'RM-OIL-01', name: 'Vegetable Oil', category: 'Raw Materials', qty: 48 },
+        { code: 'RM-EGG-01', name: 'Egg', category: 'Raw Materials', qty: 36 },
+        { code: 'RM-COC-01', name: 'Cocoa', category: 'Raw Materials', qty: 45 },
+        { code: 'RM-BKP-01', name: 'Baking Powder', category: 'Raw Materials', qty: 22 },
+        { code: 'RM-SLT-01', name: 'Salt', category: 'Raw Materials', qty: 70 },
+        { code: 'RM-CFS-01', name: 'Confectioner Sugar', category: 'Raw Materials', qty: 30 },
+        { code: 'RM-PSB-01', name: 'Potassium Sorbate', category: 'Raw Materials', qty: 12 },
+        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', category: 'Finished Products', qty: 450 },
+        { code: 'CRK-ALM-P', name: 'Choco-Almond', category: 'Finished Products', qty: 320 },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', category: 'Finished Products', qty: 180 },
+        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', category: 'Finished Products', qty: 85 },
+        { code: 'CRK-MNG-J', name: 'Mango Crinkles', category: 'Finished Products', qty: 45 },
+        { code: 'CRK-RVV-P', name: 'Red Velvet', category: 'Finished Products', qty: 890 },
+        { code: 'PKG-SUP-01', name: 'Stand up pouch', category: 'Packaging', qty: 80 },
+        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', category: 'Packaging', qty: 12 }
+    ];
+
 
 
     function esc(s) {
@@ -390,7 +417,7 @@
 
     function slowTable(rows) {
 
-        return '<table class="sl-compact-table sl-slow-table"><thead><tr>'
+        return '<table class="sl-compact-table sl-slow-table" data-sl-skip-open="1"><thead><tr>'
 
             + '<th>Item</th><th>Category</th><th>Units Sold (Last 3 Mo.)</th><th>Last Sold</th><th>Current Stock</th><th>Weeks</th><th>Status</th>'
 
@@ -492,6 +519,247 @@
 
 
 
+    function readStore(key, fallback) {
+        try {
+            var raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function categoryForType(type) {
+        if (type === 'raw-material') return 'Raw Materials';
+        if (type === 'packaging-material') return 'Packaging';
+        return 'Finished Products';
+    }
+
+    function inventoryCatalog() {
+        var items = INVENTORY_ITEMS.map(function (item) {
+            return { code: item.code, name: item.name, category: item.category, qty: item.qty };
+        });
+        var seen = {};
+        items.forEach(function (item) {
+            seen[item.code] = 1;
+            seen[item.name.toLowerCase()] = 1;
+        });
+        function add(item) {
+            if (!item || !item.code || seen[item.code]) return;
+            var nameKey = String(item.name || '').toLowerCase();
+            if (nameKey && seen[nameKey]) return;
+            seen[item.code] = 1;
+            if (nameKey) seen[nameKey] = 1;
+            items.push(item);
+        }
+        var local = readStore(STOCK_KEY, {});
+        (local.extra || []).forEach(function (row) {
+            add({
+                code: row.code,
+                name: row.name || row.code,
+                category: categoryForType(row.type),
+                qty: Number(row.qty) || 0
+            });
+        });
+        var dict = readStore('kreezby_data_dictionary_v1', {});
+        (dict.materials_extra || []).forEach(function (row) {
+            add({
+                code: row.material_id,
+                name: row.name || row.material_id,
+                category: 'Raw Materials',
+                qty: Number(row.current_stock) || 0
+            });
+        });
+        return items;
+    }
+
+    function savedValueMap() {
+        var map = readStore(VALUE_KEY, null);
+        if (!map || typeof map !== 'object' || Array.isArray(map)) return null;
+        return map;
+    }
+
+    function defaultValueMap() {
+        var map = {};
+        var items = inventoryCatalog();
+        Object.keys(BASE_CATEGORY_VALUE).forEach(function (category) {
+            var group = items.filter(function (item) { return item.category === category; });
+            if (!group.length) return;
+            var amounts = allocateAmounts(BASE_CATEGORY_VALUE[category], group.map(function () { return 1; }));
+            group.forEach(function (item, index) { map[item.code] = amounts[index]; });
+        });
+        return map;
+    }
+
+    function valueFor(item, saved, defaults) {
+        if (saved && Object.prototype.hasOwnProperty.call(saved, item.code)) return Number(saved[item.code]) || 0;
+        if (!saved && defaults && defaults[item.code] != null) return defaults[item.code];
+        return 0;
+    }
+
+    function refreshInventoryTotals() {
+        var items = inventoryCatalog();
+        var saved = savedValueMap();
+        var defaults = saved ? null : defaultValueMap();
+        var byCategory = {};
+        items.forEach(function (item) {
+            byCategory[item.category] = (byCategory[item.category] || 0) + valueFor(item, saved, defaults);
+        });
+        var total = 0;
+        Object.keys(byCategory).forEach(function (category) { total += byCategory[category]; });
+        DATA.kpis.totalValue.value = Math.round(total);
+        var rows = DATA.valueByCategory;
+        var usedPct = 0;
+        rows.forEach(function (row, index) {
+            row.value = Math.round(byCategory[row.category] || 0);
+            if (!total) {
+                row.pct = 0;
+                return;
+            }
+            if (index === rows.length - 1) row.pct = Math.max(0, 100 - usedPct);
+            else {
+                row.pct = Math.round(row.value / total * 100);
+                usedPct += row.pct;
+            }
+        });
+    }
+
+    function writeStockCosts(items, map) {
+        var local = readStore(STOCK_KEY, {});
+        local.qty = local.qty || {};
+        local.history = local.history || {};
+        local.extra = local.extra || [];
+        local.cost = local.cost || {};
+        items.forEach(function (item) {
+            var qty = Number(item.qty) || 0;
+            if (qty <= 0) return;
+            local.cost[item.code] = Math.round((Number(map[item.code]) || 0) / qty * 100) / 100;
+        });
+        try { localStorage.setItem(STOCK_KEY, JSON.stringify(local)); } catch (e) { /* keep the page copy */ }
+    }
+
+    function closeActionMenus(scope) {
+        (scope || document).querySelectorAll('.sl-action-menu').forEach(function (menu) {
+            menu.hidden = true;
+            var button = menu.parentNode && menu.parentNode.querySelector('.sl-action-btn');
+            if (button) button.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    function closeValueEditor() {
+        var open = document.getElementById('sl-value-overlay');
+        var returnFocus = open && open._returnFocus;
+        if (open) open.remove();
+        if (returnFocus && returnFocus.focus) returnFocus.focus();
+    }
+
+    function editorTotal() {
+        var total = 0;
+        document.querySelectorAll('#sl-value-overlay [data-item-code]').forEach(function (input) {
+            var amount = Number(input.value);
+            if (isFinite(amount) && amount > 0) total += amount;
+        });
+        var node = document.getElementById('sl-value-total');
+        if (node) node.textContent = money(Math.round(total));
+    }
+
+    function openValueEditor(root, trigger) {
+        closeValueEditor();
+        var items = inventoryCatalog();
+        var saved = savedValueMap();
+        var defaults = saved ? null : defaultValueMap();
+        var groups = [];
+        items.forEach(function (item) {
+            var group = null;
+            groups.forEach(function (entry) {
+                if (entry.name === item.category) group = entry;
+            });
+            if (!group) {
+                group = { name: item.category, items: [] };
+                groups.push(group);
+            }
+            group.items.push(item);
+        });
+        var body = groups.map(function (group) {
+            var rows = group.items.map(function (item) {
+                var value = valueFor(item, saved, defaults);
+                return '<label class="sl-value-row"><span>' + esc(item.name) + '</span>'
+                    + '<input data-item-code="' + esc(item.code) + '" type="number" min="0" step="0.01" inputmode="decimal" value="' + value + '" aria-label="Inventory value for ' + esc(item.name) + '"></label>';
+            }).join('');
+            return '<section class="sl-value-group"><h5>' + esc(group.name) + '</h5>' + rows + '</section>';
+        }).join('');
+        var overlay = document.createElement('div');
+        overlay.id = 'sl-value-overlay';
+        overlay.className = 'sl-breakdown-overlay';
+        overlay._returnFocus = trigger || null;
+        overlay.innerHTML = ''
+            + '<div class="sl-breakdown-dialog sl-value-dialog" role="dialog" aria-modal="true" aria-labelledby="sl-value-title">'
+            + '<div class="sl-breakdown-head"><div><p class="sl-breakdown-kicker">Total Value of Stock</p>'
+            + '<h4 id="sl-value-title">Edit inventory value</h4></div>'
+            + '<button type="button" class="sl-breakdown-close" id="sl-value-cancel">Close</button></div>'
+            + '<p class="sl-breakdown-note">Update the inventory value of each item, then save. The category totals use these amounts.</p>'
+            + '<div class="sl-value-list">' + body + '</div>'
+            + '<div class="sl-value-footer"><p id="sl-value-status" class="sl-value-status" role="status"></p>'
+            + '<div class="sl-value-footer-actions"><strong>Total <span id="sl-value-total"></span></strong>'
+            + '<button type="button" id="sl-value-save">Save</button></div></div>'
+            + '</div>';
+        document.body.appendChild(overlay);
+        editorTotal();
+        var close = document.getElementById('sl-value-cancel');
+        if (close) close.focus();
+        overlay.addEventListener('click', function (event) {
+            if (event.target === overlay) closeValueEditor();
+        });
+        overlay.addEventListener('input', function (event) {
+            if (event.target && event.target.hasAttribute('data-item-code')) editorTotal();
+        });
+        if (close) close.addEventListener('click', closeValueEditor);
+        var save = document.getElementById('sl-value-save');
+        if (save) {
+            save.addEventListener('click', function () {
+                var map = {};
+                var invalid = false;
+                overlay.querySelectorAll('[data-item-code]').forEach(function (input) {
+                    var raw = String(input.value || '').trim();
+                    var amount = raw === '' ? 0 : Number(raw);
+                    if (!isFinite(amount) || amount < 0) invalid = true;
+                    else map[input.getAttribute('data-item-code')] = Math.round(amount * 100) / 100;
+                });
+                var status = document.getElementById('sl-value-status');
+                if (invalid) {
+                    if (status) status.textContent = 'Enter a value of 0 or more for every item.';
+                    return;
+                }
+                try { localStorage.setItem(VALUE_KEY, JSON.stringify(map)); } catch (e) { /* keep going */ }
+                writeStockCosts(items, map);
+                closeValueEditor();
+                refreshInventoryTotals();
+                render(root);
+            });
+        }
+    }
+
+    function bindValueActions(root) {
+        if (!root || root.getAttribute('data-value-bound') === '1') return;
+        root.setAttribute('data-value-bound', '1');
+        root.addEventListener('click', function (event) {
+            var toggle = event.target.closest('.sl-action-btn');
+            if (toggle && root.contains(toggle)) {
+                var menu = toggle.parentNode.querySelector('.sl-action-menu');
+                var willOpen = menu && menu.hidden;
+                closeActionMenus(root);
+                if (willOpen && menu) {
+                    menu.hidden = false;
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+                return;
+            }
+            var edit = event.target.closest('[data-value-edit]');
+            if (!edit || !root.contains(edit)) return;
+            closeActionMenus(root);
+            openValueEditor(root, edit);
+        });
+    }
+
     function renderValue(root, reportHref) {
 
         var k = DATA.kpis.totalValue;
@@ -512,11 +780,15 @@
 
             + '</div>'
 
-            + '<div class="sl-panel"><div class="sl-panel-head"><h4>Value by Category</h4></div>'
+            + '<div class="sl-panel"><div class="sl-panel-head"><h4>Inventory Value</h4>'
 
-            + '<div class="sl-table-wrap"><table class="sl-compact-table sl-detail-table"><thead><tr>'
+            + '<div class="sl-action"><button type="button" class="sl-action-btn" aria-haspopup="true" aria-expanded="false">Action</button>'
 
-            + '<th>Category</th><th>Inventory Value</th><th>Share</th><th>Distribution</th>'
+            + '<div class="sl-action-menu" hidden><button type="button" class="sl-action-item" data-value-edit="1">Edit</button></div></div></div>'
+
+            + '<div class="sl-table-wrap"><table class="sl-compact-table sl-detail-table" data-sl-skip-open="1"><thead><tr>'
+
+            + '<th>Category</th><th>Inventory Value</th>'
 
             + '</tr></thead><tbody>'
 
@@ -524,9 +796,7 @@
 
                 return '<tr><td><strong>' + esc(row.category) + '</strong></td>'
 
-                    + '<td>' + money(row.value) + '</td><td>' + row.pct + '%</td>'
-
-                    + '<td><div class="sl-inline-bar"><div class="sl-inline-bar-fill sl-tone-good" style="width:' + row.pct + '%;"></div></div></td></tr>';
+                    + '<td>' + money(row.value) + '</td></tr>';
 
             }).join('')
 
@@ -794,6 +1064,110 @@
 
 
 
+    function allocateAmounts(total, weights) {
+        var sum = weights.reduce(function (totalWeight, weight) { return totalWeight + weight; }, 0) || 1;
+        var used = 0;
+        return weights.map(function (weight, index) {
+            if (index === weights.length - 1) return total - used;
+            var amount = Math.round(total * weight / sum);
+            used += amount;
+            return amount;
+        });
+    }
+
+    function signedMoney(amount) {
+        return (amount > 0 ? '+' : '') + money(amount);
+    }
+
+    function monthBreakdown(index) {
+        var groups = DATA.valueByCategory.map(function (row) {
+            var match = null;
+            DATA.categories.forEach(function (category) {
+                if (category.name === row.category) match = category;
+            });
+            return {
+                name: row.category,
+                pct: row.pct,
+                items: (match && match.items) || []
+            };
+        });
+        var stockParts = allocateAmounts(DATA.stockSeries[index], groups.map(function (group) { return group.pct; }));
+        var salesParts = allocateAmounts(DATA.salesSeries[index], groups.map(function (group) { return group.pct; }));
+        return groups.map(function (group, groupIndex) {
+            var names = group.items.length ? group.items : [];
+            var weights = names.map(function () { return 1; });
+            var itemStock = names.length ? allocateAmounts(stockParts[groupIndex], weights) : [];
+            var itemSales = names.length ? allocateAmounts(salesParts[groupIndex], weights) : [];
+            return {
+                name: group.name,
+                pct: group.pct,
+                stock: stockParts[groupIndex],
+                sales: salesParts[groupIndex],
+                items: names.map(function (name, itemIndex) {
+                    return { name: name, stock: itemStock[itemIndex], sales: itemSales[itemIndex] };
+                })
+            };
+        });
+    }
+
+    function breakdownRows(index) {
+        return monthBreakdown(index).map(function (group) {
+            var category = '<tr class="sl-breakdown-cat"><td>' + esc(group.name) + '</td>'
+                + '<td>' + money(group.stock) + '</td>'
+                + '<td>' + money(group.sales) + '</td>'
+                + '<td>' + signedMoney(group.stock - group.sales) + '</td>'
+                + '<td>' + group.pct + '%</td></tr>';
+            var items = group.items.map(function (item) {
+                return '<tr class="sl-breakdown-item"><td>' + esc(item.name) + '</td>'
+                    + '<td>' + money(item.stock) + '</td>'
+                    + '<td>' + money(item.sales) + '</td>'
+                    + '<td>' + signedMoney(item.stock - item.sales) + '</td>'
+                    + '<td></td></tr>';
+            }).join('');
+            return category + items;
+        }).join('');
+    }
+
+    function closeBreakdown() {
+        var open = document.getElementById('sl-breakdown-overlay');
+        var returnFocus = open && open._returnFocus;
+        if (open) open.remove();
+        if (returnFocus && returnFocus.focus) returnFocus.focus();
+    }
+
+    function openBreakdown(index, trigger) {
+        closeBreakdown();
+        var month = DATA.chartMonths[index];
+        var stock = DATA.stockSeries[index];
+        var sales = DATA.salesSeries[index];
+        var overlay = document.createElement('div');
+        overlay.id = 'sl-breakdown-overlay';
+        overlay.className = 'sl-breakdown-overlay';
+        overlay._returnFocus = trigger || null;
+        overlay.innerHTML = ''
+            + '<div class="sl-breakdown-dialog" role="dialog" aria-modal="true" aria-labelledby="sl-breakdown-title">'
+            + '<div class="sl-breakdown-head"><div><p class="sl-breakdown-kicker">Stock Value vs Sales</p>'
+            + '<h4 id="sl-breakdown-title">' + esc(month) + ' breakdown</h4></div>'
+            + '<button type="button" class="sl-breakdown-close" id="sl-breakdown-close">Close</button></div>'
+            + '<div class="sl-breakdown-totals">'
+            + '<div><span>Stock value</span><strong>' + money(stock) + '</strong></div>'
+            + '<div><span>Sales value</span><strong>' + money(sales) + '</strong></div>'
+            + '<div><span>Variance</span><strong>' + signedMoney(stock - sales) + '</strong></div>'
+            + '</div>'
+            + '<p class="sl-breakdown-note">Category and item amounts add up to this month.</p>'
+            + '<div class="sl-table-wrap"><table class="sl-compact-table sl-breakdown-table"><thead><tr>'
+            + '<th>Category / item</th><th>Stock value</th><th>Sales value</th><th>Variance</th><th>Share</th>'
+            + '</tr></thead><tbody>' + breakdownRows(index) + '</tbody></table></div>'
+            + '</div>';
+        document.body.appendChild(overlay);
+        var close = document.getElementById('sl-breakdown-close');
+        if (close) close.focus();
+        overlay.addEventListener('click', function (event) {
+            if (event.target === overlay) closeBreakdown();
+        });
+        if (close) close.addEventListener('click', closeBreakdown);
+    }
+
     function renderChart(root, reportHref) {
 
         root.innerHTML = ''
@@ -810,9 +1184,9 @@
 
             + '<div class="sl-panel" style="margin-top:16px;"><div class="sl-panel-head"><h4>Monthly Breakdown</h4></div>'
 
-            + '<div class="sl-table-wrap"><table class="sl-compact-table sl-detail-table"><thead><tr>'
+            + '<div class="sl-table-wrap"><table class="sl-compact-table sl-detail-table" data-sl-skip-open="1"><thead><tr>'
 
-            + '<th>Month</th><th>Stock Value (₱)</th><th>Sales Value (₱)</th><th>Variance</th>'
+            + '<th>Month</th><th>Stock Value (₱)</th><th>Sales Value (₱)</th><th>Variance</th><th>View</th>'
 
             + '</tr></thead><tbody>'
 
@@ -826,7 +1200,9 @@
 
                     + '<td>' + money(DATA.salesSeries[i]) + '</td>'
 
-                    + '<td>' + (diff >= 0 ? '+' : '') + money(diff) + '</td></tr>';
+                    + '<td>' + signedMoney(diff) + '</td>'
+
+                    + '<td><button type="button" class="sl-view-breakdown" data-month-index="' + i + '">View</button></td></tr>';
 
             }).join('')
 
@@ -839,6 +1215,14 @@
             range.addEventListener('change', function () {
                 var heading = root.querySelector('.sl-chart-panel h4');
                 if (heading) heading.textContent = range.value === '12' ? 'Stock Value vs Sales — Last 12 Months' : 'Stock Value vs Sales';
+            });
+        }
+        if (root.getAttribute('data-breakdown-bound') !== '1') {
+            root.setAttribute('data-breakdown-bound', '1');
+            root.addEventListener('click', function (event) {
+                var button = event.target.closest('.sl-view-breakdown');
+                if (!button || !root.contains(button)) return;
+                openBreakdown(Number(button.getAttribute('data-month-index')), button);
             });
         }
 
@@ -884,15 +1268,18 @@
                 : (/\/staff\//i.test(pathName) || /\/staff_names\//i.test(pathName) ? 'stocks-staff.html' : 'stocks-admin.html');
         }
 
+        refreshInventoryTotals();
         var fn = RENDERERS[view] || renderValue;
 
         fn(root, reportHref);
         linkStockRows(root, reportHref);
+        bindValueActions(root);
 
     }
 
     function linkStockRows(root, href) {
         root.querySelectorAll('table.sl-compact-table').forEach(function (table) {
+            if (table.getAttribute('data-sl-skip-open') === '1') return;
             var head = table.querySelector('thead tr');
             if (head && !head.querySelector('.sl-open-head')) {
                 var th = document.createElement('th');
@@ -944,6 +1331,20 @@
     }
 
 
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.sl-action')) closeActionMenus(document);
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        if (document.getElementById('sl-value-overlay')) {
+            closeValueEditor();
+            return;
+        }
+        closeActionMenus(document);
+        closeBreakdown();
+    });
 
     document.addEventListener('DOMContentLoaded', onPageReady);
 

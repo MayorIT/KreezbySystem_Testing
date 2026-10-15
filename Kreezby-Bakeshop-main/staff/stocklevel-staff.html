@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Stock Level (Staff)</title>
-    <link rel="stylesheet" href="../css/pages/staff/stocklevel-staff.css?v=20261014wide">
-    <link rel="stylesheet" href="../css/pages/admin/stocklevel-admin.css?v=20261014wide">
+    <link rel="stylesheet" href="../css/pages/staff/stocklevel-staff.css?v=20261015value">
+    <link rel="stylesheet" href="../css/pages/admin/stocklevel-admin.css?v=20261015value">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css?v=20261010palette">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
-    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261014iconfix">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261015view">
     <link rel="stylesheet" id="kreezby-admin-table-frame" href="../css/shared/admin-table-frame.css?v=20261005frame">
 </head>
 <body class="po-admin-page">
@@ -71,7 +71,7 @@
                     document.head.appendChild(theme);
                 }
                 theme.disabled = false;
-                if (theme.href.indexOf('20261014iconfix') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261014iconfix';
+                if (theme.href.indexOf('20261014iconfix') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261015view';
                 function boot() {
                     if (window.KreezbyStockLevelPills && window.KreezbyStockLevelPills.boot) {
                         try { window.KreezbyStockLevelPills.boot(); } catch (e) {}
@@ -90,7 +90,7 @@
                 }
                 var dash = document.createElement('script');
                 dash.id = 'kreezby-stocklevel-frame-script';
-                dash.src = '../js/stocklevel-dashboard.js?v=20261014pkg';
+                dash.src = '../js/stocklevel-dashboard.js?v=20261015value';
                 dash.onload = function () {
                     var pills = document.createElement('script');
                     pills.src = '../js/stocklevel-pills.js?v=20261014iconfix';
@@ -106,7 +106,7 @@
         </script>
         </turbo-frame>
     </div>
-    <script src="../js/stocklevel-dashboard.js?v=20261014pkg"></script>
+    <script src="../js/stocklevel-dashboard.js?v=20261015value"></script>
     <script src="../js/stocklevel-pills.js?v=20261014iconfix"></script>
     <script src="../js/staff-permissions.js?v=20261014pos"></script>
     <script src="../js/user-dropdown-nav.js?v=20261014iconfix"></script>

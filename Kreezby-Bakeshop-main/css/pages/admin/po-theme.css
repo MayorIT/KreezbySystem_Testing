@@ -2892,7 +2892,14 @@ body.po-admin-page #stocklevel-master .sl-compact-table thead th {
     box-shadow: inset 0 -3px 0 #ffca28;
 }
 
+body.po-admin-page #stocklevel-master .sl-view-breakdown {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
 body.po-admin-page #stocklevel-master .sl-open-stock,
+body.po-admin-page #stocklevel-master .sl-view-breakdown,
 body.po-admin-page #stocklevel-master .sl-btn-report {
     display: inline-flex;
     align-items: center;
