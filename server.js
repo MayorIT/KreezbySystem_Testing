@@ -367,6 +367,31 @@ app.get("/api/sales-list", async (req, res) => {
   }
 });
 
+function publicAccount(doc) {
+  const row = { ...doc, id: doc.id || String(doc._id) };
+  delete row._id;
+  delete row.updatedAt;
+  delete row.password;
+  delete row.password_hash;
+  return row;
+}
+
+app.get("/api/accounts", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const db = client.db(DB_NAME);
+    const accounts = {};
+    for (const [bucket, collectionName] of Object.entries(ACCOUNT_COLLECTIONS)) {
+      if (bucket === "wholesalers") continue;
+      const docs = await db.collection(collectionName).find({}).toArray();
+      accounts[bucket] = docs.map(publicAccount);
+    }
+    res.json({ ok: true, accounts });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.get("/api/customer-orders", async (req, res) => {
   if (!databaseReady(res)) return;
   try {

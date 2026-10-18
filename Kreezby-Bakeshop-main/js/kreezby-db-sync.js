@@ -10,11 +10,17 @@
     var brandIcon = document.createElement("link");
     brandIcon.rel = "icon";
     brandIcon.type = "image/png";
-    brandIcon.href = "/assets/logo/favicon.png?v=20261014big";
+    brandIcon.href = "/assets/logo/favicon-32.png?v=20261018logo";
+    brandIcon.sizes = "32x32";
     document.head.appendChild(brandIcon);
+    var brandIconLarge = document.createElement("link");
+    brandIconLarge.rel = "icon";
+    brandIconLarge.type = "image/png";
+    brandIconLarge.href = "/assets/logo/favicon.png?v=20261018logo";
+    document.head.appendChild(brandIconLarge);
     var appleIcon = document.createElement("link");
     appleIcon.rel = "apple-touch-icon";
-    appleIcon.href = "/assets/logo/favicon.png?v=20261014big";
+    appleIcon.href = "/assets/logo/apple-touch-icon.png?v=20261018logo";
     document.head.appendChild(appleIcon);
   }
 
@@ -164,6 +170,47 @@
     poll.send();
   }
 
+  function applyAccountCollections(accounts) {
+    if (!accounts || typeof accounts !== "object") return;
+    var current = {};
+    try {
+      current = JSON.parse(nativeGet.call(localStorage, "kreezby_maintenance_users") || "{}");
+    } catch (e) {
+      current = {};
+    }
+    var changed = false;
+    ["admins", "staff", "retailers", "customers"].forEach(function (bucket) {
+      if (!Array.isArray(accounts[bucket]) || !accounts[bucket].length) return;
+      if (JSON.stringify(current[bucket] || []) !== JSON.stringify(accounts[bucket])) changed = true;
+      current[bucket] = accounts[bucket];
+    });
+    if (!changed) return;
+    applyingRemote = true;
+    try {
+      nativeSet.call(localStorage, "kreezby_maintenance_users", JSON.stringify(current));
+      nativeSet.call(localStorage, "kreezby_users_seed_version", "20261002-real-accounts");
+    } finally {
+      applyingRemote = false;
+    }
+    try {
+      document.dispatchEvent(new CustomEvent("kreezby:accounts-ready"));
+    } catch (e2) { /* listeners are optional */ }
+  }
+
+  function pullAccountCollections() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/accounts", true);
+    xhr.timeout = 4000;
+    xhr.onload = function () {
+      if (xhr.status !== 200) return;
+      try {
+        applyAccountCollections(JSON.parse(xhr.responseText).accounts);
+      } catch (e) { /* keep the browser copy */ }
+    };
+    xhr.send();
+  }
+
+  pullAccountCollections();
   pull(true);
   setInterval(function () { pull(false); }, 4000);
 })();
@@ -224,6 +271,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261014nostockbar";
+  script.src = "../js/browser-alerts.js?v=20261018logo";
   document.head.appendChild(script);
 })();

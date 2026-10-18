@@ -391,7 +391,7 @@
             content.innerHTML =
                 '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
                 '<form id="stocks-edit-form">' +
-                '<p>On hand is ' + liveQty(item) + '. Head admin, admin, and staff are alerted when it is at or below this number.</p>' +
+                '<p>On hand is ' + liveQty(item) + '. An alert goes out when it is at or below this number.</p>' +
                 '<label>Alert at<input name="threshold" type="number" min="0" step="1" value="' + current + '"></label>' +
                 '<button class="btn-call-to-action" type="submit">Save</button>' +
                 '</form>';

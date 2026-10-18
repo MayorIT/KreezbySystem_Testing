@@ -1982,6 +1982,12 @@ body.po-admin-page #bauan-route-sheets-wrap {
     overflow-y: auto;
 }
 
+body.po-admin-page #bauan-route-sheets-wrap > .manual-route-sheet-card {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: max-content;
+}
+
 body.po-admin-page .route-sheet-title-bar,
 body.po-admin-page .sales-section-customer .panel-card-title-bar {
     background: #fff;

@@ -922,7 +922,7 @@
       document.head.appendChild(link);
     }
     link.disabled = false;
-    link.href = '../css/pages/admin/po-theme.css?v=20261008anl';
+    link.href = '../css/pages/admin/po-theme.css?v=20261018sheet';
   }
 
   window.switchToDetailedSalesTransactionInspector = function () {

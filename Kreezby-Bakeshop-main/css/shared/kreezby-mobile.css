@@ -619,7 +619,6 @@ html {
         border-bottom: 1px solid #e0e0e0;
     }
 
-    .maintenance-overview-grid,
     .ai-metrics-row,
     .sl-kpi-row,
     .head-admin-cards,
@@ -989,13 +988,16 @@ html {
         line-height: 1.25;
     }
 
-    .maintenance-overview-grid,
     .ai-metrics-row,
     .sl-kpi-row,
     .head-admin-cards,
     .inbox-stats,
     .profile-status-grid,
     .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .maintenance-overview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }

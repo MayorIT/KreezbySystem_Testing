@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="../js/kreezby-db-sync.js?v=20261014edit"></script>
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png?v=20261018logo">
+    <link rel="icon" type="image/png" href="../assets/logo/favicon.png?v=20261018logo">
+    <link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png?v=20261018logo">
+
+<script src="../js/kreezby-db-sync.js?v=20261018logo"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - System Configuration Maintenance</title>
-    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css?v=20261015maint">
+    <link rel="stylesheet" href="../css/pages/admin/maintenance-admin.css?v=20261018choices">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
 </head>
@@ -32,22 +36,32 @@
         <main class="workspace-view-canvas">
 
             <div class="maintenance-overview-grid">
-                <div class="overview-card-box blue-theme">
-                    <label>Retailers</label>
+                <button type="button" class="overview-card-box blue-theme is-selected" data-maint-dir="retailer">
+                    <span class="overview-card-label">Retailers</span>
                     <span id="metric-retailers-count">1</span>
-                </div>
-                <div class="overview-card-box green-theme">
-                    <label>Customers</label>
+                </button>
+                <button type="button" class="overview-card-box green-theme" data-maint-dir="customer">
+                    <span class="overview-card-label">Customers</span>
                     <span id="metric-customers-count">3</span>
-                </div>
+                </button>
+                <button type="button" class="overview-card-box staff-theme" data-maint-dir="staff">
+                    <span class="overview-card-label">Staff</span>
+                    <span id="metric-staff-count">2</span>
+                </button>
+                <button type="button" class="overview-card-box admin-theme" data-maint-dir="admins">
+                    <span class="overview-card-label">Admins</span>
+                    <span id="metric-admins-count">3</span>
+                </button>
             </div>
             
             <div class="panel-data-card">
                 <div class="card-body-padded">
                     
                     <div class="maintenance-directory-tabs-row">
-                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'items')">Item List</button>
-                        <button class="maintenance-tab-link" onclick="switchMaintenanceDataTab(this, 'settings')">Settings</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="items" onclick="switchMaintenanceDataTab(this, 'items')">Item List</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="staff" onclick="switchMaintenanceDataTab(this, 'staff')">Staff</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="admins" onclick="switchMaintenanceDataTab(this, 'admins')">Admins</button>
+                        <button type="button" class="maintenance-tab-link" data-maint-tab="settings" onclick="switchMaintenanceDataTab(this, 'settings')">Settings</button>
                     </div>
 
                     <div id="maintenance-grid-workspace-root">
@@ -150,11 +164,11 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>1</td><td><strong>Marcela Criselda Ramos</strong></td><td>marcela_admin</td><td>Owner — Head Admin</td>
+                            <td>1</td><td><strong>Marcela Criselda Ramos</strong></td><td>marcela_admin</td><td>Owner</td>
                             <td><button class="action-trigger-btn">Action ▾</button></td>
                         </tr>
                         <tr>
-                            <td>2</td><td><strong>Brent Ramos</strong></td><td>brent_admin</td><td>Operation Manager — Head Admin</td>
+                            <td>2</td><td><strong>Brent Ramos</strong></td><td>brent_admin</td><td>Operation Manager</td>
                             <td><button class="action-trigger-btn">Action ▾</button></td>
                         </tr>
                         <tr>
@@ -164,7 +178,7 @@
                     </tbody>
                 </table>`,
             permissions: `
-                <p class="permissions-intro">Staff task access is controlled by Head Admin. Open the Head Admin portal to change what each staff member can see.</p>`
+                <p class="permissions-intro">Module access is set from Permissions.</p>`
         };
 
         // Form fields matrix constructor mapping specific properties to active popup frames
@@ -280,11 +294,11 @@
             toggleMaintenanceFormModal(false);
         }
     </script>
-    <script src="../js/maintenance-settings.js?v=20261015phcust"></script>
-    <script src="../js/staff-permissions.js?v=20261014pos"></script>
-    <script src="../js/maintenance-settings-ui.js?v=20261015maint"></script>
+    <script id="kreezby-maintenance-settings-script" src="../js/maintenance-settings.js?v=20261018accounts"></script>
+    <script id="kreezby-staff-permissions-script" src="../js/staff-permissions.js?v=20261014pos"></script>
+    <script id="kreezby-maintenance-settings-ui-script" src="../js/maintenance-settings-ui.js?v=20261018accounts"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261005btns"></script>
+        <script src="../js/user-dropdown-nav.js?v=20261018choices"></script>
     <script src="../js/admin-sidebar.js?v=20261014pos"></script>
     <script src="../js/sidebar-toggle.js?v=20260927row"></script>
 </body>

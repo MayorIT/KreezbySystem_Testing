@@ -52,27 +52,27 @@
         return null;
     }
 
-    function roleLabel(user, current) {
-        if (user && user.accountType === 'Head Administrator') return 'Head Administrator';
-        if (user && user.role) return user.role;
-        if (current && current.accountType) return current.accountType;
-        if (portalKind() === 'head') return 'Head Administrator';
-        if (portalKind() === 'staff') return 'Staff';
-        return 'Administrator';
+    function roleLabel(user) {
+        var role = user && user.role ? String(user.role).trim() : '';
+        if (!role || /^(head\s*)?admin(istrator)?$|^staff$/i.test(role)) return '';
+        return role;
     }
 
     function paintIdentity(user, current) {
         var display = document.getElementById('profile-display-name');
         var chip = document.getElementById('profile-role-chip');
         var handle = document.getElementById('profile-handle');
-        var kind = portalKind();
-        var fallback = kind === 'head' ? 'Head Admin' : (kind === 'staff' ? 'Staff' : 'Admin');
+        var fallback = 'Account';
         var name = (user && (user.name || user.username)) || (current && (current.userName || current.identity)) || fallback;
         if (display) {
             display.textContent = name;
             display.dataset.fallback = fallback;
         }
-        if (chip) chip.textContent = roleLabel(user || {}, current || {});
+        if (chip) {
+            var label = roleLabel(user || {});
+            chip.textContent = label;
+            chip.hidden = !label;
+        }
         if (handle) {
             var raw = String((user && (user.username || user.email)) || (current && current.identity) || '').trim();
             if (!raw || raw === name) {
@@ -117,7 +117,7 @@
         if (username) username.value = user.username || current.identity || '';
         if (email) email.value = user.email || '';
         if (phone) phone.value = user.phone || user.contact || '';
-        if (role) role.value = roleLabel(user, current);
+        if (role) role.value = roleLabel(user);
         if (department) {
             department.value = user.department || '';
             var wrap = document.getElementById('profile-department-wrap');
@@ -132,8 +132,8 @@
         if (note) {
             note.hidden = !!account;
             note.textContent = document.getElementById('profile-full-name')
-                ? 'Sign in as head admin, admin, or staff to save a name, email, and photo.'
-                : 'Sign in as head admin to save the photo.';
+                ? 'Sign in to save a name, email, and photo.'
+                : 'Sign in to save the photo.';
         }
         renderOverrides();
         renderPermission();
@@ -216,7 +216,7 @@
         var photoOnly = !nameField && !emailField && !phoneField;
         if (!api || !account) {
             setStatus(photoOnly
-                ? 'Sign in as head admin to save the photo.'
+                ? 'Sign in to save the photo.'
                 : 'Sign in to save name and contact details.');
             return;
         }

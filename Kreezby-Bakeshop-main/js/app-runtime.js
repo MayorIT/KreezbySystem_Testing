@@ -611,7 +611,7 @@
             return;
           }
           if (window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.isLoginBlocked(identity, resolved.userName)) {
-            toast('This account is deactivated. An admin or head admin can activate it.', 'warn');
+            toast('This account is deactivated. It can be turned back on from Maintenance.', 'warn');
             return;
           }
           if (window.KreezbyMaintenanceSettings) {

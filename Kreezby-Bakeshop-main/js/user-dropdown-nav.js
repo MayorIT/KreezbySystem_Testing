@@ -278,7 +278,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-turbo-nav-script';
-        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261014iconfix';
+        s.src = jsBase() + 'kreezby-turbo-nav.js?v=20261018choices';
         document.head.appendChild(s);
     }
 
@@ -860,7 +860,7 @@
         wrap.className = 'user-dropdown';
         wrap.innerHTML =
             '<button type="button" class="user-dropdown-pill" id="user-dropdown-trigger" aria-haspopup="true" aria-expanded="false">' +
-            (isHeadAdminPortalPage() ? 'Head Admin \u25be' : 'Admin \u25be') +
+            'Account \u25be' +
             '</button>' +
             '<div class="user-dropdown-menu" id="user-dropdown-menu">' +
                 reportIssueMenuHtml() +
@@ -957,9 +957,11 @@
                 var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
                 sessionName = sess && sess.userName ? String(sess.userName) : '';
             } catch (e) { /* keep the role label */ }
-            if (sessionName) trigger.textContent = sessionName + ' \u25be';
-            else if (isHeadAdminPortalPage()) trigger.textContent = 'Head Admin \u25be';
-            else if (isStaffPage()) trigger.textContent = 'Staff \u25be';
+            trigger.textContent = (sessionName || 'Account') + ' \u25be';
+            var welcome = document.querySelector('.admin-home h2');
+            if (welcome && (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage())) {
+                welcome.textContent = sessionName ? ('Welcome, ' + sessionName) : 'Welcome';
+            }
         }
 
         trigger.setAttribute('aria-haspopup', 'true');

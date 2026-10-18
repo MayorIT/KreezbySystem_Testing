@@ -8,7 +8,7 @@
 
     var settingsShellHtml = ''
         + '<div class="settings-section-title">System Settings</div>'
-        + '<p class="settings-section-desc">Manage user accounts and login activity. Staff and admin module access is controlled by Head Admin.</p>'
+        + '<p class="settings-section-desc">Manage user accounts and login activity. Module access is set from Permissions.</p>'
         + '<div class="settings-sub-tabs-row" id="settings-sub-tabs">'
         + '<button type="button" class="settings-sub-tab active-sub" data-sub="login-history">Login History</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="customers">Customers</button>'
@@ -154,7 +154,7 @@
 
     var DIRECTORY = {
         supplier: { bucket: 'suppliers', title: 'Suppliers', detail: 'Contact', detailOf: function (u) { return u.contact || '—'; }, accountOf: function (u) { return u.email || '—'; } },
-        retailer: { bucket: 'retailers', title: 'Retailers', detail: 'Area', detailOf: function (u) { return u.area || '—'; }, accountOf: function (u) { return u.email || '—'; } },
+        retailer: { bucket: 'retailers', title: 'Retailers', detail: 'Area', detailOf: function (u) { return u.area || '—'; }, accountOf: function (u) { return u.username || u.contact || '—'; } },
         customer: { bucket: 'customers', title: 'Customers', detail: 'Phone', detailOf: function (u) { return u.phone || '—'; }, accountOf: function (u) { return u.email || '—'; } },
         staff: { bucket: 'staff', title: 'Staff', detail: 'Job', detailOf: function (u) { return u.role || '—'; }, accountOf: function (u) { return u.username || '—'; } },
         admins: { bucket: 'admins', title: 'Admins', detail: 'Job', detailOf: function (u) { return u.role || '—'; }, accountOf: function (u) { return u.username || '—'; } }
@@ -189,9 +189,19 @@
         return (window.location.pathname || '').toLowerCase().indexOf('/head_admin/') >= 0;
     }
 
+    function directoryChromeComplete(grid) {
+        if (!grid || grid.dataset.kreezbyAccounts !== '1') return false;
+        var dirs = ['retailer', 'customer', 'staff', 'admins'];
+        for (var i = 0; i < dirs.length; i++) {
+            if (!grid.querySelector('[data-maint-dir="' + dirs[i] + '"]')) return false;
+        }
+        var row = document.querySelector('.maintenance-directory-tabs-row');
+        return !!(row && row.querySelector('[data-maint-tab="staff"]') && row.querySelector('[data-maint-tab="admins"]'));
+    }
+
     function ensureDirectoryChrome() {
         var grid = document.querySelector('.maintenance-overview-grid');
-        if (!grid || grid.dataset.kreezbyAccounts === '1') return;
+        if (!grid || directoryChromeComplete(grid)) return;
         grid.dataset.kreezbyAccounts = '1';
 
         grid.querySelectorAll('.overview-card-box').forEach(function (card) {
@@ -234,6 +244,7 @@
             if (spec.theme) card.classList.add(spec.theme);
             card.setAttribute('data-maint-dir', spec.dir);
             card.setAttribute('aria-label', 'Open ' + spec.label);
+            grid.appendChild(card);
         });
 
         var row = document.querySelector('.maintenance-directory-tabs-row');
@@ -257,7 +268,7 @@
             var style = document.createElement('style');
             style.id = 'kreezby-account-card-style';
             style.textContent = ''
-                + '.maintenance-overview-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}'
+                + '.maintenance-overview-grid{grid-template-columns:repeat(4,minmax(0,1fr));}'
                 + '.overview-card-box.is-account-card{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;}'
                 + '.overview-card-box.is-account-card:hover,.overview-card-box.is-selected{box-shadow:0 2px 10px rgba(93,64,55,.12);}'
                 + '.overview-card-box.is-selected{outline:2px solid #5d4037;}'
@@ -275,6 +286,9 @@
                 + '#maintenance-grid-workspace-root{max-width:100%;overflow-x:auto;}'
                 + '#maintenance-grid-workspace-root .data-display-table{width:max-content;min-width:100%;}';
             document.head.appendChild(style);
+        }
+        if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+            window.KreezbyExpandingTabs.init();
         }
     }
 
@@ -304,7 +318,7 @@
             var on = user.active !== false;
             var locked = spec.bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
             var action = locked
-                ? '<button type="button" class="maint-status-btn is-on" disabled>Head admin</button>'
+                ? '<button type="button" class="maint-status-btn is-on" disabled>Protected</button>'
                 : '<button type="button" class="maint-status-btn ' + (on ? 'is-off' : 'is-on') + '" data-account-toggle="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '" data-next-active="' + (on ? '0' : '1') + '"' + (manage ? '' : ' disabled') + '>' + (on ? 'Deactivate' : 'Activate') + '</button>';
             return '<tr class="maint-account-row" data-account-row="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '">'
                 + '<td data-label="#">' + (index + 1) + '</td>'
@@ -316,13 +330,15 @@
         }).join('');
         var note = manage
             ? 'Select a row or use Activate / Deactivate. A deactivated account stays on file and cannot log in.'
-            : 'You can open every account. Only an admin or head admin can activate or deactivate it.';
+            : 'You can open every account. Only an authorized account can activate or deactivate it.';
         var createForm = manage
             ? '<form id="maint-create-account" data-kreezby-native="1" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 14px;">'
                 + '<label>Name<br><input name="name" required></label>'
                 + (spec.bucket === 'staff' || spec.bucket === 'admins'
                     ? '<label>Username<br><input name="username" required></label><label>Role<br><input name="role" placeholder="Job title"></label>'
-                    : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>')
+                    : (spec.bucket === 'retailers'
+                        ? '<label>Contact<br><input name="contact"></label>'
+                        : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>'))
                 + '<button type="submit">Add account</button></form>'
             : '';
         root.innerHTML = ''
@@ -350,14 +366,14 @@
             + (user.phone ? '<p>Phone: ' + esc(user.phone) + '</p>' : '')
             + (user.email ? '<p>Email: ' + esc(user.email) + '</p>' : '')
             + (user.address ? '<p>Address: ' + esc(user.address) + '</p>' : '')
-            + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · Head admin stays active.' : '') + '</p>'
-            + (manage ? '' : '<p>Only an admin or head admin can change this.</p>');
+            + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · This account stays active.' : '') + '</p>'
+            + (manage ? '' : '<p>Only an authorized account can change this.</p>');
     }
 
     function toggleAccount(bucket, id, active) {
         var box = document.getElementById('maint-account-detail');
         if (!canManageAccounts()) {
-            if (box) box.innerHTML = '<p>Only an admin or head admin can activate or deactivate accounts.</p>';
+            if (box) box.innerHTML = '<p>Only an authorized account can activate or deactivate accounts.</p>';
             return;
         }
         var result = KreezbyMaintenanceSettings.setAccountStatus(bucket, id, active);
@@ -389,7 +405,6 @@
         document.querySelectorAll('.overview-card-box[data-maint-dir]').forEach(function (card) {
             if (card.dataset.kreezbyBound === '1') return;
             card.dataset.kreezbyBound = '1';
-            if (isHeadAdminPage() && card.getAttribute('onclick')) return;
             function go() { openDirectory(card.getAttribute('data-maint-dir')); }
             card.addEventListener('click', go);
             card.addEventListener('keydown', function (ev) {
@@ -434,18 +449,26 @@
             });
         }
 
-        var previous = window.switchMaintenanceDataTab;
-        window.switchMaintenanceDataTab = function (tabNode, directoryKey) {
-            if (DIRECTORY[directoryKey]) {
-                openDirectory(directoryKey, tabNode);
-                return;
-            }
-            if (typeof previous === 'function') previous(tabNode, directoryKey);
-        };
+        if (!window.__kreezbyMaintTabsWrapped) {
+            window.__kreezbyMaintTabsWrapped = true;
+            var previousTab = window.switchMaintenanceDataTab;
+            window.switchMaintenanceDataTab = function (tabNode, directoryKey) {
+                if (DIRECTORY[directoryKey]) {
+                    openDirectory(directoryKey, tabNode);
+                    return;
+                }
+                if (directoryKey === 'settings') {
+                    markSelected('', tabNode);
+                    initSettingsPanel();
+                    return;
+                }
+                if (typeof previousTab === 'function') previousTab(tabNode, directoryKey);
+            };
+        }
 
         window.KreezbyMaintenanceDirectory = openDirectory;
-        if (isHeadAdminPage()) openDirectory('retailer');
-        else openDirectory('retailer');
+        window.openHeadMaintenanceDirectory = openDirectory;
+        openDirectory(currentDirectory || 'retailer');
     }
 
     function upgradeCustomer(customerId, role) {
@@ -462,10 +485,12 @@
     window.KreezbyMaintenanceUI = {
         initSettingsPanel: initSettingsPanel,
         refreshMetrics: refreshMetrics,
-        upgradeCustomer: upgradeCustomer
+        upgradeCustomer: upgradeCustomer,
+        bootDirectory: bootMaintenanceUi
     };
 
     function bootMaintenanceUi() {
+        if (!document.getElementById('maintenance-grid-workspace-root')) return;
         refreshMetrics();
         wireDirectory();
     }
@@ -475,4 +500,17 @@
     } else {
         bootMaintenanceUi();
     }
+
+    document.addEventListener('kreezby:accounts-ready', function () {
+        if (!document.getElementById('maintenance-grid-workspace-root')) return;
+        refreshMetrics();
+        renderDirectory(currentDirectory || 'retailer');
+    });
+
+    document.addEventListener('turbo:frame-load', function (event) {
+        var frame = event.target;
+        if (!frame || frame.id !== 'kreezby-main-content') return;
+        if (!frame.querySelector('#maintenance-grid-workspace-root')) return;
+        window.setTimeout(bootMaintenanceUi, 0);
+    });
 })();

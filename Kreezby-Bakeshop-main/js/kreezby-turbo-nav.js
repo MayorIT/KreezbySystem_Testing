@@ -450,7 +450,7 @@
         loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260929areas', 'kreezby-sales-fake-admin-script-d', function () {
             loadScript(root + 'js/kreezby-sales-data.js?v=20261015salesdb3', 'kreezby-sales-data-script-d', function () {
                 loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                    loadScript(root + 'js/sales-list-renderer.js?v=20261008act', 'kreezby-sales-list-renderer-script-act', function () {
+                    loadScript(root + 'js/sales-list-renderer.js?v=20261018sheet', 'kreezby-sales-list-renderer-script-act', function () {
                         if (window.KreezbySales && typeof window.KreezbySales.load === 'function') {
                             window.KreezbySales.load();
                         }
@@ -553,7 +553,7 @@
 
         function loadRenderer() {
             loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                loadScript(root + 'js/sales-list-renderer.js?v=20261008act', 'kreezby-sales-list-renderer-script-act', afterDataReady);
+                loadScript(root + 'js/sales-list-renderer.js?v=20261018sheet', 'kreezby-sales-list-renderer-script-act', afterDataReady);
             });
         }
 
@@ -601,7 +601,7 @@
             return;
         }
         var root = moduleRelativeRoot();
-        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261014iconfix';
+        var themeHref = root + 'css/pages/admin/po-theme.css?v=20261018sheet';
         var theme = document.getElementById('po-theme-sheet');
         if (!theme) {
             theme = document.querySelector('link[rel="stylesheet"][href*="po-theme.css"]');
@@ -616,6 +616,37 @@
         theme.disabled = false;
         theme.href = themeHref;
         document.head.appendChild(theme);
+    }
+
+    function ensureMaintenanceDirectory() {
+        var root = moduleRelativeRoot();
+        function start() {
+            if (window.KreezbyMaintenanceUI && typeof window.KreezbyMaintenanceUI.bootDirectory === 'function') {
+                try { window.KreezbyMaintenanceUI.bootDirectory(); } catch (e) {}
+            }
+            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
+                try { window.KreezbyExpandingTabs.init(); } catch (e2) {}
+            }
+        }
+        function loadUi() {
+            loadScript(root + 'js/maintenance-settings-ui.js?v=20261018accounts', 'kreezby-maintenance-settings-ui-script', start);
+        }
+        function loadPerms() {
+            if (window.KreezbyStaffPermissions) {
+                loadUi();
+                return;
+            }
+            loadScript(root + 'js/staff-permissions.js?v=20261014pos', 'kreezby-staff-permissions-script', loadUi);
+        }
+        if (window.KreezbyMaintenanceSettings && window.KreezbyMaintenanceUI) {
+            start();
+            return;
+        }
+        if (window.KreezbyMaintenanceSettings) {
+            loadPerms();
+            return;
+        }
+        loadScript(root + 'js/maintenance-settings.js?v=20261018accounts', 'kreezby-maintenance-settings-script', loadPerms);
     }
 
     function onFrameLoad(event) {
@@ -636,8 +667,8 @@
             document.dispatchEvent(new CustomEvent('kreezby-admin-sidebar-ready'));
             document.dispatchEvent(new CustomEvent('kreezby-staff-sidebar-ready'));
 
-            if (window.KreezbyMaintenanceUI && frame.querySelector('#maintenance-grid-workspace-root')) {
-                try { window.KreezbyMaintenanceUI.initSettingsPanel(); } catch (e) {}
+            if (frame.querySelector('#maintenance-grid-workspace-root')) {
+                ensureMaintenanceDirectory();
             }
             if (window.KreezbyActionMenu && typeof window.KreezbyActionMenu.scan === 'function') {
                 try { window.KreezbyActionMenu.scan(frame); } catch (e2) {}

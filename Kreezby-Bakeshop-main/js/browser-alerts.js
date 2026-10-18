@@ -203,7 +203,7 @@
     }
 
     function iconUrl() {
-        try { return new URL('/assets/logo/kreezby-logo.png', window.location.origin).href; }
+        try { return new URL('/assets/logo/favicon.png?v=20261018logo', window.location.origin).href; }
         catch (e) { return ''; }
     }
 
@@ -219,7 +219,7 @@
         };
         function fallback() {
             try {
-                var note = new Notification(title, { body: body, tag: tag || title });
+                var note = new Notification(title, { body: body, tag: tag || title, icon: iconUrl() });
                 note.onclick = function () {
                     window.focus();
                     window.location.href = href;

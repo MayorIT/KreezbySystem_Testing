@@ -632,7 +632,7 @@
         if (params.get('denied') !== '1') return;
         var notice = document.createElement('div');
         notice.className = 'staff-access-denied-banner';
-        notice.textContent = 'You do not have permission to open that page. Contact the Head Admin.';
+        notice.textContent = 'You do not have permission to open that page.';
         notice.style.cssText = 'background:#ffebee;color:#c62828;padding:12px 20px;margin-bottom:16px;border-radius:6px;font-size:14px;font-weight:600;';
         var container = document.querySelector('.workspace-view-canvas, .workspace-container');
         if (container && container.firstChild) {

@@ -1200,7 +1200,7 @@ main.workspace-canvas {
         /* Analytic Diagnostics Top Summary Board Layout */
         .maintenance-overview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -1230,6 +1230,8 @@ main.workspace-canvas {
 
         .overview-card-box.blue-theme { border-left-color: var(--accent-blue); }
         .overview-card-box.green-theme { border-left-color: var(--accent-green); }
+        .overview-card-box.staff-theme { border-left-color: #6d4c41; }
+        .overview-card-box.admin-theme { border-left-color: #1565c0; }
 
         .overview-card-box label,
         .overview-card-box .overview-card-label {

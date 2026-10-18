@@ -2275,10 +2275,10 @@
             poStylesheet('kreezby-saleslist-admin-css', salesRoot + 'css/pages/admin/saleslist-admin.css');
             poStylesheet('kreezby-sales-switch-css', salesRoot + 'css/shared/sales-view-switch.css');
             poStylesheet('kreezby-po-tabs-css', salesRoot + 'css/shared/order-tabbed-layout.css');
-            var salesTheme = poStylesheet('po-theme-sheet', salesRoot + 'css/pages/admin/po-theme.css?v=20261008lay2');
+            var salesTheme = poStylesheet('po-theme-sheet', salesRoot + 'css/pages/admin/po-theme.css?v=20261018sheet');
             if (salesTheme) {
                 salesTheme.disabled = false;
-                salesTheme.href = salesRoot + 'css/pages/admin/po-theme.css?v=20261008lay2';
+                salesTheme.href = salesRoot + 'css/pages/admin/po-theme.css?v=20261018sheet';
                 document.head.appendChild(salesTheme);
             }
             return;

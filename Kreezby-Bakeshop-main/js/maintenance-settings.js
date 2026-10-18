@@ -434,7 +434,7 @@
         }
         if (!user) return { ok: false, message: 'Account not found.' };
         if (bucket === 'admins' && isHeadAdminAccount(user) && !active) {
-            return { ok: false, message: 'The head admin account stays active.' };
+            return { ok: false, message: 'This account stays active.' };
         }
         user.active = !!active;
         saveUsers(users);
@@ -466,6 +466,11 @@
         if (bucket === 'staff' || bucket === 'admins') {
             record.username = String((fields && fields.username) || '').trim().toLowerCase().replace(/\s+/g, '_');
             if (!record.username) return { ok: false, message: 'Username is required.' };
+        } else if (bucket === 'retailers') {
+            record.username = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || ('retailer_' + Date.now());
+            record.contact = String((fields && fields.contact) || '').trim();
+            record.phone = record.contact;
+            record.area = String((fields && fields.area) || '').trim();
         } else {
             record.email = String((fields && fields.email) || '').trim();
             record.contact = String((fields && fields.contact) || '').trim();
@@ -520,6 +525,28 @@
             suppliers: countActive(users.suppliers)
         };
     }
+
+    function pullAccountsNow() {
+        if (location.protocol === 'file:') return;
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/accounts', false);
+            xhr.timeout = 4000;
+            xhr.send();
+            if (xhr.status !== 200) return;
+            var data = JSON.parse(xhr.responseText);
+            var accounts = data && data.accounts;
+            if (!accounts) return;
+            var users = loadJson(USERS_KEY, {});
+            ['admins', 'staff', 'retailers', 'customers'].forEach(function (bucket) {
+                if (Array.isArray(accounts[bucket]) && accounts[bucket].length) users[bucket] = accounts[bucket];
+            });
+            saveJson(USERS_KEY, withDictionaryFields(users));
+            try { localStorage.setItem(USERS_SEED_VERSION_KEY, USERS_SEED_VERSION); } catch (e) { /* ignore */ }
+        } catch (e) { /* the page keeps the browser copy when the shop server is offline */ }
+    }
+
+    pullAccountsNow();
 
     try { saveUsers(getUsers()); } catch (e) { /* ignore */ }
 

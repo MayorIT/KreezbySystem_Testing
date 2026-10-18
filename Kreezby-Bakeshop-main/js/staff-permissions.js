@@ -445,7 +445,7 @@
 
         var welcome = document.querySelector('.admin-home h2');
         if (welcome) {
-            welcome.textContent = 'Welcome, ' + (profile.welcome || profile.role || 'Staff');
+            welcome.textContent = profile.name ? ('Welcome, ' + profile.name) : 'Welcome';
         }
         if (getCurrentPageFilename() === 'staff.html') {
             document.title = 'Kreezby Bakeshop - ' + (profile.role || 'Staff') + ' Dashboard';
@@ -683,7 +683,7 @@
         if (params.get('denied') === '1') {
             var notice = document.createElement('div');
             notice.className = 'staff-access-denied-banner';
-            notice.textContent = 'You do not have permission to open that page. Contact the Head Admin.';
+            notice.textContent = 'You do not have permission to open that page.';
             notice.style.cssText = 'background:#ffebee;color:#c62828;padding:12px 20px;margin-bottom:16px;border-radius:6px;font-size:14px;font-weight:600;';
             var container = document.querySelector('.workspace-container, .workspace-view-canvas, .workspace-canvas');
             if (container && container.firstChild) {

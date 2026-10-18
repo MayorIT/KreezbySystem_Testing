@@ -91,13 +91,11 @@
     function agentProfile() {
         var path = String(location.pathname || '').replace(/\\/g, '/').toLowerCase();
         var role = 'staff';
-        var title = 'Staff';
+        var title = 'Kreezby';
         if (path.indexOf('/head_admin/') >= 0) {
             role = 'head_admin';
-            title = 'Head Admin';
         } else if (path.indexOf('/admin/') >= 0) {
             role = 'admin';
-            title = 'Admin';
         }
         var session = sessionInfo();
         var name = String(session.userName || title).trim() || title;
