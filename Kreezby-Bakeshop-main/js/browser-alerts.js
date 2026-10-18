@@ -203,7 +203,7 @@
     }
 
     function iconUrl() {
-        try { return new URL('/assets/logo/favicon.png?v=20261018logo', window.location.origin).href; }
+        try { return new URL('/assets/logo/favicon.png?v=20261018tab', window.location.origin).href; }
         catch (e) { return ''; }
     }
 

@@ -222,7 +222,7 @@
         'RET-MS-001': {
             code: 'RET-MS-001', poOrigin: 'PO-C-MS-003', dateCreated: '2026-09-12 09:18',
             entity: 'Maria Santos', entityType: 'customer', status: 'PROCESSED', statusClass: 'received',
-            reason: 'One strawberry jar arrived with a broken seal. Replacement issued.',
+            reason: 'One strawberry pouch arrived with a broken seal. Replacement issued.',
             items: [line(1, 'Jars', 'Strawberry Crinkles', 'Broken seal', 165)]
         }
     };
@@ -378,7 +378,7 @@
         },
         {
             id: 'n-inbox-shangag', title: 'New retailer message',
-            description: 'Shangag Express Tagaytay sent a new message in the inbox.',
+            description: 'Sinangag Express Tagaytay sent a new message in the inbox.',
             timestamp: '2026-09-22T09:05:00.000Z', read: false, source: 'inbox'
         },
         {

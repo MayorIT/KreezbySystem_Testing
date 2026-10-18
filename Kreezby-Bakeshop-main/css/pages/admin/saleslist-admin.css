@@ -1066,7 +1066,7 @@ main.workspace-canvas {
 }
 
 /* --- Sales list styles (from sales-list-manual.css) --- */
-/* Daily collection sheet layout � matches handwritten Kreezby route forms */
+/* Daily collection sheet layout — matches handwritten Kreezby route forms */
 
 .sales-ledger-stack {
   display: grid;
@@ -1328,7 +1328,7 @@ table.manual-sheet-table tfoot td {
   border-color: #5d4037;
 }
 
-/* Detail inspector � full sheet replica */
+/* Detail inspector — full sheet replica */
 .manual-detail-layout {
   display: grid;
   grid-template-columns: 1fr minmax(220px, 260px);
@@ -1435,7 +1435,7 @@ table.manual-sheet-table tfoot td {
   }
 }
 
-/* Retailer portal � per-store delivery history */
+/* Retailer portal — per-store delivery history */
 #retailer-sales-panel {
   margin-top: 28px;
 }

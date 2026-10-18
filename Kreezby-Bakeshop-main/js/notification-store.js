@@ -190,6 +190,8 @@
     function hydrate(list) {
         return list.map(function (n) {
             var item = Object.assign({}, n, {
+                title: String(n.title || '').replace(/Shangag/g, 'Sinangag'),
+                description: String(n.description || '').replace(/Shangag/g, 'Sinangag'),
                 timestamp: new Date(n.timestamp),
                 read: isReadForAudience(n)
             });

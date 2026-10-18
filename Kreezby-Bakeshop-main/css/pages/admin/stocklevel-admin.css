@@ -1250,7 +1250,7 @@ main.workspace-canvas {
         .status-level-badge.low { background-color: #fff3e0; color: var(--level-low); }
         .status-level-badge.critical { background-color: #ffebee; color: var(--level-critical); }
 
-        /* Inventory dashboard (AI Forecast�style layout) */
+        /* Inventory dashboard (AI Forecast-style layout) */
         .sl-kpi-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -1808,7 +1808,7 @@ main.workspace-canvas {
         }
 
         .sl-category-item-list li::before {
-            content: "� ";
+            content: "• ";
             color: var(--primary-blue, #1e88e5);
             font-weight: 700;
         }

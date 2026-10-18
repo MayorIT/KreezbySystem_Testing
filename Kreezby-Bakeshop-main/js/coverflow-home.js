@@ -11,28 +11,28 @@
             titleLine1: 'Chocolate',
             titleLine2: 'Crinkles',
             desc: 'The classic pouch. Soft, dark, and the one people come back for.',
-            img: 'flavors/chocolate.jpg'
+            img: 'flavors/chocolate-crinkles.jpg'
         },
         {
             tag: '#Specialty',
             titleLine1: 'Choco Butternut',
             titleLine2: 'Crinkles',
-            desc: 'The specialty jar. Chocolate butternut, packed to share.',
-            img: 'flavors/chocobutternut.jpg'
+            desc: 'The specialty pouch. Chocolate butternut, packed to share.',
+            img: 'flavors/choco-butternut-crinkles.jpg'
         },
         {
             tag: '#Classic',
             titleLine1: 'Red Velvet',
             titleLine2: 'Crinkles',
             desc: 'Deep cocoa red, powdered and baked fresh.',
-            img: 'flavors/redvelvet.jpg'
+            img: 'flavors/red-velvet-crinkles.jpg'
         },
         {
             tag: '#Favorite',
             titleLine1: 'Ube',
             titleLine2: 'Crinkles',
             desc: 'Purple yam, soft and sweet. A best seller through and through.',
-            img: 'flavors/ube.jpg'
+            img: 'flavors/ube-crinkles.jpg'
         }
     ];
 
@@ -95,7 +95,7 @@
             var dot = document.createElement('button');
             dot.type = 'button';
             dot.className = 'coverflow-dot';
-            dot.setAttribute('aria-label', 'Show flavor ' + (i + 1));
+            dot.setAttribute('aria-label', 'Show ' + ITEMS[i].titleLine1 + ' ' + ITEMS[i].titleLine2);
             dot.addEventListener('click', function () { go(i); });
             dots.appendChild(dot);
         });

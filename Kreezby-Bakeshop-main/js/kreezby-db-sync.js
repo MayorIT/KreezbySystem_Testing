@@ -10,17 +10,17 @@
     var brandIcon = document.createElement("link");
     brandIcon.rel = "icon";
     brandIcon.type = "image/png";
-    brandIcon.href = "/assets/logo/favicon-32.png?v=20261018logo";
+    brandIcon.href = "/assets/logo/favicon-32.png?v=20261018tab";
     brandIcon.sizes = "32x32";
     document.head.appendChild(brandIcon);
     var brandIconLarge = document.createElement("link");
     brandIconLarge.rel = "icon";
     brandIconLarge.type = "image/png";
-    brandIconLarge.href = "/assets/logo/favicon.png?v=20261018logo";
+    brandIconLarge.href = "/assets/logo/favicon.png?v=20261018tab";
     document.head.appendChild(brandIconLarge);
     var appleIcon = document.createElement("link");
     appleIcon.rel = "apple-touch-icon";
-    appleIcon.href = "/assets/logo/apple-touch-icon.png?v=20261018logo";
+    appleIcon.href = "/assets/logo/apple-touch-icon.png?v=20261018tab";
     document.head.appendChild(appleIcon);
   }
 
@@ -271,6 +271,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261018logo";
+  script.src = "../js/browser-alerts.js?v=20261018tab";
   document.head.appendChild(script);
 })();

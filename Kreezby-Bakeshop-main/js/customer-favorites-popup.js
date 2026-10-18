@@ -10,18 +10,18 @@
     var STORAGE_KEY = 'kreezbyCustomerFavoritesV1';
     var CART_KEY = 'kreezbyCart';
     var CATALOG = [
-        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/chocolate.jpg' },
-        { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-almond.jpg' },
-        { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-cashew.jpg' },
-        { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/strawberry.jpg' },
-        { id: 'flavor-velvet', name: 'Red Velvet Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/redvelvet.jpg' },
-        { id: 'flavor-lemon', name: 'Lemon Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/lemon.jpg' },
-        { id: 'flavor-melon', name: 'Melon Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/melon.jpg' },
-        { id: 'flavor-pandan', name: 'Pandan Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/pandan.jpg' },
-        { id: 'flavor-ube', name: 'Ube Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/ube.jpg' },
-        { id: 'flavor-assorted', name: 'Assorted Crinkles', variant: 'Pouch (250g)', cost: 165, img: 'flavors/assorted.jpg' },
-        { id: 'flavor-mango', name: 'Mango Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/mango.jpg' },
-        { id: 'flavor-butternut', name: 'Choco Butternut Crinkles', variant: 'Pouches', cost: 200, img: 'flavors/chocobutternut.jpg' }
+        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/chocolate-crinkles.jpg' },
+        { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-almond-crinkles.jpg' },
+        { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-cashew-crinkles.jpg' },
+        { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/strawberry-crinkles.jpg' },
+        { id: 'flavor-velvet', name: 'Red Velvet Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/red-velvet-crinkles.jpg' },
+        { id: 'flavor-lemon', name: 'Lemon Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/lemon-crinkles.jpg' },
+        { id: 'flavor-melon', name: 'Melon Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/melon-crinkles.jpg' },
+        { id: 'flavor-pandan', name: 'Pandan Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/pandan-crinkles.jpg' },
+        { id: 'flavor-ube', name: 'Ube Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/ube-crinkles.jpg' },
+        { id: 'flavor-assorted', name: 'Assorted Crinkles', variant: 'Pouch (250g)', cost: 165, img: 'flavors/assorted-crinkles.jpg' },
+        { id: 'flavor-mango', name: 'Mango Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/mango-crinkles.jpg' },
+        { id: 'flavor-butternut', name: 'Choco Butternut Crinkles', variant: 'Pouches', cost: 200, img: 'flavors/choco-butternut-crinkles.jpg' }
     ];
 
     function readJson(key, fallback) {

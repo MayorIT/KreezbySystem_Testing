@@ -346,7 +346,7 @@
             if (window.KreezbyNotificationPopoverLoaded || document.getElementById('kreezby-notification-popover-script')) return;
             var pop = document.createElement('script');
             pop.id = 'kreezby-notification-popover-script';
-            pop.src = base + 'notification-popover.js?v=20261008nav';
+            pop.src = base + 'notification-popover.js?v=20261018names';
             pop.defer = true;
             document.head.appendChild(pop);
         }

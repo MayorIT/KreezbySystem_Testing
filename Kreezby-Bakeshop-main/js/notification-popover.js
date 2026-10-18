@@ -59,7 +59,7 @@
         }
         var script = document.createElement('script');
         script.id = 'kreezby-notification-store-script';
-        script.src = moduleRelativeRoot() + 'js/notification-store.js?v=20261015fix';
+        script.src = moduleRelativeRoot() + 'js/notification-store.js?v=20261018names';
         script.onload = callback;
         document.head.appendChild(script);
     }

@@ -14,15 +14,15 @@
         },
         paymongo: {
             name: 'QR Ph',
-            icon: '<img src="../assets/payments/qrph.svg" alt="">'
+            icon: '<img src="../assets/payments/qrph.svg" alt="QR Ph">'
         },
         qrph: {
             name: 'QR Ph',
-            icon: '<img src="../assets/payments/qrph.svg" alt="">'
+            icon: '<img src="../assets/payments/qrph.svg" alt="QR Ph">'
         },
         cash_on_delivery: {
             name: 'Cash on delivery',
-            icon: '<img src="../assets/payments/cash.svg" alt="">'
+            icon: '<img src="../assets/payments/cash.svg" alt="Cash">'
         },
         mayabank: {
             name: 'MayaBank',

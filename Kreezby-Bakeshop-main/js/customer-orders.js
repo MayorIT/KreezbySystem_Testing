@@ -104,7 +104,7 @@
             poCode: 'PO-C-MS-REVIEW',
             poEntity: name,
             items: {
-                'review-ube': { name: 'Ube Crinkles', cost: 165, qty: 2, img: 'flavors/ube.jpg' }
+                'review-ube': { name: 'Ube Crinkles', cost: 165, qty: 2, img: 'flavors/ube-crinkles.jpg' }
             },
             subtotal: 330,
             deliveryFee: 50,
@@ -211,33 +211,33 @@
     }
 
     var PRODUCT_IMAGES_BY_ID = {
-        'flavor-choc': 'flavors/chocolate.jpg',
-        'flavor-almond': 'flavors/choco-almond.jpg',
-        'flavor-cashew': 'flavors/choco-cashew.jpg',
-        'flavor-straw': 'flavors/strawberry.jpg',
-        'flavor-velvet': 'flavors/redvelvet.jpg',
-        'flavor-lemon': 'flavors/lemon.jpg',
-        'flavor-melon': 'flavors/melon.jpg',
-        'flavor-pandan': 'flavors/pandan.jpg',
-        'flavor-ube': 'flavors/ube.jpg',
-        'flavor-assorted': 'flavors/assorted.jpg',
-        'flavor-mango': 'flavors/mango.jpg',
-        'flavor-butternut': 'flavors/chocobutternut.jpg'
+        'flavor-choc': 'flavors/chocolate-crinkles.jpg',
+        'flavor-almond': 'flavors/choco-almond-crinkles.jpg',
+        'flavor-cashew': 'flavors/choco-cashew-crinkles.jpg',
+        'flavor-straw': 'flavors/strawberry-crinkles.jpg',
+        'flavor-velvet': 'flavors/red-velvet-crinkles.jpg',
+        'flavor-lemon': 'flavors/lemon-crinkles.jpg',
+        'flavor-melon': 'flavors/melon-crinkles.jpg',
+        'flavor-pandan': 'flavors/pandan-crinkles.jpg',
+        'flavor-ube': 'flavors/ube-crinkles.jpg',
+        'flavor-assorted': 'flavors/assorted-crinkles.jpg',
+        'flavor-mango': 'flavors/mango-crinkles.jpg',
+        'flavor-butternut': 'flavors/choco-butternut-crinkles.jpg'
     };
 
     var PRODUCT_IMAGES_BY_NAME = {
-        'Chocolate Crinkles': 'flavors/chocolate.jpg',
-        'Choco-Almond Crinkles': 'flavors/choco-almond.jpg',
-        'Choco-Cashew Crinkles': 'flavors/choco-cashew.jpg',
-        'Strawberry Crinkles': 'flavors/strawberry.jpg',
-        'Red Velvet Crinkles': 'flavors/redvelvet.jpg',
-        'Lemon Crinkles': 'flavors/lemon.jpg',
-        'Melon Crinkles': 'flavors/melon.jpg',
-        'Pandan Crinkles': 'flavors/pandan.jpg',
-        'Ube Crinkles': 'flavors/ube.jpg',
-        'Assorted Crinkles': 'flavors/assorted.jpg',
-        'Mango Crinkles': 'flavors/mango.jpg',
-        'Choco Butternut Crinkles': 'flavors/chocobutternut.jpg'
+        'Chocolate Crinkles': 'flavors/chocolate-crinkles.jpg',
+        'Choco-Almond Crinkles': 'flavors/choco-almond-crinkles.jpg',
+        'Choco-Cashew Crinkles': 'flavors/choco-cashew-crinkles.jpg',
+        'Strawberry Crinkles': 'flavors/strawberry-crinkles.jpg',
+        'Red Velvet Crinkles': 'flavors/red-velvet-crinkles.jpg',
+        'Lemon Crinkles': 'flavors/lemon-crinkles.jpg',
+        'Melon Crinkles': 'flavors/melon-crinkles.jpg',
+        'Pandan Crinkles': 'flavors/pandan-crinkles.jpg',
+        'Ube Crinkles': 'flavors/ube-crinkles.jpg',
+        'Assorted Crinkles': 'flavors/assorted-crinkles.jpg',
+        'Mango Crinkles': 'flavors/mango-crinkles.jpg',
+        'Choco Butternut Crinkles': 'flavors/choco-butternut-crinkles.jpg'
     };
 
     function imgFallback(name) {

@@ -8,8 +8,9 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.7-4.35-9.33-8.2C.7 9.9 1.53 5.68 5.53 4.6c2.23-.6 4.27.23 5.47 1.93 1.2-1.7 3.24-2.53 5.47-1.93 4 1.08 4.83 5.3 2.86 8.2C18.7 16.65 12 21 12 21z"/></svg>';
 
     function imgFallback(name) {
-        var label = encodeURIComponent(name);
-        return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%25' height='100%25' fill='%23eee'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='10' fill='%23999'>" + label + '</text></svg>';
+        var label = String(name || 'Kreezby').replace(/[<>&]/g, '');
+        var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='#eee'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='10' fill='#999'>" + label + '</text></svg>';
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
     }
 
     function flavorCardHtml(prod, options) {
@@ -68,7 +69,7 @@
         return {
             key: 'pouch-favorites',
             title: 'Crinkles',
-            description: 'Pouches and resealable jars together in one product category.'
+            description: 'Soft crinkles packed in pouches.'
         };
     }
 

@@ -2,6 +2,27 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+function logoFile(area, slug, alt) {
+  const dir = path.join(ROOT, 'assets', 'logo', area);
+  const named = String(alt || '')
+    .toLowerCase()
+    .replace(/mr\.fields/g, 'mr-fields')
+    .replace(/chick'n j/g, 'chick-nj')
+    .replace(/d'vinias/g, 'd-vinias')
+    .replace(/&/g, ' ')
+    .replace(/['’+.]/g, '')
+    .replace(/coffe\b/g, 'coffee')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const options = [];
+  if (named) options.push(named + '.png');
+  options.push(slug + '.png');
+  for (let i = 0; i < options.length; i++) {
+    if (fs.existsSync(path.join(dir, options[i]))) return options[i];
+  }
+  return options[0] || (slug + '.png');
+}
+
 const ROSARIO_DIR = path.join(ROOT, 'retailer', 'rosario');
 const BRAND_CSS = '../../../css/pages/retailer/rosario-retailer-brand.css';
 const ALT = {
@@ -28,7 +49,7 @@ for (const slug of fs.readdirSync(ROSARIO_DIR)) {
     const alt = ALT[slug] || slug;
     const block =
       '<div class="brand-logo-panel">\n' +
-      '        <img class="brand-store-logo" src="../../../assets/logo/rosario/' + slug + '.png" alt="' + alt + ' logo">\n' +
+      '        <img class="brand-store-logo" src="../../../assets/logo/rosario/' + logoFile('rosario', slug, alt) + '" alt="' + alt + ' logo">\n' +
       '        <span class="brand-logo-divider" aria-hidden="true"></span>\n' +
       '        <img class="brand-kreezby-logo" src="../../../assets/logo/kreezby-logo.png" alt="Kreezby logo">\n' +
       '    </div>';
