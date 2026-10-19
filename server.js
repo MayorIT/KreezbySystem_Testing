@@ -565,6 +565,17 @@ function insightIncludesNumber(text, value) {
   return new RegExp("(^|[^0-9])" + digits.replace(".", "\\.") + "([^0-9]|$)").test(String(text || ""));
 }
 
+function localInsightRows(snapshot) {
+  return (snapshot.products || []).map((product) => {
+    const low = Number(product.stock) <= Number(product.recommendedStock);
+    const sentence = product.name + " has " + product.stock + " in stock against a recommended " + product.recommendedStock + ", with " + product.recentSales + " recent sales. "
+      + (low
+        ? "Stock is at or below the recommended level and needs a management review."
+        : "Stock covers the recommended level.");
+    return { name: product.name, text: sentence };
+  });
+}
+
 function parseManagementInsights(text, snapshot) {
   const raw = String(text || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim();
   let parsed;
@@ -613,6 +624,28 @@ function productRecommendationAllowed(ip) {
   return true;
 }
 
+function deterministicRecommendation(snapshot) {
+  if (!snapshot.products.length) {
+    return "There is not enough finished product or pending order data yet to recommend a bake.";
+  }
+  return snapshot.products.map((row) => {
+    const bake = Number(row.suggestedBake) || 0;
+    if (bake > 0) {
+      return "Bake " + bake + " pouches of " + row.name + ". Finished stock is " + row.finishedStock + " and pending orders still to cover are " + (row.pendingStillToCover || 0) + ".";
+    }
+    return row.name + " is covered. Finished stock is " + row.finishedStock + " and no extra pouches are needed for open orders.";
+  }).join(" ");
+}
+
+function recommendationMatchesSnapshot(text, snapshot) {
+  const body = String(text || "").toLowerCase();
+  return snapshot.products.every((row) => {
+    if (body.indexOf(String(row.name || "").toLowerCase()) < 0) return false;
+    const bake = Number(row.suggestedBake) || 0;
+    return bake <= 0 || insightIncludesNumber(text, bake);
+  });
+}
+
 function writeProductRecommendation(apiKey, snapshot) {
   return writeOwnerNote(
     apiKey,
@@ -646,12 +679,11 @@ app.post("/api/management-insight", async (req, res) => {
 
   try {
     const insight = await writeManagementInsight(apiKey, snapshot);
-    const insights = parseManagementInsights(insight, snapshot);
+    const parsed = parseManagementInsights(insight, snapshot);
+    const insights = parsed.length ? parsed : localInsightRows(snapshot);
     res.json({
       ok: true,
-      insight: insights.length
-        ? insights.map((item) => item.text).join(" ")
-        : insight,
+      insight: insights.map((item) => item.text).join(" "),
       insights,
       model: OPENAI_MODEL,
     });
@@ -699,7 +731,10 @@ app.post("/api/product-recommendation", async (req, res) => {
 
   try {
     const recommendation = await writeProductRecommendation(apiKey, snapshot);
-    res.json({ ok: true, recommendation, model: OPENAI_MODEL });
+    const safeRecommendation = recommendationMatchesSnapshot(recommendation, snapshot)
+      ? recommendation
+      : deterministicRecommendation(snapshot);
+    res.json({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL });
   } catch (error) {
     const code = error && error.code;
     if (code === "credit_balance_exhausted" || code === "insufficient_quota") {

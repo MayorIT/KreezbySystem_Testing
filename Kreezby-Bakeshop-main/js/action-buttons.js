@@ -469,15 +469,40 @@
         toast(name + ' now has ' + nextMaterial + ' on hand.', 'success');
         return;
       }
-      var current = dict && dict.productStock ? dict.productStock(name) : 100;
+      var packagingCode = '';
+      var packagingName = String(name || '').toLowerCase();
+      if (packagingName.indexOf('sticker') >= 0) packagingCode = 'PKG-STK-01';
+      else if (packagingName.indexOf('pouch') >= 0 || packagingName.indexOf('packaging') >= 0) packagingCode = 'PKG-SUP-01';
+      if (packagingCode) {
+        var enteredPack = prompt('New packaging quantity for "' + name + '":', '0');
+        if (enteredPack === null) return;
+        var nextPack = Math.max(0, Number(enteredPack) || 0);
+        try {
+          var store = JSON.parse(localStorage.getItem('kreezby-stock-local-v1') || '{}') || {};
+          if (!store.qty) store.qty = {};
+          store.qty[packagingCode] = nextPack;
+          localStorage.setItem('kreezby-stock-local-v1', JSON.stringify(store));
+          document.dispatchEvent(new CustomEvent('kreezby:stocks-sync'));
+        } catch (e) {
+          toast('Packaging stock could not be saved.', 'warn');
+          return;
+        }
+        toast(name + ' now has ' + nextPack + ' on hand.', 'success');
+        return;
+      }
+      var current = dict && dict.productStock ? dict.productStock(name) : null;
       var qty = prompt('New finished-goods quantity for "' + name + '":', String(current == null ? 0 : current));
       if (qty === null) return;
       if (dict && dict.setProductStock) {
         var next = dict.setProductStock(name, qty);
+        if (next == null) {
+          toast('Stock for "' + name + '" could not be saved.', 'warn');
+          return;
+        }
         toast('Stock for "' + name + '" is now ' + next + '.', 'success');
         return;
       }
-      toast('Stock for "' + name + '" updated to ' + qty + '.', 'success');
+      toast('Stock for "' + name + '" could not be saved.', 'warn');
       return;
     }
     if (dict && dict.historyFor) {

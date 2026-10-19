@@ -569,7 +569,45 @@
                 qty: Number(row.current_stock) || 0
             });
         });
+        var productStock = dict.product_stock || {};
+        var materialStock = dict.material_stock || {};
+        var localQty = (local.qty || {});
+        items.forEach(function (item) {
+            if (productStock[item.code] != null) item.qty = Number(productStock[item.code]) || 0;
+            else if (materialStock[item.code] != null) item.qty = Number(materialStock[item.code]) || 0;
+            else if (localQty[item.code] != null) item.qty = Number(localQty[item.code]) || 0;
+        });
         return items;
+    }
+
+    function syncOperationalAlerts() {
+        var dictApi = window.KreezbyDictionary;
+        if (!dictApi || typeof dictApi.alerts !== 'function') return;
+        var state = readStore('kreezby_data_dictionary_v1', {});
+        var productStock = state.product_stock || {};
+        var materialStock = state.material_stock || {};
+        var rows = dictApi.alerts().filter(function (alert) {
+            return alert && alert.status === 'pending' && (alert.alert_type === 'low_stock' || alert.alert_type === 'near_expiry' || alert.alert_type === 'expired');
+        });
+        DATA.alertCount = rows.length;
+        DATA.lowStockAlerts = rows.map(function (alert) {
+            var code = alert.reference_id || '';
+            var qty = productStock[code] != null ? productStock[code] : materialStock[code];
+            var finished = code.indexOf('CRK-') === 0;
+            var name = String(alert.message || code).split(' batch ')[0].split(' is at ')[0].split(' expired')[0].split(' expires')[0];
+            return {
+                item: name || code,
+                type: alert.alert_type === 'expired' || alert.alert_type === 'near_expiry' ? 'Expiry' : (finished ? 'Finished' : 'Raw Material'),
+                current: qty == null ? alert.message : (qty + (finished ? ' Pouches' : '')),
+                reorder: alert.alert_type === 'low_stock' ? 'Alert line' : alert.message,
+                status: alert.alert_type === 'expired' ? 'critical' : 'low'
+            };
+        });
+        if (DATA.healthItems) {
+            DATA.healthItems.forEach(function (row) {
+                if (row.code && productStock[row.code] != null) row.stock = productStock[row.code] + ' Pouches';
+            });
+        }
     }
 
     function savedValueMap() {
@@ -974,9 +1012,9 @@
 
             + '<div class="sl-toolbar-stat"><strong>' + DATA.alertCount + '</strong> open alerts</div>'
 
-            + '<div class="sl-toolbar-stat sl-stat-critical"><strong>3</strong> critical</div>'
+            + '<div class="sl-toolbar-stat sl-stat-critical"><strong>' + DATA.lowStockAlerts.filter(function (row) { return row.status === 'critical'; }).length + '</strong> critical</div>'
 
-            + '<div class="sl-toolbar-stat sl-stat-low"><strong>7</strong> low stock</div>'
+            + '<div class="sl-toolbar-stat sl-stat-low"><strong>' + DATA.lowStockAlerts.filter(function (row) { return row.status !== 'critical'; }).length + '</strong> low stock</div>'
 
             + '<input type="text" class="sl-search-input" placeholder="Search item or category…" id="sl-alert-search">'
 
@@ -1268,6 +1306,7 @@
                 : (/\/staff\//i.test(pathName) || /\/staff_names\//i.test(pathName) ? 'stocks-staff.html' : 'stocks-admin.html');
         }
 
+        syncOperationalAlerts();
         refreshInventoryTotals();
         var fn = RENDERERS[view] || renderValue;
 

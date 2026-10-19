@@ -87,6 +87,11 @@
             }
             var snapshot = dict.productRecommendationSnapshot();
             renderTable(snapshot);
+            if (!snapshot.products || !snapshot.products.length) {
+                setBody('There is not enough finished product or pending order data yet to recommend a bake.');
+                setBusy(false);
+                return;
+            }
             fetch('/api/product-recommendation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

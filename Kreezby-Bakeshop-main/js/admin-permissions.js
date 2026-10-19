@@ -104,7 +104,7 @@
             }
         }
         if (id.indexOf('ailore') >= 0) return 'ailore';
-        return keys[0] || '';
+        return '';
     }
 
     function getCurrentAdminId() {
@@ -614,9 +614,29 @@
         return { getSelectedAdminId: function () { return selectedId; } };
     }
 
+    function portalLoginHref() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var parts = path.split('/').filter(Boolean);
+        var roots = ['admin', 'staff', 'head_admin', 'retailer', 'customer', 'admin_names', 'staff_names'];
+        var idx = -1;
+        var i;
+        for (i = parts.length - 1; i >= 0; i--) {
+            if (roots.indexOf(parts[i].toLowerCase()) >= 0) { idx = i; break; }
+        }
+        var prefix = '';
+        var depth = idx < 0 ? 1 : (parts.length - idx - 1);
+        for (i = 0; i < depth; i++) prefix += '../';
+        return prefix + 'auth/log_in.html';
+    }
+
     function guardCurrentPage() {
         var path = (location.pathname || '').replace(/\\/g, '/');
         if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
+        var sessionType = readSession().accountType || '';
+        if (sessionType !== 'Administrator' && sessionType !== 'Head Administrator' && sessionType !== 'IT Support') {
+            window.location.replace(portalLoginHref());
+            return;
+        }
         if (isHeadAdmin()) return;
         var filename = getCurrentPageFilename();
         if (filename === 'report_issue-admin.html') return;

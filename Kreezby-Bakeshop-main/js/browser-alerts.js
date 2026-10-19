@@ -20,6 +20,7 @@
         { code: 'CRK-LEM-P', name: 'Lemon Crinkles', kind: 'finished', qty: 85, alert: 90 },
         { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', kind: 'finished', qty: 210, alert: 70 },
         { code: 'CRK-MNG-J', name: 'Mango Crinkles', kind: 'finished', qty: 45, alert: 60 },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', kind: 'finished', qty: 180, alert: 50 },
         { code: 'RM-WFL-01', name: 'Wheat Flour', kind: 'material', qty: 120, alert: 40 },
         { code: 'RM-WSG-01', name: 'White Sugar', kind: 'material', qty: 90, alert: 30 },
         { code: 'RM-OIL-01', name: 'Vegetable Oil', kind: 'material', qty: 48, alert: 20 },
@@ -148,11 +149,28 @@
         return qty + ' ' + (Number(qty) === 1 ? 'pouch' : 'pouches');
     }
 
+    function liveQty(item, localQty) {
+        var dict = window.KreezbyDictionary;
+        if (dict && item.kind === 'finished' && typeof dict.productStock === 'function') {
+            var finished = dict.productStock(item.name);
+            if (finished != null && Number.isFinite(Number(finished))) return Number(finished);
+        }
+        if (dict && typeof dict.materialStock === 'function') {
+            var material = dict.materialStock(item.name);
+            if (material != null && Number.isFinite(Number(material))) return Number(material);
+        }
+        if (Object.prototype.hasOwnProperty.call(localQty, item.code)) {
+            var stored = Number(localQty[item.code]);
+            if (Number.isFinite(stored)) return stored;
+        }
+        return item.qty;
+    }
+
     function stockRows() {
         var local = readJson(STOCK_KEY, {});
         var qty = local && local.qty ? local.qty : {};
         return CATALOG.map(function (item) {
-            var current = Object.prototype.hasOwnProperty.call(qty, item.code) ? Number(qty[item.code]) : item.qty;
+            var current = liveQty(item, qty);
             if (!Number.isFinite(current)) current = item.qty;
             return {
                 code: item.code,
@@ -367,9 +385,16 @@
             return row.qty <= row.threshold && !(active[row.code] && active[row.code].muted);
         });
         var signature = lows.map(function (row) { return row.code + ':' + row.qty + ':' + row.threshold; }).join('|');
+        var expiry = [];
+        if (window.KreezbyDictionary && typeof window.KreezbyDictionary.alerts === 'function') {
+            expiry = window.KreezbyDictionary.alerts().filter(function (alert) {
+                return alert && (alert.alert_type === 'near_expiry' || alert.alert_type === 'expired') && alert.status === 'pending';
+            });
+        }
+        signature += '|exp:' + expiry.map(function (alert) { return alert.alert_type + ':' + alert.reference_id + ':' + alert.message; }).join('|');
         if (table.dataset.liveSignature === signature) return;
         table.dataset.liveSignature = signature;
-        table.querySelectorAll('[data-live-alert]').forEach(function (row) { row.remove(); });
+        table.querySelectorAll('tr').forEach(function (row) { row.remove(); });
         var stamp = new Date();
         var when = stamp.getFullYear() + '-' + String(stamp.getMonth() + 1).padStart(2, '0') + '-' + String(stamp.getDate()).padStart(2, '0')
             + ' ' + String(stamp.getHours()).padStart(2, '0') + ':' + String(stamp.getMinutes()).padStart(2, '0');
@@ -391,6 +416,27 @@
                 + '<button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>'
                 + '<div class="action-popup-menu">'
                 + '<button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>'
+                + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>'
+                + '</div></div></td>';
+            table.insertBefore(tr, table.firstChild);
+        });
+        expiry.slice().reverse().forEach(function (alert) {
+            var severity = alert.alert_type === 'expired' ? 'Critical' : 'Warning';
+            var tr = document.createElement('tr');
+            tr.setAttribute('data-live-alert', '1');
+            tr.setAttribute('data-source', alert.reference_id);
+            tr.setAttribute('data-time', when);
+            tr.setAttribute('data-severity', severity);
+            tr.setAttribute('data-actions', 'dismiss');
+            tr.innerHTML = ''
+                + '<td class="po-col-num"></td>'
+                + '<td>' + escapeHtml(when) + '</td>'
+                + '<td><strong>' + escapeHtml(alert.reference_id) + '</strong></td>'
+                + '<td class="al-message">' + escapeHtml(alert.message) + '</td>'
+                + '<td class="al-severity"><span class="severity-badge ' + severity.toLowerCase() + '">' + severity + '</span></td>'
+                + '<td class="al-action"><div class="action-menu-relative-container" data-kreezby-page-menu>'
+                + '<button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>'
+                + '<div class="action-popup-menu">'
                 + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>'
                 + '</div></div></td>';
             table.insertBefore(tr, table.firstChild);
@@ -524,8 +570,11 @@
             flushUnseen();
             scanStock();
         });
+        document.addEventListener('kreezby:stocks-sync', function () {
+            scanStock();
+        });
         window.addEventListener('storage', function (event) {
-            if (!event.key || [NOTES_KEY, STOCK_KEY, SETTINGS_KEY, ACTIVE_KEY].indexOf(event.key) === -1) return;
+            if (!event.key || [NOTES_KEY, STOCK_KEY, SETTINGS_KEY, ACTIVE_KEY, 'kreezby_data_dictionary_v1'].indexOf(event.key) === -1) return;
             flushUnseen();
             scanStock();
         });

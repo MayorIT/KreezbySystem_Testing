@@ -24,6 +24,40 @@
     document.head.appendChild(appleIcon);
   }
 
+  (function guardPortalSession() {
+    var path = (location.pathname || "").replace(/\\/g, "/");
+    var lower = path.toLowerCase();
+    if (/\/auth\//.test(lower)) return;
+    var portal = "";
+    if (/\/head_admin\//.test(lower)) portal = "head";
+    else if (/\/admin_names\//.test(lower) || /\/admin\//.test(lower)) portal = "admin";
+    else if (/\/staff_names\//.test(lower) || /\/staff\//.test(lower)) portal = "staff";
+    else if (/\/retailer\//.test(lower)) portal = "retailer";
+    else if (/\/customer\/(checkout|inbox|profile|orders|report)/.test(lower)) portal = "customer";
+    if (!portal) return;
+    var session = null;
+    try { session = JSON.parse(localStorage.getItem("kreezby_session") || "null"); } catch (e) { session = null; }
+    var type = session && session.accountType ? String(session.accountType) : "";
+    var allowed = false;
+    if (portal === "head") allowed = type === "Head Administrator";
+    else if (portal === "admin") allowed = type === "Administrator" || type === "Head Administrator" || type === "IT Support";
+    else if (portal === "staff") allowed = type === "Staff";
+    else if (portal === "retailer") allowed = type === "Retailer" || type === "Wholesaler";
+    else if (portal === "customer") allowed = type === "Customer" || type === "Regular Customer";
+    if (allowed && (session.identity || session.userName)) return;
+    var parts = path.split("/").filter(Boolean);
+    var roots = ["admin", "staff", "head_admin", "retailer", "customer", "admin_names", "staff_names"];
+    var idx = -1;
+    var i;
+    for (i = parts.length - 1; i >= 0; i--) {
+      if (roots.indexOf(parts[i].toLowerCase()) >= 0) { idx = i; break; }
+    }
+    var prefix = "";
+    var depth = idx < 0 ? 0 : (parts.length - idx - 1);
+    for (i = 0; i < depth; i++) prefix += "../";
+    location.replace(prefix + "auth/log_in.html");
+  })();
+
   if (/\/retailer\//i.test(location.pathname || "")) {
     document.documentElement.classList.add("kreezby-retailer-account");
     function stripViewTransition(node) {
@@ -271,6 +305,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261018tab";
+  script.src = "../js/browser-alerts.js?v=20261019fn";
   document.head.appendChild(script);
 })();

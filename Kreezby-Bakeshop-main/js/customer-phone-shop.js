@@ -222,10 +222,11 @@
         var count = parseInt(text, 10);
         if (!count) {
             try {
-                var cart = JSON.parse(localStorage.getItem('kreezbyCart') || '[]');
-                count = Array.isArray(cart) ? cart.reduce(function (sum, item) {
-                    return sum + (Number(item.qty || item.quantity) || 0);
-                }, 0) : 0;
+                var cart = JSON.parse(localStorage.getItem('kreezbyCart') || '{}');
+                var rows = Array.isArray(cart) ? cart : Object.keys(cart || {}).map(function (key) { return cart[key]; });
+                count = rows.reduce(function (sum, item) {
+                    return sum + (Number(item && (item.qty || item.quantity)) || 0);
+                }, 0);
             } catch (e) {
                 count = 0;
             }

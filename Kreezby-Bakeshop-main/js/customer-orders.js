@@ -58,7 +58,7 @@
     function loadOrders() {
         var orders = dedupeOrderList(loadAllOrders());
         var name = currentCustomerName().toLowerCase();
-        if (!name) return orders;
+        if (!name) return [];
         return orders.filter(function (o) {
             var shipName = (((o.shippingInfo || {}).fullName) || o.poEntity || '').toLowerCase();
             return shipName === name;
@@ -83,50 +83,7 @@
         var stored = loadAllOrders();
         var orders = dedupeOrderList(stored);
         var changed = orders.length !== stored.length;
-        var name = currentCustomerName() || 'Maria Santos';
-        var hasReviewSample = orders.some(function (order) {
-            return order.orderNumber === 'ORD-2026-1099';
-        });
-        var hasPending = orders.some(function (order) {
-            var shipName = (((order.shippingInfo || {}).fullName) || order.poEntity || '');
-            return shipName.toLowerCase() === name.toLowerCase() && isAwaitingReview(order);
-        });
-        if (hasReviewSample || hasPending) {
-            if (changed) localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
-            return;
-        }
-
-        var profile = {};
-        try { profile = JSON.parse(localStorage.getItem('kreezbyCustomerProfile') || '{}') || {}; } catch (e) { /* ignore */ }
-        var now = new Date().toISOString();
-        orders.push({
-            orderNumber: 'ORD-2026-1099',
-            poCode: 'PO-C-MS-REVIEW',
-            poEntity: name,
-            items: {
-                'review-ube': { name: 'Ube Crinkles', cost: 165, qty: 2, img: 'flavors/ube-crinkles.jpg' }
-            },
-            subtotal: 330,
-            deliveryFee: 50,
-            total: '₱380.00',
-            paymentMethod: 'cash_on_delivery',
-            shippingInfo: {
-                fullName: name,
-                phone: profile.contactNumber || '09171234567',
-                address: profile.defaultAddress || '18 Dolorosa St., Poblacion, Batangas City',
-                notes: ''
-            },
-            status: 'Completed',
-            trackingNumber: 'JT6049281735999',
-            carrier: 'J&T Express Philippines',
-            date: '2026-10-02T09:30:00.000Z',
-            shippedAt: '2026-10-03T08:00:00.000Z',
-            statusUpdatedAt: '2026-10-04T15:10:00.000Z',
-            paymentVerified: true,
-            source: 'customer-shop',
-            needsReview: true
-        });
-        localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+        if (changed) localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
     }
 
     function seedDemoOrderIfNeeded() {

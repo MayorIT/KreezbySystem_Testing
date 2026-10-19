@@ -499,7 +499,7 @@
                 done();
                 return;
             }
-            loadScript(root + 'js/product-recommendation.js?v=20261014prodrec', 'kreezby-product-recommendation-script', done);
+            loadScript(root + 'js/product-recommendation.js?v=20261019fn', 'kreezby-product-recommendation-script', done);
         }
         function start() {
             loadRecommendation(boot);
@@ -636,7 +636,7 @@
                 loadUi();
                 return;
             }
-            loadScript(root + 'js/staff-permissions.js?v=20261014pos', 'kreezby-staff-permissions-script', loadUi);
+            loadScript(root + 'js/staff-permissions.js?v=20261019fn', 'kreezby-staff-permissions-script', loadUi);
         }
         if (window.KreezbyMaintenanceSettings && window.KreezbyMaintenanceUI) {
             start();

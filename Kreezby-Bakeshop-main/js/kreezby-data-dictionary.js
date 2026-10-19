@@ -6,23 +6,29 @@
     'use strict';
 
     var STORE_KEY = 'kreezby_data_dictionary_v1';
+    var lastSaleError = '';
+    var ALERT_LINES = {
+        'CRK-CHO-P': 100, 'CRK-ALM-P': 80, 'CRK-LEM-P': 90, 'CRK-BUT-J': 70, 'CRK-MNG-J': 60, 'CRK-UBE-P': 50,
+        'RM-WFL-01': 40, 'RM-WSG-01': 30, 'RM-OIL-01': 20, 'RM-EGG-01': 24, 'RM-COC-01': 20,
+        'RM-BKP-01': 10, 'RM-SLT-01': 15, 'RM-CFS-01': 12, 'RM-PSB-01': 5
+    };
     var SALES_DATES = ['2026-09-20', '2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25', '2026-09-26'];
     var FORECAST_DATE = '2026-09-27';
 
     var PRODUCTS = [
-        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', batch_number: 'BCH-2026-0918-CHO', production_date: '2026-09-18', expiration_date: '2026-10-18', expiry_threshold_days: 3, quantities: [100, 120, 110, 130, 140, 150, 160] },
-        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', batch_number: 'BCH-2026-0917-ALM', production_date: '2026-09-17', expiration_date: '2026-10-17', expiry_threshold_days: 3, quantities: [80, 90, 85, 88, 92, 95, 100] },
-        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', batch_number: 'BCH-2026-0920-LEM', production_date: '2026-09-20', expiration_date: '2026-09-30', expiry_threshold_days: 3, quantities: [50, 55, 48, 60, 52, 58, 62] },
-        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', batch_number: 'BCH-2026-0915-BUT', production_date: '2026-09-15', expiration_date: '2026-10-15', expiry_threshold_days: 3, quantities: [70, 75, 80, 72, 78, 74, 76] },
+        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', batch_number: 'BCH-2026-0918-CHO', production_date: '2026-09-18', expiration_date: '2026-11-18', expiry_threshold_days: 3, quantities: [100, 120, 110, 130, 140, 150, 160] },
+        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', batch_number: 'BCH-2026-0917-ALM', production_date: '2026-09-17', expiration_date: '2026-11-17', expiry_threshold_days: 3, quantities: [80, 90, 85, 88, 92, 95, 100] },
+        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', batch_number: 'BCH-2026-0920-LEM', production_date: '2026-09-20', expiration_date: '2026-10-21', expiry_threshold_days: 3, quantities: [50, 55, 48, 60, 52, 58, 62] },
+        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', batch_number: 'BCH-2026-0915-BUT', production_date: '2026-09-15', expiration_date: '2026-11-15', expiry_threshold_days: 3, quantities: [70, 75, 80, 72, 78, 74, 76] },
         { product_id: 'CRK-MNG-J', product_name: 'Mango Crinkles', batch_number: 'BCH-2026-0908-MNG', production_date: '2026-09-08', expiration_date: '2026-09-26', expiry_threshold_days: 3, quantities: [30, 32, 34, 36, 38, 40, 42] },
-        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', batch_number: 'BCH-2026-0919-UBE', production_date: '2026-09-19', expiration_date: '2026-10-19', expiry_threshold_days: 3, quantities: [40, 42, 44, 46, 48, 50, 52] }
+        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', batch_number: 'BCH-2026-0919-UBE', production_date: '2026-09-19', expiration_date: '2026-11-19', expiry_threshold_days: 3, quantities: [40, 42, 44, 46, 48, 50, 52] }
     ];
 
     var RAW_MATERIALS = [
         { material_id: 'RM-WFL-01', name: 'Wheat Flour', current_stock: 120, expiration_date: '2027-03-01', expiry_threshold_days: 7 },
         { material_id: 'RM-WSG-01', name: 'White Sugar', current_stock: 90, expiration_date: '2027-06-01', expiry_threshold_days: 7 },
         { material_id: 'RM-OIL-01', name: 'Vegetable Oil', current_stock: 48, expiration_date: '2027-01-15', expiry_threshold_days: 7 },
-        { material_id: 'RM-EGG-01', name: 'Egg', current_stock: 36, expiration_date: '2026-10-18', expiry_threshold_days: 7 },
+        { material_id: 'RM-EGG-01', name: 'Egg', current_stock: 36, expiration_date: '2026-10-22', expiry_threshold_days: 7 },
         { material_id: 'RM-COC-01', name: 'Cocoa', current_stock: 45, expiration_date: '2026-12-20', expiry_threshold_days: 7 },
         { material_id: 'RM-BKP-01', name: 'Baking Powder', current_stock: 22, expiration_date: '2027-04-01', expiry_threshold_days: 7 },
         { material_id: 'RM-SLT-01', name: 'Salt', current_stock: 70, expiration_date: '2028-01-01', expiry_threshold_days: 7 },
@@ -184,16 +190,92 @@
         return rows;
     }
 
+    function daysUntil(dateStr) {
+        var text = String(dateStr || '').slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+        var parts = text.split('-');
+        var exp = Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        var now = new Date();
+        var today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        return Math.round((exp - today) / 86400000);
+    }
+
+    function shelfLifeText(days) {
+        if (days < 0) {
+            var past = Math.abs(days);
+            return past + (past === 1 ? ' day' : ' days') + ' past expiry';
+        }
+        if (days === 0) return 'expires today';
+        return days + (days === 1 ? ' day' : ' days') + ' of shelf life left';
+    }
+
+    function alertStatusFor(type, ref) {
+        var saved = savedState().alert_status || {};
+        return saved[type + ':' + ref] || 'pending';
+    }
+
+    function configuredLine(code, fallback) {
+        var settings = readJson('kreezbyAlertSettings', null);
+        if (settings && settings.items && settings.items[code] != null && settings.items[code] !== '') {
+            var custom = Number(settings.items[code]);
+            if (Number.isFinite(custom) && custom >= 0) return custom;
+        }
+        return fallback;
+    }
+
+    function pushAlert(list, type, role, ref, message) {
+        list.push({
+            alert_type: type,
+            target_role: role,
+            reference_id: ref,
+            message: message,
+            status: alertStatusFor(type, ref)
+        });
+    }
+
     function alerts() {
-        return [
-            { alert_type: 'low_stock', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles stock is below the reorder point. Current stock: 45 pouches.', status: 'pending' },
-            { alert_type: 'reorder', target_role: 'Staff', reference_id: 'CRK-LEM-P', message: 'Lemon Crinkles should be reordered. Current stock is 85 pouches against a recommended 200.', status: 'pending' },
-            { alert_type: 'near_expiry', target_role: 'Admin', reference_id: 'CRK-LEM-P', message: 'Lemon Crinkles batch BCH-2026-0920-LEM expires on 2026-09-30, inside the 3-day expiry alert.', status: 'pending' },
-            { alert_type: 'near_expiry', target_role: 'Staff', reference_id: 'RM-EGG-01', message: 'Egg expires on 2026-10-18, inside the 7-day ingredient alert.', status: 'pending' },
-            { alert_type: 'expired', target_role: 'Admin', reference_id: 'CRK-MNG-J', message: 'Mango Crinkles batch BCH-2026-0908-MNG expired on 2026-09-26 and cannot be sold.', status: 'pending' },
-            { alert_type: 'price_change', target_role: 'Retailer', reference_id: 'CRK-CHO-P', message: 'Chocolate Crinkles price was updated for retailer accounts.', status: 'acknowledged' },
-            { alert_type: 'new_product', target_role: 'Customer', reference_id: 'CRK-UBE-P', message: 'Ube Crinkles is a newly released flavor.', status: 'resolved' }
-        ];
+        var list = [];
+        var stock = productStockMap();
+        mergedProducts().forEach(function (product) {
+            var qty = Number(stock[product.product_id]);
+            if (!Number.isFinite(qty)) qty = 0;
+            var line = configuredLine(product.product_id, ALERT_LINES[product.product_id]);
+            if (line != null && qty <= line) {
+                pushAlert(list, 'low_stock', 'Admin', product.product_id, product.product_name + ' is at ' + qty + ' pouches, at or below the alert line of ' + line + '.');
+            }
+            var days = daysUntil(product.expiration_date);
+            if (days == null) return;
+            var threshold = Number(product.expiry_threshold_days);
+            if (!Number.isFinite(threshold)) threshold = 3;
+            var batch = product.batch_number ? (' batch ' + product.batch_number) : '';
+            if (days < 0) {
+                pushAlert(list, 'expired', 'Admin', product.product_id, product.product_name + batch + ' expired on ' + product.expiration_date + ' (' + shelfLifeText(days) + ') and cannot be sold.');
+            } else if (days <= threshold) {
+                pushAlert(list, 'near_expiry', 'Staff', product.product_id, product.product_name + batch + ' expires on ' + product.expiration_date + ', with ' + shelfLifeText(days) + '.');
+            }
+        });
+        var materials = materialStockMap();
+        allMaterials().forEach(function (item) {
+            var qty = Number(materials[item.material_id]);
+            if (!Number.isFinite(qty)) qty = 0;
+            var line = configuredLine(item.material_id, ALERT_LINES[item.material_id]);
+            if (line != null && qty <= line) {
+                pushAlert(list, 'low_stock', 'Staff', item.material_id, item.name + ' is at ' + qty + ', at or below the alert line of ' + line + '.');
+            }
+            var days = daysUntil(item.expiration_date);
+            if (days == null) return;
+            var threshold = Number(item.expiry_threshold_days);
+            if (!Number.isFinite(threshold)) threshold = 7;
+            if (days < 0) {
+                pushAlert(list, 'expired', 'Admin', item.material_id, item.name + ' expired on ' + item.expiration_date + ' (' + shelfLifeText(days) + ').');
+            } else if (days <= threshold) {
+                pushAlert(list, 'near_expiry', 'Staff', item.material_id, item.name + ' expires on ' + item.expiration_date + ', with ' + shelfLifeText(days) + '.');
+            }
+        });
+        (savedState().partner_alerts || []).forEach(function (alert) {
+            if (alert && alert.message) list.push(alert);
+        });
+        return list;
     }
 
     function users() {
@@ -293,7 +375,7 @@
         }
         readJson('kreezbyOrders', []).forEach(function (order) {
             if (!order) return;
-            var deducted = order.source === 'staff-tracking' ? !!order.inventoryDeducted : true;
+            var deducted = !!order.inventoryDeducted;
             add(order.orderNumber || order.receiptNumber, order.status, order.items, deducted);
         });
         var pos = readJson('kreezby-po-orders-v1', {});
@@ -393,7 +475,7 @@
                     expiry_threshold_days: product.expiry_threshold_days
                 };
             }),
-            raw_materials: RAW_MATERIALS.map(function (item) {
+            raw_materials: allMaterials().map(function (item) {
                 return {
                     material_id: item.material_id,
                     name: item.name,
@@ -430,11 +512,61 @@
         data.material_stock = materialStock;
         data.product_edits = previous.product_edits || {};
         data.products_extra = previous.products_extra || [];
+        data.materials_extra = previous.materials_extra || [];
+        data.alert_status = previous.alert_status || {};
+        data.partner_alerts = previous.partner_alerts || [];
+        data.product_prices = previous.product_prices || {};
         writeState(data);
         return data;
     }
 
+    function saleBlockReason(productName) {
+        var id = productId(productName);
+        if (!id) return 'unknown';
+        var product = productById(id);
+        var days = product ? daysUntil(product.expiration_date) : null;
+        if (days != null && days < 0) return 'expired';
+        return '';
+    }
+
+    function pushPartnerNotice(type, name, message) {
+        var saved = savedState();
+        var list = saved.partner_alerts || [];
+        list.unshift({
+            alert_type: type,
+            target_role: 'Customer',
+            reference_id: productId(name) || name,
+            message: message,
+            status: 'pending',
+            at: new Date().toISOString()
+        });
+        saved.partner_alerts = list.slice(0, 40);
+        writeState(saved);
+        var note = {
+            id: 'partner-' + type + '-' + Date.now(),
+            title: type === 'price_change' ? 'Price update' : 'New flavor',
+            description: message,
+            source: type,
+            audiences: ['customer', 'retailer'],
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        if (window.KreezbyNotifications && typeof window.KreezbyNotifications.push === 'function') {
+            window.KreezbyNotifications.push(note);
+            return;
+        }
+        var notes = readJson('kreezbyNotifications', []);
+        notes.unshift(note);
+        try { localStorage.setItem('kreezbyNotifications', JSON.stringify(notes)); } catch (e) { /* ignore */ }
+    }
+
     function recordSale(productName, quantity, salesDate) {
+        var block = saleBlockReason(productName);
+        if (block) {
+            lastSaleError = block;
+            return null;
+        }
+        lastSaleError = '';
         var id = productId(productName);
         if (!id) return null;
         var qty = Number(quantity) || 0;
@@ -524,6 +656,7 @@
         if (!id) return null;
         var saved = savedState();
         var inCatalog = PRODUCTS.some(function (product) { return product.product_id === id; });
+        var isNewFlavor = false;
         if (!inCatalog) {
             var extra = saved.products_extra || [];
             var found = null;
@@ -533,6 +666,7 @@
             if (!found) {
                 found = { product_id: id, product_name: productName, expiry_threshold_days: 3, quantities: [] };
                 extra.push(found);
+                isNewFlavor = true;
             }
             ['batch_number', 'production_date', 'expiration_date'].forEach(function (key) {
                 if (fields && fields[key]) found[key] = String(fields[key]);
@@ -547,6 +681,19 @@
             edits[id] = current;
             saved.product_edits = edits;
         }
+        var priceNotice = '';
+        if (fields && fields.price != null && String(fields.price) !== '') {
+            var price = Number(fields.price);
+            if (Number.isFinite(price) && price >= 0) {
+                var prices = saved.product_prices || {};
+                var previousPrice = prices[id];
+                if (previousPrice == null || Number(previousPrice) !== price) {
+                    prices[id] = price;
+                    saved.product_prices = prices;
+                    priceNotice = productName + ' price is now ₱' + price.toFixed(2) + '.';
+                }
+            }
+        }
         writeState(saved);
         if (fields && fields.current_stock != null && fields.current_stock !== '') {
             setProductStock(productName, fields.current_stock);
@@ -554,6 +701,8 @@
             snapshot();
             notifyStocks();
         }
+        if (isNewFlavor) pushPartnerNotice('new_product', productName, productName + ' is a newly released flavor.');
+        if (priceNotice) pushPartnerNotice('price_change', productName, priceNotice);
         return productById(id);
     }
 
@@ -773,6 +922,7 @@
             made: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
             expires: '<circle cx="12" cy="13" r="7"/><path d="M12 10v3.5L14.5 15M9 3h6"/>',
             stock: '<path d="m21 8-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+            price: '<path d="M12 2v20"/><path d="M17 6.5c0-1.5-2-2.5-5-2.5S7 5 7 7s2 2.5 5 2.5 5 1 5 2.5-2 2.5-5 2.5-5-1-5-2.5"/>',
             material: '<path d="M12 22V11"/><path d="M7 8c1.5 2 3 3.2 5 3.8C14 11.2 15.5 10 17 8c-1.4.2-2.8.8-4 2.2C11.8 8.8 10.4 8.2 9 8H7z"/><path d="M6 14c2 .8 4 .8 6 0 2 .8 4 .8 6 0"/>',
             move: '<path d="M7 7h11M15 4l3 3-3 3M17 17H6M9 14l-3 3 3 3"/>',
             qty: '<path d="M5 9h14M5 15h14M10 4l-1.5 16M16 4l-1.5 16"/>'
@@ -858,13 +1008,14 @@
                 + stockField('fr-produced', 'Produced', 'made', '<input id="fr-produced" type="date">', true)
                 + stockField('fr-expires', 'Expires', 'expires', '<input id="fr-expires" type="date">', true)
                 + stockField('fr-stock', 'Stock', 'stock', '<input id="fr-stock" type="number" min="0">', true)
+                + stockField('fr-price', 'Price', 'price', '<input id="fr-price" type="number" min="0" step="0.01">', true)
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Save product</button></div>'
                 + '</div></section>'
                 + '<section class="fr-card fr-card--materials" aria-label="Raw material records">'
                 + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('material') + '</span>Raw materials</h3>'
                 + '<p class="fr-card__lead">Type any raw material, then record stock-in, stock-out, or usage.</p>'
                 + '<div class="fr-fields">'
-                + stockField('fr-material', 'Raw material', 'material', '<input id="fr-material" type="text" placeholder="Type a raw material">')
+                + stockField('fr-material', 'Raw material', 'material', '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist>')
                 + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Record movement</button></div>'
@@ -881,10 +1032,11 @@
                 + '<label>Produced<br><input id="fr-produced" type="date"></label>'
                 + '<label>Expires<br><input id="fr-expires" type="date"></label>'
                 + '<label>Stock<br><input id="fr-stock" type="number" min="0" style="width:90px;"></label>'
+                + '<label>Price<br><input id="fr-price" type="number" min="0" step="0.01" style="width:90px;"></label>'
                 + '<button type="button" id="fr-save-product">Save product</button>'
                 + '</div>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
-                + '<label>Raw material<br><select id="fr-material">' + materialOptions + '</select></label>'
+                + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
                 + '<label>Movement<br><select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
                 + '<button type="button" id="fr-save-move">Record movement</button>'
@@ -912,19 +1064,28 @@
             document.getElementById('fr-expires').value = product.expiration_date || '';
             var stock = productStockMap()[product.product_id];
             document.getElementById('fr-stock').value = stock == null ? '' : String(stock);
+            var priceInput = document.getElementById('fr-price');
+            if (priceInput) {
+                var prices = savedState().product_prices || {};
+                priceInput.value = prices[product.product_id] == null ? '' : String(prices[product.product_id]);
+            }
         }
         document.getElementById('fr-product').addEventListener('change', fillProduct);
         document.getElementById('fr-save-product').addEventListener('click', function () {
             var name = document.getElementById('fr-product').value;
-            saveProductFields(name, {
+            var priceNode = document.getElementById('fr-price');
+            var savedProduct = saveProductFields(name, {
                 batch_number: document.getElementById('fr-batch').value,
                 production_date: document.getElementById('fr-produced').value,
                 expiration_date: document.getElementById('fr-expires').value,
-                current_stock: document.getElementById('fr-stock').value
+                current_stock: document.getElementById('fr-stock').value,
+                price: priceNode ? priceNode.value : ''
             });
             document.querySelectorAll('.dict-fields').forEach(function (node) { node.remove(); });
             decorateStocks();
-            document.getElementById('fr-stock-note').textContent = name + ' was saved. Stock on the table now matches this record.';
+            document.getElementById('fr-stock-note').textContent = savedProduct
+                ? (name + ' was saved. Stock on the table now matches this record.')
+                : 'That product could not be saved.';
         });
         document.getElementById('fr-save-move').addEventListener('click', function () {
             var name = String(document.getElementById('fr-material').value || '').trim();
@@ -984,6 +1145,7 @@
         decorateSaleCards();
         mountStockTools();
         seedPartnerAlerts();
+        notifyStocks();
     }
 
     window.KreezbyDictionary = {
@@ -991,6 +1153,8 @@
         productId: productId,
         productById: productById,
         recordSale: recordSale,
+        saleBlockReason: saleBlockReason,
+        lastSaleError: function () { return lastSaleError; },
         setProductStock: setProductStock,
         recordMaterialMovement: recordMaterialMovement,
         saveProductFields: saveProductFields,

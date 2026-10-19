@@ -158,6 +158,12 @@
         return qty == null ? 0 : Number(qty) || 0;
     }
 
+    function expiredName(name) {
+        var dict = window.KreezbyDictionary;
+        if (!dict || typeof dict.saleBlockReason !== 'function') return false;
+        return dict.saleBlockReason(name) === 'expired';
+    }
+
     function cashierName() {
         try {
             var session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
@@ -205,15 +211,16 @@
         var productsHtml = PRODUCTS.map(function (product) {
             var stock = stockFor(product.name);
             var qty = cart[product.code] || 0;
-            var soldOut = stock <= 0;
+            var expired = expiredName(product.name);
+            var soldOut = expired || stock <= 0;
             return '<article class="pos-product' + (soldOut ? ' is-empty' : '') + '">' +
                 '<h4>' + esc(product.name) + '</h4>' +
                 '<p class="pos-price">' + peso(product.price) + '</p>' +
-                '<p class="pos-stock">' + stock + ' in stock</p>' +
+                '<p class="pos-stock">' + (expired ? 'Expired — cannot be sold' : (stock + ' in stock')) + '</p>' +
                 '<div class="pos-qty">' +
                     '<button type="button" data-pos-dec="' + esc(product.code) + '" aria-label="Remove one ' + esc(product.name) + '"' + (qty ? '' : ' disabled') + '>−</button>' +
                     '<span>' + qty + '</span>' +
-                    '<button type="button" data-pos-inc="' + esc(product.code) + '" aria-label="Add one ' + esc(product.name) + '"' + (qty >= stock ? ' disabled' : '') + '>+</button>' +
+                    '<button type="button" data-pos-inc="' + esc(product.code) + '" aria-label="Add one ' + esc(product.name) + '"' + (expired || qty >= stock ? ' disabled' : '') + '>+</button>' +
                 '</div>' +
             '</article>';
         }).join('');
@@ -291,6 +298,10 @@
     function changeQty(code, delta) {
         var product = PRODUCTS.filter(function (item) { return item.code === code; })[0];
         if (!product) return;
+        if (delta > 0 && expiredName(product.name)) {
+            setStatus(product.name + ' is expired and cannot be sold.', 'warn');
+            return;
+        }
         var stock = stockFor(product.name);
         var next = Math.max(0, (cart[code] || 0) + delta);
         if (next > stock) next = stock;
@@ -303,6 +314,12 @@
         var lines = cartLines();
         if (!lines.length) {
             setStatus('Add at least one product.', 'warn');
+            return;
+        }
+        var expired = lines.filter(function (line) { return expiredName(line.name); });
+        if (expired.length) {
+            setStatus(expired[0].name + ' is expired and cannot be sold.', 'warn');
+            render();
             return;
         }
         var short = lines.filter(function (line) { return line.qty > stockFor(line.name); });
@@ -406,10 +423,18 @@
             else skipped.push(line.name);
         });
         var date = String(order.when || todayStamp()).slice(0, 10) || todayStamp();
+        for (var check = 0; check < stockLines.length; check++) {
+            var blocked = knownProduct(stockLines[check].name);
+            if (blocked && expiredName(blocked.name)) {
+                return { ok: false, message: blocked.name + ' is expired and cannot be sold.' };
+            }
+        }
         for (var i = 0; i < stockLines.length; i++) {
             var product = knownProduct(stockLines[i].name);
             var left = dict.recordSale(product.name, stockLines[i].qty, date);
-            if (left == null) return { ok: false, message: 'Could not record ' + stockLines[i].name + '.' };
+            if (left == null) {
+                return { ok: false, message: 'Could not record ' + product.name + '.' };
+            }
         }
         markPosted(order.store, order.id);
         var sales = readSales();

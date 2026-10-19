@@ -89,7 +89,10 @@
     };
 
     var BO_STATUSES = [
-        { class: 'pending', label: 'Pending', value: 'PENDING' }
+        { class: 'pending', label: 'Pending', value: 'PENDING' },
+        { class: 'partial', label: 'Partial', value: 'PARTIAL' },
+        { class: 'received', label: 'Fulfilled', value: 'FULFILLED' },
+        { class: 'cancelled', label: 'Cancelled', value: 'CANCELLED' }
     ];
 
     var BO_ORDERS = {};
@@ -298,7 +301,7 @@
         Object.keys(BO_ORDERS).forEach(function (code) {
             var order = BO_ORDERS[code];
             if (!order) return;
-            if (order.statusClass === 'received' || order.statusClass === 'partial') {
+            if (!order.statusClass) {
                 order.statusClass = 'pending';
                 order.status = 'PENDING';
             }
@@ -318,7 +321,6 @@
     }
 
     function statusMeta(statusClass) {
-        if (statusClass === 'received' || statusClass === 'partial') statusClass = 'pending';
         for (var i = 0; i < BO_STATUSES.length; i++) {
             if (BO_STATUSES[i].class === statusClass) return BO_STATUSES[i];
         }

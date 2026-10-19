@@ -90,6 +90,9 @@
         PAGE_TO_TASK['inbox-staff-' + inboxN + '.html'] = 'inbox';
     }
     PAGE_TO_TASK['inbox-staff.html'] = 'inbox';
+    PAGE_TO_TASK['insight-staff.html'] = 'aiforecast';
+    PAGE_TO_TASK['forecast-staff.html'] = 'aiforecast';
+    PAGE_TO_TASK['profile-staff.html'] = null;
 
     function getStoredPermissions() {
         try {
@@ -163,6 +166,8 @@
                 if (String(staff.username || '').toLowerCase() === id) return staff.id;
                 if (String(staff.name || '').toLowerCase() === id) return staff.id;
             }
+            if (id.indexOf('imelda') >= 0) return 'staff-imelda';
+            if (id.indexOf('nichole') >= 0) return 'staff-nichole';
         } catch (e) { /* ignore */ }
         return '';
     }
@@ -280,6 +285,7 @@
             try { sessionStorage.setItem(SESSION_STAFF_KEY, fromSession); } catch (e) { /* ignore */ }
             return fromSession;
         }
+        if (/\/staff\//i.test(window.location.pathname || '')) return '';
         if (accounts.length) return accounts[0].id;
         return 'staff-imelda';
     }
@@ -362,7 +368,10 @@
 
     function getTaskForPage(filename) {
         var base = filename.split('/').pop().split('?')[0];
-        return PAGE_TO_TASK[base] || null;
+        if (Object.prototype.hasOwnProperty.call(PAGE_TO_TASK, base)) return PAGE_TO_TASK[base];
+        if (base.indexOf('insight-') === 0 || base.indexOf('forecast-') === 0 || base.indexOf('aiforecast_') === 0) return 'aiforecast';
+        if (base.indexOf('stocklevel') === 0) return 'stocklevel';
+        return null;
     }
 
     function getDashboardHref(staffId) {
@@ -608,6 +617,21 @@
         return { getSelectedStaffId: function () { return selectedStaffPermissionsId; } };
     }
 
+    function portalLoginHref() {
+        var path = (window.location.pathname || '').replace(/\\/g, '/');
+        var parts = path.split('/').filter(Boolean);
+        var roots = ['admin', 'staff', 'head_admin', 'retailer', 'customer', 'admin_names', 'staff_names'];
+        var idx = -1;
+        var i;
+        for (i = parts.length - 1; i >= 0; i--) {
+            if (roots.indexOf(parts[i].toLowerCase()) >= 0) { idx = i; break; }
+        }
+        var prefix = '';
+        var depth = idx < 0 ? 1 : (parts.length - idx - 1);
+        for (i = 0; i < depth; i++) prefix += '../';
+        return prefix + 'auth/log_in.html';
+    }
+
     function guardCurrentPage() {
         var path = window.location.pathname;
         var filename = path.split('/').pop() || '';
@@ -620,10 +644,17 @@
             return;
         }
 
-        var taskKey = getTaskForPage(filename);
-        if (!taskKey) return;
-
         var staffId = getCurrentStaffId();
+        if (!staffId) {
+            window.location.replace(portalLoginHref());
+            return;
+        }
+        var taskKey = getTaskForPage(filename);
+        if (!taskKey) {
+            if (filename === 'profile-staff.html') return;
+            window.location.replace(getDashboardHref(staffId) + '?denied=1');
+            return;
+        }
         if (!staffCanAccessTask(taskKey, staffId)) {
             window.location.replace(getDashboardHref(staffId) + '?denied=1');
         }

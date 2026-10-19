@@ -153,6 +153,11 @@
             return;
         }
         if (!document.querySelector('#management-insight-table tbody tr[data-flavor]')) paintTable(snapshot);
+        if (!snapshot.products || !snapshot.products.length) {
+            setBody('There is not enough sales or stock data yet to summarize. Once products have stock and recent sales, this note will tell you what stands out.');
+            setStatus('Not enough data');
+            return;
+        }
         var id = ++requestId;
         setBusy(true);
         setStatus('Writing…');
@@ -172,9 +177,9 @@
                 setStatus('Updated from GPT-4o mini');
                 return;
             }
-            if (result.data && result.data.insight) {
+            if (result.data && result.data.insight && /not enough/i.test(result.data.insight)) {
                 setBody(result.data.insight);
-                setStatus('Updated from GPT-4o mini');
+                setStatus('Not enough data');
                 return;
             }
             setStatus((result.data && result.data.error) || 'The note could not be written just now.');

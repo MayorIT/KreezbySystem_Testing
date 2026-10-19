@@ -1012,6 +1012,18 @@ function resumePaymongoReturn() {
     });
 }
 
+function nextCustomerOrderNumber() {
+    const year = new Date().getFullYear();
+    let max = 1000;
+    try {
+        JSON.parse(localStorage.getItem('kreezbyOrders') || '[]').forEach(function (order) {
+            const match = String(order && order.orderNumber || '').match(/^ORD-(\d{4})-(\d+)$/);
+            if (match && Number(match[1]) === year) max = Math.max(max, Number(match[2]));
+        });
+    } catch (e) { /* ignore */ }
+    return 'ORD-' + year + '-' + String(max + 1).padStart(4, '0');
+}
+
 function placeOrder() {
     if (!hasCartItems()) {
         showCheckoutDialog('Your cart is empty. Add products before placing an order.', { type: 'warning', title: 'Cart Empty' });
@@ -1026,7 +1038,16 @@ function placeOrder() {
         return;
     }
 
-    orderNumber = 'ORD-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    const expiredItem = Object.keys(cartData || {}).map(function (key) { return cartData[key]; }).find(function (item) {
+        return item && item.name && window.KreezbyDictionary && typeof KreezbyDictionary.saleBlockReason === 'function'
+            && KreezbyDictionary.saleBlockReason(item.name) === 'expired';
+    });
+    if (expiredItem) {
+        showCheckoutDialog(expiredItem.name + ' is expired and cannot be checked out.', { type: 'warning', title: 'Expired Product' });
+        return;
+    }
+
+    orderNumber = nextCustomerOrderNumber();
 
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
     const deliveryFee = subtotal > 0 ? 50 : 0;
@@ -1090,7 +1111,10 @@ function placeOrder() {
             var item = cartData[key];
             if (!item || !item.name) return;
             var known = typeof KreezbyDictionary.productId === 'function' && KreezbyDictionary.productId(item.name);
-            if (!known) return;
+            if (!known) {
+                stockPosted = false;
+                return;
+            }
             if (KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10)) == null) stockPosted = false;
         });
         if (stockPosted) {

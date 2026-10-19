@@ -622,6 +622,28 @@
         });
     }
 
+    function mirrorPurchaseOrder(order) {
+        if (!order) return;
+        try {
+            var store = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}') || {};
+            var keys = [order.poCode, order.orderNumber, order.receiptNumber];
+            Object.keys(store).forEach(function (code) {
+                var row = store[code];
+                if (!row) return;
+                var linked = keys.indexOf(code) >= 0
+                    || keys.indexOf(row.code) >= 0
+                    || keys.indexOf(row.shopOrderNumber) >= 0;
+                if (!linked) return;
+                row.status = order.status;
+                row.trackingNumber = order.trackingNumber || '';
+                row.carrier = order.carrier || '';
+                row.staffNotes = order.staffNotes || '';
+                row.statusUpdatedAt = order.statusUpdatedAt || '';
+            });
+            localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(store));
+        } catch (e) { /* ignore */ }
+    }
+
     function saveOrderUpdates(root, orderNumber) {
         var idx = findOrderIndex(orderNumber);
         if (idx < 0) return;
@@ -656,6 +678,7 @@
 
         orders[idx] = order;
         saveOrders(orders);
+        mirrorPurchaseOrder(order);
         renderTable(root, orderNumber);
         renderDetail(root, orderNumber);
         showToast(root, 'Saved tracking for ' + orderNumber + '.');
