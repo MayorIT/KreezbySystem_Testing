@@ -84,7 +84,7 @@
         var session = readSession();
         if (session.accountType === 'Head Administrator') return true;
         var id = normalizeIdentity(session.identity || session.userName);
-        return id === 'brentadmin' || id === 'marcelaadmin' || id === 'marcelacriseldaramos' ||
+        return id === 'brentadmin' || id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' ||
             (id.indexOf('brent') === 0 && id.indexOf('admin') >= 0) ||
             (id.indexOf('marcela') === 0 && id.indexOf('admin') >= 0);
     }
@@ -317,7 +317,7 @@
         var session = readSession();
         var id = normalizeIdentity(session.identity || session.userName || session.name);
         if (!id) return false;
-        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id.indexOf('marcela') === 0) return true;
+        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' || id.indexOf('marcela') === 0) return true;
         var accounts = getAdminAccounts();
         var keys = Object.keys(accounts);
         for (var i = 0; i < keys.length; i++) {

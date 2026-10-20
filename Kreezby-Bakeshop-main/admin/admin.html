@@ -61,7 +61,7 @@
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
-    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261010max">
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261020menu">
 </head>
 <body class="kreezby-admin-home">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
@@ -118,10 +118,10 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/order-tracking.js?v=20261019fn"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261011staffbtns"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261020menu2"></script>
     <script src="../js/admin-permissions.js?v=20261020brent"></script>
     <script src="../js/admin-sidebar.js?v=20261020brent"></script>
-    <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
+    <script src="../js/sidebar-toggle.js?v=20261020menu2"></script>
     <script>
         (function () {
             function isDashboard() {
@@ -140,7 +140,7 @@
                 if (!dashboard) return;
                 var header = document.querySelector('.top-navbar-node');
                 if (!header) return;
-                header.querySelectorAll('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
+                header.querySelectorAll('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
                     if (el.closest('.user-dropdown')) return;
                     el.remove();
                 });
@@ -148,12 +148,19 @@
             }
 
             function syncMenuButton() {
-                var btn = document.getElementById('admin-open-menu');
-                if (!btn) return;
                 var open = document.body.classList.contains('kreezby-nav-open');
-                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                var label = btn.querySelector('.admin-home-menu-btn__label');
-                if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+                var btn = document.getElementById('admin-open-menu');
+                if (btn) {
+                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    var label = btn.querySelector('.admin-home-menu-btn__label');
+                    if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+                }
+                var ham = document.querySelector('.top-navbar-node .hamburger-toggle');
+                if (ham) {
+                    ham.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    ham.setAttribute('aria-pressed', open ? 'true' : 'false');
+                    ham.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+                }
             }
 
             function ensureScrim() {
@@ -184,8 +191,8 @@
                     records.forEach(function (record) {
                         record.addedNodes.forEach(function (node) {
                             if (!node || node.nodeType !== 1) return;
-                            if (node.matches('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs, .notification-pill') ||
-                                (node.querySelector && node.querySelector('.hamburger-toggle, a.home-badge, a.expandable-nav-tab, .notification-pill, .notification-popover-root'))) {
+                            if (node.matches('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs, .notification-pill') ||
+                                (node.querySelector && node.querySelector('a.home-badge, a.expandable-nav-tab, .notification-pill, .notification-popover-root'))) {
                                 dirty = true;
                             }
                         });

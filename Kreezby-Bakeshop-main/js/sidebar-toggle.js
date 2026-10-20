@@ -70,20 +70,7 @@
 
     window.KreezbyToggleSidebar = toggleSidebar;
 
-    function isAdminHomePage() {
-        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        var file = path.split('/').pop().split('?')[0];
-        if (file === 'head_admin.html' && path.indexOf('/head_admin/') !== -1) return true;
-        if ((path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0) && (file === 'staff.html' || /^staff-\d+\.html$/.test(file))) return true;
-        if (path.indexOf('/admin/') < 0 || path.indexOf('/admin_names/') >= 0) return false;
-        return file === 'admin.html';
-    }
-
     function addToggleButton() {
-        if (isAdminHomePage()) {
-            document.querySelectorAll('.top-navbar-node .hamburger-toggle').forEach(function (el) { el.remove(); });
-            return;
-        }
         const header = document.querySelector('.top-navbar-node');
         const topNav = header && header.querySelector('.top-nav-links-right');
         const sidebar = document.querySelector('aside.sidebar-panel, aside.dark-sidebar-panel');
@@ -224,9 +211,18 @@
         wireExistingRows();
     });
 
-    document.addEventListener('kreezby-admin-sidebar-ready', wireExistingRows);
-    document.addEventListener('kreezby-staff-sidebar-ready', wireExistingRows);
-    document.addEventListener('kreezby-portal-sidebar-ready', wireExistingRows);
+    document.addEventListener('kreezby-admin-sidebar-ready', function () {
+        addToggleButton();
+        wireExistingRows();
+    });
+    document.addEventListener('kreezby-staff-sidebar-ready', function () {
+        addToggleButton();
+        wireExistingRows();
+    });
+    document.addEventListener('kreezby-portal-sidebar-ready', function () {
+        addToggleButton();
+        wireExistingRows();
+    });
     document.addEventListener('kreezby:page-load', function () {
         ensureMobileLoaded();
         ensureUserDropdownNavLoaded();

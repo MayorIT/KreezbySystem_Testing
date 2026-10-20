@@ -85,9 +85,14 @@ main.workspace-view-canvas .kreezby-welcome {
 /* Admin home stage — used by retailer dashboards */
 body.kreezby-admin-home .top-navbar-node a.home-badge,
 body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,
-body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs,
-body.kreezby-admin-home .top-navbar-node .hamburger-toggle {
+body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs {
     display: none !important;
+}
+
+body .top-navbar-node .hamburger-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 body.kreezby-head-admin:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle {

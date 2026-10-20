@@ -56,6 +56,14 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
+body.kreezby-admin-home .top-navbar-node .hamburger-toggle,
+.top-navbar-node .hamburger-toggle,
+.hamburger-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 .hamburger-toggle {
     display: inline-flex;
     align-items: center;

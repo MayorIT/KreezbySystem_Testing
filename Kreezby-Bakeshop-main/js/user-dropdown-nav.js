@@ -663,16 +663,15 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
-            style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
+            style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
         }
-        style.textContent = 'body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle,body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}';
+        style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');
         if (!header) return;
-        header.querySelectorAll('.hamburger-toggle, a.home-badge, a.top-nav-item.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
+        header.querySelectorAll('a.home-badge, a.top-nav-item.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
             if (el.closest('.user-dropdown')) return;
-            if (isRetailerHomePage() && el.classList.contains('hamburger-toggle')) return;
             el.remove();
         });
     }
@@ -720,8 +719,8 @@
                 }
                 return;
             }
-            if (event.target.closest('aside.dark-sidebar-panel a, aside.sidebar-panel a')) closeAdminMenu();
-        });
+            if (event.target.closest('aside.dark-sidebar-panel a, aside.sidebar-panel a, .kreezby-sidebar-nav-item')) closeAdminMenu();
+        }, true);
     }
 
     function ensureAdminNotificationPill() {
@@ -1083,7 +1082,16 @@
         ensureAdminPermissionsLoaded();
     }
 
+    function renameStoredOwner() {
+        try {
+            var raw = localStorage.getItem('kreezby_session');
+            if (!raw || raw.indexOf('Marcela Criselda Ramos') < 0) return;
+            localStorage.setItem('kreezby_session', raw.split('Marcela Criselda Ramos').join('Criselda Ramos'));
+        } catch (e) { /* keep the saved session */ }
+    }
+
     function init() {
+        renameStoredOwner();
         pinTopNavbar();
         ensureHomeIconCss();
         keepOnlyHomeNavTab();

@@ -12,7 +12,7 @@
 
     var DEFAULT_USERS = {
         admins: [
-            { id: 'admin-owner', name: 'Marcela Criselda Ramos', username: 'marcela_admin', role: 'Owner', accountType: 'Head Administrator' },
+            { id: 'admin-owner', name: 'Criselda Ramos', username: 'marcela_admin', role: 'Owner', accountType: 'Head Administrator' },
             { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Head Administrator' },
             { id: 'admin-marketing', name: 'Ailore Embalzado', username: 'ailore_admin', role: 'Marketing', accountType: 'Administrator' }
         ],
@@ -211,10 +211,27 @@
         if (added) saveJson(USERS_KEY, users);
     }
 
+    function renameOwnerDisplay(users) {
+        if (!users || !Array.isArray(users.admins)) return users;
+        var changed = false;
+        users.admins.forEach(function (user) {
+            if (!user) return;
+            var username = String(user.username || '').toLowerCase();
+            if (user.id === 'admin-owner' || username === 'marcela_admin' || user.name === 'Marcela Criselda Ramos') {
+                if (user.name !== 'Criselda Ramos') {
+                    user.name = 'Criselda Ramos';
+                    changed = true;
+                }
+            }
+        });
+        if (changed) saveJson(USERS_KEY, users);
+        return users;
+    }
+
     function getUsers() {
         var seeded = '';
         try { seeded = localStorage.getItem(USERS_SEED_VERSION_KEY) || ''; } catch (e) { seeded = ''; }
-        var users = loadJson(USERS_KEY, DEFAULT_USERS);
+        var users = renameOwnerDisplay(loadJson(USERS_KEY, DEFAULT_USERS));
         if (seeded !== USERS_SEED_VERSION || hasRetiredDemoAccounts(users)) {
             return withDictionaryFields(applyRealAccountSeed());
         }

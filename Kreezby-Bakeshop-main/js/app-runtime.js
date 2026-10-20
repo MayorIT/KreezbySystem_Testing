@@ -68,7 +68,7 @@
   /** Real staff sign-ins — normalized key (lowercase, no spaces/dashes) */
   var LOGIN_ALIASES = {
     marcelaadmin: {
-      userName: 'Marcela Criselda Ramos',
+      userName: 'Criselda Ramos',
       accountType: 'Head Administrator',
       redirectUrl: 'head_admin/head_admin.html'
     },
