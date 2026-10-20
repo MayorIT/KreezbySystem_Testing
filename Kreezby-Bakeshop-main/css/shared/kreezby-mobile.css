@@ -1594,16 +1594,21 @@ html {
         box-sizing: border-box;
     }
 
-    /* Back-order and order tabs stay inside the phone. The right pill ends at the screen edge. */
+    /* Back-order labels stay inside the pill, and the pill stays inside the outer border. */
+    body .po-tabbed-card > .po-order-tabs,
+    body .bo-tabbed-card > .bo-order-tabs,
+    body .panel-data-card > .po-order-tabs,
+    body .panel-data-card > .bo-order-tabs,
     body .po-order-tabs,
     body .bo-order-tabs,
     body .po-order-tabs.expanding-tabs,
     body .bo-order-tabs.expanding-tabs {
         display: flex !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+        margin: 10px !important;
+        padding: 6px !important;
+        gap: 8px !important;
         box-sizing: border-box !important;
         flex-wrap: nowrap !important;
         overflow: hidden !important;
@@ -1617,11 +1622,14 @@ html {
         flex-shrink: 1 !important;
         min-width: 0 !important;
         width: auto !important;
-        max-width: none !important;
-        height: auto !important;
-        min-height: 40px !important;
-        padding: 8px 10px !important;
-        white-space: normal !important;
+        max-width: calc(50% - 4px) !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 0 6px !important;
+        gap: 4px !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
     }
@@ -1633,8 +1641,60 @@ html {
         display: inline !important;
         max-width: none !important;
         opacity: 1 !important;
-        white-space: normal !important;
-        overflow: visible !important;
-        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        text-overflow: clip;
     }
+
+    body .card-body-padded,
+    body .po-table-scroll-wrap,
+    body .recv-table-scroll-wrap,
+    body .manual-sheet-scroll {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box;
+    }
+
+    body table.kreezby-phone-cards tbody tr,
+    body table.manual-sheet-table tbody tr,
+    body table.manual-sheet-table tfoot tr {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    body .auth-shell__header {
+        justify-content: center !important;
+    }
+
+    body .auth-shell__brand {
+        margin: 0 auto !important;
+    }
+
+    body .auth-shell__brand img {
+        display: block !important;
+        width: 128px !important;
+        height: 46px !important;
+        max-width: 128px !important;
+        max-height: 46px !important;
+        object-fit: contain !important;
+    }
+}
+
+/* Desktop and phone: keep an inner border from sitting on the outer border. */
+.po-tabbed-card > .po-order-tabs,
+.bo-tabbed-card > .bo-order-tabs,
+.panel-data-card > .po-order-tabs,
+.panel-data-card > .bo-order-tabs {
+    margin: 12px 12px 0;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+    box-sizing: border-box;
+}
+
+.card-body-padded:has(> .po-table-scroll-wrap),
+.card-body-padded:has(table),
+.manual-sheet-scroll {
+    box-sizing: border-box;
 }

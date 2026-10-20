@@ -388,7 +388,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20261020keep';
+        s.src = jsBase() + 'admin-permissions.js?v=20261020logo';
         s.async = false;
         document.head.appendChild(s);
     }

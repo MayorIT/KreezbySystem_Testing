@@ -373,7 +373,7 @@
     function getStaffTasks(staffId) {
         staffId = staffId || getCurrentStaffId();
         var all = getAllPermissions();
-        return all[staffId] || ['dashboard'];
+        return normalizeStaffTasks(all[staffId] || ['dashboard']);
     }
 
     function normalizeStaffTasks(tasks) {

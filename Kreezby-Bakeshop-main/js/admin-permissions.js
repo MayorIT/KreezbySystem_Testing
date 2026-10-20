@@ -26,7 +26,6 @@
 
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'admin.html' },
-        receive: { label: 'Receiving', page: 'receive-admin.html' },
         bo: { label: 'Back Order', page: 'bo-admin.html' },
         stocks: { label: 'Stocks', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-admin.html' },
@@ -46,7 +45,7 @@
     };
 
     var TASK_ORDER = [
-        'dashboard', 'receive', 'bo', 'stocks',
+        'dashboard', 'bo', 'stocks',
         'saleslist', 'pos', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
         'maintenance', 'inbox', 'issuereports'
     ];
@@ -398,20 +397,25 @@
         return account.accountType === 'Head Administrator';
     }
 
+    function withoutReceiving(tasks) {
+        return (tasks || []).filter(function (task) { return task !== 'receive'; });
+    }
+
     function getAdminTasks(adminId) {
         if (adminId) {
             if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
             var named = getAllPermissions();
-            return named[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard'];
+            return withoutReceiving(named[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard']);
         }
         if (isOwnerSession() && !namedAdminPortal()) return TASK_ORDER.slice();
         adminId = getCurrentAdminId();
         if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
         var all = getAllPermissions();
-        return all[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard'];
+        return withoutReceiving(all[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard']);
     }
 
     function adminCanAccessTask(taskKey, adminId) {
+        if (taskKey === 'receive') return false;
         if (!taskKey) return true;
         if (isOwnerSession() && !namedAdminPortal()) return true;
         return getAdminTasks(adminId).indexOf(taskKey) !== -1;

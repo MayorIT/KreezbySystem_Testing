@@ -116,7 +116,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20261020tabs';
+            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
             document.head.appendChild(mobile);
         }
         if (document.getElementById('kreezby-staff-icon-sidebar-style')) return;
@@ -288,6 +288,10 @@
         var asides = document.querySelectorAll('aside.dark-sidebar-panel');
         if (!asides.length) return;
         if (!isStaffDarkSidebarPage()) return;
+        if (currentFilename() === 'receive-staff.html') {
+            window.location.replace('staff.html');
+            return;
+        }
 
         ensureCss();
         var activeKey = activeKeyFor(currentFilename());

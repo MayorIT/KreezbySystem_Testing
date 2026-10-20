@@ -51,8 +51,6 @@
 
         { key: 'dashboard', label: 'Dashboard', href: 'admin.html', icon: 'home' },
 
-        { key: 'receive', label: 'Receiving', href: 'receive-admin.html', icon: 'package' },
-
         { key: 'bo', label: 'Back Order', href: 'bo-admin.html', icon: 'layers' },
 
         { key: 'stocks', label: 'Stocks', href: 'stocks-admin.html', icon: 'boxes' },
@@ -183,7 +181,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020tabs';
+            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
             document.head.appendChild(mobile);
         }
 
@@ -415,8 +413,8 @@
 
         if (!isAdminPage()) return;
 
-        if (isHeadAdminPortal() && currentFilename().indexOf('receive-') === 0) {
-            window.location.replace('head_admin.html');
+        if (currentFilename().indexOf('receive-') === 0) {
+            window.location.replace(isHeadAdminPortal() ? 'head_admin.html' : 'admin.html');
             return;
         }
 

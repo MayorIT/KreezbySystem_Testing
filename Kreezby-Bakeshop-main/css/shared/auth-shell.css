@@ -451,12 +451,26 @@ body {
     }
 
     .auth-shell__header {
-        padding: 0.75rem 0.85rem;
+        justify-content: center;
+        padding: 0.65rem 0.85rem;
+    }
+
+    .auth-shell__brand {
+        margin: 0 auto;
     }
 
     .auth-shell__brand img {
-        height: 4.25rem;
-        max-width: min(14rem, 58vw);
+        display: block;
+        width: 128px;
+        height: 46px;
+        max-width: 128px;
+        max-height: 46px;
+        object-fit: contain;
+    }
+
+    .auth-card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
     .auth-shell__center {

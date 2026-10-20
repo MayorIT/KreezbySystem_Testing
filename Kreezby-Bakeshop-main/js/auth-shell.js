@@ -13,6 +13,7 @@
     function initParticles() {
         var canvas = document.querySelector('.auth-shell__particles');
         if (!canvas) return;
+        if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) return;
 
         var ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -36,7 +37,7 @@
 
         function init() {
             particles = [];
-            var count = Math.floor((canvas.width * canvas.height) / 9000);
+            var count = Math.min(40, Math.floor((canvas.width * canvas.height) / 28000));
             for (var i = 0; i < count; i++) particles.push(makeParticle());
         }
 

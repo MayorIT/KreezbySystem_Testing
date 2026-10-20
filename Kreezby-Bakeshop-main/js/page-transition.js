@@ -69,7 +69,7 @@
             var css = document.createElement('link');
             css.id = 'kreezby-mobile-style';
             css.rel = 'stylesheet';
-            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tabs';
+            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
             (document.head || document.documentElement).appendChild(css);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
