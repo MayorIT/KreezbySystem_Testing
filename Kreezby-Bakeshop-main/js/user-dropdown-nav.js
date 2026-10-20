@@ -293,7 +293,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-navbar-slide-script';
-        s.src = jsBase() + 'navbar-slide.js?v=20261004home1';
+        s.src = jsBase() + 'navbar-slide.js?v=20261020icon';
         s.defer = true;
         s.onload = function () {
             if (window.KreezbyNavbarSlide && typeof window.KreezbyNavbarSlide.init === 'function') {
@@ -314,7 +314,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-expanding-tabs-script';
-        s.src = jsBase() + 'expanding-tabs.js?v=20261005stock';
+        s.src = jsBase() + 'expanding-tabs.js?v=20261020icon';
         s.defer = true;
         s.onload = function () {
             if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {

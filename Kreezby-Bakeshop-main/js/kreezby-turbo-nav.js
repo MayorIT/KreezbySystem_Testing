@@ -53,7 +53,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
             (document.head || document.documentElement).appendChild(mobile);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;

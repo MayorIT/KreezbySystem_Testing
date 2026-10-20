@@ -49,7 +49,7 @@
     }
 
     function ensureMobile() {
-        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
+        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
         var css = document.getElementById('kreezby-mobile-style');
         if (!css) {
             css = document.createElement('link');
@@ -297,7 +297,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-expanding-tabs-script';
-        s.src = moduleRelativeRoot() + 'js/expanding-tabs.js?v=20260929forecast';
+        s.src = moduleRelativeRoot() + 'js/expanding-tabs.js?v=20261020icon';
         s.defer = true;
         document.head.appendChild(s);
     }

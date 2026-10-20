@@ -1680,6 +1680,109 @@ html {
         max-height: 46px !important;
         object-fit: contain !important;
     }
+
+    /* Sales list Retailer / Customer switch sits in the middle, with the gold pill inset from the cream border. */
+    body .sales-view-switch {
+        width: min(280px, calc(100% - 8px)) !important;
+        margin: 0 auto 16px !important;
+        padding: 6px !important;
+    }
+
+    body .sales-view-thumb {
+        top: 6px !important;
+        left: 6px !important;
+        width: calc(50% - 6px) !important;
+        height: calc(100% - 12px) !important;
+    }
+
+    body .sales-view-option {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 8px 10px !important;
+    }
+
+    /* Insights options are icons on a phone so the three choices stay inside the bar. */
+    body #ai-filter-pills.po-order-tabs,
+    body #ai-filter-pills.ai-filter-pills,
+    body.po-admin-page #sales-analysis-master > #ai-filter-pills.po-order-tabs {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+        margin: 10px !important;
+        padding: 6px !important;
+        gap: 8px !important;
+        overflow: hidden !important;
+        border-radius: 16px !important;
+        background: #fff8ea !important;
+        box-sizing: border-box !important;
+    }
+
+    body #ai-filter-pills .po-order-tab,
+    body #ai-filter-pills .expanding-tab,
+    body #ai-filter-pills .pill,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .pill,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .po-order-tab {
+        flex: 1 1 0 !important;
+        flex-shrink: 1 !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        justify-content: center !important;
+        align-items: center !important;
+        font-size: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        border-color: transparent !important;
+        background: transparent !important;
+        color: #5d4037 !important;
+        overflow: hidden !important;
+    }
+
+    body #ai-filter-pills .pill.active,
+    body #ai-filter-pills .po-order-tab.active,
+    body #ai-filter-pills .expanding-tab.active,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .pill.active,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .po-order-tab.active {
+        background: #ffca28 !important;
+        color: #1f1f1f !important;
+        border-color: transparent !important;
+    }
+
+    body #ai-filter-pills .expanding-tab__label,
+    body #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__label,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab__label,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__label {
+        display: none !important;
+        max-width: 0 !important;
+        width: 0 !important;
+        opacity: 0 !important;
+        overflow: hidden !important;
+        font-size: 0 !important;
+    }
+
+    body #ai-filter-pills .expanding-tab__icon,
+    body #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__icon,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab__icon {
+        display: inline-flex !important;
+        width: 20px !important;
+        height: 20px !important;
+        opacity: 1 !important;
+    }
+
+    body #ai-filter-pills .expanding-tab__icon svg,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab__icon svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
 }
 
 /* Desktop and phone: keep an inner border from sitting on the outer border. */

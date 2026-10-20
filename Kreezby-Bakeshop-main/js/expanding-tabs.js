@@ -115,7 +115,7 @@
             var css = document.createElement('link');
             css.id = 'kreezby-mobile-style';
             css.rel = 'stylesheet';
-            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
+            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
             document.head.appendChild(css);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
@@ -130,6 +130,12 @@
         if (el && el.closest && el.closest('#stocklevel-filter-pills')) {
             var stockKey = (el.getAttribute('data-key') || '').toLowerCase();
             if (STOCK_LEVEL_ICONS[stockKey]) return ICONS[STOCK_LEVEL_ICONS[stockKey]];
+        }
+        if (el && el.closest && el.closest('#ai-filter-pills')) {
+            var insightKey = (el.getAttribute('data-key') || '').toLowerCase();
+            if (insightKey === 'sales-analysis') return ICONS.chart;
+            if (insightKey === 'management-insight') return ICONS.users;
+            if (insightKey === 'product-recommendation') return ICONS.package;
         }
         var text = String(label || '').toLowerCase();
         var href = ((el && el.getAttribute('href')) || '').toLowerCase();

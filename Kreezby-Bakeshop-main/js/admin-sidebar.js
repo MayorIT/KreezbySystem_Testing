@@ -181,7 +181,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020tab2';
+            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
             document.head.appendChild(mobile);
         }
 
