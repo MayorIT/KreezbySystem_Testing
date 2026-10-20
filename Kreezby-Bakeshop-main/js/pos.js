@@ -22,6 +22,7 @@
     var PAYMENTS = ['Cash', 'GCash', 'Check', 'Cons'];
     var cart = {};
     var applyingStock = false;
+    var weekOpen = false;
 
     function peso(amount) {
         return '₱' + Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -142,13 +143,97 @@
         localStorage.setItem(SALES_KEY, JSON.stringify(rows));
     }
 
-    function todayStamp() {
-        var now = new Date();
-        var month = String(now.getMonth() + 1);
-        var day = String(now.getDate());
+    function stampFromDate(date) {
+        var month = String(date.getMonth() + 1);
+        var day = String(date.getDate());
         if (month.length < 2) month = '0' + month;
         if (day.length < 2) day = '0' + day;
-        return now.getFullYear() + '-' + month + '-' + day;
+        return date.getFullYear() + '-' + month + '-' + day;
+    }
+
+    function todayStamp() {
+        return stampFromDate(new Date());
+    }
+
+    function dayKey(value) {
+        var text = String(value || '');
+        var match = text.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (match) return match[1] + '-' + match[2] + '-' + match[3];
+        var parsed = new Date(text);
+        if (isNaN(parsed.getTime())) return '';
+        return stampFromDate(parsed);
+    }
+
+    function prettyDay(key) {
+        var parts = String(key || '').split('-');
+        if (parts.length < 3) return key;
+        var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function finishedPurchase(lines, fallbackTotal) {
+        var qty = 0;
+        var amount = 0;
+        var matched = false;
+        (lines || []).forEach(function (line) {
+            var product = knownProduct(line.name);
+            if (!product && line.code) {
+                product = PRODUCTS.filter(function (item) { return item.code === line.code; })[0] || null;
+            }
+            if (!product) return;
+            matched = true;
+            var count = Number(line.qty) || 0;
+            var price = Number(line.price) || product.price || 0;
+            qty += count;
+            amount += count * price;
+        });
+        if (!matched) amount = Number(fallbackTotal) || 0;
+        return { qty: qty, amount: amount };
+    }
+
+    function lastSevenDays() {
+        var days = [];
+        var now = new Date();
+        now.setHours(12, 0, 0, 0);
+        for (var i = 0; i < 7; i++) {
+            var day = new Date(now);
+            day.setDate(now.getDate() - i);
+            days.push(stampFromDate(day));
+        }
+        return days;
+    }
+
+    function weekPurchases() {
+        var days = lastSevenDays();
+        var totals = {};
+        days.forEach(function (day) { totals[day] = { amount: 0, qty: 0 }; });
+        var seen = {};
+        function add(id, when, lines, fallbackTotal) {
+            if (id && seen[id]) return;
+            if (id) seen[id] = true;
+            var key = dayKey(when);
+            if (!totals[key]) return;
+            var purchase = finishedPurchase(lines, fallbackTotal);
+            totals[key].amount += purchase.amount;
+            totals[key].qty += purchase.qty;
+        }
+        readSales().forEach(function (sale) {
+            if (!sale) return;
+            add(sale.id, sale.date || sale.at, sale.lines, sale.total);
+        });
+        onlineOrders().forEach(function (order) {
+            add(order.id, order.when, order.lines, order.total);
+        });
+        return days.map(function (day) {
+            return { date: day, amount: totals[day].amount, qty: totals[day].qty };
+        });
+    }
+
+    function weekPurchasesHtml() {
+        return '<ul class="pos-week">' + weekPurchases().map(function (row) {
+            var pouches = row.qty + (row.qty === 1 ? ' pouch' : ' pouches');
+            return '<li><span>' + esc(prettyDay(row.date)) + '</span><strong>' + peso(row.amount) + '</strong><em>' + esc(pouches) + '</em></li>';
+        }).join('') + '</ul>';
     }
 
     function stockFor(name) {
@@ -255,7 +340,9 @@
         var nameValue = existingName ? existingName.value : 'Walk-in';
         var tenderValue = existingTender ? existingTender.value : '';
         root.querySelector('.pos-layout').innerHTML =
-            '<section class="pos-catalog"><h3>Finished Products</h3><div class="pos-grid">' + productsHtml + '</div></section>' +
+            '<section class="pos-catalog"><div class="pos-catalog-head"><h3>Finished Products</h3><button type="button" id="pos-week-sales" aria-expanded="' + (weekOpen ? 'true' : 'false') + '">' + (weekOpen ? 'Hide 7-day purchases' : '7-day purchases') + '</button></div>' +
+                (weekOpen ? weekPurchasesHtml() : '') +
+                '<div class="pos-grid">' + productsHtml + '</div></section>' +
             '<section class="pos-ticket"><h3>Walk-in Sale</h3>' +
                 '<label>Customer<input id="pos-customer" type="text" value="' + esc(nameValue) + '" placeholder="Walk-in"></label>' +
                 '<label>Payment<select id="pos-payment">' + PAYMENTS.map(function (item) {
@@ -496,6 +583,11 @@
     function onClick(event) {
         var root = document.getElementById('pos-master');
         if (!root || !event.target.closest || !event.target.closest('#pos-master')) return;
+        if (event.target.id === 'pos-week-sales' || (event.target.closest && event.target.closest('#pos-week-sales'))) {
+            weekOpen = !weekOpen;
+            render();
+            return;
+        }
         var inc = event.target.closest('[data-pos-inc]');
         var dec = event.target.closest('[data-pos-dec]');
         if (inc) changeQty(inc.getAttribute('data-pos-inc'), 1);
@@ -513,7 +605,7 @@
         if (!root) return;
         document.body.classList.add('po-admin-page');
         var style = document.getElementById('kreezby-pos-style');
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261014posside';
+        var styleHref = '../css/pages/admin/pos-admin.css?v=20261020week';
         if (!style) {
             style = document.createElement('link');
             style.id = 'kreezby-pos-style';

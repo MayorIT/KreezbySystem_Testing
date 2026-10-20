@@ -129,15 +129,122 @@
     timer = setTimeout(flush, 200);
   }
 
+  var PERMISSION_KEYS = {
+    kreezby_staff_permissions: 1,
+    kreezby_admin_permissions: 1
+  };
+  var permissionStamp = 0;
+  var localPermissionEditAt = 0;
+  var permissionPushTimer = null;
+
+  function permissionsFileUrl() {
+    var scripts = document.getElementsByTagName("script");
+    var i;
+    for (i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute("src") || "";
+      var at = src.indexOf("js/kreezby-db-sync.js");
+      if (at !== -1) return src.slice(0, at) + "data/shared-permissions.json";
+    }
+    return "data/shared-permissions.json";
+  }
+
+  function applySharedPermissions(doc) {
+    if (!doc || typeof doc.updatedAt !== "number") return;
+    if (doc.updatedAt <= permissionStamp || doc.updatedAt < localPermissionEditAt) return;
+    permissionStamp = doc.updatedAt;
+    applyingRemote = true;
+    var changedKeys = [];
+    try {
+      Object.keys(PERMISSION_KEYS).forEach(function (key) {
+        if (typeof doc[key] !== "string") return;
+        if (nativeGet.call(localStorage, key) === doc[key]) return;
+        nativeSet.call(localStorage, key, doc[key]);
+        changedKeys.push(key);
+      });
+    } finally {
+      applyingRemote = false;
+    }
+    if (!changedKeys.length) return;
+    try {
+      document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
+      if (changedKeys.indexOf("kreezby_staff_permissions") !== -1) {
+        document.dispatchEvent(new CustomEvent("kreezby-staff-permissions-ready"));
+      }
+      if (changedKeys.indexOf("kreezby_admin_permissions") !== -1) {
+        document.dispatchEvent(new CustomEvent("kreezby-admin-permissions-ready"));
+      }
+    } catch (e) { /* listeners are optional */ }
+  }
+
+  function pullSharedPermissions() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", permissionsFileUrl() + "?t=" + Date.now(), true);
+    xhr.timeout = 8000;
+    xhr.onload = function () {
+      if (xhr.status !== 200) return;
+      try { applySharedPermissions(JSON.parse(xhr.responseText)); } catch (e) { /* keep the browser copy */ }
+    };
+    xhr.send();
+  }
+
+  function notePermissionShare(shared) {
+    document.querySelectorAll("[data-permission-status]").forEach(function (el) {
+      var base = el.getAttribute("data-permission-base") || el.textContent || "";
+      base = base.replace(/ Saved .*$/, "");
+      el.setAttribute("data-permission-base", base);
+      el.textContent = shared
+        ? base + " Saved for your groupmates."
+        : base + " Saved on this browser. Groupmates on the GitHub link see it after this change is published to the site.";
+    });
+  }
+
+  function publishSharedPermissions() {
+    permissionPushTimer = null;
+    var payload = {};
+    var any = false;
+    Object.keys(PERMISSION_KEYS).forEach(function (key) {
+      var value = nativeGet.call(localStorage, key);
+      if (value != null) {
+        payload[key] = value;
+        any = true;
+      }
+    });
+    if (!any) return;
+    localPermissionEditAt = Date.now();
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/permissions", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = function () {
+      var shared = xhr.status === 200;
+      if (shared) {
+        try {
+          var body = JSON.parse(xhr.responseText);
+          if (body && typeof body.updatedAt === "number") permissionStamp = body.updatedAt;
+        } catch (e) { permissionStamp = localPermissionEditAt; }
+      }
+      notePermissionShare(shared);
+    };
+    xhr.onerror = function () { notePermissionShare(false); };
+    xhr.send(JSON.stringify(payload));
+  }
+
+  function schedulePermissionPublish(key) {
+    if (!PERMISSION_KEYS[key]) return;
+    if (permissionPushTimer) clearTimeout(permissionPushTimer);
+    permissionPushTimer = setTimeout(publishSharedPermissions, 250);
+  }
+
   Storage.prototype.setItem = function (key, value) {
     var stored = String(value);
     nativeSet.call(this, key, stored);
     if (this === localStorage && !applyingRemote && isShared(key)) queue(key, stored);
+    if (this === localStorage && !applyingRemote) schedulePermissionPublish(key);
   };
 
   Storage.prototype.removeItem = function (key) {
     nativeRemove.call(this, key);
     if (this === localStorage && !applyingRemote && isShared(key)) queue(key, null);
+    if (this === localStorage && !applyingRemote) schedulePermissionPublish(key);
   };
 
   function applyItems(items, uploadMissing) {
@@ -246,7 +353,9 @@
 
   pullAccountCollections();
   pull(true);
+  pullSharedPermissions();
   setInterval(function () { pull(false); }, 4000);
+  setInterval(pullSharedPermissions, 4000);
 })();
 
 (function () {
@@ -305,6 +414,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261019fn";
+  script.src = "../js/browser-alerts.js?v=20261020auto";
   document.head.appendChild(script);
 })();

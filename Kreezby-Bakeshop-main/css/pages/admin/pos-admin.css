@@ -50,6 +50,75 @@ body.po-admin-page #pos-master.panel-data-card {
     grid-column: 1 / -1;
 }
 
+.pos-catalog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+.pos-catalog-head h3 {
+    margin: 0;
+}
+
+#pos-week-sales {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid #c4b4a4;
+    border-radius: 999px;
+    background: #fff;
+    color: #5d4037;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+#pos-week-sales:hover {
+    background: #fff8e8;
+}
+
+.pos-week {
+    display: grid;
+    gap: 0;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #efe6d6;
+    border-radius: 12px;
+    background: #fffdf8;
+    overflow: hidden;
+}
+
+.pos-week li {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid #efe6d6;
+}
+
+.pos-week li:first-child {
+    border-top: 0;
+}
+
+.pos-week span {
+    color: #3e2723;
+    font-weight: 700;
+}
+
+.pos-week strong {
+    color: #3e2723;
+}
+
+.pos-week em {
+    color: #8d6e63;
+    font-style: normal;
+    font-size: 13px;
+}
+
 .pos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

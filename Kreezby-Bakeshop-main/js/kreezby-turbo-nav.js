@@ -53,7 +53,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020space';
             (document.head || document.documentElement).appendChild(mobile);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
@@ -636,7 +636,7 @@
                 loadUi();
                 return;
             }
-            loadScript(root + 'js/staff-permissions.js?v=20261019fn', 'kreezby-staff-permissions-script', loadUi);
+            loadScript(root + 'js/staff-permissions.js?v=20261020share', 'kreezby-staff-permissions-script', loadUi);
         }
         if (window.KreezbyMaintenanceSettings && window.KreezbyMaintenanceUI) {
             start();

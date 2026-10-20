@@ -230,30 +230,14 @@
             Object.keys(accounts).forEach(function (id) {
                 if (!parsed[id]) parsed[id] = defaultTasksForAdmin(accounts[id]);
             });
-            var migrated = false;
-            try { migrated = localStorage.getItem('kreezby_admin_delivery_nav_v1') === '1'; } catch (e) { migrated = true; }
-            if (!migrated) {
-                Object.keys(parsed).forEach(function (id) {
-                    if (Array.isArray(parsed[id]) && parsed[id].indexOf('deliveryschedule') === -1) {
-                        parsed[id].push('deliveryschedule');
-                    }
-                });
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            try {
+                if (localStorage.getItem('kreezby_admin_delivery_nav_v1') !== '1') {
                     localStorage.setItem('kreezby_admin_delivery_nav_v1', '1');
-                } catch (e) { /* ignore */ }
-            }
-            var posReady = false;
-            try { posReady = localStorage.getItem('kreezby_admin_pos_nav_v1') === '1'; } catch (e2) { posReady = true; }
-            if (!posReady) {
-                Object.keys(parsed).forEach(function (id) {
-                    if (Array.isArray(parsed[id]) && parsed[id].indexOf('pos') === -1) parsed[id].push('pos');
-                });
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                }
+                if (localStorage.getItem('kreezby_admin_pos_nav_v1') !== '1') {
                     localStorage.setItem('kreezby_admin_pos_nav_v1', '1');
-                } catch (e3) { /* ignore */ }
-            }
+                }
+            } catch (e) { /* ignore */ }
             return parsed;
         } catch (e) {
             return JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
@@ -708,4 +692,16 @@
         if (location.pathname.indexOf('/admin/') !== -1) refreshAdminChrome();
     });
     document.addEventListener('kreezby-admin-sidebar-ready', applyTopNavPermissions);
+    document.addEventListener('kreezby:remote-state', function (event) {
+        var keys = (event.detail && event.detail.keys) || [];
+        if (keys.indexOf(STORAGE_KEY) === -1) return;
+        var body = document.getElementById('permissions-matrix-body');
+        var active = document.querySelector('[data-account-list] .role-selection-pill.active-role');
+        if (body && active) renderPermissionsMatrix(body, active.getAttribute('data-admin-id'));
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) {
+            guardCurrentPage();
+            refreshAdminChrome();
+        }
+    });
 })();

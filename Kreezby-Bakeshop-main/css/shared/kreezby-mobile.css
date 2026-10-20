@@ -1001,3 +1001,169 @@ html {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
+
+/* Phone: use the screen width, and keep every action button the same size and gap */
+@media (max-width: 900px) {
+    .workspace-container,
+    .content-workspace,
+    .page-shell,
+    main.workspace-view-canvas,
+    main.workspace-canvas,
+    .panel-data-card,
+    .order-list-card,
+    .po-tabbed-card,
+    .bo-tabbed-card,
+    .checkout-container,
+    .report-panel,
+    .kreezby-welcome,
+    .inbox-list-card,
+    .settings-split-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .workspace-container,
+    main.workspace-view-canvas,
+    main.workspace-canvas {
+        padding: 10px 8px 20px !important;
+    }
+
+    .button-group-main,
+    .button-group-origin,
+    .form-actions,
+    .checkout-actions,
+    .modal-action-footer-panel,
+    .details-action-footer-row,
+    .payment-summary__actions,
+    .profile-status-actions,
+    .sl-value-footer-actions,
+    .route-sheet-title-actions,
+    .manual-sheet-footer,
+    .sheet-toolbar,
+    .sl-toolbar,
+    .customer-report-header-actions,
+    .stocks-view-switch,
+    .permissions-switch,
+    .po-order-tabs,
+    .bo-order-tabs,
+    .pricing-chips {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 10px !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .panel-card-title-bar,
+    .manual-sheet-header,
+    .report-header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .button-group-main,
+    .button-group-origin,
+    .form-actions,
+    .checkout-actions,
+    .payment-summary__actions,
+    .profile-status-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .button-group-main > button,
+    .button-group-main > a,
+    .button-group-origin > button,
+    .button-group-origin > a,
+    .form-actions > button,
+    .form-actions > a,
+    .checkout-actions > button,
+    .checkout-actions > a,
+    .payment-summary__actions > button,
+    .payment-summary__actions > a,
+    .profile-status-actions > button,
+    .profile-status-actions > a,
+    .modal-action-footer-panel > button,
+    .modal-action-footer-panel > a,
+    .details-action-footer-row > button,
+    .details-action-footer-row > a,
+    .sl-value-footer-actions > button,
+    .route-sheet-title-actions > button,
+    .route-sheet-title-actions > a,
+    .btn-call-to-action,
+    .btn-modal-save,
+    .btn-modal-cancel,
+    .btn-action-primary,
+    .btn-submit-pill,
+    .btn-viewer-tool,
+    .auth-btn,
+    .origin-btn,
+    .checkout-btn,
+    .banner-btn,
+    .add-cart-btn,
+    .btn-guest-action {
+        box-sizing: border-box;
+        min-height: 44px;
+        margin: 0 !important;
+    }
+
+    .button-group-main > button,
+    .button-group-main > a,
+    .button-group-origin > button,
+    .button-group-origin > a,
+    .form-actions > button,
+    .form-actions > a,
+    .checkout-actions > button,
+    .checkout-actions > a,
+    .payment-summary__actions > button,
+    .payment-summary__actions > a,
+    .profile-status-actions > button,
+    .profile-status-actions > a,
+    .btn-action-primary,
+    .btn-submit-pill,
+    .auth-btn,
+    .checkout-btn,
+    .banner-btn {
+        width: 100% !important;
+    }
+
+    .modal-action-footer-panel > button,
+    .modal-action-footer-panel > a,
+    .details-action-footer-row > button,
+    .details-action-footer-row > a,
+    .sl-value-footer-actions > button {
+        flex: 1 1 8.5rem;
+        min-width: 0;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .po-order-tabs,
+    .bo-order-tabs,
+    .permissions-switch,
+    .stocks-view-switch {
+        flex-wrap: nowrap !important;
+    }
+
+    .po-order-tab,
+    .bo-order-tab,
+    .permissions-switch button,
+    .stocks-view-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        white-space: normal;
+        line-height: 1.2;
+        justify-content: center;
+        text-align: center;
+    }
+}

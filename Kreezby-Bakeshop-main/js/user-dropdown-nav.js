@@ -253,7 +253,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261019fn';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261020hide';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -388,7 +388,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20261019fn';
+        s.src = jsBase() + 'admin-permissions.js?v=20261020share';
         s.async = false;
         document.head.appendChild(s);
     }

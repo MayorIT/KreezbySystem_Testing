@@ -424,6 +424,47 @@ app.get("/api/records/:name", async (req, res) => {
   }
 });
 
+const PERMISSION_FILE = path.join(SITE_ROOT, "data", "shared-permissions.json");
+const PERMISSION_KEYS = ["kreezby_staff_permissions", "kreezby_admin_permissions"];
+
+function readPermissionFile() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(PERMISSION_FILE, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : { updatedAt: 0 };
+  } catch (error) {
+    return { updatedAt: 0 };
+  }
+}
+
+function writePermissionFile(items) {
+  const current = readPermissionFile();
+  const next = { updatedAt: Date.now() };
+  let wrote = false;
+  PERMISSION_KEYS.forEach((key) => {
+    if (typeof items[key] === "string") {
+      next[key] = items[key];
+      wrote = true;
+    } else if (typeof current[key] === "string") {
+      next[key] = current[key];
+    }
+    if (typeof next[key] === "string") cache[key] = next[key];
+  });
+  if (!wrote) return null;
+  fs.mkdirSync(path.dirname(PERMISSION_FILE), { recursive: true });
+  fs.writeFileSync(PERMISSION_FILE, JSON.stringify(next, null, 2));
+  return next;
+}
+
+app.post("/api/permissions", (req, res) => {
+  const items = req.body && typeof req.body === "object" ? req.body : {};
+  const saved = writePermissionFile(items);
+  if (!saved) {
+    res.status(400).json({ ok: false, error: "Permission records are required." });
+    return;
+  }
+  res.json({ ok: true, updatedAt: saved.updatedAt });
+});
+
 app.post("/api/state", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
@@ -453,6 +494,7 @@ app.post("/api/state", async (req, res) => {
       cache[key] = stored;
     }
 
+    writePermissionFile(items);
     if (ops.length) await collection().bulkWrite(ops, { ordered: false });
     if (typeof items.kreezby_maintenance_users === "string") {
       await syncAccountCollections(items.kreezby_maintenance_users);

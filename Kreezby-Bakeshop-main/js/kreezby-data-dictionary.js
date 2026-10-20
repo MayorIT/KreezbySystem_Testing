@@ -960,10 +960,33 @@
             + '.fr-card--materials .fr-fields{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));}'
             + '.fr-btn{height:36px;width:100%;border:0;border-radius:8px;background:#5d4037;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}'
             + '.fr-btn:hover{background:#3e2723;}'
+            + '.fr-hide-btn{margin-left:auto;height:28px;padding:0 10px;border:1px solid #c4b4a4;border-radius:8px;background:#fff;color:#5d4037;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto;}'
+            + '.fr-hide-btn:hover{background:#f6efe6;}'
+            + '.fr-card.is-collapsed .fr-card__lead,.fr-card.is-collapsed .fr-fields{display:none;}'
+            + '.fr-panel{margin:0 0 12px;padding:12px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;}'
+            + '.fr-panel__bar{display:flex;align-items:center;gap:8px;color:#3e2723;}'
+            + '.fr-panel.is-collapsed .fr-panel__body{display:none;}'
+            + '.fr-panel__body{margin-top:8px;}'
             + '#fr-stock-note{margin:10px 2px 0;min-height:1.2em;color:#3e2723;font-size:13px;}'
             + '@container (max-width:860px){.fr-records__grid{grid-template-columns:minmax(0,1fr);}.fr-field--wide{grid-column:auto;}}'
             + '@media (max-width:720px){.fr-records__grid{grid-template-columns:minmax(0,1fr);}.fr-field--wide{grid-column:auto;}}';
         document.head.appendChild(style);
+    }
+
+    function hideControl(panel) {
+        return '<button type="button" class="fr-hide-btn" data-fr-hide="' + panel + '" aria-expanded="true">Hide</button>';
+    }
+
+    function bindStockHide(box) {
+        box.querySelectorAll('[data-fr-hide]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var panel = box.querySelector('[data-fr-panel="' + btn.getAttribute('data-fr-hide') + '"]');
+                if (!panel) return;
+                var collapsed = panel.classList.toggle('is-collapsed');
+                btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                btn.textContent = collapsed ? 'Show' : 'Hide';
+            });
+        });
     }
 
     function mountStockTools() {
@@ -995,12 +1018,12 @@
         var materialOptions = RAW_MATERIALS.map(function (item) {
             return '<option value="' + esc(item.name) + '">' + esc(item.name) + '</option>';
         }).join('');
+        ensureHeadStockFormStyles();
         if (cardLayout) {
-            ensureHeadStockFormStyles();
             box.className = 'fr-records';
             box.innerHTML = '<div class="fr-records__grid">'
-                + '<section class="fr-card" aria-label="Finished product records">'
-                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('product') + '</span>Finished products</h3>'
+                + '<section class="fr-card" data-fr-panel="product" aria-label="Finished product records">'
+                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('product') + '</span>Finished products' + hideControl('product') + '</h3>'
                 + '<p class="fr-card__lead">Update batch, dates, and stock. Sales deduct finished goods automatically.</p>'
                 + '<div class="fr-fields">'
                 + stockField('fr-product', 'Product', 'product', '<select id="fr-product">' + productOptions + '</select>', true)
@@ -1011,8 +1034,8 @@
                 + stockField('fr-price', 'Price', 'price', '<input id="fr-price" type="number" min="0" step="0.01">', true)
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Save product</button></div>'
                 + '</div></section>'
-                + '<section class="fr-card fr-card--materials" aria-label="Raw material records">'
-                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('material') + '</span>Raw materials</h3>'
+                + '<section class="fr-card fr-card--materials" data-fr-panel="material" aria-label="Raw material records">'
+                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('material') + '</span>Raw materials' + hideControl('material') + '</h3>'
                 + '<p class="fr-card__lead">Type any raw material, then record stock-in, stock-out, or usage.</p>'
                 + '<div class="fr-fields">'
                 + stockField('fr-material', 'Raw material', 'material', '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist>')
@@ -1023,10 +1046,11 @@
                 + '</div>'
                 + '<p id="fr-stock-note"></p>';
         } else {
-            box.style.cssText = 'margin:0 0 16px;padding:14px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;';
-            box.innerHTML = '<strong>Product and raw material records</strong>'
-                + '<p style="margin:6px 0 12px;color:#5d4037;">Edit a finished product, or record raw-material stock-in, stock-out, and usage. Sales deduct finished-goods stock automatically.</p>'
-                + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:10px;">'
+            box.innerHTML = '<section class="fr-panel" data-fr-panel="product">'
+                + '<div class="fr-panel__bar"><strong>Finished products</strong>' + hideControl('product') + '</div>'
+                + '<div class="fr-panel__body">'
+                + '<p style="margin:0 0 10px;color:#5d4037;">Update batch, dates, and stock. Sales deduct finished goods automatically.</p>'
+                + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Product<br><select id="fr-product">' + productOptions + '</select></label>'
                 + '<label>Batch<br><input id="fr-batch" type="text"></label>'
                 + '<label>Produced<br><input id="fr-produced" type="date"></label>'
@@ -1034,17 +1058,22 @@
                 + '<label>Stock<br><input id="fr-stock" type="number" min="0" style="width:90px;"></label>'
                 + '<label>Price<br><input id="fr-price" type="number" min="0" step="0.01" style="width:90px;"></label>'
                 + '<button type="button" id="fr-save-product">Save product</button>'
-                + '</div>'
+                + '</div></div></section>'
+                + '<section class="fr-panel" data-fr-panel="material">'
+                + '<div class="fr-panel__bar"><strong>Raw materials</strong>' + hideControl('material') + '</div>'
+                + '<div class="fr-panel__body">'
+                + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then record stock-in, stock-out, or usage.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
                 + '<label>Movement<br><select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
                 + '<button type="button" id="fr-save-move">Record movement</button>'
-                + '</div>'
+                + '</div></div></section>'
                 + '<p id="fr-stock-note" style="margin:10px 0 0;"></p>';
         }
         if (recordHost) recordHost.appendChild(box);
         else host.insertBefore(box, host.firstChild);
+        bindStockHide(box);
 
         function fillProduct() {
             var name = document.getElementById('fr-product').value;

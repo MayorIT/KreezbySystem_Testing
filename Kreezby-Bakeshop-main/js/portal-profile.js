@@ -155,12 +155,7 @@
     }
 
     function permissionText() {
-        if (!window.KreezbyBrowserAlerts) return 'Notifications are still loading.';
-        var state = window.KreezbyBrowserAlerts.permission();
-        if (state === 'granted') return 'This browser can notify this device. Chrome, Edge, Firefox, and Safari each ask once on each device.';
-        if (state === 'denied') return 'This browser is blocking notifications. Allow them in the browser site settings, then come back to this page.';
-        if (state === 'unsupported') return 'This browser does not support system notifications.';
-        return 'Notifications are off in this browser until you allow them.';
+        return 'Threshold alerts turn on by themselves for Admin, Head Admin, and Staff. They show in the notification bell and on the Alert page.';
     }
 
     function renderPermission() {

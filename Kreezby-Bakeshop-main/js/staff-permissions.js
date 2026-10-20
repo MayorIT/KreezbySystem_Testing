@@ -105,34 +105,20 @@
     }
 
     function grantDeliverySchedule(stored) {
-        if (!stored) return stored;
         try {
-            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') === '1') return grantPos(stored);
-        } catch (e) { return grantPos(stored); }
-        Object.keys(stored).forEach(function (id) {
-            if (Array.isArray(stored[id]) && stored[id].indexOf('deliveryschedule') === -1) {
-                stored[id].push('deliveryschedule');
+            if (localStorage.getItem('kreezby_staff_delivery_nav_v1') !== '1') {
+                localStorage.setItem('kreezby_staff_delivery_nav_v1', '1');
             }
-        });
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-            localStorage.setItem('kreezby_staff_delivery_nav_v1', '1');
         } catch (e) { /* ignore */ }
         return grantPos(stored);
     }
 
     function grantPos(stored) {
-        if (!stored) return stored;
         try {
-            if (localStorage.getItem('kreezby_staff_pos_nav_v1') === '1') return stored;
-        } catch (e) { return stored; }
-        Object.keys(stored).forEach(function (id) {
-            if (Array.isArray(stored[id]) && stored[id].indexOf('pos') === -1) stored[id].push('pos');
-        });
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-            localStorage.setItem('kreezby_staff_pos_nav_v1', '1');
-        } catch (e2) { /* ignore */ }
+            if (localStorage.getItem('kreezby_staff_pos_nav_v1') !== '1') {
+                localStorage.setItem('kreezby_staff_pos_nav_v1', '1');
+            }
+        } catch (e) { /* ignore */ }
         return stored;
     }
 
@@ -720,6 +706,20 @@
             if (container && container.firstChild) {
                 container.insertBefore(notice, container.firstChild);
             }
+        }
+    });
+
+    document.addEventListener('kreezby:remote-state', function (event) {
+        var keys = (event.detail && event.detail.keys) || [];
+        if (keys.indexOf(STORAGE_KEY) === -1) return;
+        var body = document.getElementById('staff-permissions-matrix-body');
+        var active = document.querySelector('#staff-permissions-root .role-selection-pill.active-role');
+        if (body && active) renderPermissionsMatrix(body, active.getAttribute('data-staff-id'));
+        var filename = getCurrentPageFilename();
+        var isStaffPage = filename.indexOf('-staff.html') !== -1 || filename.indexOf('staff-') === 0 || filename === 'staff.html' || /^inbox-staff(-\d+)?\.html$/i.test(filename);
+        if (isStaffPage) {
+            guardCurrentPage();
+            refreshStaffChrome();
         }
     });
 })();

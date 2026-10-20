@@ -1232,14 +1232,32 @@ main.workspace-canvas {
     html body {
         background-attachment: scroll;
         overflow-x: hidden;
-        padding: 16px;
+        padding: 12px;
         align-items: center;
         justify-content: center;
     }
 
     html body .splash-card {
-        max-width: calc(100vw - 32px);
-        padding: 28px 16px;
+        width: 100%;
+        max-width: 100%;
+        padding: 32px 16px 24px;
         box-sizing: border-box;
+    }
+
+    .button-group-main,
+    .button-group-origin {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .button-group-main .origin-btn,
+    .button-group-origin .origin-btn {
+        width: 100%;
+        min-height: 48px;
+        margin: 0;
+    }
+
+    .back-button-container {
+        margin-top: 16px;
     }
 }

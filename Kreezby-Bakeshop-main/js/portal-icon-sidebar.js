@@ -114,7 +114,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20260927sheet';
+            mobile.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020space';
             document.head.appendChild(mobile);
         }
         if (document.getElementById('kreezby-portal-icon-sidebar-style')) return;

@@ -324,7 +324,7 @@
             title: title,
             description: description,
             source: 'alert',
-            audiences: ['admin', 'staff']
+            audiences: ['admin', 'head', 'staff']
         };
         if (window.KreezbyNotifications) window.KreezbyNotifications.push(entry);
         else {
@@ -336,12 +336,29 @@
                 timestamp: new Date().toISOString(),
                 read: false,
                 source: 'alert',
-                audiences: ['admin', 'staff']
+                audiences: ['admin', 'head', 'staff']
             });
             writeJson(NOTES_KEY, list);
             document.dispatchEvent(new CustomEvent('kreezby:notification-change', { detail: { type: 'added', notification: entry } }));
         }
+        showInApp(title, description);
         return id;
+    }
+
+    function showInApp(title, body) {
+        var existing = document.getElementById('kreezby-threshold-toast');
+        if (existing) existing.remove();
+        var toast = document.createElement('a');
+        toast.id = 'kreezby-threshold-toast';
+        toast.href = alertHref();
+        toast.setAttribute('role', 'status');
+        toast.style.cssText = 'position:fixed;z-index:10070;right:16px;bottom:16px;max-width:min(360px,calc(100vw - 24px));display:block;background:#3e2723;color:#fff;padding:12px 14px;border-radius:12px;text-decoration:none;box-shadow:0 10px 28px rgba(0,0,0,.28);';
+        toast.innerHTML = '<strong style="display:block;margin:0 0 4px;font-size:14px;">' + escapeHtml(title) + '</strong>'
+            + '<span style="display:block;font-size:13px;line-height:1.4;color:#ffe082;">' + escapeHtml(body) + '</span>';
+        document.body.appendChild(toast);
+        setTimeout(function () {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 8000);
     }
 
     function scanStock() {
@@ -460,17 +477,8 @@
     }
 
     function renderPermissionBanner() {
-        if (!allowedRole() || !window.Notification || Notification.permission !== 'default') return;
-        if (document.getElementById('kreezby-notify-banner')) return;
-        var host = document.querySelector('main.workspace-view-canvas') || document.body;
-        var banner = document.createElement('div');
-        banner.id = 'kreezby-notify-banner';
-        banner.className = 'kreezby-notify-banner';
-        banner.innerHTML = '<span>Allow notifications so Chrome, Edge, or this browser can alert this device when stock reaches the threshold.</span>'
-            + '<button type="button" id="kreezby-notify-allow">Allow notifications</button>';
-        host.insertBefore(banner, host.firstChild);
-        var button = document.getElementById('kreezby-notify-allow');
-        if (button) button.addEventListener('click', requestPermission);
+        var banner = document.getElementById('kreezby-notify-banner');
+        if (banner) banner.remove();
     }
 
     function requestPermission() {
