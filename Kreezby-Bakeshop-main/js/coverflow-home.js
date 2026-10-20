@@ -104,10 +104,10 @@
             var width = stage.clientWidth || 360;
             var narrow = width < 700;
             var cardW = narrow
-                ? Math.max(214, Math.min(280, Math.round(width * 0.66)))
+                ? Math.max(248, Math.min(340, Math.round(width * 0.82)))
                 : Math.max(220, Math.min(330, Math.round(width * 0.46)));
             var cardH = narrow
-                ? Math.max(268, Math.min(Math.round(window.innerHeight * 0.5), Math.round(cardW * 1.28)))
+                ? Math.max(420, Math.min(Math.round(window.innerHeight * 0.68), Math.round(cardW * 1.55)))
                 : Math.min(500, Math.round(cardW * 1.45));
             return {
                 w: cardW,

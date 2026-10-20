@@ -183,7 +183,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020phone';
+            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020fit';
             document.head.appendChild(mobile);
         }
 

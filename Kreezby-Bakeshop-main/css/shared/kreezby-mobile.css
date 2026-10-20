@@ -1304,3 +1304,175 @@ html {
         padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+/* Phone fit: use the screen, wrap words, and keep sheets from painting on top of each other */
+@media (max-width: 900px) {
+    h1, h2, h3, h4, p, li, label, td, th, button, a, span {
+        overflow-wrap: anywhere;
+        min-width: 0;
+    }
+
+    main.workspace-view-canvas,
+    main.workspace-canvas,
+    .page-shell,
+    .content-workspace {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .panel-data-card,
+    .order-list-card,
+    .po-tabbed-card,
+    .bo-tabbed-card,
+    .manual-route-sheet-card,
+    .report-panel,
+    .kreezby-welcome {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .menu-grid,
+    .shop-category__grid,
+    .flavor-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .menu-grid h3,
+    .shop-category__grid h3,
+    .product-card h3,
+    .flavor-card h3 {
+        font-size: 15px !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+    }
+
+    table.kreezby-phone-cards td,
+    table.manual-sheet-table td {
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        column-gap: 12px !important;
+        row-gap: 2px !important;
+    }
+
+    table.kreezby-phone-cards td::before,
+    table.manual-sheet-table td::before {
+        flex: 1 1 7.5rem;
+        min-width: 0;
+        max-width: 100%;
+        white-space: normal !important;
+        text-align: left;
+        line-height: 1.3;
+    }
+
+    table.manual-sheet-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    table.manual-sheet-table colgroup,
+    table.manual-sheet-table thead {
+        display: none !important;
+    }
+
+    table.manual-sheet-table tbody,
+    table.manual-sheet-table tfoot,
+    table.manual-sheet-table tr {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    table.manual-sheet-table tbody tr,
+    table.manual-sheet-table tfoot tr {
+        margin: 0 0 10px;
+        padding: 8px 12px;
+        border: 1px solid #e4d8c4;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    table.manual-sheet-table td {
+        display: flex !important;
+        justify-content: space-between;
+        width: auto !important;
+        padding: 4px 0 !important;
+        border: 0 !important;
+        text-align: right !important;
+        white-space: normal !important;
+    }
+
+    table.manual-sheet-table td::before {
+        font-weight: 700;
+        color: #5d4037;
+    }
+
+    table.manual-sheet-table tbody td:nth-child(1)::before { content: "#"; }
+    table.manual-sheet-table tbody td:nth-child(2)::before { content: "Location"; }
+    table.manual-sheet-table tbody td:nth-child(3)::before { content: "Account receivable"; }
+    table.manual-sheet-table tbody td:nth-child(4)::before { content: "Cons"; }
+    table.manual-sheet-table tbody td:nth-child(5)::before { content: "COD"; }
+    table.manual-sheet-table tbody td:nth-child(6)::before { content: "Staff"; }
+    table.manual-sheet-table tbody td:nth-child(7)::before { content: "Check"; }
+    table.manual-sheet-table tbody td:nth-child(8)::before { content: "F"; }
+    table.manual-sheet-table tbody td:nth-child(9)::before { content: "P.O"; }
+    table.manual-sheet-table tbody td:nth-child(10)::before { content: "R"; }
+    table.manual-sheet-table tbody td:nth-child(11)::before { content: "Collected"; }
+
+    table.sheet-editor-table {
+        display: table !important;
+        width: max-content !important;
+        min-width: 680px !important;
+        max-width: none !important;
+    }
+
+    table.sheet-editor-table thead { display: table-header-group !important; }
+    table.sheet-editor-table tbody { display: table-row-group !important; }
+    table.sheet-editor-table tfoot { display: table-footer-group !important; }
+
+    table.sheet-editor-table tr {
+        display: table-row !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
+
+    table.sheet-editor-table td,
+    table.sheet-editor-table th {
+        display: table-cell !important;
+        text-align: left !important;
+        white-space: nowrap !important;
+    }
+
+    table.sheet-editor-table td::before,
+    table.sheet-editor-table th::before {
+        content: none !important;
+    }
+
+    table.kreezby-phone-cards tr,
+    .manual-route-sheet-card,
+    .product-card,
+    .menu-card {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 140px;
+    }
+}
+
+@media (max-width: 420px) {
+    .ai-metrics-row,
+    .sl-kpi-row,
+    .head-admin-cards,
+    .inbox-stats,
+    .profile-status-grid,
+    .dashboard-grid,
+    .maintenance-overview-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

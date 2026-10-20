@@ -50,7 +50,7 @@
     }
 
     function ensureCss() {
-        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020phone';
+        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020fit';
         var link = document.getElementById('kreezby-mobile-style');
         if (!link) {
             link = document.createElement('link');
@@ -263,7 +263,15 @@
             timer = setTimeout(labelWideTables, 40);
         }
         if (window.MutationObserver && document.body) {
-            new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+            var root = document.getElementById('kreezby-main-content') || document.querySelector('main') || document.body;
+            new MutationObserver(function (mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    if (mutations[i].addedNodes && mutations[i].addedNodes.length) {
+                        schedule();
+                        return;
+                    }
+                }
+            }).observe(root, { childList: true, subtree: true });
         }
         document.addEventListener('kreezby:page-load', schedule);
         window.addEventListener('resize', schedule);

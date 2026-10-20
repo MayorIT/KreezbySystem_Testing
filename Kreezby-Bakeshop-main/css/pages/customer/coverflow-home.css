@@ -296,7 +296,14 @@
     }
 
     .coverflow-card__body {
-        padding: 14px 14px 16px;
+        padding: 14px 0 0;
+        justify-content: flex-end;
+    }
+
+    .coverflow-card__tag {
+        position: absolute;
+        top: 12px;
+        right: 12px;
     }
 
     .coverflow-card__tag {
@@ -306,13 +313,23 @@
     .coverflow-card__copy {
         width: 100%;
         gap: 2px;
+        margin-top: auto;
+        padding: 42px 16px 16px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 36%, rgba(0, 0, 0, 0.97) 100%);
+    }
+
+    .coverflow-card__shade {
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.02) 34%, rgba(0, 0, 0, 0.72) 68%, rgba(0, 0, 0, 0.96) 100%);
     }
 
     .coverflow-card__copy h3 {
         font-size: 1.12rem;
         letter-spacing: 0.02em;
-        line-height: 1.05;
+        line-height: 1.15;
         max-width: 100%;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
     }
 
     .coverflow-card__copy strong {

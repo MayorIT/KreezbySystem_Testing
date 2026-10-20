@@ -49,7 +49,7 @@
     }
 
     function ensureMobile() {
-        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020phone';
+        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020fit';
         var css = document.getElementById('kreezby-mobile-style');
         if (!css) {
             css = document.createElement('link');
@@ -63,7 +63,7 @@
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260927sheet';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261020fit';
         s.defer = true;
         document.head.appendChild(s);
     }

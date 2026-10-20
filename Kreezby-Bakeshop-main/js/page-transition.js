@@ -60,7 +60,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-page-transition-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/page-transition.css?v=20260925sm';
+        link.href = moduleRelativeRoot() + 'css/shared/page-transition.css?v=20261020fit';
         (document.head || document.documentElement).appendChild(link);
     }
 
@@ -69,13 +69,13 @@
             var css = document.createElement('link');
             css.id = 'kreezby-mobile-style';
             css.rel = 'stylesheet';
-            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020phone';
+            css.href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020fit';
             (document.head || document.documentElement).appendChild(css);
         }
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20260927sheet';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261020fit';
         s.defer = true;
         (document.head || document.documentElement).appendChild(s);
     }

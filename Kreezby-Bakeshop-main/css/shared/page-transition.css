@@ -61,6 +61,18 @@ button:active:not(:disabled):not(.expanding-tab):not(.expandable-nav-tab):not(.p
     transform: scale(0.98);
 }
 
+@media (max-width: 900px) {
+    @view-transition {
+        navigation: none;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+        animation-duration: 0s;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     @view-transition {
         navigation: none;
