@@ -8,8 +8,8 @@
 
 @media (max-width: 900px) {
     :root {
-        --kreezby-blue: #1e88e5;
-        --kreezby-blue-deep: #1565c0;
+        --kreezby-blue: #5d4037;
+        --kreezby-blue-deep: #3e2723;
         --kreezby-yellow: #fbc02d;
         --kreezby-bg: #f4f6f9;
     }
@@ -42,7 +42,7 @@
         min-height: 60px;
         padding: 6px 10px !important;
         padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
-        background: linear-gradient(90deg, #1565c0 0%, #1e88e5 55%, #42a5f5 100%) !important;
+        background: #5d4037 !important;
         border-bottom: 0 !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
@@ -135,7 +135,7 @@
         width: 16px;
         height: 16px;
         flex-shrink: 0;
-        stroke: #1e88e5;
+        stroke: #5d4037;
         fill: none;
         stroke-width: 2.2;
     }
@@ -152,7 +152,7 @@
     }
 
     .shop-search input::placeholder {
-        color: #1e88e5;
+        color: #8d6e63;
         opacity: 0.85;
         font-weight: 600;
     }
@@ -165,9 +165,9 @@
         justify-content: space-evenly !important;
         gap: 6px !important;
         padding: 0 !important;
-        background: transparent !important;
-        border: 0 !important;
-        box-shadow: none !important;
+        background: #f4f7fb !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
         width: auto !important;
         flex: 1 1 auto;
         min-width: 0;
@@ -197,16 +197,18 @@
         flex-direction: column;
         gap: 4px;
         justify-content: center;
-        color: #fff !important;
+        color: #475569 !important;
         background: transparent !important;
-        border: 0 !important;
+        border: 1px solid transparent !important;
         box-shadow: none !important;
-        border-radius: 12px !important;
+        border-radius: 999px !important;
+        overflow: hidden;
     }
 
     .nav-actions .nav-btn.is-active {
-        background: rgba(255, 255, 255, 0.18) !important;
-        color: #fff !important;
+        background: #3e2723 !important;
+        color: #fff8ee !important;
+        box-shadow: 0 3px 0 #d4af37 !important;
     }
 
     .nav-actions .nav-btn__icon,
@@ -225,7 +227,10 @@
         letter-spacing: 0;
         text-align: center;
         white-space: nowrap;
-        color: #fff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        color: inherit;
     }
 
     .nav-actions .nav-btn__caret {
@@ -255,8 +260,8 @@
         line-height: 16px;
         top: 2px;
         right: 2px;
-        background: #fff;
-        color: #1e88e5;
+        background: #fff8ee;
+        color: #5d4037;
         border: 0;
     }
 
@@ -265,9 +270,9 @@
         margin: 0 !important;
         padding: 8px 10px !important;
         border-radius: 0 !important;
-        background: #e3f2fd !important;
+        background: linear-gradient(90deg, #fff8dc 0%, #fff3b0 50%, #ffe082 100%) !important;
         border: 0 !important;
-        border-bottom: 1px solid #bbdefb;
+        border-bottom: 1px solid #f0e08a;
         gap: 8px;
         overflow-x: auto;
         flex-wrap: nowrap !important;
@@ -286,8 +291,8 @@
     .pricing-chip {
         flex-shrink: 0;
         background: #fff !important;
-        border-color: #90caf9 !important;
-        color: #1e88e5 !important;
+        border-color: #f3d77a !important;
+        color: #5d4037 !important;
         font-size: 11px !important;
         padding: 4px 8px !important;
     }
@@ -327,8 +332,8 @@
         border-radius: 12px;
         display: grid;
         place-items: center;
-        background: #e3f2fd;
-        color: #1e88e5;
+        background: #fff8e1;
+        color: #5d4037;
     }
 
     .shop-cats button .shop-cats__icon svg {
@@ -342,8 +347,8 @@
     }
 
     .shop-cats button.is-active .shop-cats__icon {
-        background: #1e88e5;
-        color: #fff;
+        background: #5d4037;
+        color: #fff8ee;
     }
 
     /* —— Body / catalog —— */
@@ -455,7 +460,7 @@
     }
 
     .shop-category__grid .flavor-card {
-        --card-accent: #1e88e5;
+        --card-accent: #7c3aed;
         min-height: 0 !important;
         border-radius: 4px !important;
         border: 0 !important;
@@ -487,7 +492,7 @@
         right: auto;
         transform: none !important;
         opacity: 1 !important;
-        background: #1e88e5;
+        background: #10b981;
         font-size: 10px;
         padding: 2px 6px;
         border-radius: 2px;
@@ -545,7 +550,7 @@
     }
 
     .shop-category__grid .flavor-card__price {
-        color: #1e88e5 !important;
+        color: #1e293b !important;
         font-size: 16px !important;
         font-weight: 700;
         transform: none !important;
@@ -555,8 +560,8 @@
         width: 24px;
         height: 24px;
         background: transparent;
-        color: #1e88e5;
-        border: 1px solid #90caf9;
+        color: #5d4037;
+        border: 1px solid #d7ccc8;
     }
 
     .shop-category__grid .flavor-card .counter-widget,
@@ -676,8 +681,8 @@
         align-items: center !important;
         justify-content: space-between !important;
         gap: 12px !important;
-        background: #1e88e5 !important;
-        color: #fff;
+        background: #5d4037 !important;
+        color: #fff8ee;
         padding: 14px 16px !important;
         padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
     }
@@ -857,7 +862,7 @@
     .report-kicker,
     .customer-inbox-kicker,
     .support-card-kicker {
-        color: #1e88e5 !important;
+        color: #8a5a00 !important;
     }
 
     .report-layout,
@@ -867,8 +872,9 @@
     }
 
     .customer-home-btn {
-        background: #1e88e5 !important;
-        border-color: #1e88e5 !important;
+        background: #ffca28 !important;
+        border-color: #ffca28 !important;
+        color: #1f1f1f !important;
     }
 
     /* —— Bottom tab bar —— */
@@ -920,7 +926,7 @@
     }
 
     .shop-tabbar .is-active {
-        color: #1e88e5;
+        color: #5d4037;
     }
 
     .shop-tabbar .shop-tabbar__badge {
@@ -931,8 +937,8 @@
         height: 14px;
         padding: 0 4px;
         border-radius: 99px;
-        background: #1e88e5;
-        color: #fff;
+        background: #5d4037;
+        color: #fff8ee;
         font-size: 9px;
         line-height: 14px;
         text-align: center;
@@ -1007,26 +1013,47 @@
         word-break: break-word;
     }
 
-    /* Home, Shop, Help, Cart, and Me fill the space above the tab bar. */
+    /* Shop, Help, Cart, and account pages scroll. Only the home coverflow is locked to the screen. */
     html.kreezby-phone-shop,
     body.kreezby-phone-shop {
-        height: 100dvh;
-        max-height: 100dvh;
-        overflow: hidden;
-    }
-
-    body.kreezby-phone-shop .main-layout {
-        flex: 0 0 auto !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: visible !important;
+        min-height: 100dvh;
+        overflow-x: hidden;
     }
 
     body.kreezby-phone-shop {
         display: flex !important;
         flex-direction: column !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+    }
+
+    body.kreezby-phone-shop .main-layout {
+        flex: 1 1 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    body.kreezby-phone-shop .content-workspace {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    body.kreezby-phone-shop:has(#coverflow-home) {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    body.kreezby-phone-shop:has(#coverflow-home) .main-layout {
+        flex: 0 0 auto !important;
+        height: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
     }
 
     body.kreezby-phone-shop .coverflow-home {

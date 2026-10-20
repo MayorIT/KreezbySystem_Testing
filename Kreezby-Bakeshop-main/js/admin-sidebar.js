@@ -332,8 +332,14 @@
         return 'issue-reports-admin.html';
     }
 
+    function viewerHasFullAccess() {
+        var api = window.KreezbyAdminPermissions;
+        if (api && typeof api.isOwnerSession === 'function') return api.isOwnerSession();
+        return isHeadAdminPortal();
+    }
+
     function canSeeIssueReports() {
-        if (isHeadAdminPortal()) return true;
+        if (isHeadAdminPortal() && viewerHasFullAccess()) return true;
         var api = window.KreezbyAdminPermissions;
         if (!api) return false;
         if (typeof api.isHeadAdmin === 'function' && api.isHeadAdmin()) return true;
@@ -343,8 +349,8 @@
     function allowedNav() {
         var items = NAV.slice();
         var api = window.KreezbyAdminPermissions;
-        var head = isHeadAdminPortal() || (api && typeof api.isHeadAdmin === 'function' && api.isHeadAdmin());
-        if (api && !head) {
+        var full = viewerHasFullAccess();
+        if (api && !full) {
             items = items.filter(function (item) {
                 if (item.key === 'pos' && !(api.TASKS && api.TASKS.pos)) return true;
                 return api.adminCanAccessTask(item.key);
@@ -359,7 +365,7 @@
             });
         }
         if (isHeadAdminPortal()) {
-            items.push({ key: 'adminpermissions', label: 'Permissions', href: 'admin_permissions-headadmin.html', icon: 'clipboard', top: true });
+            if (full) items.push({ key: 'adminpermissions', label: 'Permissions', href: 'admin_permissions-headadmin.html', icon: 'clipboard', top: true });
             items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries-headadmin.html', icon: 'inquiry', top: true });
         }
         if (canSeeIssueReports() && !items.some(function (item) { return item.key === 'issuereports'; })) {

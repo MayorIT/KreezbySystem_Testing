@@ -249,7 +249,7 @@
     }
 
     function persistAdminAccess(adminId, tasks) {
-        if (isHeadAdminAccountId(adminId)) return TASK_ORDER.slice();
+        if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
         tasks = normalizeAdminTasks(tasks);
         var all = getAllPermissions();
         all[adminId] = tasks.slice();
@@ -301,6 +301,33 @@
         return normalized;
     }
 
+    function isOwnerAccount(account) {
+        if (!account) return false;
+        var role = String(account.role || '').toLowerCase();
+        if (role === 'owner') return true;
+        var name = String(account.username || account.id || '').toLowerCase();
+        return name === 'marcela_admin' || name === 'admin-owner';
+    }
+
+    function isOwnerAccountId(adminId) {
+        return isOwnerAccount(getAdminAccounts()[adminId]);
+    }
+
+    function isOwnerSession() {
+        var session = readSession();
+        var id = normalizeIdentity(session.identity || session.userName || session.name);
+        if (!id) return false;
+        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id.indexOf('marcela') === 0) return true;
+        var accounts = getAdminAccounts();
+        var keys = Object.keys(accounts);
+        for (var i = 0; i < keys.length; i++) {
+            var account = accounts[keys[i]];
+            if (!isOwnerAccount(account)) continue;
+            if (normalizeIdentity(account.username) === id || normalizeIdentity(account.name) === id || normalizeIdentity(account.id) === id) return true;
+        }
+        return false;
+    }
+
     function isHeadAdminAccountId(adminId) {
         var account = getAdminAccounts()[adminId];
         if (!account) return false;
@@ -312,20 +339,20 @@
 
     function getAdminTasks(adminId) {
         if (adminId) {
-            if (isHeadAdminAccountId(adminId)) return TASK_ORDER.slice();
+            if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
             var named = getAllPermissions();
-            return named[adminId] || ['dashboard'];
+            return named[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard'];
         }
-        if (isHeadAdmin() && !namedAdminPortal()) return TASK_ORDER.slice();
+        if (isOwnerSession() && !namedAdminPortal()) return TASK_ORDER.slice();
         adminId = getCurrentAdminId();
-        if (isHeadAdminAccountId(adminId)) return TASK_ORDER.slice();
+        if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
         var all = getAllPermissions();
-        return all[adminId] || ['dashboard'];
+        return all[adminId] || defaultTasksForAdmin(getAdminAccounts()[adminId]) || ['dashboard'];
     }
 
     function adminCanAccessTask(taskKey, adminId) {
         if (!taskKey) return true;
-        if (isHeadAdmin() && !namedAdminPortal()) return true;
+        if (isOwnerSession() && !namedAdminPortal()) return true;
         return getAdminTasks(adminId).indexOf(taskKey) !== -1;
     }
 
@@ -333,7 +360,10 @@
         var raw = filename || '';
         if (raw.indexOf('it_kreezby') >= 0) return null;
         var base = raw.split('/').pop().split('?')[0];
+        if (base === 'head_admin.html') return 'dashboard';
+        var normalized = base.replace(/-headadmin\.html$/, '-admin.html');
         if (PAGE_TO_TASK[base]) return PAGE_TO_TASK[base];
+        if (PAGE_TO_TASK[normalized]) return PAGE_TO_TASK[normalized];
         if (base.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
         if (base.indexOf('forecast-') === 0 || base.indexOf('aiforecast_salesanalysis') === 0 || base.indexOf('insight-') === 0) return 'aiforecast';
         if (base.indexOf('stocklevel') === 0) return 'stocklevel';
@@ -341,11 +371,13 @@
     }
 
     function getDashboardHref() {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        if (path.indexOf('/head_admin/') !== -1) return 'head_admin.html';
         return 'admin.html';
     }
 
     function filterDashboardCards() {
-        var allowed = isHeadAdmin() ? null : getAdminTasks();
+        var allowed = isOwnerSession() ? null : getAdminTasks();
         document.querySelectorAll('.dashboard-grid .stat-card').forEach(function (card) {
             var href = (card.getAttribute('href') || '').toLowerCase();
             if (href.indexOf('it_kreezby') >= 0) {
@@ -383,7 +415,7 @@
 
     function refreshAdminChrome() {
         var path = (location.pathname || '').replace(/\\/g, '/');
-        if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
+        if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1 && path.indexOf('/head_admin/') === -1) return;
         filterDashboardCards();
         applyTopNavPermissions();
         if (window.KreezbyAdminSidebar && typeof window.KreezbyAdminSidebar.render === 'function') {
@@ -394,7 +426,7 @@
 
     function renderPermissionsMatrix(matrixBody, adminId) {
         if (!matrixBody) return;
-        var locked = isHeadAdminAccountId(adminId);
+        var locked = isOwnerAccountId(adminId);
         var allowed = locked ? TASK_ORDER.slice() : (getAllPermissions()[adminId] || DEFAULT_PERMISSIONS[adminId] || ['dashboard']);
         matrixBody.innerHTML = '';
         PERMISSION_MATRIX_ORDER.forEach(function (taskKey) {
@@ -533,13 +565,13 @@
             var profile = getAdminProfile(selectedId);
             titleEl.textContent = 'Module access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedId);
-            if (isHeadAdminAccountId(selectedId)) {
+            if (isOwnerAccountId(selectedId)) {
                 showPermissionStatus(root, profile.name + ' keeps every module.');
             }
         }
 
         function applyCheckedAccess(sourceBox) {
-            if (!selectedId || isHeadAdminAccountId(selectedId)) {
+            if (!selectedId || isOwnerAccountId(selectedId)) {
                 showPermissionStatus(root, getAdminProfile(selectedId).name + ' keeps every module.');
                 return;
             }
@@ -615,13 +647,20 @@
 
     function guardCurrentPage() {
         var path = (location.pathname || '').replace(/\\/g, '/');
-        if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1) return;
+        var onAdmin = path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1;
+        var onHead = path.indexOf('/head_admin/') !== -1;
+        if (!onAdmin && !onHead) return;
         var sessionType = readSession().accountType || '';
         if (sessionType !== 'Administrator' && sessionType !== 'Head Administrator' && sessionType !== 'IT Support') {
             window.location.replace(portalLoginHref());
             return;
         }
-        if (isHeadAdmin()) return;
+        if (isOwnerSession()) return;
+        var filenameEarly = getCurrentPageFilename();
+        if (filenameEarly === 'admin_permissions-headadmin.html' || filenameEarly === 'admin-permissions.html' || filenameEarly === 'staff-permissions.html') {
+            window.location.replace(getDashboardHref() + '?denied=1');
+            return;
+        }
         var filename = getCurrentPageFilename();
         if (filename === 'report_issue-admin.html') return;
         var taskKey = getTaskForPage(filename);
@@ -651,6 +690,7 @@
         DEFAULT_PERMISSIONS: DEFAULT_PERMISSIONS,
         PERMISSION_MATRIX_ORDER: PERMISSION_MATRIX_ORDER,
         isHeadAdmin: isHeadAdmin,
+        isOwnerSession: isOwnerSession,
         getAllPermissions: getAllPermissions,
         saveAllPermissions: saveAllPermissions,
         getCurrentAdminId: getCurrentAdminId,
@@ -668,11 +708,12 @@
         var filename = getCurrentPageFilename();
         var path = (location.pathname || '').replace(/\\/g, '/');
         var isAdminPage = path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1;
+        var isHeadPage = path.indexOf('/head_admin/') !== -1;
         var session = readSession();
-        if (session.accountType === 'Administrator') {
+        if (session.accountType === 'Administrator' || session.accountType === 'Head Administrator') {
             setCurrentAdminId(inferAdminIdFromIdentity(session.identity || session.userName));
         }
-        if (isAdminPage) {
+        if (isAdminPage || isHeadPage) {
             guardCurrentPage();
             refreshAdminChrome();
             showDeniedBanner();
@@ -689,7 +730,7 @@
     }
 
     document.addEventListener('kreezby:page-load', function () {
-        if (location.pathname.indexOf('/admin/') !== -1) refreshAdminChrome();
+        if (location.pathname.indexOf('/admin/') !== -1 || location.pathname.indexOf('/head_admin/') !== -1) refreshAdminChrome();
     });
     document.addEventListener('kreezby-admin-sidebar-ready', applyTopNavPermissions);
     document.addEventListener('kreezby:remote-state', function (event) {
@@ -699,7 +740,7 @@
         var active = document.querySelector('[data-account-list] .role-selection-pill.active-role');
         if (body && active) renderPermissionsMatrix(body, active.getAttribute('data-admin-id'));
         var path = (location.pathname || '').replace(/\\/g, '/');
-        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) {
+        if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1 || path.indexOf('/head_admin/') !== -1) {
             guardCurrentPage();
             refreshAdminChrome();
         }

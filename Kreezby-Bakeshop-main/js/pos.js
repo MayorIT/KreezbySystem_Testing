@@ -19,7 +19,7 @@
         { code: 'CRK-MNG-J', name: 'Mango Crinkles', price: 165 },
         { code: 'CRK-UBE-P', name: 'Ube Crinkles', price: 165 }
     ];
-    var PAYMENTS = ['Cash', 'GCash', 'Check', 'Cons'];
+    var PAYMENTS = ['Cash', 'GCash'];
     var cart = {};
     var applyingStock = false;
     var weekOpen = false;
@@ -336,7 +336,7 @@
         var existingPay = document.getElementById('pos-payment');
         var existingName = document.getElementById('pos-customer');
         var existingTender = document.getElementById('pos-tender');
-        if (existingPay) payment = existingPay.value || 'Cash';
+        if (existingPay && PAYMENTS.indexOf(existingPay.value) >= 0) payment = existingPay.value;
         var nameValue = existingName ? existingName.value : 'Walk-in';
         var tenderValue = existingTender ? existingTender.value : '';
         root.querySelector('.pos-layout').innerHTML =
@@ -605,7 +605,7 @@
         if (!root) return;
         document.body.classList.add('po-admin-page');
         var style = document.getElementById('kreezby-pos-style');
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261020week';
+        var styleHref = '../css/pages/admin/pos-admin.css?v=20261020beside2';
         if (!style) {
             style = document.createElement('link');
             style.id = 'kreezby-pos-style';

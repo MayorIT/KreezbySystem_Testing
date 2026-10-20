@@ -51,32 +51,47 @@ body.po-admin-page #pos-master.panel-data-card {
 }
 
 .pos-catalog-head {
-    display: flex;
+    display: flex !important;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 12px;
     margin: 0 0 12px;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    position: relative;
+    z-index: 2;
 }
 
 .pos-catalog-head h3 {
-    margin: 0;
+    margin: 0 !important;
+    flex: 0 0 auto;
+    width: auto !important;
 }
 
 #pos-week-sales {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    visibility: visible !important;
     height: 36px;
     padding: 0 14px;
-    border: 1px solid #c4b4a4;
+    border: 1px solid #3e2723;
     border-radius: 999px;
-    background: #fff;
-    color: #5d4037;
+    background: #5d4037;
+    color: #fff8ee;
     font-weight: 700;
     font-size: 13px;
+    line-height: 1;
     cursor: pointer;
     flex: 0 0 auto;
+    white-space: nowrap;
+    position: relative;
+    z-index: 3;
 }
 
 #pos-week-sales:hover {
-    background: #fff8e8;
+    background: #3e2723;
 }
 
 .pos-week {

@@ -388,7 +388,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20261020share';
+        s.src = jsBase() + 'admin-permissions.js?v=20261020brent';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -812,9 +812,50 @@
     }
 
     function retailerDropdownLabel() {
-        var brand = document.querySelector('.panel-brand');
-        if (brand && brand.textContent) return brand.textContent.trim() + ' \u25be';
         return 'Retailer \u25be';
+    }
+
+    function retailerStoreName() {
+        var sessionName = '';
+        try {
+            var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
+            sessionName = sess && sess.userName ? String(sess.userName).trim() : '';
+        } catch (e) { /* fall through to the sidebar brand */ }
+        if (sessionName && !/^retailer$/i.test(sessionName)) return sessionName;
+        var brand = document.querySelector('.panel-brand');
+        var brandName = brand ? String(brand.textContent || '').trim() : '';
+        if (brandName && !/^retailer$/i.test(brandName)) return brandName;
+        return sessionName;
+    }
+
+    function ensureStoreNameStyle() {
+        if (document.getElementById('kreezby-store-name-style')) return;
+        var style = document.createElement('style');
+        style.id = 'kreezby-store-name-style';
+        style.textContent =
+            '.portal-store-name{display:inline-flex;align-items:center;max-width:min(46vw,240px);color:#fff;font-weight:800;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '@media (max-width:900px){.portal-store-name{max-width:42vw;font-size:12px;}}';
+        document.head.appendChild(style);
+    }
+
+    function paintRetailerHeader(trigger) {
+        var storeName = retailerStoreName();
+        trigger.textContent = 'Retailer \u25be';
+        var right = trigger.closest('.top-nav-links-right');
+        if (!right) return;
+        ensureStoreNameStyle();
+        var nameEl = right.querySelector('.portal-store-name');
+        if (storeName) {
+            if (!nameEl) {
+                nameEl = document.createElement('span');
+                nameEl.className = 'portal-store-name';
+            }
+            var dropdown = trigger.closest('.user-dropdown');
+            right.insertBefore(nameEl, dropdown || trigger);
+            nameEl.textContent = storeName;
+        } else if (nameEl) {
+            nameEl.remove();
+        }
     }
 
     function ensureStaffUserDropdownShell() {
@@ -951,7 +992,9 @@
         ensureCss();
         ensureMenuMarkup(menu);
         wireLogoutLinks(menu);
-        if (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage()) {
+        if (isRetailerPage()) {
+            paintRetailerHeader(trigger);
+        } else if (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage()) {
             var sessionName = '';
             try {
                 var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
@@ -1060,11 +1103,15 @@
         syncAdminHomeHeader();
         ensureStaffHomeLink();
         ensureRetailerHomeLink();
-        setTimeout(syncAdminHomeHeader, 0);
+        setTimeout(function () {
+            syncAdminHomeHeader();
+            wireUserDropdown();
+        }, 0);
         setTimeout(function () {
             syncAdminHomeHeader();
             ensureStaffHomeLink();
             ensureRetailerHomeLink();
+            wireUserDropdown();
         }, 80);
     }
 
