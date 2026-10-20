@@ -312,6 +312,17 @@ async function refreshCache() {
 
 app.use(express.json({ limit: "12mb" }));
 
+app.use("/api", (req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 function databaseReady(res) {
   if (mongoReady) return true;
   res.status(503).json({ ok: false, error: "Database is reconnecting." });

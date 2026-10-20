@@ -80,6 +80,24 @@
     }, 1200);
   }
 
+  var LIVE_API = "https://particle-instructions-retailer-civil.trycloudflare.com";
+  var hostName = (location.hostname || "").toLowerCase();
+  if (hostName.endsWith("github.io") || hostName.endsWith("githubusercontent.com")) {
+    var nativeOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      var args = Array.prototype.slice.call(arguments);
+      if (typeof url === "string" && url.indexOf("/api/") === 0) args[1] = LIVE_API + url;
+      return nativeOpen.apply(this, args);
+    };
+    if (window.fetch) {
+      var nativeFetch = window.fetch;
+      window.fetch = function (input, init) {
+        if (typeof input === "string" && input.indexOf("/api/") === 0) input = LIVE_API + input;
+        return nativeFetch.call(this, input, init);
+      };
+    }
+  }
+
   if (location.protocol === "file:") return;
 
   var LOCAL_ONLY = {
