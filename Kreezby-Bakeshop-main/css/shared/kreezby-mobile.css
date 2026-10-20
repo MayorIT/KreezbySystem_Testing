@@ -1167,3 +1167,140 @@ html {
         text-align: center;
     }
 }
+
+/* Phone pages scroll like a normal site. Desktop shells lock the window and clip the list over the buttons. */
+@media (max-width: 900px) {
+    html,
+    body,
+    body:has(.core-viewport-wrapper),
+    body:has(.system-dashboard-wrapper),
+    body.kreezby-admin-home:has(#admin-dashboard-root) {
+        height: auto !important;
+        min-height: 100dvh !important;
+        max-height: none !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    body.kreezby-nav-open,
+    body.kreezby-nav-open:has(.core-viewport-wrapper),
+    body.kreezby-admin-home.kreezby-nav-open:has(#admin-dashboard-root) {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    body:has(.core-viewport-wrapper) .core-viewport-wrapper,
+    body:has(.system-dashboard-wrapper) .system-dashboard-wrapper,
+    body.kreezby-admin-home:has(#admin-dashboard-root) .core-viewport-wrapper,
+    .core-viewport-wrapper,
+    .system-dashboard-wrapper,
+    turbo-frame#kreezby-main-content,
+    .kreezby-turbo-main,
+    body:has(.core-viewport-wrapper) main.workspace-view-canvas,
+    body:has(.core-viewport-wrapper) main.workspace-canvas,
+    body.kreezby-admin-home:has(#admin-dashboard-root) main.workspace-view-canvas,
+    main.workspace-view-canvas,
+    main.workspace-canvas {
+        display: block !important;
+        flex: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    body:has(.core-viewport-wrapper) [id$="-panel-view"],
+    body:has(.core-viewport-wrapper) [id$="-container-block"],
+    body:has(.core-viewport-wrapper) [id$="-master"],
+    body:has(.core-viewport-wrapper) .panel-data-card,
+    body:has(.core-viewport-wrapper) .po-tabbed-card,
+    body:has(.core-viewport-wrapper) .bo-tabbed-card,
+    body:has(.core-viewport-wrapper) .order-list-card,
+    body:has(.core-viewport-wrapper) .po-list-body,
+    body:has(.core-viewport-wrapper) .card-body-padded,
+    body:has(.core-viewport-wrapper) .po-table-scroll-wrap,
+    body:has(.core-viewport-wrapper) .recv-table-scroll-wrap,
+    body:has(.core-viewport-wrapper) .table-scroll,
+    body:has(.core-viewport-wrapper) .matrix-table-wrap {
+        flex: none !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .po-list-toolbar,
+    .datatable-filters-line,
+    .datatable-footer-line,
+    .fr-records,
+    .fr-records__grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .datatable-footer-line,
+    .po-list-toolbar {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .po-list-toolbar .search-field-wrap,
+    .po-list-toolbar .search-field-wrap input,
+    .datatable-filters-line input,
+    .datatable-filters-line select,
+    .fr-field,
+    .fr-field input,
+    .fr-field select,
+    .fr-field textarea {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .fr-fields,
+    .fr-card--materials .fr-fields,
+    .form-inputs-row-grid,
+    .form-grid,
+    .customer-info-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .fr-field--wide {
+        grid-column: auto !important;
+    }
+
+    .fr-field input,
+    .fr-field select,
+    .fr-btn {
+        height: 44px !important;
+        font-size: 16px !important;
+    }
+
+    .fr-btn,
+    .fr-actions {
+        width: 100% !important;
+        white-space: normal !important;
+    }
+
+    .form-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    main.workspace-view-canvas,
+    main.workspace-canvas {
+        padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+    }
+}
