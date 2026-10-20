@@ -43,7 +43,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-notification-popover-style';
         link.rel = 'stylesheet';
-        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css?v=20261015phone';
+        link.href = moduleRelativeRoot() + 'css/shared/notification-popover.css?v=20261020bell';
         document.head.appendChild(link);
     }
 
@@ -175,15 +175,10 @@
         this.updateVisibility();
     };
 
-    NotificationPopoverInstance.prototype.handleStoreChange = function (change) {
-        var prev = this._lastUnread || 0;
+    NotificationPopoverInstance.prototype.handleStoreChange = function () {
         this.refresh();
         if (!window.KreezbyNotifications) return;
-        var unread = window.KreezbyNotifications.getUnreadCount();
-        var frame = document.getElementById('kreezby-main-content');
-        var leaving = frame && frame.classList.contains('is-kreezby-leaving');
-        if (change && change.type === 'added' && unread > prev && !leaving) this.open();
-        this._lastUnread = unread;
+        this._lastUnread = window.KreezbyNotifications.getUnreadCount();
     };
 
     NotificationPopoverInstance.prototype.bind = function () {

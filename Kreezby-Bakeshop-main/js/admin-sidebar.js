@@ -183,7 +183,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020fit';
+            mobile.href = assetPrefix() + 'css/shared/kreezby-mobile.css?v=20261020edge';
             document.head.appendChild(mobile);
         }
 
@@ -357,7 +357,6 @@
             });
         }
         if (isHeadAdminPortal()) {
-            items = items.filter(function (item) { return item.key !== 'receive'; });
             ['maintenance', 'inbox'].forEach(function (key) {
                 if (items.some(function (item) { return item.key === key; })) return;
                 var extra = NAV.filter(function (item) { return item.key === key; })[0];

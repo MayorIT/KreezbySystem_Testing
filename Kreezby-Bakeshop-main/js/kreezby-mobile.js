@@ -50,7 +50,7 @@
     }
 
     function ensureCss() {
-        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020fit';
+        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020edge';
         var link = document.getElementById('kreezby-mobile-style');
         if (!link) {
             link = document.createElement('link');

@@ -89,8 +89,19 @@
             (id.indexOf('marcela') === 0 && id.indexOf('admin') >= 0);
     }
 
+    function knownAdminId(identity) {
+        var id = normalizeIdentity(identity);
+        if (!id) return '';
+        if (id === 'brentadmin' || id === 'brentramos' || id === 'adminops' || id === 'headadmin') return 'admin-ops';
+        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' || id === 'adminowner') return 'admin-owner';
+        if (id === 'ailoreadmin' || id === 'ailoreembalzado' || id === 'adminmarketing') return 'ailore';
+        return '';
+    }
+
     function inferAdminIdFromIdentity(identity) {
         var id = normalizeIdentity(identity);
+        var known = knownAdminId(id);
+        if (known) return known;
         var accounts = getAdminAccounts();
         var keys = Object.keys(accounts);
         for (var i = 0; i < keys.length; i++) {
@@ -110,21 +121,25 @@
     function getCurrentAdminId() {
         var fromPath = adminIdFromPath();
         if (fromPath) {
-            try { sessionStorage.setItem(SESSION_ADMIN_KEY, fromPath); } catch (e) { /* ignore */ }
+            setCurrentAdminId(fromPath);
             return fromPath;
+        }
+        var session = readSession();
+        var inferred = inferAdminIdFromIdentity(session.identity || session.userName || session.name);
+        if (inferred) {
+            setCurrentAdminId(inferred);
+            return inferred;
         }
         try {
             var stored = sessionStorage.getItem(SESSION_ADMIN_KEY);
-            if (stored && (getAdminAccounts()[stored] || ADMIN_PROFILES[stored])) return stored;
+            if (stored && (knownAdminId(stored) || getAdminAccounts()[stored] || ADMIN_PROFILES[stored])) return stored;
         } catch (e) { /* ignore */ }
-        var session = readSession();
-        var inferred = inferAdminIdFromIdentity(session.identity || session.userName);
-        try { sessionStorage.setItem(SESSION_ADMIN_KEY, inferred); } catch (e) { /* ignore */ }
-        return inferred;
+        return '';
     }
 
     function setCurrentAdminId(adminId) {
-        if (!getAdminAccounts()[adminId] && !ADMIN_PROFILES[adminId]) return;
+        if (!adminId) return;
+        if (!knownAdminId(adminId) && !getAdminAccounts()[adminId] && !ADMIN_PROFILES[adminId]) return;
         try { sessionStorage.setItem(SESSION_ADMIN_KEY, adminId); } catch (e) { /* ignore */ }
     }
 

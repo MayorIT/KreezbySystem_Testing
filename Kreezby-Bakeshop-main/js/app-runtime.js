@@ -624,14 +624,17 @@
               accountType: resolved.accountType,
               accountArea: areaForLogin(resolved)
             }));
-            if (resolved.accountType === 'Administrator') {
+            if (resolved.accountType === 'Administrator' || resolved.accountType === 'Head Administrator') {
               var nid = normalizeLoginKey(resolved.identity || resolved.userName);
-              var adminId = 'ailore';
-              if (nid.indexOf('ailore') >= 0) adminId = 'ailore';
-              try { sessionStorage.setItem('kreezby_current_admin', adminId); } catch (e2) { /* ignore */ }
+              var adminId = '';
+              if (nid.indexOf('brent') >= 0 || nid === 'headadmin') adminId = 'admin-ops';
+              else if (nid.indexOf('marcela') >= 0 || nid.indexOf('criselda') >= 0) adminId = 'admin-owner';
+              else if (nid.indexOf('ailore') >= 0) adminId = 'ailore';
+              if (adminId) {
+                try { sessionStorage.setItem('kreezby_current_admin', adminId); } catch (e2) { /* ignore */ }
+              }
             }
           } catch (err) { /* ignore */ }
-          toast('Welcome, ' + resolved.userName + '!', 'success');
           setTimeout(function () {
             location.href = appRootPrefix() + resolved.redirectUrl;
           }, 600);

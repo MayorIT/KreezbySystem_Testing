@@ -256,13 +256,9 @@
 
     function announce(note) {
         if (!note || !note.id) return;
-        if (!window.Notification || Notification.permission !== 'granted') return;
         var seen = seenStore();
         if (!seen.primed || seen.ids[note.id]) return;
-        var audiences = note.audiences || (note.audience ? [note.audience] : null);
-        if (audiences && audiences.indexOf('retailer') !== -1 && audiences.length === 1) return;
         markSeen(note.id);
-        showNative(note.title || 'Kreezby alert', note.description || '', note.id);
     }
 
     function noteTime(note) {
@@ -341,7 +337,6 @@
             writeJson(NOTES_KEY, list);
             document.dispatchEvent(new CustomEvent('kreezby:notification-change', { detail: { type: 'added', notification: entry } }));
         }
-        showInApp(title, description);
         return id;
     }
 

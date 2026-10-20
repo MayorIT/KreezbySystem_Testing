@@ -73,6 +73,7 @@
     overflow: hidden;
     z-index: 1200;
     opacity: 0;
+    visibility: hidden;
     transform: translateY(-8px) scale(0.98);
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -80,6 +81,7 @@
 
 .notification-popover-panel.is-open {
     opacity: 1;
+    visibility: visible;
     transform: translateY(0) scale(1);
     pointer-events: auto;
 }

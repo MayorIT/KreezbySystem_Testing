@@ -1178,6 +1178,7 @@ html {
         height: auto !important;
         min-height: 100dvh !important;
         max-height: none !important;
+        margin: 0 !important;
         overflow-x: hidden !important;
         overflow-y: auto !important;
     }
@@ -1474,5 +1475,79 @@ html {
     .dashboard-grid,
     .maintenance-overview-grid {
         grid-template-columns: 1fr !important;
+    }
+}
+
+/* Keep text, tables, and borders inside a phone screen. Same pages, same controls. */
+@media (max-width: 900px) {
+    .core-viewport-wrapper,
+    .system-dashboard-wrapper,
+    #kreezby-main-content,
+    main,
+    .page-shell,
+    .content-workspace,
+    .panel-data-card,
+    .order-list-card,
+    .card-body-padded,
+    .auth-shell,
+    .auth-card,
+    .login-panel,
+    .kreezby-welcome,
+    .manual-route-sheet-card,
+    .manual-sheet-scroll,
+    .po-table-scroll-wrap,
+    .recv-table-scroll-wrap {
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    img,
+    svg,
+    video,
+    canvas,
+    iframe {
+        max-width: 100%;
+        height: auto;
+    }
+
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .top-navbar-node,
+    .shop-header,
+    .customer-header {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    table.kreezby-phone-cards,
+    table.kreezby-phone-cards tbody,
+    table.kreezby-phone-cards tr,
+    table.manual-sheet-table,
+    table.manual-sheet-table tbody,
+    table.manual-sheet-table tr {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    table.kreezby-phone-cards td,
+    table.manual-sheet-table td,
+    table.kreezby-phone-cards th,
+    table.manual-sheet-table th {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .manual-sheet-scroll,
+    .sheet-scroll,
+    .table-scroll,
+    .data-table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }

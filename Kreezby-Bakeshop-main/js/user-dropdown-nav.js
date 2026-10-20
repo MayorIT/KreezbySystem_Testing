@@ -346,7 +346,7 @@
             if (window.KreezbyNotificationPopoverLoaded || document.getElementById('kreezby-notification-popover-script')) return;
             var pop = document.createElement('script');
             pop.id = 'kreezby-notification-popover-script';
-            pop.src = base + 'notification-popover.js?v=20261018names';
+            pop.src = base + 'notification-popover.js?v=20261020bell';
             pop.defer = true;
             document.head.appendChild(pop);
         }
@@ -388,7 +388,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20261020access';
+        s.src = jsBase() + 'admin-permissions.js?v=20261020keep';
         s.async = false;
         document.head.appendChild(s);
     }
