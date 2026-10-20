@@ -636,7 +636,7 @@
                 loadUi();
                 return;
             }
-            loadScript(root + 'js/staff-permissions.js?v=20261020share', 'kreezby-staff-permissions-script', loadUi);
+            loadScript(root + 'js/staff-permissions.js?v=20261020access', 'kreezby-staff-permissions-script', loadUi);
         }
         if (window.KreezbyMaintenanceSettings && window.KreezbyMaintenanceUI) {
             start();

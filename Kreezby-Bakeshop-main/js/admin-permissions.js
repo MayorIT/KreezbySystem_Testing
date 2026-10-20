@@ -248,12 +248,58 @@
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); } catch (e) { /* ignore */ }
     }
 
+    function taskLabel(key) {
+        return (TASKS[key] && TASKS[key].label) || key;
+    }
+
+    function notifyAccessChange(accountId, before, after) {
+        var granted = [];
+        var removed = [];
+        (after || []).forEach(function (key) {
+            if (key !== 'dashboard' && before.indexOf(key) === -1) granted.push(taskLabel(key));
+        });
+        (before || []).forEach(function (key) {
+            if (key !== 'dashboard' && after.indexOf(key) === -1) removed.push(taskLabel(key));
+        });
+        if (!granted.length && !removed.length) return;
+        var title = 'Task access updated';
+        var description = 'You can now open ' + granted.join(', ') + '. Access was removed for ' + removed.join(', ') + '.';
+        if (granted.length && !removed.length) {
+            title = 'Access given';
+            description = 'You can now open ' + granted.join(', ') + '.';
+        } else if (removed.length && !granted.length) {
+            title = 'Access removed';
+            description = 'Access was removed for ' + removed.join(', ') + '.';
+        }
+        var note = {
+            id: 'access-' + accountId + '-' + Date.now(),
+            title: title,
+            description: description,
+            source: 'access',
+            accountIds: [accountId],
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        if (window.KreezbyNotifications && typeof window.KreezbyNotifications.push === 'function') {
+            window.KreezbyNotifications.push(note);
+            return;
+        }
+        try {
+            var list = JSON.parse(localStorage.getItem('kreezbyNotifications') || '[]');
+            if (!Array.isArray(list)) list = [];
+            list.unshift(note);
+            localStorage.setItem('kreezbyNotifications', JSON.stringify(list.slice(0, 80)));
+        } catch (e) { /* keep the permission save */ }
+    }
+
     function persistAdminAccess(adminId, tasks) {
         if (isOwnerAccountId(adminId)) return TASK_ORDER.slice();
         tasks = normalizeAdminTasks(tasks);
         var all = getAllPermissions();
+        var before = (all[adminId] || []).slice();
         all[adminId] = tasks.slice();
         saveAllPermissions(all);
+        notifyAccessChange(adminId, before, tasks);
         var settings = window.KreezbyMaintenanceSettings;
         if (settings && typeof settings.getUsers === 'function' && typeof settings.saveUsers === 'function') {
             var users = settings.getUsers();
@@ -658,7 +704,7 @@
         if (isOwnerSession()) return;
         var filenameEarly = getCurrentPageFilename();
         if (filenameEarly === 'admin_permissions-headadmin.html' || filenameEarly === 'admin-permissions.html' || filenameEarly === 'staff-permissions.html') {
-            window.location.replace(getDashboardHref() + '?denied=1');
+            window.location.replace(getDashboardHref());
             return;
         }
         var filename = getCurrentPageFilename();
@@ -666,21 +712,19 @@
         var taskKey = getTaskForPage(filename);
         if (!taskKey) return;
         if (!adminCanAccessTask(taskKey)) {
-            window.location.replace(getDashboardHref() + '?denied=1');
+            window.location.replace(getDashboardHref());
         }
     }
 
-    function showDeniedBanner() {
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('denied') !== '1') return;
-        var notice = document.createElement('div');
-        notice.className = 'staff-access-denied-banner';
-        notice.textContent = 'You do not have permission to open that page.';
-        notice.style.cssText = 'background:#ffebee;color:#c62828;padding:12px 20px;margin-bottom:16px;border-radius:6px;font-size:14px;font-weight:600;';
-        var container = document.querySelector('.workspace-view-canvas, .workspace-container');
-        if (container && container.firstChild) {
-            container.insertBefore(notice, container.firstChild);
-        }
+    function clearDeniedNotice() {
+        document.querySelectorAll('.staff-access-denied-banner').forEach(function (el) { el.remove(); });
+        try {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('denied') !== '1') return;
+            params.delete('denied');
+            var next = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+            history.replaceState(history.state, '', next);
+        } catch (e) { /* leave the address as it is */ }
     }
 
     window.KreezbyAdminPermissions = {
@@ -714,9 +758,9 @@
             setCurrentAdminId(inferAdminIdFromIdentity(session.identity || session.userName));
         }
         if (isAdminPage || isHeadPage) {
+            clearDeniedNotice();
             guardCurrentPage();
             refreshAdminChrome();
-            showDeniedBanner();
         }
         if (filename === 'admin-permissions.html' || filename === 'admin_permissions-headadmin.html' || document.getElementById('admin-permissions-root')) {
             initPermissionsEditor(document.getElementById('admin-permissions-root') || document);

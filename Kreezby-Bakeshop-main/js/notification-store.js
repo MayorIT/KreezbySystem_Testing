@@ -40,6 +40,7 @@
         };
         if (item.audience) entry.audience = item.audience;
         if (Array.isArray(item.audiences)) entry.audiences = item.audiences.slice();
+        if (Array.isArray(item.accountIds)) entry.accountIds = item.accountIds.slice();
         return entry;
     }
 
@@ -163,7 +164,21 @@
         return '';
     }
 
+    function currentAccountId() {
+        if (isStaffPortal() && window.KreezbyStaffPermissions && typeof window.KreezbyStaffPermissions.getCurrentStaffId === 'function') {
+            return window.KreezbyStaffPermissions.getCurrentStaffId();
+        }
+        if ((isAdminPortal()) && window.KreezbyAdminPermissions && typeof window.KreezbyAdminPermissions.getCurrentAdminId === 'function') {
+            return window.KreezbyAdminPermissions.getCurrentAdminId();
+        }
+        return '';
+    }
+
     function visibleToAudience(item) {
+        if (item && Array.isArray(item.accountIds) && item.accountIds.length) {
+            var current = currentAccountId();
+            return !!(current && item.accountIds.indexOf(current) !== -1);
+        }
         var audiences = itemAudiences(item);
         if (isRetailerPortal()) {
             if (audiences) return audiences.indexOf('retailer') !== -1;

@@ -32,10 +32,10 @@
             return;
         }
         if (path.indexOf('/admin_names/') >= 0) {
-            window.location.replace('admin.html?denied=1');
+            window.location.replace('admin.html');
             return;
         }
-        window.location.replace('admin.html?denied=1');
+        window.location.replace('admin.html');
     }
 
     if (!viewerMayOpen()) {

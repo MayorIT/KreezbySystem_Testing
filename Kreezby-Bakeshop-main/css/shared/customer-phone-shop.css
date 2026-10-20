@@ -158,7 +158,7 @@
     }
 
     .nav-actions {
-        display: flex !important;
+        display: none !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         align-items: center;

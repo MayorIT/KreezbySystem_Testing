@@ -354,7 +354,7 @@
         if (!window.KreezbyNotifications && !document.getElementById('kreezby-notification-store-script')) {
             var store = document.createElement('script');
             store.id = 'kreezby-notification-store-script';
-            store.src = base + 'notification-store.js?v=20261015fix';
+            store.src = base + 'notification-store.js?v=20261020access';
             store.onload = loadPopover;
             store.defer = true;
             document.head.appendChild(store);
@@ -388,7 +388,7 @@
         if (document.getElementById('kreezby-admin-permissions-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-admin-permissions-script';
-        s.src = jsBase() + 'admin-permissions.js?v=20261020brent';
+        s.src = jsBase() + 'admin-permissions.js?v=20261020access';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -663,9 +663,9 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
-            style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
+            style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle{display:none!important;}body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,body.kreezby-retailer-home .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
         }
-        style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
+        style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle{display:none!important;}body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,body.kreezby-retailer-home .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');

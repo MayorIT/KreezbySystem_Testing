@@ -56,7 +56,12 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
-body.kreezby-admin-home .top-navbar-node .hamburger-toggle,
+body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle {
+    display: none !important;
+}
+
+body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,
+body.kreezby-retailer-home .top-navbar-node .hamburger-toggle,
 .top-navbar-node .hamburger-toggle,
 .hamburger-toggle {
     display: inline-flex !important;

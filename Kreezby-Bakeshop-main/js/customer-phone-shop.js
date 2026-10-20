@@ -66,7 +66,7 @@
         var link = document.createElement('link');
         link.id = 'kreezby-customer-phone-shop-style';
         link.rel = 'stylesheet';
-        link.href = '../css/shared/customer-phone-shop.css?v=20261020tone';
+        link.href = '../css/shared/customer-phone-shop.css?v=20261020nav';
         document.head.appendChild(link);
         requestAnimationFrame(function () {
             document.head.appendChild(link);
