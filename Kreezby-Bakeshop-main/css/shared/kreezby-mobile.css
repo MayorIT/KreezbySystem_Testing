@@ -859,7 +859,7 @@ html {
         width: auto !important;
         max-width: 100% !important;
         min-height: 0 !important;
-        padding: 4px 0 !important;
+        padding: 6px 16px !important;
         line-height: 1.4 !important;
         border: 0 !important;
         text-align: right !important;
@@ -1402,7 +1402,7 @@ html {
         display: flex !important;
         justify-content: space-between;
         width: auto !important;
-        padding: 4px 0 !important;
+        padding: 6px 16px !important;
         border: 0 !important;
         text-align: right !important;
         white-space: normal !important;
@@ -1549,5 +1549,92 @@ html {
         max-width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    /* Keep every table's labels and values off the left and right edges. */
+    body .manual-sheet-header,
+    body .manual-sheet-footer,
+    body .manual-sheet-summary {
+        padding-left: 22px !important;
+        padding-right: 22px !important;
+        box-sizing: border-box;
+    }
+
+    body table tbody tr,
+    body table tfoot tr,
+    body table thead tr,
+    body table.kreezby-phone-cards tr,
+    body table.kreezby-phone-cards tr.kreezby-phone-span,
+    body table.manual-sheet-table tr,
+    body .po-table-scroll-wrap tr,
+    body .recv-table-scroll-wrap tr {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        box-sizing: border-box;
+    }
+
+    body table td,
+    body table th,
+    body.po-admin-page table td,
+    body.po-admin-page table th,
+    body.po-admin-page table.manual-sheet-table td,
+    body.po-admin-page table.manual-sheet-table th,
+    body table.kreezby-phone-cards td,
+    body table.kreezby-phone-cards th,
+    body table.manual-sheet-table td,
+    body table.manual-sheet-table th,
+    body table.data-display-table td,
+    body table.data-display-table th,
+    body .po-table-scroll-wrap td,
+    body .po-table-scroll-wrap th,
+    body .recv-table-scroll-wrap td,
+    body .recv-table-scroll-wrap th {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        box-sizing: border-box;
+    }
+
+    /* Back-order and order tabs stay inside the phone. The right pill ends at the screen edge. */
+    body .po-order-tabs,
+    body .bo-order-tabs,
+    body .po-order-tabs.expanding-tabs,
+    body .bo-order-tabs.expanding-tabs {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+        flex-wrap: nowrap !important;
+        overflow: hidden !important;
+    }
+
+    body .po-order-tabs .po-order-tab,
+    body .bo-order-tabs .bo-order-tab,
+    body .po-order-tabs .expanding-tab,
+    body .bo-order-tabs .expanding-tab {
+        flex: 1 1 0 !important;
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 40px !important;
+        padding: 8px 10px !important;
+        white-space: normal !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    body .po-order-tabs .expanding-tab__label,
+    body .bo-order-tabs .expanding-tab__label,
+    body .po-order-tabs .expanding-tab.is-expanded .expanding-tab__label,
+    body .bo-order-tabs .expanding-tab.is-expanded .expanding-tab__label {
+        display: inline !important;
+        max-width: none !important;
+        opacity: 1 !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        line-height: 1.2 !important;
     }
 }

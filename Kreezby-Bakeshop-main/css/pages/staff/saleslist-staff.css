@@ -1458,7 +1458,7 @@ table.manual-sheet-table tfoot td {
     justify-content: space-between;
     gap: 12px;
     width: auto !important;
-    padding: 4px 0 !important;
+    padding: 6px 16px !important;
     border: 0 !important;
     text-align: right !important;
     white-space: normal !important;

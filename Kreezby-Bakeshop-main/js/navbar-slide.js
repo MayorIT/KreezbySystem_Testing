@@ -49,7 +49,7 @@
     }
 
     function ensureMobile() {
-        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020edge';
+        var mobileHref = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020tabs';
         var css = document.getElementById('kreezby-mobile-style');
         if (!css) {
             css = document.createElement('link');
