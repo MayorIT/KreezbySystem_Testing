@@ -317,7 +317,7 @@
             try { sessionStorage.setItem(SESSION_STAFF_KEY, fromSession); } catch (e) { /* ignore */ }
             return fromSession;
         }
-        if (/\/staff\//i.test(window.location.pathname || '')) return '';
+        if (/\/staff\//i.test(window.location.pathname || '')) return 'staff-imelda';
         if (accounts.length) return accounts[0].id;
         return 'staff-imelda';
     }
@@ -372,6 +372,9 @@
 
     function getStaffTasks(staffId) {
         staffId = staffId || getCurrentStaffId();
+        if (!sessionStaffId() && /\/staff\//i.test(window.location.pathname || '')) {
+            return DEFAULT_PERMISSIONS['staff-imelda'].slice();
+        }
         var all = getAllPermissions();
         return normalizeStaffTasks(all[staffId] || ['dashboard']);
     }

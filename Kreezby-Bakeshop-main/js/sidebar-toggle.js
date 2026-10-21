@@ -2,6 +2,27 @@
     const body = document.body;
     const collapsedClass = 'sidebar-collapsed';
     const actionMenuScriptId = 'kreezby-action-menu-script';
+    const openStateKey = 'kreezbySidebarOpen';
+
+    function saveOpenState(open) {
+        try {
+            if (open) sessionStorage.setItem(openStateKey, '1');
+            else sessionStorage.removeItem(openStateKey);
+        } catch (e) {}
+    }
+
+    function restoreOpenState() {
+        try {
+            if (sessionStorage.getItem(openStateKey) !== '1') return;
+        } catch (e) {
+            return;
+        }
+        if (window.KreezbyMobile && typeof window.KreezbyMobile.openNav === 'function') {
+            window.KreezbyMobile.openNav();
+        } else {
+            body.classList.add('kreezby-nav-open');
+        }
+    }
 
     function isPoReceivePortalPage() {
         return !!(
@@ -55,6 +76,7 @@
         }
         const btn = document.querySelector('.hamburger-toggle');
         const open = document.body.classList.contains('kreezby-nav-open');
+        saveOpenState(open);
         if (btn) {
             btn.setAttribute('aria-pressed', open ? 'true' : 'false');
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -209,15 +231,18 @@
 
         addToggleButton();
         wireExistingRows();
+        restoreOpenState();
     });
 
     document.addEventListener('kreezby-admin-sidebar-ready', function () {
         addToggleButton();
         wireExistingRows();
+        restoreOpenState();
     });
     document.addEventListener('kreezby-staff-sidebar-ready', function () {
         addToggleButton();
         wireExistingRows();
+        restoreOpenState();
     });
     document.addEventListener('kreezby-portal-sidebar-ready', function () {
         addToggleButton();
@@ -228,10 +253,14 @@
         ensureUserDropdownNavLoaded();
         addToggleButton();
         wireExistingRows();
+        restoreOpenState();
     });
 
     window.addEventListener('pageshow', function () {
         addToggleButton();
         wireExistingRows();
+        restoreOpenState();
     });
+
+    window.addEventListener('load', restoreOpenState);
 })();

@@ -695,7 +695,7 @@
         return { getSelectedAdminId: function () { return selectedId; } };
     }
 
-    function portalLoginHref() {
+    function portalLoginHref(returnTo) {
         var path = (location.pathname || '').replace(/\\/g, '/');
         var parts = path.split('/').filter(Boolean);
         var roots = ['admin', 'staff', 'head_admin', 'retailer', 'customer', 'admin_names', 'staff_names'];
@@ -707,7 +707,11 @@
         var prefix = '';
         var depth = idx < 0 ? 1 : (parts.length - idx - 1);
         for (i = 0; i < depth; i++) prefix += '../';
-        return prefix + 'auth/log_in.html';
+        var loginHref = prefix + 'auth/log_in.html';
+        if (returnTo) {
+            loginHref += '?returnTo=' + encodeURIComponent(returnTo);
+        }
+        return loginHref;
     }
 
     function guardCurrentPage() {
@@ -716,10 +720,8 @@
         var onHead = path.indexOf('/head_admin/') !== -1;
         if (!onAdmin && !onHead) return;
         var sessionType = readSession().accountType || '';
-        if (sessionType !== 'Administrator' && sessionType !== 'Head Administrator' && sessionType !== 'IT Support') {
-            window.location.replace(portalLoginHref());
-            return;
-        }
+        if (!sessionType) return;
+        if (sessionType !== 'Administrator' && sessionType !== 'Head Administrator' && sessionType !== 'IT Support') return;
         if (isOwnerSession()) return;
         var filenameEarly = getCurrentPageFilename();
         if (!isHeadAdmin() && (filenameEarly === 'admin_permissions-headadmin.html' || filenameEarly === 'admin-permissions.html' || filenameEarly === 'staff-permissions.html')) {

@@ -9,6 +9,14 @@
 
     var PHONE_MQ = '(max-width: 900px)';
     var OPEN_CLASS = 'kreezby-nav-open';
+    var OPEN_STATE_KEY = 'kreezbySidebarOpen';
+
+    function saveOpenState(open) {
+        try {
+            if (open) sessionStorage.setItem(OPEN_STATE_KEY, '1');
+            else sessionStorage.removeItem(OPEN_STATE_KEY);
+        } catch (e) {}
+    }
 
     function moduleRelativeRoot() {
         var path = (window.location && window.location.pathname) ? window.location.pathname.replace(/\\/g, '/') : '';
@@ -109,11 +117,13 @@
         if (!hasSidebar()) return;
         ensureScrim();
         document.body.classList.add(OPEN_CLASS);
+        saveOpenState(true);
         syncHamburgerPressed();
     }
 
     function closeNav() {
         document.body.classList.remove(OPEN_CLASS);
+        saveOpenState(false);
         syncHamburgerPressed();
     }
 

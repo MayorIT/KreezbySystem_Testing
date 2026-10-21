@@ -16,9 +16,9 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
-    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261020nav">
+    <link rel="stylesheet" href="../css/pages/staff/staff-dashboard.css?v=20261021staffdash">
 </head>
-<body class="kreezby-admin-home">
+<body class="staff-dashboard-page">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
 
 
@@ -44,31 +44,39 @@
 
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
-            <div id="staff-dashboard-root">
-                <section class="admin-home" aria-label="Welcome">
-                    <div class="admin-home-stage">
-                        <div class="admin-home-copy">
-                            <p class="admin-home-kicker">The Crinkle Factory</p>
-                            <h2>Welcome</h2>
-                            <p class="admin-home-tagline">Making your life sweeter!</p>
-                            <p class="admin-home-lead">Your home is ready. Deliveries, sales, and alerts open from the menu.</p>
-                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
-                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
-                                <span class="admin-home-menu-btn__label">Open menu</span>
-                            </button>
-                        </div>
-                        <figure class="admin-home-photo">
-                            <img src="../assets/home/kreezby-welcome.png?v=20261013logo" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
-                        </figure>
+            <div id="staff-dashboard-root" class="staff-dash">
+                <div class="staff-dash-head">
+                    <div>
+                        <p class="staff-dash-kicker">Kreezby Bakeshop</p>
+                        <h1>Welcome, <span data-staff-name>Staff</span>!</h1>
+                        <p>Here is the overview of today's operations.</p>
                     </div>
+                    <div class="staff-dash-date"><span aria-hidden="true">▣</span><span data-staff-date></span></div>
+                </div>
+                <section class="staff-kpis" aria-label="Today's summary">
+                    <article class="staff-kpi"><span class="staff-kpi-icon sales">▣</span><div><small>Today's Sales</small><strong data-staff-kpi="sales">₱0.00</strong><em data-staff-trend="sales">Today</em></div></article>
+                    <article class="staff-kpi"><span class="staff-kpi-icon transactions">▤</span><div><small>Total Transactions</small><strong data-staff-kpi="transactions">0</strong><em>Today</em></div></article>
+                    <article class="staff-kpi"><span class="staff-kpi-icon orders">◆</span><div><small>Orders to Process</small><strong data-staff-kpi="orders">0</strong><em>Needs attention</em></div></article>
+                    <article class="staff-kpi"><span class="staff-kpi-icon low">!</span><div><small>Low Stock Items</small><strong data-staff-kpi="low">0</strong><em>Requires attention</em></div></article>
                 </section>
+                <div class="staff-dash-grid">
+                    <section class="staff-panel staff-pos-panel">
+                        <div class="staff-panel-head"><h2>Point of Sale (POS)</h2><label class="staff-search">⌕ <input type="search" data-product-search placeholder="Search product"></label></div>
+                        <div class="staff-pos-body"><div class="staff-products" data-products></div><div class="staff-current-order"><h3>Current Order</h3><div data-cart><p class="staff-empty">Select a product to start.</p></div><div class="staff-total"><span>Total</span><strong data-cart-total>₱0.00</strong></div><button type="button" class="staff-complete" data-complete-sale>Complete Sale</button></div></div>
+                    </section>
+                    <section class="staff-panel"><div class="staff-panel-head"><h2>Recent Transactions</h2><a href="saleslist-staff.html">View All</a></div><div class="staff-table-wrap"><table><thead><tr><th>Order</th><th>Time</th><th>Type</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody data-recent-transactions></tbody></table></div></section>
+                    <section class="staff-panel"><div class="staff-panel-head"><h2>Pending Orders</h2><a href="order-tracking-staff.html">View All</a></div><div class="staff-table-wrap"><table><thead><tr><th>Order #</th><th>Customer</th><th>Type</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody data-pending-orders></tbody></table></div></section>
+                    <section class="staff-panel"><div class="staff-panel-head"><h2>Inventory Alerts</h2><a href="alert-staff.html">View All</a></div><div class="staff-table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Current Stock</th><th>Threshold</th><th>Status</th></tr></thead><tbody data-inventory-alerts></tbody></table></div></section>
+                </div>
             </div>
         </main>
                 </turbo-frame>
 </div>
 
 <script src="../js/order-tracking.js"></script>
+<script src="../js/kreezby-data-dictionary.js?v=20261021staffalerts"></script>
 <script src="../js/staff-permissions.js?v=20261020logo"></script>
+<script src="../js/staff-dashboard.js?v=20261021staffdash"></script>
 <script src="../js/user-dropdown-nav.js?v=20261020icon"></script>
 <script src="../js/staff-sidebar.js?v=20261020logo"></script>
 <script src="../js/sidebar-toggle.js?v=20261020menu2"></script>

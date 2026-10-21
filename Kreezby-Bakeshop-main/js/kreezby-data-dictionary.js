@@ -278,6 +278,23 @@
         return list;
     }
 
+    function staffInventoryAlerts() {
+        var stock = productStockMap();
+        return mergedProducts().map(function (product) {
+            var quantity = Number(stock[product.product_id]);
+            if (!Number.isFinite(quantity)) quantity = 0;
+            var threshold = configuredLine(product.product_id, ALERT_LINES[product.product_id]);
+            if (threshold == null || quantity > threshold) return null;
+            return {
+                product: product.product_name,
+                category: 'Finished Goods',
+                currentStock: quantity,
+                threshold: Number(threshold),
+                status: 'Low Stock'
+            };
+        }).filter(Boolean);
+    }
+
     function users() {
         var source = { admins: [], staff: [], retailers: [], customers: [] };
         if (window.KreezbyMaintenanceSettings && typeof window.KreezbyMaintenanceSettings.getUsers === 'function') {
@@ -1235,6 +1252,7 @@
             return map[material.material_id] == null ? null : map[material.material_id];
         },
         alerts: alerts,
+        staffInventoryAlerts: staffInventoryAlerts,
         salesTransactions: salesTransactions,
         insightSnapshot: insightSnapshot,
         productRecommendationSnapshot: productRecommendationSnapshot

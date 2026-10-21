@@ -13,6 +13,36 @@
   var PORTAL_PATTERN = /^retailer-portal\.html$/i;
   var HIDE_MODULES_PATTERN = /(^receive-|receiving-retailer\.html$|^return-retailer\.html$|pullout|pull-out|delivery)/i;
 
+  function activeRetailerName() {
+    try {
+      var session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+      if (session.accountType === 'Retailer' || session.accountType === 'Wholesaler') {
+        return String(session.userName || session.name || '').trim();
+      }
+    } catch (err) { /* ignore malformed session data */ }
+    return '';
+  }
+
+  function syncRetailerIdentity() {
+    var name = activeRetailerName();
+    if (!name) return;
+
+    document.title = document.title.replace(/\bRetailer\b/g, name);
+    document.querySelectorAll('.user-dropdown-pill, .panel-brand').forEach(function (node) {
+      node.textContent = name;
+    });
+    document.querySelectorAll('[aria-label="Retailer navigation"]').forEach(function (node) {
+      node.setAttribute('aria-label', name + ' navigation');
+    });
+    document.querySelectorAll('h2, h3, .page-title').forEach(function (node) {
+      node.textContent = node.textContent.replace(/\bRetailer\b/g, name);
+    });
+    document.querySelectorAll('input[name="storeName"], [data-retailer-name]').forEach(function (node) {
+      if ('value' in node) node.value = name;
+      else node.textContent = name;
+    });
+  }
+
   function currentFile() {
     var path = location.pathname || '';
     return path.split('/').pop() || '';
@@ -103,6 +133,7 @@
 
   window.addEventListener('pageshow', function () {
     if ((location.pathname || '').toLowerCase().indexOf('/retailer/') === -1) return;
+    syncRetailerIdentity();
     if (document.querySelector('.turbo-frame-error')) window.location.reload();
   });
 
@@ -193,6 +224,7 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       wireRetailerHomeLinks();
+      syncRetailerIdentity();
       wireRetailerInboxNav();
       syncRetailerMenu();
       removeRetailerDeliveryAndPulloutModules();
@@ -200,6 +232,7 @@
     });
   } else {
     wireRetailerHomeLinks();
+    syncRetailerIdentity();
     wireRetailerInboxNav();
     syncRetailerMenu();
     removeRetailerDeliveryAndPulloutModules();

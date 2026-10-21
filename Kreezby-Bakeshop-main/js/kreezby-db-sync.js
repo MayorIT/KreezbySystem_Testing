@@ -45,17 +45,9 @@
     else if (portal === "retailer") allowed = type === "Retailer" || type === "Wholesaler";
     else if (portal === "customer") allowed = type === "Customer" || type === "Regular Customer";
     if (allowed && (session.identity || session.userName)) return;
-    var parts = path.split("/").filter(Boolean);
-    var roots = ["admin", "staff", "head_admin", "retailer", "customer", "admin_names", "staff_names"];
-    var idx = -1;
-    var i;
-    for (i = parts.length - 1; i >= 0; i--) {
-      if (roots.indexOf(parts[i].toLowerCase()) >= 0) { idx = i; break; }
-    }
-    var prefix = "";
-    var depth = idx < 0 ? 0 : (parts.length - idx - 1);
-    for (i = 0; i < depth; i++) prefix += "../";
-    location.replace(prefix + "auth/log_in.html");
+    // Static HTML pages remain directly viewable so each portal page can be
+    // inspected without being forced into the authentication folder.
+    return;
   })();
 
   if (/\/retailer\//i.test(location.pathname || "")) {

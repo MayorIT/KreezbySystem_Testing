@@ -308,13 +308,6 @@
                 }).observe(header, { childList: true, subtree: true });
             }
 
-            document.addEventListener('click', function (event) {
-                var link = event.target.closest('aside.dark-sidebar-panel a');
-                if (!link) return;
-                document.body.classList.remove('kreezby-nav-open');
-                syncMenuButton();
-            });
-
             document.addEventListener('keydown', function (event) {
                 if (event.key !== 'Escape' || !document.body.classList.contains('kreezby-nav-open')) return;
                 document.body.classList.remove('kreezby-nav-open');

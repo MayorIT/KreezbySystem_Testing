@@ -12,6 +12,18 @@
     return '';
   }
 
+  function loginReturnTarget() {
+    try {
+      var value = new URLSearchParams(location.search || '').get('returnTo');
+      if (!value || value.charAt(0) !== '/' || value.indexOf('//') === 0) return '';
+      if (value.indexOf('/admin/') === -1 && value.indexOf('/head_admin/') === -1 &&
+          value.indexOf('/customer/') === -1) return '';
+      return value;
+    } catch (e) {
+      return '';
+    }
+  }
+
   function isAuthPage() {
     var path = (location.pathname || '').toLowerCase();
     return path.indexOf('/auth/') >= 0 ||
@@ -146,11 +158,6 @@
       userName: 'Nichole Ramos',
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
-    },
-    retailer: {
-      userName: 'SIDC Batangas Hub',
-      accountType: 'Retailer',
-      redirectUrl: 'auth/start.html'
     },
     customer: {
       userName: 'Maria Santos',
@@ -423,7 +430,7 @@
     if (accountType === 'Staff') {
       return staffDashboardFromIdentity(identity);
     }
-    if (accountType === 'Retailer') return 'auth/start.html';
+    if (accountType === 'Retailer') return 'retailer/retailer-portal.html';
     if (accountType === 'Customer') return 'customer/customer.html';
     return 'customer/customer_guest.html';
   }
@@ -636,7 +643,7 @@
             }
           } catch (err) { /* ignore */ }
           setTimeout(function () {
-            location.href = appRootPrefix() + resolved.redirectUrl;
+            location.href = loginReturnTarget() || appRootPrefix() + resolved.redirectUrl;
           }, 600);
           return;
         }

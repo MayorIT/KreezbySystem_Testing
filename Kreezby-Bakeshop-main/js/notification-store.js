@@ -19,6 +19,11 @@
         }
     }
 
+    function readJsonList(key) {
+        var value = readJson(key, []);
+        return Array.isArray(value) ? value : [];
+    }
+
     function writeJson(key, value) {
         try {
             localStorage.setItem(key, JSON.stringify(value));
@@ -312,13 +317,13 @@
         if (cursor && cursor.initialized) return cursor;
 
         cursor = { initialized: true, orders: {}, po: {}, receipts: {} };
-        readJson('kreezbyOrders', []).forEach(function (o) {
+        readJsonList('kreezbyOrders').forEach(function (o) {
             if (o && o.orderNumber) cursor.orders[o.orderNumber] = true;
         });
-        readJson('kreezby-po-orders-v1', []).forEach(function (o) {
+        readJsonList('kreezby-po-orders-v1').forEach(function (o) {
             if (o && o.code) cursor.po[o.code] = true;
         });
-        readJson('kreezby-receive-v1', []).forEach(function (o) {
+        readJsonList('kreezby-receive-v1').forEach(function (o) {
             if (o && o.code) cursor.receipts[o.code] = true;
         });
         writeJson(CURSOR_KEY, cursor);
@@ -327,7 +332,7 @@
 
     function scanOrders(cursor) {
         var added = false;
-        readJson('kreezbyOrders', []).forEach(function (order) {
+        readJsonList('kreezbyOrders').forEach(function (order) {
             if (!order || !order.orderNumber || cursor.orders[order.orderNumber]) return;
             cursor.orders[order.orderNumber] = true;
             var name = (order.shippingInfo && order.shippingInfo.fullName) || 'Customer';
