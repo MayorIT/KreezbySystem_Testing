@@ -763,7 +763,7 @@
         if (!root) return;
         document.body.classList.add('po-admin-page');
         var style = document.getElementById('kreezby-pos-style');
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261021posact';
+        var styleHref = '../css/pages/admin/pos-admin.css?v=20261022posv2';
         if (!style) {
             style = document.createElement('link');
             style.id = 'kreezby-pos-style';

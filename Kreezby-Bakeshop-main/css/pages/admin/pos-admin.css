@@ -817,3 +817,114 @@ body.po-admin-page #pos-master.panel-data-card {
 .pos-action.is-open .pos-action-btn { background: #5d4037; color: #fff; }
 .pos-action-menu { border-color: #efe7e0; background: #fff; box-shadow: 0 12px 28px rgba(61, 44, 42, 0.16); }
 .pos-action-menu button:hover { background: #fff4d6; }
+
+/* ===== Point of Sale v2 — layout, color and polish (all roles) ===== */
+body.po-admin-page main.workspace-view-canvas:has(#pos-master) {
+    background: linear-gradient(180deg, #faf5ef 0%, #f4efe9 100%);
+    padding: 22px 26px 30px;
+}
+
+/* Layout: catalog + sticky sale ticket on top, transaction history full width below */
+#pos-master .pos-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 372px;
+    grid-auto-rows: auto;
+    gap: 22px;
+    align-items: start;
+}
+#pos-master .pos-catalog { grid-column: 1; grid-row: 1; min-width: 0; }
+#pos-master .pos-side { display: contents; }
+#pos-master .pos-ticket { grid-column: 2; grid-row: 1; position: sticky; top: 16px; align-self: start; }
+#pos-master .pos-history { grid-column: 1 / -1; grid-row: 2; }
+
+/* Catalog header as a toolbar */
+#pos-master .pos-catalog-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; margin-bottom: 16px;
+    background: #fff; border: 1px solid #efe7e0; border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(93, 64, 55, 0.06);
+}
+#pos-master .pos-catalog-head h3 { font-size: 18px; margin: 0; }
+#pos-master .pos-catalog-head h3::after { display: none; }
+#pos-master #pos-week-sales {
+    height: 36px; padding: 0 16px; border-radius: 999px; font-weight: 800;
+    background: #f7f0ea; border: 0; color: #5d4037;
+}
+#pos-master #pos-week-sales:hover { background: #ffe9a8; }
+
+/* Product cards */
+#pos-master .pos-grid { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 16px; }
+#pos-master .pos-product {
+    position: relative; padding: 0 0 12px; border-radius: 18px; overflow: hidden;
+    border: 1px solid #efe7e0; background: #fff;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+#pos-master .pos-product:hover { transform: translateY(-3px); border-color: #ffca28; box-shadow: 0 14px 30px rgba(93, 64, 55, 0.16); }
+#pos-master .pos-photo, #pos-master .pos-photo-frame { border-radius: 0; background: #f7f0ea; }
+#pos-master .pos-product h4 { margin: 10px 12px 0; font-size: 13.5px; line-height: 1.25; color: #3d2c2a; }
+#pos-master .pos-price {
+    display: inline-block; margin: 6px 12px 0; padding: 3px 10px; border-radius: 999px;
+    background: #fff4d6; color: #6d4c41; font-size: 14px; font-weight: 800;
+}
+#pos-master .pos-stock { margin: 8px 12px 10px; font-size: 11.5px; }
+#pos-master .pos-qty { margin: 0 12px; }
+#pos-master .pos-product.is-empty { opacity: .62; }
+#pos-master .pos-product.is-empty:hover { transform: none; border-color: #efe7e0; box-shadow: none; }
+
+/* Sale ticket */
+#pos-master .pos-ticket {
+    padding: 0 18px 18px; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 16px 40px rgba(93, 64, 55, 0.14);
+}
+#pos-master .pos-ticket > h3 {
+    margin: 0 -18px 16px; padding: 16px 20px; border: 0;
+    background: linear-gradient(135deg, #5d4037 0%, #8d6e63 100%);
+    color: #fff; font-size: 15px; letter-spacing: .04em; text-transform: uppercase;
+    position: relative;
+}
+#pos-master .pos-ticket > h3::after {
+    content: ""; position: absolute; right: -24px; top: -34px; width: 110px; height: 110px;
+    border-radius: 50%; background: rgba(255, 202, 40, .22); pointer-events: none;
+}
+#pos-master .pos-note { margin: -6px 0 10px; padding: 6px 10px; border-radius: 8px; background: #fff4d6; color: #8a5a00; font-size: 12px; font-weight: 700; }
+#pos-master .pos-lines { max-height: 240px; overflow: auto; margin: 10px 0 0; padding: 0; }
+#pos-master .pos-lines li { padding: 9px 2px; }
+#pos-master .pos-total {
+    margin-top: 14px; padding: 14px 16px; border-radius: 14px;
+    background: #3d2c2a; color: #e9dcd3;
+}
+#pos-master .pos-total strong { color: #ffca28; font-size: 26px; }
+#pos-master .pos-actions { margin-top: 14px; }
+#pos-master .pos-actions button { height: 46px; border-radius: 14px; font-weight: 800; }
+#pos-master #pos-complete { background: linear-gradient(180deg, #ffd54f, #ffca28); box-shadow: 0 8px 18px rgba(255, 202, 40, .45); }
+#pos-master #pos-complete:hover { background: #fbc02d; transform: translateY(-1px); }
+
+/* History */
+#pos-master .pos-history { padding: 18px 20px; border-radius: 18px; }
+#pos-master .pos-history > h3 { margin: 0 0 12px; }
+#pos-master .pos-table { font-size: 13px; }
+#pos-master .pos-table th { padding: 11px 12px; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; }
+#pos-master .pos-table td { padding: 11px 12px; }
+
+@media (max-width: 1100px) {
+    #pos-master .pos-layout { grid-template-columns: minmax(0, 1fr); }
+    #pos-master .pos-catalog, #pos-master .pos-ticket, #pos-master .pos-history { grid-column: 1; grid-row: auto; }
+    #pos-master .pos-ticket { position: static; }
+}
+@media (max-width: 600px) {
+    body.po-admin-page main.workspace-view-canvas:has(#pos-master) { padding: 14px 12px 24px; }
+    #pos-master .pos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+
+/* v2: let the POS page scroll naturally instead of being locked to one screen */
+body.po-admin-page main.workspace-view-canvas:has(#pos-master) { display: block; overflow-y: auto; overflow-x: hidden; }
+body.po-admin-page #pos-master.panel-data-card { display: block; height: auto; max-height: none; overflow: visible; flex: none; padding: 0; }
+#pos-master .pos-layout { height: auto; overflow: visible; grid-template-rows: auto; }
+#pos-master .pos-catalog { display: block; overflow: visible; }
+#pos-master .pos-grid { height: auto; overflow: visible; grid-template-rows: none; grid-auto-rows: auto; align-content: start; align-items: start; flex: none; }
+#pos-master .pos-product { height: auto; display: flex; flex-direction: column; }
+#pos-master .pos-photo-frame { aspect-ratio: 4 / 3; width: 100%; flex: 0 0 auto; }
+#pos-master .pos-photo { left: 0; width: 100%; transform: none; }
+#pos-master .pos-ticket { height: auto; max-height: none; }
+#pos-master .pos-history { overflow: visible; }
+#pos-master .pos-table-scroll { max-height: 360px; overflow: auto; }

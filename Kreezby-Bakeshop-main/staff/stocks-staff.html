@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Stocks Inventory (Staff)</title>
     <link rel="stylesheet" href="../css/pages/staff/stocks-staff.css">
+    <link rel="stylesheet" href="../css/pages/staff/stocks-staff-polish.css?v=20261022a">
 
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
@@ -47,6 +48,11 @@
         <main class="workspace-view-canvas">
 
             <div id="stocks-staff-master-block">
+                <div class="stk-summary" aria-label="Stock summary">
+                    <div class="stk-card"><span class="stk-card__icon" aria-hidden="true">📦</span><div><p class="stk-card__label">Total items</p><p class="stk-card__value" id="stk-total">0</p></div></div>
+                    <div class="stk-card stk-card--warn"><span class="stk-card__icon" aria-hidden="true">⚠️</span><div><p class="stk-card__label">Low stock</p><p class="stk-card__value" id="stk-low">0</p></div></div>
+                    <div class="stk-card stk-card--gold"><span class="stk-card__icon" aria-hidden="true">💰</span><div><p class="stk-card__label">Total asset value</p><p class="stk-card__value" id="stk-value">₱0.00</p></div></div>
+                </div>
                 <div class="dashboard-split-layout">
 
             <div class="panel-data-card">
@@ -424,6 +430,22 @@
                             </tr>
                         </tfoot>
                     </table>
+                    <script>
+                    (function () {
+                        var rows = document.querySelectorAll('#stocks-table-body .stock-row');
+                        var low = 0, value = 0;
+                        rows.forEach(function (row) {
+                            var cells = row.querySelectorAll('td');
+                            if (row.querySelector('.low-warning')) low += 1;
+                            var n = parseFloat(String((cells[7] || {}).textContent || '').replace(/[^0-9.]/g, ''));
+                            if (!isNaN(n)) value += n;
+                        });
+                        var set = function (id, text) { var el = document.getElementById(id); if (el) el.textContent = text; };
+                        set('stk-total', String(rows.length));
+                        set('stk-low', String(low));
+                        set('stk-value', '\u20b1' + value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    })();
+                    </script>
 
                 </div>
             </div>
