@@ -362,7 +362,7 @@
         if (!window.KreezbyNotifications && !document.getElementById('kreezby-notification-store-script')) {
             var store = document.createElement('script');
             store.id = 'kreezby-notification-store-script';
-            store.src = base + 'notification-store.js?v=20261020access';
+            store.src = base + 'notification-store.js?v=20261021fix';
             store.onload = loadPopover;
             store.defer = true;
             document.head.appendChild(store);
@@ -712,11 +712,9 @@
             var btn = event.target.closest('#admin-open-menu');
             if (btn) {
                 event.preventDefault();
-                if (document.body.classList.contains('kreezby-ops-dashboard') && window.matchMedia('(min-width: 901px)').matches) {
-                    document.body.classList.toggle('ops-sidebar-collapsed');
-                    var docked = !document.body.classList.contains('ops-sidebar-collapsed');
-                    btn.setAttribute('aria-expanded', docked ? 'true' : 'false');
-                    btn.setAttribute('aria-label', docked ? 'Close menu' : 'Open menu');
+                if (typeof window.KreezbyToggleSidebar === 'function') {
+                    window.KreezbyToggleSidebar(event);
+                    paintMenuButton();
                     return;
                 }
                 if (document.body.classList.contains('kreezby-nav-open')) closeAdminMenu();

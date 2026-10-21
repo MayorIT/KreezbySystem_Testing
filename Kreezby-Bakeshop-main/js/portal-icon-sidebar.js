@@ -134,7 +134,7 @@
         var path = location.pathname || '';
         if (!/\/retailer\//i.test(path)) return false;
         var file = fileFromHref(href);
-        return /^receive-/i.test(file) || /^(?:po-portal|return-portal|alert-portal)\.html$/i.test(file) || /receiving-retailer/i.test(file) || /pullout|pull-out|delivery/i.test(file);
+        return /^receive-/i.test(file) || /^(?:po-portal|return-portal|alert-portal)\.html$/i.test(file) || /receiving-retailer/i.test(file) || /pullout|pull-out|^deliver(y|ies)-/i.test(file);
     }
 
     function retailerStoreKey() {

@@ -30,23 +30,35 @@
         });
     }
 
+    function setText(root, selector, value) {
+        var node = root.querySelector(selector);
+        if (node) node.textContent = value;
+    }
+
+    function setHtml(root, selector, value) {
+        var node = root.querySelector(selector);
+        if (node) node.innerHTML = value;
+    }
+
     function renderProducts(root) {
-        var query = String(root.querySelector('[data-product-search]').value || '').toLowerCase();
-        root.querySelector('[data-products]').innerHTML = PRODUCTS.filter(function (p) {
+        var search = root.querySelector('[data-product-search]');
+        var query = String((search && search.value) || '').toLowerCase();
+        setHtml(root, '[data-products]', PRODUCTS.filter(function (p) {
             return p.name.toLowerCase().indexOf(query) !== -1;
         }).map(function (p) {
             return '<button type="button" class="staff-product" data-product="' + p.id + '"><img src="' + photo(p.photo) + '" alt=""><strong>' + esc(p.name) + '</strong><span>' + money(p.price) + '</span></button>';
-        }).join('');
+        }).join(''));
     }
     function renderCart(root) {
         var total = 0;
         var html = Object.keys(cart).map(function (id) {
             var p = PRODUCTS.filter(function (item) { return item.id === id; })[0];
+            if (!p) return '';
             var qty = cart[id]; total += p.price * qty;
             return '<div class="staff-cart-line"><span>' + esc(p.name) + '<small>' + qty + ' × ' + money(p.price) + '</small></span><button type="button" data-remove="' + id + '">×</button></div>';
         }).join('');
-        root.querySelector('[data-cart]').innerHTML = html || '<p class="staff-empty">Select a product to start.</p>';
-        root.querySelector('[data-cart-total]').textContent = money(total);
+        setHtml(root, '[data-cart]', html || '<p class="staff-empty">Select a product to start.</p>');
+        setText(root, '[data-cart-total]', money(total));
     }
     function renderTables(root) {
         var list = orders();
@@ -54,33 +66,65 @@
         var sales = read('kreezby_pos_sales_v1', []); if (!Array.isArray(sales)) sales = [];
         var todaysSales = sales.filter(function (s) { return today(s.createdAt || s.date); });
         var salesTotal = todaysSales.reduce(function (sum, s) { return sum + Number(s.total || s.amount || 0); }, 0);
-        root.querySelector('[data-staff-kpi="sales"]').textContent = money(salesTotal);
-        root.querySelector('[data-staff-kpi="transactions"]').textContent = String(todaysSales.length);
-        root.querySelector('[data-staff-kpi="orders"]').textContent = String(pending.length);
+        setText(root, '[data-staff-kpi="sales"]', money(salesTotal));
+        setText(root, '[data-staff-kpi="transactions"]', String(todaysSales.length));
+        setText(root, '[data-staff-kpi="orders"]', String(pending.length));
         var low = inventoryAlerts();
-        root.querySelector('[data-staff-kpi="low"]').textContent = String(low.length);
-        root.querySelector('[data-recent-transactions]').innerHTML = todaysSales.slice(-5).reverse().map(function (s) {
+        setText(root, '[data-staff-kpi="low"]', String(low.length));
+        setHtml(root, '[data-recent-transactions]', todaysSales.slice(-5).reverse().map(function (s) {
             return '<tr><td>' + esc(s.id || s.saleId || 'TR-000') + '</td><td>' + new Date(s.createdAt || Date.now()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</td><td>POS</td><td>Walk-in</td><td>' + money(s.total || s.amount) + '</td><td><span class="staff-status completed">Completed</span></td></tr>';
-        }).join('') || '<tr><td colspan="6">No transactions today.</td></tr>';
-        root.querySelector('[data-pending-orders]').innerHTML = pending.slice(0,5).map(function (o) {
+        }).join('') || '<tr><td colspan="6">No transactions today.</td></tr>');
+        setHtml(root, '[data-pending-orders]', pending.slice(0,5).map(function (o) {
             return '<tr><td>' + esc(o.orderNumber || o.id || 'ORD-000') + '</td><td>' + esc((o.shippingInfo && o.shippingInfo.fullName) || 'Customer') + '</td><td>Online</td><td>' + ((o.items && o.items.length) || 1) + '</td><td>' + money(orderTotal(o)) + '</td><td><span class="staff-status preparing">' + esc(orderStatus(o)) + '</span></td></tr>';
-        }).join('') || '<tr><td colspan="6">No pending orders.</td></tr>';
-        root.querySelector('[data-inventory-alerts]').innerHTML = low.map(function (p) {
+        }).join('') || '<tr><td colspan="6">No pending orders.</td></tr>');
+        setHtml(root, '[data-inventory-alerts]', low.map(function (p) {
             return '<tr><td>' + esc(p.product) + '</td><td>' + esc(p.category) + '</td><td>' + p.currentStock + ' pcs</td><td>' + p.threshold + ' pcs</td><td><span class="staff-status low">' + esc(p.status) + '</span></td></tr>';
-        }).join('') || '<tr><td colspan="5">Inventory is healthy.</td></tr>';
+        }).join('') || '<tr><td colspan="5">Inventory is healthy.</td></tr>');
     }
     function boot() {
-        var root = document.getElementById('staff-dashboard-root'); if (!root) return;
-        var session = read('kreezby_session', {}); root.querySelector('[data-staff-name]').textContent = session.userName || session.name || 'Staff';
-        root.querySelector('[data-staff-date]').textContent = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
-        renderProducts(root); renderCart(root); renderTables(root);
+        var root = document.getElementById('staff-dashboard-root');
+        if (!root) return;
+        var session = read('kreezby_session', {});
+        setText(root, '[data-staff-name]', session.userName || session.name || 'Staff');
+        setText(root, '[data-staff-date]', new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}));
+        renderProducts(root);
+        renderCart(root);
+        renderTables(root);
+        if (root.dataset.staffDashBound === '1') return;
+        root.dataset.staffDashBound = '1';
         root.addEventListener('click', function (event) {
-            var product = event.target.closest('[data-product]'); if (product) { cart[product.getAttribute('data-product')] = (cart[product.getAttribute('data-product')] || 0) + 1; renderCart(root); return; }
-            var remove = event.target.closest('[data-remove]'); if (remove) { delete cart[remove.getAttribute('data-remove')]; renderCart(root); return; }
-            if (event.target.closest('[data-complete-sale]')) { if (!Object.keys(cart).length) return; var total = Object.keys(cart).reduce(function (sum, id) { var p = PRODUCTS.filter(function (item) { return item.id === id; })[0]; return sum + p.price * cart[id]; }, 0); var sales = read('kreezby_pos_sales_v1', []); if (!Array.isArray(sales)) sales = []; sales.push({ id:'TR-' + Date.now().toString().slice(-6), total:total, createdAt:new Date().toISOString() }); localStorage.setItem('kreezby_pos_sales_v1', JSON.stringify(sales)); cart = {}; renderCart(root); renderTables(root); }
+            var product = event.target.closest('[data-product]');
+            if (product) {
+                cart[product.getAttribute('data-product')] = (cart[product.getAttribute('data-product')] || 0) + 1;
+                renderCart(root);
+                return;
+            }
+            var remove = event.target.closest('[data-remove]');
+            if (remove) {
+                delete cart[remove.getAttribute('data-remove')];
+                renderCart(root);
+                return;
+            }
+            if (event.target.closest('[data-complete-sale]')) {
+                if (!Object.keys(cart).length) return;
+                var total = Object.keys(cart).reduce(function (sum, id) {
+                    var p = PRODUCTS.filter(function (item) { return item.id === id; })[0];
+                    return sum + (p ? p.price * cart[id] : 0);
+                }, 0);
+                var sales = read('kreezby_pos_sales_v1', []);
+                if (!Array.isArray(sales)) sales = [];
+                sales.push({ id:'TR-' + Date.now().toString().slice(-6), total:total, createdAt:new Date().toISOString() });
+                localStorage.setItem('kreezby_pos_sales_v1', JSON.stringify(sales));
+                cart = {};
+                renderCart(root);
+                renderTables(root);
+            }
         });
-        root.querySelector('[data-product-search]').addEventListener('input', function () { renderProducts(root); });
+        var search = root.querySelector('[data-product-search]');
+        if (search) search.addEventListener('input', function () { renderProducts(root); });
         window.addEventListener('storage', function () { renderTables(root); });
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+    document.addEventListener('kreezby:page-load', boot);
 })();

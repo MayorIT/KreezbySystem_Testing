@@ -153,7 +153,7 @@
             storeSrc = ref.getAttribute('src').replace(/[^/]+$/, 'notification-store.js');
         }
         src = src.split('?')[0] + '?v=20261015fix';
-        storeSrc = storeSrc.split('?')[0] + '?v=20261020access';
+        storeSrc = storeSrc.split('?')[0] + '?v=20261021fix';
 
         function loadPopover() {
             if (window.KreezbyNotificationPopoverLoaded || document.getElementById('kreezby-notification-popover-script')) return;

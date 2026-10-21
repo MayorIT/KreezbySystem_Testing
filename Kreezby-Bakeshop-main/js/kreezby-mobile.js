@@ -58,7 +58,7 @@
     }
 
     function ensureCss() {
-        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
+        var href = moduleRelativeRoot() + 'css/shared/kreezby-mobile.css?v=20261021fix';
         var link = document.getElementById('kreezby-mobile-style');
         if (!link) {
             link = document.createElement('link');
@@ -287,7 +287,8 @@
         window.addEventListener('resize', schedule);
     }
 
-    function applyMode() {
+    var applyModeTimer = null;
+    function applyModeNow() {
         placeHamburger();
         if (!isPhone()) {
             // Desktop menu is off-canvas until the hamburger opens it.
@@ -301,6 +302,10 @@
         syncHamburgerPressed();
         syncChromeIntoSidebar();
         labelWideTables();
+    }
+    function applyMode() {
+        clearTimeout(applyModeTimer);
+        applyModeTimer = setTimeout(applyModeNow, 40);
     }
 
     function boot() {

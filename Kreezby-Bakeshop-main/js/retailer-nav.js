@@ -11,7 +11,7 @@
   var DIRECTORY = 'retailer/retailer-portal.html';
   var DEFAULT_HOME = 'retailer-portal.html';
   var PORTAL_PATTERN = /^retailer-portal\.html$/i;
-  var HIDE_MODULES_PATTERN = /(^receive-|receiving-retailer\.html$|^return-retailer\.html$|pullout|pull-out|delivery)/i;
+  var HIDE_MODULES_PATTERN = /(^receive-|receiving-retailer\.html$|^return-retailer\.html$|pullout|pull-out|^deliver(y|ies)-)/i;
 
   function activeRetailerName() {
     try {
@@ -111,24 +111,6 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     window.location.assign(dashboardHref());
-  }, true);
-
-  document.addEventListener('click', function (event) {
-    if (event.defaultPrevented || event.button !== 0) return;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if ((location.pathname || '').toLowerCase().indexOf('/retailer/') === -1) return;
-    var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
-    if (!link || link.hasAttribute('download') || isHeaderHomeIcon(link)) return;
-    if (link.target && link.target !== '_self') return;
-    var raw = link.getAttribute('href') || '';
-    if (!raw || raw.charAt(0) === '#' || raw.indexOf('javascript:') === 0) return;
-    if (/^https?:/i.test(raw)) return;
-    if (raw.indexOf('..') === 0 && raw.toLowerCase().indexOf('/retailer/') === -1) return;
-    var file = raw.split('?')[0].split('#')[0].split('/').pop();
-    if (!/\.html$/i.test(file)) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.location.assign(link.href);
   }, true);
 
   window.addEventListener('pageshow', function () {

@@ -516,54 +516,76 @@
     }
 
     function bind(root) {
+        if (root.dataset.opsBound === '1') {
+            paint(root);
+            return;
+        }
+        root.dataset.opsBound = '1';
+
         var name = sessionName(root);
         var role = root.getAttribute('data-role') || 'Admin';
-        root.querySelector('[data-person]').textContent = name;
-        root.querySelector('[data-role-label]').textContent = role;
-        root.querySelector('[data-initials]').textContent = initials(name);
+        var person = root.querySelector('[data-person]');
+        var roleLabel = root.querySelector('[data-role-label]');
+        var initialsNode = root.querySelector('[data-initials]');
         var welcome = root.querySelector('[data-welcome]');
-        welcome.textContent = 'Welcome back, ' + name + '! Here is the overview of your business.';
+        if (person) person.textContent = name;
+        if (roleLabel) roleLabel.textContent = role;
+        if (initialsNode) initialsNode.textContent = initials(name);
+        if (welcome) welcome.textContent = 'Welcome back, ' + name + '! Here is the overview of your business.';
 
         var menu = root.querySelector('[data-user-menu]');
-        root.querySelector('[data-user-btn]').addEventListener('click', function (event) {
-            event.stopPropagation();
-            menu.hidden = !menu.hidden;
-        });
-        document.addEventListener('click', function () { menu.hidden = true; });
+        var userBtn = root.querySelector('[data-user-btn]');
+        if (userBtn && menu) {
+            userBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                menu.hidden = !menu.hidden;
+            });
+            document.addEventListener('click', function () { menu.hidden = true; });
+        }
 
         var pop = root.querySelector('[data-range-pop]');
         var fromInput = root.querySelector('[data-from]');
         var toInput = root.querySelector('[data-to]');
-        fromInput.value = state.from;
-        toInput.value = state.to;
-        root.querySelector('[data-range-btn]').addEventListener('click', function (event) {
-            event.stopPropagation();
-            pop.hidden = !pop.hidden;
-        });
-        pop.addEventListener('click', function (event) { event.stopPropagation(); });
-        root.querySelector('[data-apply-range]').addEventListener('click', function () {
-            if (!parseDay(fromInput.value) || !parseDay(toInput.value) || fromInput.value > toInput.value) return;
-            state.from = fromInput.value;
-            state.to = toInput.value;
-            saveRange();
-            pop.hidden = true;
-            paint(root);
-        });
-        document.addEventListener('click', function () { pop.hidden = true; });
+        var rangeBtn = root.querySelector('[data-range-btn]');
+        var applyBtn = root.querySelector('[data-apply-range]');
+        if (fromInput) fromInput.value = state.from;
+        if (toInput) toInput.value = state.to;
+        if (rangeBtn && pop) {
+            rangeBtn.addEventListener('click', function (event) {
+                event.stopPropagation();
+                pop.hidden = !pop.hidden;
+            });
+            pop.addEventListener('click', function (event) { event.stopPropagation(); });
+            document.addEventListener('click', function () { pop.hidden = true; });
+        }
+        if (applyBtn && fromInput && toInput && pop) {
+            applyBtn.addEventListener('click', function () {
+                if (!parseDay(fromInput.value) || !parseDay(toInput.value) || fromInput.value > toInput.value) return;
+                state.from = fromInput.value;
+                state.to = toInput.value;
+                saveRange();
+                pop.hidden = true;
+                paint(root);
+            });
+        }
 
-        root.querySelector('[data-chart-mode]').addEventListener('change', function (event) {
+        var chartMode = root.querySelector('[data-chart-mode]');
+        var bestMode = root.querySelector('[data-best-mode]');
+        var expiryMode = root.querySelector('[data-expiry-mode]');
+        var regen = root.querySelector('[data-regen]');
+        if (chartMode) chartMode.addEventListener('change', function (event) {
             state.chart = event.target.value;
             paint(root);
         });
-        root.querySelector('[data-best-mode]').addEventListener('change', function (event) {
+        if (bestMode) bestMode.addEventListener('change', function (event) {
             state.best = event.target.value;
             paint(root);
         });
-        root.querySelector('[data-expiry-mode]').addEventListener('change', function (event) {
+        if (expiryMode) expiryMode.addEventListener('change', function (event) {
             state.expiryDays = Number(event.target.value) || 30;
             paint(root);
         });
-        root.querySelector('[data-regen]').addEventListener('click', function () {
+        if (regen) regen.addEventListener('click', function () {
             state.insightVariant += 1;
             state.generatedAt = new Date();
             paint(root);
@@ -580,4 +602,5 @@
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
+    document.addEventListener('kreezby:page-load', boot);
 })();

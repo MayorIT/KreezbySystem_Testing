@@ -235,12 +235,11 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = assetPrefix() + 'js/notification-store.js?v=20261020access';
+        script.src = assetPrefix() + 'js/notification-store.js?v=20261021fix';
 
         script.defer = true;
 
         script.addEventListener('load', function () {
-            renderAdminSidebar();
             updateNotificationBadges();
         });
         document.head.appendChild(script);
@@ -456,21 +455,26 @@
         if (height > 0) document.documentElement.style.setProperty('--kreezby-admin-header-height', height + 'px');
     }
 
-    function renderAdminSidebar() {
+    var renderTimer = null;
+
+    function renderAdminSidebarNow() {
 
         if (!isAdminPage()) return;
 
         ensureCss();
 
         var activeKey = activeKeyFor(currentFilename());
-
-
+        var html = buildSidebarHtml(activeKey);
+        var changed = false;
 
         document.querySelectorAll('aside.dark-sidebar-panel').forEach(function (aside) {
 
             aside.classList.add('kreezby-icon-sidebar');
 
-            aside.innerHTML = buildSidebarHtml(activeKey);
+            if (aside.innerHTML !== html) {
+                aside.innerHTML = html;
+                changed = true;
+            }
 
             aside.classList.add('kreezby-sidebar-ready');
 
@@ -479,8 +483,18 @@
         updateNotificationBadges();
         syncHeaderOffset();
 
-        document.dispatchEvent(new CustomEvent('kreezby-admin-sidebar-ready'));
+        if (changed) {
+            document.dispatchEvent(new CustomEvent('kreezby-admin-sidebar-ready'));
+        }
 
+    }
+
+    function renderAdminSidebar() {
+        if (renderTimer) clearTimeout(renderTimer);
+        renderTimer = setTimeout(function () {
+            renderTimer = null;
+            renderAdminSidebarNow();
+        }, 16);
     }
 
 
@@ -525,7 +539,12 @@
 
 
 
+    function needsDeliverySchedule() {
+        return !!(document.getElementById('delivery-schedule') || document.getElementById('delivery-schedule-master'));
+    }
+
     function ensureDeliverySchedule() {
+        if (!needsDeliverySchedule()) return;
         if (window.KreezbyDeliverySchedule) {
             window.KreezbyDeliverySchedule.boot();
             return;

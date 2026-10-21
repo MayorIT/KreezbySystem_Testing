@@ -223,11 +223,11 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/kreezby-data-dictionary.js?v=20261020dash"></script>
-    <script src="../js/admin-ops-dashboard.js?v=20261021layout"></script>
+    <script src="../js/admin-ops-dashboard.js?v=20261021fix"></script>
     <script src="../js/order-tracking.js?v=20261019fn"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261021layout"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261021fix"></script>
     <script src="../js/admin-permissions.js?v=20261020menu"></script>
-    <script src="../js/admin-sidebar.js?v=20261021layout"></script>
+    <script src="../js/admin-sidebar.js?v=20261021fix"></script>
     <script src="../js/sidebar-toggle.js?v=20261020menu2"></script>
     <script>
         (function () {
@@ -292,19 +292,22 @@
 
             var header = document.querySelector('.top-navbar-node');
             if (header && window.MutationObserver) {
+                var stripTimer = null;
                 new MutationObserver(function (records) {
                     if (!document.body.classList.contains('kreezby-admin-home')) return;
                     var dirty = false;
                     records.forEach(function (record) {
                         record.addedNodes.forEach(function (node) {
                             if (!node || node.nodeType !== 1) return;
-                            if (node.matches('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs, .notification-pill') ||
-                                (node.querySelector && node.querySelector('a.home-badge, a.expandable-nav-tab, .notification-pill, .notification-popover-root'))) {
+                            if (node.matches('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs') ||
+                                (node.querySelector && node.querySelector('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs'))) {
                                 dirty = true;
                             }
                         });
                     });
-                    if (dirty) stripHeaderChrome();
+                    if (!dirty) return;
+                    clearTimeout(stripTimer);
+                    stripTimer = setTimeout(stripHeaderChrome, 50);
                 }).observe(header, { childList: true, subtree: true });
             }
 

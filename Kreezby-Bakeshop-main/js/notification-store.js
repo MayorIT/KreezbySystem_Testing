@@ -52,8 +52,8 @@
     var SOURCE_TASKS = {
         order: ['bo', 'ordertracking', 'saleslist', 'dailysales', 'inbox'],
         payment: ['ordertracking', 'saleslist', 'dailysales'],
-        po: ['po', 'receive', 'bo'],
-        receive: ['receive'],
+        po: ['bo', 'ordertracking'],
+        receive: ['bo', 'ordertracking'],
         return: ['ordertracking'],
         alert: ['alert', 'stocklevel', 'stocks', 'inventoryreport'],
         stock: ['stocks', 'stocklevel', 'inventoryreport'],
@@ -127,9 +127,7 @@
     }
 
     var ADMIN_TASK_PAGES = {
-        receive: 'receive',
         bo: 'bo',
-        return: 'return',
         stocks: 'stocks',
         saleslist: 'saleslist',
         ordertracking: 'order-tracking',
@@ -154,7 +152,6 @@
     function adminPageForTask(taskKey) {
         var file = ADMIN_TASK_PAGES[taskKey];
         if (!file) return '';
-        if (isHeadAdminPath() && taskKey === 'receive') return '';
         return file + (isHeadAdminPath() ? '-headadmin.html' : '-admin.html');
     }
 
@@ -378,10 +375,30 @@
 
         var path = window.location.pathname || '';
         if (path.indexOf('/admin/') !== -1 || path.indexOf('/head_admin/') !== -1 || path.indexOf('/staff/') !== -1 || path.indexOf('/retailer/') !== -1) {
-            setInterval(function () {
+            var pollTimer = null;
+            function pollOnce() {
+                if (document.hidden) return;
                 var c = readJson(CURSOR_KEY, ensureCursor());
                 scanStorage(c);
-            }, 4000);
+            }
+            function startPoll() {
+                if (pollTimer) return;
+                pollTimer = setInterval(pollOnce, 8000);
+            }
+            function stopPoll() {
+                if (!pollTimer) return;
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) stopPoll();
+                else {
+                    pollOnce();
+                    startPoll();
+                }
+            });
+            window.addEventListener('pagehide', stopPoll);
+            if (!document.hidden) startPoll();
         }
     }
 

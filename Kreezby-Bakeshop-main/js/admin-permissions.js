@@ -483,9 +483,7 @@
         if (path.indexOf('/admin/') === -1 && path.indexOf('/admin_names/') === -1 && path.indexOf('/head_admin/') === -1) return;
         filterDashboardCards();
         applyTopNavPermissions();
-        if (window.KreezbyAdminSidebar && typeof window.KreezbyAdminSidebar.render === 'function') {
-            window.KreezbyAdminSidebar.render();
-        }
+        // Sidebar listens for this event and re-renders once (debounced).
         document.dispatchEvent(new CustomEvent('kreezby-admin-permissions-ready'));
     }
 
