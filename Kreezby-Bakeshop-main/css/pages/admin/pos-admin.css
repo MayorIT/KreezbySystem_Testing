@@ -928,3 +928,12 @@ body.po-admin-page #pos-master.panel-data-card { display: block; height: auto; m
 #pos-master .pos-ticket { height: auto; max-height: none; }
 #pos-master .pos-history { overflow: visible; }
 #pos-master .pos-table-scroll { max-height: 360px; overflow: auto; }
+
+/* v2 fix: stop the catalog toolbar and cards from running under the sale ticket */
+#pos-master .pos-layout { grid-template-columns: minmax(0, 1fr) 360px; column-gap: 24px; }
+#pos-master .pos-catalog, #pos-master .pos-catalog > * { box-sizing: border-box; max-width: 100%; }
+#pos-master .pos-catalog-head { width: 100% !important; box-sizing: border-box; }
+#pos-master .pos-grid { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); width: 100%; box-sizing: border-box; }
+#pos-master .pos-ticket { box-sizing: border-box; width: 100%; min-width: 0; margin-top: 0; }
+#pos-master .pos-product { min-width: 0; }
+@media (max-width: 1280px) { #pos-master .pos-layout { grid-template-columns: minmax(0, 1fr) 330px; column-gap: 18px; } }

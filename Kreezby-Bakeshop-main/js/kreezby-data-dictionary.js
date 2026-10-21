@@ -1051,7 +1051,8 @@
         var pathName = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
         var cardLayout = pathName.indexOf('/head_admin/') !== -1
             || pathName.indexOf('/admin/') !== -1
-            || pathName.indexOf('/admin_names/') !== -1;
+            || pathName.indexOf('/admin_names/') !== -1
+            || pathName.indexOf('/staff/') !== -1;
         var productNames = cardLayout ? FLAVOR_CHOICES.slice() : [];
         if (cardLayout) {
             var seenFlavor = {};

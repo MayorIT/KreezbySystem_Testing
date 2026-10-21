@@ -59,3 +59,30 @@
   #stocks-staff-master-block .card-body-padded { padding: 14px; overflow-x: auto; }
   #stocks-staff-master-block .data-display-table { min-width: 760px; }
 }
+
+/* Record forms (Finished products / Raw materials) */
+#stocks-staff-master-block .fr-records { margin: 0 0 20px; }
+#stocks-staff-master-block .fr-records__grid { gap: 18px; }
+#stocks-staff-master-block .fr-card { position: relative; background: #fff; border: 1px solid #efe7e0; border-radius: 18px; padding: 18px 20px 20px; box-shadow: 0 6px 18px rgba(93,64,55,.06); overflow: hidden; }
+#stocks-staff-master-block .fr-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #ffca28; }
+#stocks-staff-master-block .fr-card--materials::before { background: #8d6e63; }
+#stocks-staff-master-block .fr-card__title { gap: 10px; margin: 0 0 4px; color: #3d2c2a; font-size: 16px; font-weight: 800; }
+#stocks-staff-master-block .fr-card__icon { width: 34px; height: 34px; border-radius: 11px; background: #f7f0ea; border: 0; color: #6d4c41; }
+#stocks-staff-master-block .fr-card--materials .fr-card__icon { background: #fff4d6; }
+#stocks-staff-master-block .fr-card__lead { margin: 0 0 16px; padding-left: 44px; color: #8a7f78; font-size: 12.5px; }
+#stocks-staff-master-block .fr-fields { gap: 12px 14px; }
+#stocks-staff-master-block .fr-field { gap: 6px; color: #6d4c41; font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+#stocks-staff-master-block .fr-ico { color: #b49a8c; }
+#stocks-staff-master-block .fr-field input,
+#stocks-staff-master-block .fr-field select { height: 40px; border: 1px solid #e6dad1; border-radius: 10px; background: #fcf9f6; color: #3d2c2a; font-size: 13.5px; font-weight: 600; text-transform: none; letter-spacing: 0; transition: border-color .15s, box-shadow .15s, background .15s; }
+#stocks-staff-master-block .fr-field input:hover,
+#stocks-staff-master-block .fr-field select:hover { background: #fff; }
+#stocks-staff-master-block .fr-field input:focus,
+#stocks-staff-master-block .fr-field select:focus { background: #fff; border-color: #ffca28; box-shadow: 0 0 0 3px rgba(255,202,40,.28); }
+#stocks-staff-master-block .fr-btn { height: 40px; border-radius: 12px; background: #5d4037; color: #fff; font-weight: 800; font-size: 13px; box-shadow: 0 6px 14px rgba(93,64,55,.22); transition: background .15s, transform .15s; }
+#stocks-staff-master-block .fr-btn:hover { background: #4e342e; transform: translateY(-1px); }
+#stocks-staff-master-block .fr-card:not(.fr-card--materials) .fr-btn { background: #ffca28; color: #3d2c2a; box-shadow: 0 6px 14px rgba(255,202,40,.4); }
+#stocks-staff-master-block .fr-card:not(.fr-card--materials) .fr-btn:hover { background: #fbc02d; }
+#stocks-staff-master-block .fr-hide-btn { height: 30px; padding: 0 14px; border: 0; border-radius: 999px; background: #f7f0ea; color: #6d4c41; font-weight: 800; }
+#stocks-staff-master-block .fr-hide-btn:hover { background: #ffe9a8; }
+#stocks-staff-master-block #fr-stock-note { margin: 12px 4px 0; color: #6d4c41; font-weight: 600; }

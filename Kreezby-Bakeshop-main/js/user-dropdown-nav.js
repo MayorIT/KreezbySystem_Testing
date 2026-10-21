@@ -262,7 +262,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261020hide';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261022cards';
         s.async = false;
         document.head.appendChild(s);
     }
@@ -464,11 +464,13 @@
 
         var right = document.querySelector('.top-navbar-node .top-nav-links-right');
         if (!right) return;
+        if (isHeadAdminPortalPage()) {
+            // Head admin has no Home shortcut in the top bar.
+            right.querySelectorAll('a.home-badge').forEach(function (el) { el.remove(); });
+        }
 
         var desired = isHeadAdminPortalPage()
-            ? [
-                { key: 'home', label: 'Home', href: moduleLocalHref('head_admin.html') }
-            ]
+            ? []
             : [
                 { key: 'home', label: 'Home', href: moduleLocalHref('admin.html') }
             ];
