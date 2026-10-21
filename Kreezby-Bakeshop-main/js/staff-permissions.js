@@ -671,11 +671,6 @@
             return;
         }
         if (filename === 'report_issue-staff.html') return;
-        if (filename === 'receive-staff.html') {
-            window.location.replace(getDashboardHref(getCurrentStaffId()));
-            return;
-        }
-
         var staffId = getCurrentStaffId();
         if (!staffId) {
             window.location.replace(portalLoginHref());

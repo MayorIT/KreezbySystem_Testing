@@ -122,6 +122,27 @@
     min-width: 0;
 }
 
+.kreezby-sidebar-notification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #e53935;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.kreezby-sidebar-notification-badge[hidden] {
+    display: none;
+}
+
 aside.dark-sidebar-panel.kreezby-sidebar-ready,
 aside.sidebar-panel.kreezby-icon-sidebar.kreezby-sidebar-ready {
     visibility: visible;
@@ -281,10 +302,14 @@ body.kreezby-nav-open .kreezby-nav-scrim {
 }
 
 .kreezby-sidebar-sub {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 2px;
     margin: 0 8px 10px 36px;
+}
+
+.kreezby-sidebar-group.is-open > .kreezby-sidebar-sub {
+    display: flex;
 }
 
 .kreezby-sidebar-sub a {

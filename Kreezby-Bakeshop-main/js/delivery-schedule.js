@@ -6,7 +6,7 @@
 (function () {
     'use strict';
 
-    if (window.KreezbyDeliverySchedule) {
+    if (window.KreezbyDeliverySchedule && window.KreezbyDeliverySchedule.version === '20261020sched') {
         window.KreezbyDeliverySchedule.boot();
         return;
     }
@@ -18,47 +18,55 @@
     var AREAS = []; // Will be populated from manifest
 
     var SEED = [
-        { id: 'po-0002', area: 'Batangas', day: 1, stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-btg-003', area: 'Batangas', day: 1, stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-btg-014', area: 'Batangas', day: 1, stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-0012', area: 'Lipa', day: 1, stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lpa-021', area: 'Sto. Tomas', day: 1, stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-bau-008', area: 'Tagaytay', day: 2, stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-bau-011', area: 'Citimart', day: 2, stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-ctm-002', area: 'Lucena', day: 2, stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-ctm-006', area: 'Citimart', day: 2, stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-lcn-004', area: 'Lucena', day: 2, stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lcn-009', area: 'Lucena', day: 2, stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-rsr-005', area: 'Lucena', day: 3, stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-sto-003', area: 'Sto. Tomas', day: 4, stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-sto-007', area: 'Sto. Tomas', day: 4, stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-tgy-002', area: 'Tagaytay', day: 4, stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-tgy-008', area: 'Tagaytay', day: 4, stop: 'Jaytees Main', detail: '36 pouches Chocolate Crinkles', payment: 'GCash' }
+        { id: 'po-0002', area: 'Batangas', date: '2026-10-15', stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-btg-003', area: 'Batangas', date: '2026-10-15', stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-btg-014', area: 'Batangas', date: '2026-10-15', stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-0012', area: 'Lipa', date: '2026-10-15', stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-lpa-021', area: 'Sto. Tomas', date: '2026-10-15', stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-bau-008', area: 'Tagaytay', date: '2026-10-16', stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-bau-011', area: 'Citimart', date: '2026-10-16', stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-ctm-002', area: 'Lucena', date: '2026-10-16', stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-ctm-006', area: 'Citimart', date: '2026-10-16', stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-lcn-004', area: 'Lucena', date: '2026-10-16', stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-lcn-009', area: 'Lucena', date: '2026-10-16', stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-rsr-005', area: 'Lucena', date: '2026-10-17', stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-sto-003', area: 'Sto. Tomas', date: '2026-10-18', stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
+        { id: 'po-sto-007', area: 'Sto. Tomas', date: '2026-10-18', stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
+        { id: 'po-tgy-002', area: 'Tagaytay', date: '2026-10-18', stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
+        { id: 'po-tgy-008', area: 'Tagaytay', date: '2026-10-18', stop: 'Jaytees Main', detail: '36 pouches Chocolate Crinkles', payment: 'GCash' }
     ];
 
-    function areaByName(name) {
-        for (var i = 0; i < AREAS.length; i++) {
-            if (AREAS[i].name === name) return AREAS[i];
-        }
-        return AREAS[0];
-    }
-
-    function plusDays(n) {
-        var d = new Date();
-        d.setHours(12, 0, 0, 0);
-        d.setDate(d.getDate() + n);
-        var month = String(d.getMonth() + 1).padStart(2, '0');
-        var day = String(d.getDate()).padStart(2, '0');
-        return d.getFullYear() + '-' + month + '-' + day;
+    function copyRow(row) {
+        var copy = {};
+        Object.keys(row || {}).forEach(function (key) { copy[key] = row[key]; });
+        return copy;
     }
 
     function seedRows() {
-        return SEED.map(function (row) {
-            var copy = {};
-            Object.keys(row).forEach(function (key) { copy[key] = row[key]; });
-            copy.date = plusDays(row.day || 1);
-            return copy;
+        return SEED.map(copyRow);
+    }
+
+    function areaCatalog() {
+        if (AREAS && AREAS.length) return AREAS;
+        var names = {};
+        SEED.forEach(function (row) {
+            if (row.area) names[row.area] = true;
         });
+        return Object.keys(names).map(function (name) {
+            var stores = [];
+            SEED.forEach(function (row) {
+                if (row.area === name && stores.indexOf(row.stop) < 0) stores.push(row.stop);
+            });
+            return { name: name, stores: stores };
+        });
+    }
+
+    function areaByName(name) {
+        var areas = areaCatalog();
+        for (var i = 0; i < areas.length; i++) {
+            if (areas[i].name === name) return areas[i];
+        }
+        return areas[0] || { name: name || '', stores: [] };
     }
 
     function removedIds() {
@@ -87,17 +95,17 @@
             var raw = localStorage.getItem(STORE_KEY);
             var parsed = raw ? JSON.parse(raw) : null;
             if (Array.isArray(parsed)) {
-                parsed = parsed.filter(function (row) {
-                    return row && !dropped[row.id];
-                });
+                var kept = [];
                 var ids = {};
                 parsed.forEach(function (row) {
-                    if (row && row.id) ids[row.id] = true;
+                    if (!row || !row.id || dropped[row.id] || ids[row.id]) return;
+                    ids[row.id] = true;
+                    kept.push(row);
                 });
                 seed.forEach(function (row) {
-                    if (!ids[row.id] && !dropped[row.id]) parsed.push(row);
+                    if (!ids[row.id] && !dropped[row.id]) kept.push(copyRow(row));
                 });
-                return parsed;
+                return kept;
             }
         } catch (e) { /* use seed */ }
         return seed.filter(function (row) { return !dropped[row.id]; });
@@ -155,12 +163,13 @@
         document.head.appendChild(style);
     }
 
-    function upcoming(rows) {
-        var today = todayStamp();
+    function scheduleRows(rows) {
         return rows.filter(function (row) {
-            return row && row.date && row.date >= today;
+            return row && row.id && row.stop;
         }).sort(function (a, b) {
-            return String(a.date).localeCompare(String(b.date)) || String(a.area).localeCompare(String(b.area));
+            return String(a.date || '').localeCompare(String(b.date || ''))
+                || String(a.area || '').localeCompare(String(b.area || ''))
+                || String(a.id).localeCompare(String(b.id));
         });
     }
 
@@ -178,18 +187,22 @@
     }
 
     function render(host) {
-        if (!host || host.querySelector('form.delivery-schedule__form')) return;
+        if (!host) return;
+        if (host.getAttribute('data-schedule-version') === '20261020sched' && host.querySelector('form.delivery-schedule__form')) return;
+        host.setAttribute('data-schedule-version', '20261020sched');
         ensureStyles();
         var poShell = !!(host.closest && host.closest('#delivery-schedule-master'));
         var rows = readRows();
-        var areaOptions = AREAS.map(function (area) {
+        var areas = areaCatalog();
+        var firstArea = areas[0] ? areas[0].name : '';
+        var areaOptions = areas.map(function (area) {
             return '<option value="' + esc(area.name) + '">' + esc(area.name) + '</option>';
         }).join('');
         host.innerHTML = ''
             + '<div class="delivery-schedule">'
             + '<form class="delivery-schedule__form">'
             + '<label>Area<select name="area" required>' + areaOptions + '</select></label>'
-            + '<label>Store<select name="stop" required>' + storeOptions(AREAS[0].name) + '</select></label>'
+            + '<label>Store<select name="stop" required>' + storeOptions(firstArea) + '</select></label>'
             + '<label>Date<input name="date" type="date" required value="' + esc(todayStamp()) + '"></label>'
             + '<label>Pouches<input name="qty" type="number" min="1" required value="24"></label>'
             + '<label>Product<input name="product" readonly value="' + esc(PRODUCT) + ' pouches"></label>'
@@ -198,8 +211,8 @@
             + '<p class="delivery-schedule__note" hidden></p>'
             + '</form>'
             + '<div class="delivery-schedule__bar">'
-            + '<h4>Upcoming deliveries</h4>'
-            + '<span class="delivery-schedule__hint">Click a date to delete that retailer.</span>'
+            + '<h4>Retailer schedules</h4>'
+            + '<span class="delivery-schedule__hint">Click a code to delete that retailer.</span>'
             + '<label>Area <select class="delivery-schedule__filter"><option value="">Every area</option>' + areaOptions + '</select></label>'
             + '<label>Search <input class="delivery-schedule__search" type="search" placeholder="Store"></label>'
             + '</div>'
@@ -221,8 +234,8 @@
         var note = host.querySelector('.delivery-schedule__note');
         var pendingId = '';
 
-        function dateButton(row) {
-            return '<button type="button" class="delivery-schedule__date" data-id="' + esc(row.id) + '">' + esc(row.date) + '</button>';
+        function codeButton(row) {
+            return '<button type="button" class="delivery-schedule__date" data-id="' + esc(row.id) + '">' + esc(row.id) + '</button>';
         }
 
         function rowById(id) {
@@ -238,13 +251,14 @@
 
         function paintPo(visible) {
             if (!visible.length) {
-                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="6">No upcoming deliveries for this filter.</td></tr></tbody></table></div>';
+                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="7">No retailer schedules for this filter.</td></tr></tbody></table></div>';
                 return;
             }
             var body = visible.map(function (row, index) {
                 return '<tr>'
                     + '<td class="po-col-num">' + (index + 1) + '</td>'
-                    + '<td>' + dateButton(row) + '</td>'
+                    + '<td>' + codeButton(row) + '</td>'
+                    + '<td>' + esc(row.date || '') + '</td>'
                     + '<td>' + esc(row.area) + '</td>'
                     + '<td>' + esc(row.stop) + '</td>'
                     + '<td>' + esc(row.detail) + '</td>'
@@ -252,7 +266,7 @@
                     + '</tr>';
             }).join('');
             list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><thead><tr>'
-                + '<th class="po-col-num">#</th><th>Date</th><th>Area</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                + '<th class="po-col-num">#</th><th>Code</th><th>Date</th><th>Area</th><th>Retailer</th><th>Order</th><th>Payment</th>'
                 + '</tr></thead><tbody>' + body + '</tbody></table></div>';
         }
 
@@ -270,15 +284,15 @@
         function paint() {
             var chosen = filter.value;
             var query = search.value.trim().toLowerCase();
-            var visible = upcoming(rows).filter(function (row) {
+            var visible = scheduleRows(rows).filter(function (row) {
                 if (chosen && row.area !== chosen) return false;
                 if (!query) return true;
-                return (row.stop + ' ' + row.detail + ' ' + row.payment + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
+                return (row.id + ' ' + row.stop + ' ' + row.detail + ' ' + row.payment + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
             });
             var count = document.getElementById('delivery-schedule-count');
             if (count) count.textContent = visible.length ? String(visible.length) : '';
             var summary = document.getElementById('delivery-schedule-summary');
-            if (summary) summary.textContent = visible.length ? ('Showing ' + visible.length + (visible.length === 1 ? ' stop' : ' stops')) : 'No upcoming deliveries';
+            if (summary) summary.textContent = visible.length ? ('Showing ' + visible.length + (visible.length === 1 ? ' retailer schedule' : ' retailer schedules')) : 'No retailer schedules';
             if (poShell) {
                 paintPo(visible);
                 markPending();
@@ -294,23 +308,24 @@
                 groups[row.area].push(row);
             });
             if (!order.length) {
-                list.innerHTML = '<p>No upcoming deliveries for this area.</p>';
+                list.innerHTML = '<p>No retailer schedules for this area.</p>';
                 markPending();
                 return;
             }
             list.innerHTML = order.map(function (area) {
                 var stops = groups[area].map(function (row) {
                     return '<tr>'
-                        + '<td>' + dateButton(row) + '</td>'
+                        + '<td>' + codeButton(row) + '</td>'
+                        + '<td>' + esc(row.date || '') + '</td>'
                         + '<td>' + esc(row.stop) + '</td>'
                         + '<td>' + esc(row.detail) + '</td>'
                         + '<td>' + esc(row.payment || '') + '</td>'
                         + '</tr>';
                 }).join('');
                 return '<section class="delivery-area">'
-                    + '<div class="delivery-area__head"><span>' + esc(area) + '</span><span>' + groups[area].length + ' stops</span></div>'
+                    + '<div class="delivery-area__head"><span>' + esc(area) + '</span><span>' + groups[area].length + ' schedules</span></div>'
                     + '<table class="delivery-stop-table"><thead><tr>'
-                    + '<th>Date</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                    + '<th>Code</th><th>Date</th><th>Retailer</th><th>Order</th><th>Payment</th>'
                     + '</tr></thead><tbody>' + stops + '</tbody></table></section>';
             }).join('');
             markPending();
@@ -330,7 +345,17 @@
                 detail: qty + ' pouches ' + PRODUCT,
                 payment: String(data.get('payment') || 'Cash')
             };
-            rows.push(created);
+            var existingIndex = -1;
+            rows.forEach(function (row, index) {
+                if (existingIndex >= 0 || !row) return;
+                if (String(row.stop || '').toLowerCase() === stop.toLowerCase() && row.area === area) existingIndex = index;
+            });
+            if (existingIndex >= 0) {
+                created.id = rows[existingIndex].id;
+                rows[existingIndex] = created;
+            } else {
+                rows.push(created);
+            }
             writeRows(rows);
             if (filter.value && filter.value !== area) filter.value = '';
             if (search.value) search.value = '';
@@ -349,7 +374,7 @@
             var row = rowById(id);
             if (!row) return;
             pendingId = id;
-            confirmText.textContent = 'Delete ' + row.stop + ' on ' + row.date + '? This removes only that retailer.';
+            confirmText.textContent = 'Delete ' + row.id + ' · ' + row.stop + '? This removes only that retailer.';
             confirmBox.hidden = false;
             list.querySelectorAll('.delivery-schedule__date').forEach(function (item) {
                 item.classList.toggle('is-pending', item.getAttribute('data-id') === id);
@@ -410,20 +435,21 @@
     }
 
     function boot() {
+        function draw() {
+            document.querySelectorAll('#delivery-schedule').forEach(function (host) {
+                try { render(host); } catch (e) { /* keep the last good list */ }
+            });
+        }
         if (AREAS && AREAS.length > 0) {
-            // Already initialized
-            document.querySelectorAll('#delivery-schedule').forEach(render);
+            draw();
             return;
         }
-        // Initialize from manifest before rendering
-        initializeFromManifest().then(function() {
-            document.querySelectorAll('#delivery-schedule').forEach(render);
-        });
+        initializeFromManifest().then(draw, draw);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('content:replaced', boot);
     document.addEventListener('kreezby:page-load', boot);
-    window.KreezbyDeliverySchedule = { boot: boot };
+    window.KreezbyDeliverySchedule = { boot: boot, version: '20261020sched' };
 })();

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="../css/pages/admin/aiforecast_deliveryoverview-admin.css">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
-    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261020sched">
 
 </head>
 <body class="po-admin-page" data-kreezby-portal="admin-delivery">
@@ -72,7 +72,7 @@
                     document.head.appendChild(theme);
                 }
                 theme.disabled = false;
-                if (theme.href.indexOf('20261008del') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261010palette';
+                if (theme.href.indexOf('20261020sched') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261020sched';
                 if (window.KreezbyDeliverySchedule && window.KreezbyDeliverySchedule.boot) {
                     try { window.KreezbyDeliverySchedule.boot(); } catch (e) {}
                 }
@@ -86,9 +86,9 @@
     </div>
 
     <script src="../js/user-dropdown-nav.js?v=20261020icon"></script>
-    <script src="../js/admin-sidebar.js?v=20261020logo"></script>
+    <script src="../js/admin-sidebar.js?v=20261021layout"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
     <script src="../js/retailer-manifest-loader.js"></script>
-    <script src="../js/delivery-schedule.js?v=20261014delone"></script>
+    <script src="../js/delivery-schedule.js?v=20261020sched"></script>
 </body>
 </html>

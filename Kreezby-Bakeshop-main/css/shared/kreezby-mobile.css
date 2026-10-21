@@ -715,10 +715,11 @@ html {
 
     /* Food-chain phone shell: one row, stacked cards, no sideways page scroll */
     .top-navbar-node > .hamburger-toggle {
-        width: 44px !important;
-        height: 44px !important;
-        border-radius: 12px !important;
-        background: rgba(255, 255, 255, 0.14) !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 999px !important;
+        background: #ffca28 !important;
+        color: #1f1f1f !important;
     }
 
     .kreezby-welcome,

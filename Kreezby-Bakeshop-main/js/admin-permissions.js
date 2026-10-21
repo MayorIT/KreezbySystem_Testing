@@ -722,7 +722,7 @@
         }
         if (isOwnerSession()) return;
         var filenameEarly = getCurrentPageFilename();
-        if (filenameEarly === 'admin_permissions-headadmin.html' || filenameEarly === 'admin-permissions.html' || filenameEarly === 'staff-permissions.html') {
+        if (!isHeadAdmin() && (filenameEarly === 'admin_permissions-headadmin.html' || filenameEarly === 'admin-permissions.html' || filenameEarly === 'staff-permissions.html')) {
             window.location.replace(getDashboardHref());
             return;
         }

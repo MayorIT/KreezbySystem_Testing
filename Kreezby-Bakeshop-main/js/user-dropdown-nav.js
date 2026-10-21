@@ -15,6 +15,14 @@
         'background-repeat:no-repeat!important;background-position:center!important;background-size:18px 18px!important;',
         'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%231f1f1f\' stroke-width=\'1.75\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'M3 10.5 12 3l9 7.5\'/%3E%3Cpath d=\'M5 9.5V20h14V9.5\'/%3E%3Cpath d=\'M9 20v-6h6v6\'/%3E%3C/svg%3E")!important;',
         '}',
+        '.top-navbar-node .hamburger-toggle,button.hamburger-toggle{',
+        'display:inline-flex!important;align-items:center!important;justify-content:center!important;',
+        'width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;',
+        'padding:0!important;border:0!important;border-radius:999px!important;',
+        'background:#ffca28!important;color:#1f1f1f!important;font-size:18px!important;line-height:1!important;',
+        'box-shadow:none!important;',
+        '}',
+        '.top-navbar-node .hamburger-toggle:hover,button.hamburger-toggle:hover{background:#fbc02d!important;color:#1f1f1f!important;}',
         'a.expandable-nav-tab.is-icon-only,a.expandable-nav-tab.is-icon-only.is-expanded,a.expandable-nav-tab.is-icon-only.is-active{',
         'gap:0!important;width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;',
         'padding:0!important;justify-content:center!important;display:inline-flex!important;',
@@ -663,9 +671,9 @@
         if (!style) {
             style = document.createElement('style');
             style.id = 'kreezby-admin-home-header-style';
-            style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle{display:none!important;}body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,body.kreezby-retailer-home .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
+            style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;}';
         }
-        style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle{display:none!important;}body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,body.kreezby-retailer-home .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;}';
+        style.textContent = 'body.kreezby-admin-home .top-navbar-node a.home-badge,body.kreezby-admin-home .top-navbar-node a.expandable-nav-tab,body.kreezby-admin-home .top-navbar-node .expandable-nav-tabs{display:none!important;}body .top-navbar-node .hamburger-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;}';
         document.head.appendChild(style);
         if (!home) return;
         var header = document.querySelector('header.top-navbar-node');
@@ -704,6 +712,13 @@
             var btn = event.target.closest('#admin-open-menu');
             if (btn) {
                 event.preventDefault();
+                if (document.body.classList.contains('kreezby-ops-dashboard') && window.matchMedia('(min-width: 901px)').matches) {
+                    document.body.classList.toggle('ops-sidebar-collapsed');
+                    var docked = !document.body.classList.contains('ops-sidebar-collapsed');
+                    btn.setAttribute('aria-expanded', docked ? 'true' : 'false');
+                    btn.setAttribute('aria-label', docked ? 'Close menu' : 'Open menu');
+                    return;
+                }
                 if (document.body.classList.contains('kreezby-nav-open')) closeAdminMenu();
                 else {
                     if (!document.querySelector('.kreezby-nav-scrim')) {

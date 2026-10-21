@@ -57,7 +57,11 @@ body {
 }
 
 body.kreezby-admin-home:not(.kreezby-retailer-home) .top-navbar-node .hamburger-toggle {
-    display: none !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 body:not(.kreezby-admin-home) .top-navbar-node .hamburger-toggle,
@@ -73,20 +77,22 @@ body.kreezby-retailer-home .top-navbar-node .hamburger-toggle,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-    font-size: 20px;
+    border-radius: 999px;
+    background-color: #ffca28;
+    color: #1f1f1f;
+    font-size: 18px;
+    line-height: 1;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
     flex-shrink: 0;
 }
 
 .hamburger-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.22);
+    background-color: #fbc02d;
+    color: #1f1f1f;
     transform: translateY(-1px);
 }
 

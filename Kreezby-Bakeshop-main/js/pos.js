@@ -12,20 +12,32 @@
 
     var SALES_KEY = 'kreezby_pos_sales_v1';
     var PRODUCTS = [
-        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', price: 165 },
-        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', price: 165 },
-        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', price: 165 },
-        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', price: 200 },
-        { code: 'CRK-MNG-J', name: 'Mango Crinkles', price: 165 },
-        { code: 'CRK-UBE-P', name: 'Ube Crinkles', price: 165 }
+        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', price: 165, photo: 'chocolate-crinkles.jpg' },
+        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', price: 165, photo: 'choco-almond-crinkles.jpg' },
+        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', price: 165, photo: 'lemon-crinkles.jpg' },
+        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', price: 200, photo: 'choco-butternut-crinkles.jpg' },
+        { code: 'CRK-MNG-J', name: 'Mango Crinkles', price: 165, photo: 'mango-crinkles.jpg' },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', price: 165, photo: 'ube-crinkles.jpg' }
     ];
     var PAYMENTS = ['Cash', 'GCash'];
     var cart = {};
     var applyingStock = false;
     var weekOpen = false;
+    var editingId = '';
+    var pendingDelete = '';
+    var actionMenuId = '';
+    var primeEdit = false;
+    var editCustomer = '';
+    var editPayment = 'Cash';
 
     function peso(amount) {
         return '₱' + Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function flavorPhoto(file) {
+        var path = (location.pathname || '').replace(/\\/g, '/');
+        var prefix = /\/(?:admin_names|staff_names)\/[^/]+\//i.test(path) ? '../../' : '../';
+        return prefix + 'customer/flavors/' + file;
     }
 
     function esc(value) {
@@ -243,6 +255,23 @@
         return qty == null ? 0 : Number(qty) || 0;
     }
 
+    function heldQty(name) {
+        if (!editingId) return 0;
+        var sales = readSales();
+        for (var i = 0; i < sales.length; i++) {
+            var sale = sales[i];
+            if (!sale || sale.id !== editingId) continue;
+            return (sale.lines || []).reduce(function (sum, line) {
+                return line.name === name ? sum + (Number(line.qty) || 0) : sum;
+            }, 0);
+        }
+        return 0;
+    }
+
+    function stockAvailable(name) {
+        return stockFor(name) + heldQty(name);
+    }
+
     function expiredName(name) {
         var dict = window.KreezbyDictionary;
         if (!dict || typeof dict.saleBlockReason !== 'function') return false;
@@ -289,16 +318,13 @@
         if (!root || root.dataset.posReady !== '1') return;
         var lines = cartLines();
         var total = cartTotal(lines);
-        var sales = readSales().slice().reverse();
-        var walkInSales = sales.filter(function (sale) {
-            return String(sale.channel || 'Walk-in') !== 'Online';
-        }).slice(0, 5);
         var productsHtml = PRODUCTS.map(function (product) {
-            var stock = stockFor(product.name);
+            var stock = stockAvailable(product.name);
             var qty = cart[product.code] || 0;
             var expired = expiredName(product.name);
             var soldOut = expired || stock <= 0;
             return '<article class="pos-product' + (soldOut ? ' is-empty' : '') + '">' +
+                '<div class="pos-photo-frame"><img class="pos-photo" src="' + esc(flavorPhoto(product.photo)) + '" alt="' + esc(product.name) + '"></div>' +
                 '<h4>' + esc(product.name) + '</h4>' +
                 '<p class="pos-price">' + peso(product.price) + '</p>' +
                 '<p class="pos-stock">' + (expired ? 'Expired — cannot be sold' : (stock + ' in stock')) + '</p>' +
@@ -312,26 +338,33 @@
         var cartHtml = lines.length ? lines.map(function (line) {
             return '<li><span>' + esc(line.name) + ' × ' + line.qty + '</span><strong>' + peso(line.line) + '</strong></li>';
         }).join('') : '<li class="pos-empty">No items yet. Add pouches from the left.</li>';
-        var historyHtml = walkInSales.length ? walkInSales.map(function (sale) {
+        var history = readSales().filter(function (sale) {
+            return sale && String(sale.channel || 'Walk-in') !== 'Online';
+        }).slice().reverse();
+        var historyHtml = history.length ? history.map(function (sale) {
             var summary = (sale.lines || []).map(function (line) {
                 return line.qty + ' ' + line.name;
             }).join(', ');
-            return '<li><div><strong>' + esc(sale.id) + '</strong><span>' + esc(sale.customer || 'Walk-in') + ' · ' + esc(sale.payment) + '</span></div>' +
-                '<div><span>' + esc(summary) + '</span><strong>' + peso(sale.total) + '</strong></div></li>';
-        }).join('') : '<li class="pos-empty">No walk-in sales yet.</li>';
-        var onlineAll = onlineOrders();
-        var online = onlineAll.slice(0, 5);
-        var onlineHtml = online.length ? online.map(function (order) {
-            var summary = order.lines.map(function (line) {
-                return line.qty + ' ' + line.name;
-            }).join(', ');
-            var action = order.posted
-                ? '<span class="pos-posted">Stock updated</span>'
-                : '<span class="pos-pending">Updating stock</span>';
-            return '<li><div><strong>' + esc(order.id) + '</strong><span>' + esc(order.customer) + ' · ' + esc(order.payment) + ' · ' + esc(order.status) + '</span></div>' +
-                '<div><span>' + esc(summary || 'No items') + '</span><strong>' + peso(order.total) + '</strong></div>' +
-                '<div class="pos-online-action">' + action + '</div></li>';
-        }).join('') : '<li class="pos-empty">No online orders yet.</li>';
+            var editing = sale.id === editingId;
+            var menuOpen = sale.id === actionMenuId;
+            var confirming = sale.id === pendingDelete;
+            return '<tr' + (editing ? ' class="is-editing"' : '') + '>' +
+                '<td>' + esc(sale.id) + '</td>' +
+                '<td>' + esc((sale.customer || 'Walk-in') + ' · ' + (sale.payment || '')) + '</td>' +
+                '<td>' + esc(summary) + '</td>' +
+                '<td>' + peso(sale.total) + '</td>' +
+                '<td class="pos-row-actions">' +
+                    '<div class="pos-action' + (menuOpen ? ' is-open' : '') + '">' +
+                        '<button type="button" class="pos-action-btn" data-pos-action="' + esc(sale.id) + '" aria-expanded="' + (menuOpen ? 'true' : 'false') + '">Action</button>' +
+                        (menuOpen
+                            ? '<div class="pos-action-menu" role="menu">' +
+                                '<button type="button" role="menuitem" data-pos-edit="' + esc(sale.id) + '">Edit</button>' +
+                                '<button type="button" role="menuitem" class="pos-delete' + (confirming ? ' is-confirm' : '') + '" data-pos-delete="' + esc(sale.id) + '">' + (confirming ? 'Confirm delete' : 'Delete') + '</button>' +
+                              '</div>'
+                            : '') +
+                    '</div>' +
+                '</td></tr>';
+        }).join('') : '<tr><td class="pos-empty" colspan="5">No transactions yet.</td></tr>';
         var payment = 'Cash';
         var existingPay = document.getElementById('pos-payment');
         var existingName = document.getElementById('pos-customer');
@@ -339,11 +372,21 @@
         if (existingPay && PAYMENTS.indexOf(existingPay.value) >= 0) payment = existingPay.value;
         var nameValue = existingName ? existingName.value : 'Walk-in';
         var tenderValue = existingTender ? existingTender.value : '';
+        if (primeEdit) {
+            nameValue = editCustomer || 'Walk-in';
+            payment = PAYMENTS.indexOf(editPayment) >= 0 ? editPayment : 'Cash';
+            primeEdit = false;
+        }
+        var saleTitle = editingId ? 'Edit sale' : 'Walk-in Sale';
+        var saleNote = editingId ? '<p class="pos-note">' + esc(editingId) + '</p>' : '';
+        var clearLabel = editingId ? 'Cancel' : 'Clear';
+        var completeLabel = editingId ? 'Save changes' : 'Complete Sale';
         root.querySelector('.pos-layout').innerHTML =
             '<section class="pos-catalog"><div class="pos-catalog-head"><h3>Finished Products</h3><button type="button" id="pos-week-sales" aria-expanded="' + (weekOpen ? 'true' : 'false') + '">' + (weekOpen ? 'Hide 7-day purchases' : '7-day purchases') + '</button></div>' +
                 (weekOpen ? weekPurchasesHtml() : '') +
                 '<div class="pos-grid">' + productsHtml + '</div></section>' +
-            '<section class="pos-ticket"><h3>Walk-in Sale</h3>' +
+            '<div class="pos-side">' +
+            '<section class="pos-ticket"><h3>' + saleTitle + '</h3>' + saleNote +
                 '<label>Customer<input id="pos-customer" type="text" value="' + esc(nameValue) + '" placeholder="Walk-in"></label>' +
                 '<label>Payment<select id="pos-payment">' + PAYMENTS.map(function (item) {
                     return '<option' + (item === payment ? ' selected' : '') + '>' + item + '</option>';
@@ -353,12 +396,10 @@
                 '<p class="pos-total"><span>Total</span><strong>' + peso(total) + '</strong></p>' +
                 '<p id="pos-change" class="pos-change"></p>' +
                 '<p id="pos-status" class="pos-status"></p>' +
-                '<div class="pos-actions"><button type="button" id="pos-clear" class="pos-secondary">Clear</button><button type="button" id="pos-complete">Complete Sale</button></div>' +
-                '<h3 class="pos-subhead">Walk-in Sales</h3>' +
-                (walkInSales.length ? '<p class="pos-note">Latest ' + walkInSales.length + '</p>' : '') +
-                '<ul class="pos-recent">' + historyHtml + '</ul>' +
+                '<div class="pos-actions"><button type="button" id="pos-clear" class="pos-secondary">' + clearLabel + '</button><button type="button" id="pos-complete">' + completeLabel + '</button></div>' +
             '</section>' +
-            '<section class="pos-online"><h3>Online Orders</h3><p class="pos-note">Latest ' + online.length + (onlineAll.length > online.length ? ' of ' + onlineAll.length : '') + '</p><ul>' + onlineHtml + '</ul></section>';
+            '<section class="pos-history' + (actionMenuId ? ' is-menu-open' : '') + '"><h3>Transaction History</h3><div class="pos-table-scroll"><table class="pos-table"><thead><tr><th>Sale</th><th>Customer</th><th>Items</th><th>Total</th><th></th></tr></thead><tbody>' + historyHtml + '</tbody></table></div></section>' +
+            '</div>';
         updateChange();
     }
 
@@ -389,7 +430,7 @@
             setStatus(product.name + ' is expired and cannot be sold.', 'warn');
             return;
         }
-        var stock = stockFor(product.name);
+        var stock = stockAvailable(product.name);
         var next = Math.max(0, (cart[code] || 0) + delta);
         if (next > stock) next = stock;
         if (next) cart[code] = next;
@@ -409,7 +450,7 @@
             render();
             return;
         }
-        var short = lines.filter(function (line) { return line.qty > stockFor(line.name); });
+        var short = lines.filter(function (line) { return line.qty > stockAvailable(line.name); });
         if (short.length) {
             setStatus(short[0].name + ' does not have enough stock.', 'warn');
             render();
@@ -431,35 +472,118 @@
             return;
         }
         var date = todayStamp();
+        var sales = readSales();
+        var existingIndex = -1;
+        if (editingId) {
+            for (var s = 0; s < sales.length; s++) {
+                if (sales[s] && sales[s].id === editingId) existingIndex = s;
+            }
+            if (existingIndex < 0) {
+                editingId = '';
+                setStatus('That sale is no longer in the history.', 'warn');
+                render();
+                return;
+            }
+        }
+        var previous = existingIndex >= 0 ? sales[existingIndex] : null;
+        applyingStock = true;
+        if (previous && typeof dict.undoSale === 'function') {
+            (previous.lines || []).forEach(function (line) {
+                dict.undoSale(line.name, line.qty, previous.date);
+            });
+        }
+        var saleDate = previous ? previous.date : date;
         for (var i = 0; i < lines.length; i++) {
-            var left = dict.recordSale(lines[i].name, lines[i].qty, date);
+            var left = dict.recordSale(lines[i].name, lines[i].qty, saleDate);
             if (left == null) {
+                if (previous) {
+                    (previous.lines || []).forEach(function (line) {
+                        dict.recordSale(line.name, line.qty, previous.date);
+                    });
+                }
+                applyingStock = false;
                 setStatus('Could not record ' + lines[i].name + '.', 'warn');
                 render();
                 return;
             }
         }
-        var sales = readSales();
         var seq = String(sales.length + 1);
         while (seq.length < 4) seq = '0' + seq;
         var receipt = {
-            id: 'POS-' + date.replace(/-/g, '') + '-' + seq,
-            at: new Date().toISOString(),
-            date: date,
+            id: previous ? previous.id : ('POS-' + date.replace(/-/g, '') + '-' + seq),
+            at: previous ? previous.at : new Date().toISOString(),
+            date: saleDate,
             customer: customer,
             channel: 'Walk-in',
             payment: payment,
-            cashier: cashierName(),
+            cashier: previous ? previous.cashier : cashierName(),
             lines: lines.map(function (line) {
                 return { code: line.code, name: line.name, qty: line.qty, price: line.price };
             }),
             total: total
         };
-        sales.push(receipt);
+        if (previous) sales[existingIndex] = receipt;
+        else sales.push(receipt);
         writeSales(sales);
+        applyingStock = false;
         cart = {};
+        editingId = '';
+        pendingDelete = '';
+        actionMenuId = '';
         render();
-        setStatus(receipt.id + ' saved. Stock was updated.', 'ok');
+        setStatus(receipt.id + (previous ? ' updated.' : ' saved.') + ' Stock was updated.', 'ok');
+    }
+
+    function findSale(id) {
+        var sales = readSales();
+        for (var i = 0; i < sales.length; i++) {
+            if (sales[i] && sales[i].id === id) return sales[i];
+        }
+        return null;
+    }
+
+    function beginEdit(id) {
+        var sale = findSale(id);
+        if (!sale || String(sale.channel || 'Walk-in') === 'Online') return;
+        editingId = id;
+        pendingDelete = '';
+        actionMenuId = '';
+        primeEdit = true;
+        editCustomer = sale.customer || 'Walk-in';
+        editPayment = sale.payment || 'Cash';
+        cart = {};
+        (sale.lines || []).forEach(function (line) {
+            var product = PRODUCTS.filter(function (item) {
+                return item.code === line.code || item.name === line.name;
+            })[0];
+            if (product) cart[product.code] = Number(line.qty) || 0;
+        });
+        render();
+        setStatus('Editing ' + sale.id + '. Save changes when the sale looks right.', 'ok');
+    }
+
+    function deleteSale(id) {
+        var sale = findSale(id);
+        if (!sale || String(sale.channel || 'Walk-in') === 'Online') return;
+        var dict = window.KreezbyDictionary;
+        if (!dict || typeof dict.undoSale !== 'function') {
+            setStatus('Inventory is not ready yet. Refresh and try again.', 'warn');
+            return;
+        }
+        applyingStock = true;
+        (sale.lines || []).forEach(function (line) {
+            dict.undoSale(line.name, line.qty, sale.date);
+        });
+        writeSales(readSales().filter(function (row) { return !row || row.id !== id; }));
+        applyingStock = false;
+        if (editingId === id) {
+            editingId = '';
+            cart = {};
+        }
+        pendingDelete = '';
+        actionMenuId = '';
+        render();
+        setStatus(sale.id + ' deleted. Stock was put back.', 'ok');
     }
 
     function markPosted(store, id) {
@@ -582,21 +706,55 @@
 
     function onClick(event) {
         var root = document.getElementById('pos-master');
-        if (!root || !event.target.closest || !event.target.closest('#pos-master')) return;
+        if (!root) return;
+        if (!event.target.closest || !event.target.closest('#pos-master')) {
+            if (actionMenuId) {
+                actionMenuId = '';
+                pendingDelete = '';
+                render();
+            }
+            return;
+        }
         if (event.target.id === 'pos-week-sales' || (event.target.closest && event.target.closest('#pos-week-sales'))) {
             weekOpen = !weekOpen;
+            actionMenuId = '';
+            pendingDelete = '';
             render();
             return;
         }
         var inc = event.target.closest('[data-pos-inc]');
         var dec = event.target.closest('[data-pos-dec]');
+        var action = event.target.closest('[data-pos-action]');
+        var edit = event.target.closest('[data-pos-edit]');
+        var remove = event.target.closest('[data-pos-delete]');
         if (inc) changeQty(inc.getAttribute('data-pos-inc'), 1);
         else if (dec) changeQty(dec.getAttribute('data-pos-dec'), -1);
-        else if (event.target.id === 'pos-clear') {
-            cart = {};
+        else if (action) {
+            var openId = action.getAttribute('data-pos-action');
+            actionMenuId = actionMenuId === openId ? '' : openId;
+            if (pendingDelete && pendingDelete !== actionMenuId) pendingDelete = '';
             render();
-        }         else if (event.target.id === 'pos-complete') {
+        } else if (edit) beginEdit(edit.getAttribute('data-pos-edit'));
+        else if (remove) {
+            var saleId = remove.getAttribute('data-pos-delete');
+            if (pendingDelete === saleId) deleteSale(saleId);
+            else {
+                pendingDelete = saleId;
+                actionMenuId = saleId;
+                render();
+            }
+        } else if (event.target.id === 'pos-clear') {
+            cart = {};
+            editingId = '';
+            pendingDelete = '';
+            actionMenuId = '';
+            render();
+        } else if (event.target.id === 'pos-complete') {
             completeSale();
+        } else if (actionMenuId && !event.target.closest('.pos-action')) {
+            actionMenuId = '';
+            pendingDelete = '';
+            render();
         }
     }
 
@@ -605,7 +763,7 @@
         if (!root) return;
         document.body.classList.add('po-admin-page');
         var style = document.getElementById('kreezby-pos-style');
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261020beside2';
+        var styleHref = '../css/pages/admin/pos-admin.css?v=20261021posact';
         if (!style) {
             style = document.createElement('link');
             style.id = 'kreezby-pos-style';

@@ -61,9 +61,10 @@
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
-    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261020nav">
+    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261021layout">
+    <link rel="stylesheet" href="../css/shared/admin-ops-dashboard.css?v=20261021layout">
 </head>
-<body class="kreezby-admin-home">
+<body class="kreezby-admin-home kreezby-ops-dashboard">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
 
     <header class="top-navbar-node">
@@ -90,24 +91,128 @@
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
 
-            <div id="admin-dashboard-root">
-                <section class="admin-home" aria-label="Welcome">
-                    <div class="admin-home-stage">
-                        <div class="admin-home-copy">
-                            <p class="admin-home-kicker">The Crinkle Factory</p>
-                            <h2>Welcome</h2>
-                            <p class="admin-home-tagline">Making your life sweeter!</p>
-                            <p class="admin-home-lead">Your home is ready. Deliveries, sales, stock, and alerts open from the menu.</p>
-                            <button type="button" class="admin-home-menu-btn" id="admin-open-menu" aria-expanded="false">
-                                <span class="admin-home-menu-btn__icon" aria-hidden="true">☰</span>
-                                <span class="admin-home-menu-btn__label">Open menu</span>
-                            </button>
+            <div id="admin-dashboard-root" class="ops-dash" data-role="Admin" data-fallback-name="Admin">
+                <div class="ops-toolbar">
+                    <button type="button" class="ops-menu" id="admin-open-menu" aria-expanded="true" aria-label="Close menu">☰</button>
+                    <div class="ops-user">
+                        <span class="ops-role" data-role-label>Admin</span>
+                        <button type="button" class="ops-user-btn" data-user-btn>
+                            <span class="ops-avatar" data-initials>A</span>
+                            <span data-person>Admin</span>
+                        </button>
+                        <div class="ops-user-menu" data-user-menu hidden>
+                            <a href="report_issue-admin.html">Report issue</a>
+                            <a href="../auth/log_in.html">Log out</a>
                         </div>
-                        <figure class="admin-home-photo">
-                            <img src="../assets/home/kreezby-welcome.png?v=20261013logo" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
-                        </figure>
                     </div>
+                </div>
+                <div class="ops-title-row">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p class="ops-welcome" data-welcome>Welcome back. Here is the overview of your business.</p>
+                    </div>
+                    <div class="ops-range-wrap">
+                        <button type="button" class="ops-range-btn" data-range-btn>
+                            <span aria-hidden="true">📅</span>
+                            <span data-range-label>Select dates</span>
+                        </button>
+                        <div class="ops-range-pop" data-range-pop hidden>
+                            <label>From<input type="date" data-from></label>
+                            <label>To<input type="date" data-to></label>
+                            <button type="button" data-apply-range>Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <section class="ops-kpis" aria-label="Summary">
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon sales" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg></span>
+                        <span class="ops-kpi-label">Total Sales</span>
+                        <strong class="ops-kpi-value" data-kpi="sales">₱0.00</strong>
+                        <span class="ops-trend flat" data-trend="sales">vs last month</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon orders" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.2 11h11.3l1.5-7H7"/></svg></span>
+                        <span class="ops-kpi-label">Total Orders</span>
+                        <strong class="ops-kpi-value" data-kpi="orders">0</strong>
+                        <span class="ops-trend flat" data-trend="orders">vs last month</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon units" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
+                        <span class="ops-kpi-label">Total Products Sold</span>
+                        <strong class="ops-kpi-value" data-kpi="units">0 pcs</strong>
+                        <span class="ops-trend flat" data-trend="units">vs last month</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon low" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg></span>
+                        <span class="ops-kpi-label">Low Stock Items</span>
+                        <strong class="ops-kpi-value" data-kpi="low">0</strong>
+                        <span class="ops-trend flat" data-trend="low">below the reorder line</span>
+                    </article>
                 </section>
+                <section class="ops-mid">
+                    <article class="ops-card">
+                        <div class="ops-card-head">
+                            <h2>Sales Overview</h2>
+                            <select class="ops-select" data-chart-mode aria-label="Sales chart grouping">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                        </div>
+                        <div class="ops-chart" data-chart></div>
+                    </article>
+                    <article class="ops-card ops-best">
+                        <div class="ops-card-head">
+                            <h2>Best-Selling Products</h2>
+                            <select class="ops-select" data-best-mode aria-label="Best sellers period">
+                                <option value="this">This Month</option>
+                                <option value="last">Last Month</option>
+                            </select>
+                        </div>
+                        <div data-best></div>
+                    </article>
+                </section>
+                <section class="ops-low">
+                    <article class="ops-card">
+                        <div class="ops-card-head"><h2>Order Status</h2></div>
+                        <div class="ops-donut-wrap">
+                            <div data-donut="orders"></div>
+                            <div data-legend="orders"></div>
+                        </div>
+                    </article>
+                    <article class="ops-card">
+                        <div class="ops-card-head"><h2>Inventory Status</h2></div>
+                        <div class="ops-donut-wrap">
+                            <div data-donut="stock"></div>
+                            <div data-legend="stock"></div>
+                        </div>
+                    </article>
+                    <article class="ops-card">
+                        <div class="ops-card-head">
+                            <h2>Product Expiration</h2>
+                            <select class="ops-select" data-expiry-mode aria-label="Expiration window">
+                                <option value="30">Next 30 Days</option>
+                                <option value="7">Next 7 Days</option>
+                                <option value="90">Next 90 Days</option>
+                            </select>
+                        </div>
+                        <div class="ops-table-wrap">
+                            <table class="ops-table">
+                                <thead><tr><th>Product</th><th>Current Stock</th><th>Expiration Date</th></tr></thead>
+                                <tbody data-expiry></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+                <article class="ops-card ops-insight">
+                    <div class="ops-insight-head">
+                        <h2>✦ AI Management Insight</h2>
+                        <div class="ops-insight-meta">
+                            <span data-generated>Generated just now</span>
+                            <button type="button" class="ops-regen" data-regen>Regenerate</button>
+                        </div>
+                    </div>
+                    <p data-insight>Gathering sales, orders, and stock…</p>
+                </article>
             </div>
 
         </main>
@@ -117,10 +222,12 @@
     <div class="notification-modal-overlay" id="notification-modal-overlay" hidden aria-hidden="true"></div>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
+    <script src="../js/kreezby-data-dictionary.js?v=20261020dash"></script>
+    <script src="../js/admin-ops-dashboard.js?v=20261021layout"></script>
     <script src="../js/order-tracking.js?v=20261019fn"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261020icon"></script>
-    <script src="../js/admin-permissions.js?v=20261020logo"></script>
-    <script src="../js/admin-sidebar.js?v=20261020logo"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261021layout"></script>
+    <script src="../js/admin-permissions.js?v=20261020menu"></script>
+    <script src="../js/admin-sidebar.js?v=20261021layout"></script>
     <script src="../js/sidebar-toggle.js?v=20261020menu2"></script>
     <script>
         (function () {

@@ -2499,15 +2499,23 @@ body.po-admin-page #delivery-schedule-master {
     overflow: hidden;
 }
 
-body.po-admin-page #delivery-schedule-master .po-list-body,
+body.po-admin-page #delivery-schedule-master .po-list-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+}
+
 body.po-admin-page #delivery-schedule,
 body.po-admin-page #delivery-schedule-master .delivery-schedule {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
     min-width: 0;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 280px;
+    overflow: visible;
 }
 
 body.po-admin-page #delivery-schedule-master .delivery-schedule {
@@ -2590,8 +2598,8 @@ body.po-admin-page #delivery-schedule-master .delivery-schedule__search {
 
 body.po-admin-page #delivery-schedule-master .delivery-schedule__list {
     flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 180px;
+    overflow: auto;
 }
 
 body.po-admin-page #delivery-schedule-master .delivery-schedule__list .po-table-scroll-wrap {
@@ -2601,17 +2609,17 @@ body.po-admin-page #delivery-schedule-master .delivery-schedule__list .po-table-
 
 body.po-admin-page #delivery-schedule-master .delivery-stop-table .po-col-num { width: 5%; text-align: center; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(2),
-body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(2) { width: 12%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(2) { width: 14%; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(3),
 body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(3) { width: 12%; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(4),
-body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(4) { width: 14%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(4) { width: 12%; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(5),
-body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(5) { width: 22%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(5) { width: 16%; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(6),
 body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(6) { width: 25%; }
 body.po-admin-page #delivery-schedule-master .delivery-stop-table th:nth-child(7),
-body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(7) { width: 10%; }
+body.po-admin-page #delivery-schedule-master .delivery-stop-table td:nth-child(7) { width: 16%; }
 
 body.po-admin-page #delivery-schedule-master .datatable-footer-line {
     margin-top: auto;

@@ -28,7 +28,6 @@
     var TASK_ICONS = {
         dashboard: 'home',
         po: 'cart',
-        receive: 'package',
         bo: 'layers',
         return: 'return',
         stocks: 'boxes',
@@ -116,7 +115,7 @@
             var mobile = document.createElement('link');
             mobile.id = 'kreezby-mobile-style';
             mobile.rel = 'stylesheet';
-            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20261020icon2';
+            mobile.href = moduleRoot() + 'css/shared/kreezby-mobile.css?v=20261021menu';
             document.head.appendChild(mobile);
         }
         if (document.getElementById('kreezby-staff-icon-sidebar-style')) return;
@@ -180,7 +179,7 @@
 
         taskOrder.forEach(function (taskKey) {
             if (allowed.indexOf(taskKey) === -1) return;
-            if (taskKey === 'receive' || taskKey === 'inbox_retailer') return;
+            if (taskKey === 'inbox_retailer') return;
             if (taskKey === 'inbox') {
                 items.push({
                     key: 'inbox',
@@ -233,7 +232,6 @@
         if (filename.indexOf('stocklevel') === 0) return 'stocklevel';
         if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
         if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
-        if (filename === 'receive-staff.html') return 'receive';
         if (filename === 'bo-staff.html') return 'bo';
         if (filename === 'return-staff.html') return 'return';
         if (filename === 'stocks-staff.html') return 'stocks';
@@ -288,11 +286,6 @@
         var asides = document.querySelectorAll('aside.dark-sidebar-panel');
         if (!asides.length) return;
         if (!isStaffDarkSidebarPage()) return;
-        if (currentFilename() === 'receive-staff.html') {
-            window.location.replace('staff.html');
-            return;
-        }
-
         ensureCss();
         var activeKey = activeKeyFor(currentFilename());
 
@@ -341,7 +334,7 @@
         if (document.getElementById('kreezby-delivery-schedule-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-delivery-schedule-script';
-        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20261014delone';
+        s.src = moduleRoot() + 'js/delivery-schedule.js?v=20261020sched';
         s.onload = function () {
             if (window.KreezbyDeliverySchedule) window.KreezbyDeliverySchedule.boot();
         };

@@ -45,7 +45,7 @@
     }
 
     var SOURCE_TASKS = {
-        order: ['ordertracking', 'saleslist', 'dailysales', 'inbox'],
+        order: ['bo', 'ordertracking', 'saleslist', 'dailysales', 'inbox'],
         payment: ['ordertracking', 'saleslist', 'dailysales'],
         po: ['po', 'receive', 'bo'],
         receive: ['receive'],
@@ -103,7 +103,6 @@
         var pages = {
             order: 'order-tracking-staff.html',
             payment: 'order-tracking-staff.html',
-            receive: 'receive-staff.html',
             return: 'order-tracking-staff.html',
             alert: 'alert-staff.html',
             stock: 'stocks-staff.html',
@@ -259,6 +258,15 @@
         return getAll().filter(function (n) { return !n.read; }).length;
     }
 
+    function getUnreadCountForTask(taskKey) {
+        var count = 0;
+        getAll().forEach(function (item) {
+            var tasks = SOURCE_TASKS[item.source || 'system'] || [];
+            if (tasks.indexOf(taskKey) !== -1 && !item.read) count += 1;
+        });
+        return count;
+    }
+
     function markRead(id) {
         var key = audienceKey();
         var list = readStored();
@@ -379,6 +387,7 @@
     window.KreezbyNotifications = {
         getAll: getAll,
         getUnreadCount: getUnreadCount,
+        getUnreadCountForTask: getUnreadCountForTask,
         push: push,
         markRead: markRead,
         markAllRead: markAllRead,

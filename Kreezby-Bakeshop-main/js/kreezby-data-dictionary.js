@@ -596,6 +596,40 @@
         return stock[id];
     }
 
+    function undoSale(productName, quantity, salesDate) {
+        var id = productId(productName);
+        if (!id) return null;
+        var qty = Number(quantity) || 0;
+        if (!qty) return null;
+        var saved = savedState();
+        var extra = saved.sales_transactions_extra || [];
+        var date = salesDate || '';
+        for (var i = extra.length - 1; i >= 0; i--) {
+            var row = extra[i];
+            if (!row || row.product_id !== id || Number(row.quantity_sold) !== qty) continue;
+            if (date && row.sales_date !== date) continue;
+            extra.splice(i, 1);
+            break;
+        }
+        saved.sales_transactions_extra = extra;
+        var stock = productStockMap();
+        stock[id] = (Number(stock[id]) || 0) + qty;
+        saved.product_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: 'stock-in',
+            reference_id: id,
+            quantity: qty,
+            note: 'POS sale reversed on ' + (date || FORECAST_DATE)
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        snapshot();
+        paintStockCells();
+        notifyStocks();
+        return stock[id];
+    }
+
     function notifyStocks() {
         try { document.dispatchEvent(new CustomEvent('kreezby:stocks-sync')); } catch (e) { /* ignore */ }
     }
@@ -1182,6 +1216,7 @@
         productId: productId,
         productById: productById,
         recordSale: recordSale,
+        undoSale: undoSale,
         saleBlockReason: saleBlockReason,
         lastSaleError: function () { return lastSaleError; },
         setProductStock: setProductStock,

@@ -212,16 +212,13 @@
     }
 
     var PAGE_MODULES = {
-        'receive-admin.html': { src: 'receive-admin.js', flag: '__KreezbyReceiveAdminBooted' },
         'bo-admin.html': { src: 'bo-admin.js', flag: '__KreezbyBoAdminBooted' },
         'return-admin.html': { src: 'return-admin.js', flag: '__KreezbyReturnAdminBooted' },
-        'receive-staff.html': { src: 'receive-admin.js', flag: '__KreezbyReceiveAdminBooted' },
         'bo-staff.html': { src: 'bo-admin.js', flag: '__KreezbyBoAdminBooted' },
         'return-staff.html': { src: 'return-admin.js', flag: '__KreezbyReturnAdminBooted' }
     };
 
     var PAGE_MODULE_PREFIXES = [
-        { prefix: 'receive-', src: 'receive-admin.js', flag: '__KreezbyReceiveAdminBooted' },
         { prefix: 'bo-', src: 'bo-admin.js', flag: '__KreezbyBoAdminBooted' },
         { prefix: 'return-', src: 'return-admin.js', flag: '__KreezbyReturnAdminBooted' },
         { prefix: 'stocks-', src: 'stocks-admin.js', flag: '__KreezbyStocksAdminBooted' },

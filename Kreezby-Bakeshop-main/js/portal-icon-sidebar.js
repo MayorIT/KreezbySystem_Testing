@@ -71,7 +71,6 @@
         if (!file) return 'home';
         if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file)) return 'home';
         if (file === 'po-staff.html' || file.indexOf('po-') === 0) return 'cart';
-        if (file === 'receive-staff.html' || file.indexOf('receive-') === 0) return 'package';
         if (file === 'bo-staff.html' || file.indexOf('bo-') === 0) return 'layers';
         if (file === 'return-staff.html' || file.indexOf('return-') === 0) return 'return';
         if (file === 'stocks-staff.html' || file.indexOf('stocks-') === 0) return 'boxes';

@@ -64,7 +64,6 @@
         if (file === 'inquiries.html' || file.indexOf('inquir') === 0) return 'inquiry';
         if (/^staff-\d+\.html$/.test(file) || /^retailer-/.test(file) || file === 'admin.html' || file === 'head_admin.html') return 'home';
         if (file === 'po-staff.html' || file === 'po-admin.html' || file.indexOf('po-') === 0) return 'cart';
-        if (file === 'receive-staff.html' || file === 'receive-admin.html' || file.indexOf('receive-') === 0) return 'package';
         if (file === 'bo-staff.html' || file === 'bo-admin.html' || file.indexOf('bo-') === 0) return 'layers';
         if (file === 'return-staff.html' || file === 'return-admin.html' || file.indexOf('return-') === 0) return 'return';
         if (file === 'stocks-staff.html' || file === 'stocks-admin.html' || file.indexOf('stocks-') === 0) return 'boxes';
