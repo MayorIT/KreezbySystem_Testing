@@ -23,3 +23,20 @@ body.staff-dashboard-page main.workspace-view-canvas { display:block!important; 
 .staff-table-wrap { overflow:auto; }.staff-panel table { width:100%; border-collapse:collapse; font-size:10px; white-space:nowrap; }.staff-panel th { color:#7d858e; font-size:9px; text-align:left; text-transform:uppercase; }.staff-panel th,.staff-panel td { border-bottom:1px solid #f0f1f3; padding:9px 7px; }.staff-status { border-radius:10px; padding:3px 7px; font-size:9px; font-weight:800; }.staff-status.ready,.staff-status.completed { background:#e5f5e8; color:#28803c; }.staff-status.processing,.staff-status.preparing { background:#fff2d6; color:#a36708; }.staff-status.new,.staff-status.low { background:#fde5e3; color:#b44339; }
 @media (max-width:1050px) { .staff-dash-grid { grid-template-columns:1fr; }.staff-pos-panel { grid-row:auto; grid-column:auto; }.staff-kpis { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:650px) { .staff-dash { padding:18px 14px 30px; }.staff-dash-head { align-items:flex-start; flex-direction:column; }.staff-kpis { grid-template-columns:1fr; }.staff-pos-body { grid-template-columns:1fr; }.staff-current-order { border-left:0; border-top:1px solid #edf0f3; padding:14px 0 0; }.staff-products { grid-template-columns:repeat(2,minmax(90px,1fr)); } }
+
+/* ===== Match the admin dashboard look (cards + table colors) ===== */
+body.staff-dashboard-page,
+body.staff-dashboard-page main.workspace-view-canvas { background:#f4f6f9; }
+.staff-dash h1 { color:#3d2c2a; }
+.staff-kpi, .staff-panel { border:1px solid #efe7e0; border-radius:16px; box-shadow:0 2px 4px rgba(61,44,42,.04), 0 10px 26px rgba(61,44,42,.05); }
+.staff-panel h2 { color:#3d2c2a; }
+.staff-panel-head a { color:#6d4c41; }
+.staff-panel-head a:hover { color:#3d2c2a; text-decoration:underline; }
+.staff-table-wrap { padding:0 2px; }
+.staff-panel table { font-size:11px; }
+.staff-panel th { background:#f7f0ea; color:#6d4c41; font-size:10px; letter-spacing:.05em; border-bottom:2px solid #eadfd6; padding:9px 10px; }
+.staff-panel th:first-child { border-top-left-radius:8px; }
+.staff-panel th:last-child { border-top-right-radius:8px; }
+.staff-panel td { color:#3d2c2a; border-bottom:1px solid #f3ece6; padding:9px 10px; }
+.staff-panel tbody tr:nth-child(even) td { background:#fcf9f6; }
+.staff-panel tbody tr:hover td { background:rgba(255,202,40,.14); }

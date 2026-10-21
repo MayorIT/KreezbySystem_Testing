@@ -62,10 +62,11 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
 
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261021layout">
-    <link rel="stylesheet" href="../css/shared/admin-ops-dashboard.css?v=20261021layout">
+    <link rel="stylesheet" href="../css/shared/admin-ops-dashboard.css?v=20261021polish">
+    <link rel="stylesheet" href="../css/shared/kreezby-docked-sidebar.css?v=20261021dock">
 </head>
 <body class="kreezby-admin-home kreezby-ops-dashboard">
-<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');if(window.innerWidth>900){document.body.classList.add('kreezby-docked');if(localStorage.getItem('kreezbyDockedSidebar')!=='0')document.body.classList.add('kreezby-nav-open');}}catch(e){}</script>
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -224,10 +225,10 @@
     <script src="../js/admin-ops-dashboard.js?v=20261021fix"></script>
     <script src="../js/kreezby-partner-inquiries.js"></script>
     <script src="../js/order-tracking.js?v=20261019fn"></script>
-    <script src="../js/user-dropdown-nav.js?v=20261021fix"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261022pill"></script>
     <script src="../js/admin-permissions.js?v=20261020menu"></script>
-    <script src="../js/admin-sidebar.js?v=20261021fix"></script>
-    <script src="../js/sidebar-toggle.js?v=20261020menu2"></script>
+    <script src="../js/admin-sidebar.js?v=20261021ps"></script>
+    <script src="../js/sidebar-toggle.js?v=20261021dock"></script>
     <script>
         (function () {
             function isDashboard() {
@@ -292,12 +293,13 @@
                 }).observe(header, { childList: true, subtree: true });
             }
             document.addEventListener('click', function (event) {
+                if (document.body.classList.contains('kreezby-docked')) return;
                 if (!event.target.closest('aside.dark-sidebar-panel a')) return;
                 document.body.classList.remove('kreezby-nav-open');
                 syncMenuButton();
             });
             document.addEventListener('keydown', function (event) {
-                if (event.key !== 'Escape' || !document.body.classList.contains('kreezby-nav-open')) return;
+                if (event.key !== 'Escape' || document.body.classList.contains('kreezby-docked') || !document.body.classList.contains('kreezby-nav-open')) return;
                 document.body.classList.remove('kreezby-nav-open');
                 syncMenuButton();
             });

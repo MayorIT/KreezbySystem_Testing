@@ -1,0 +1,63 @@
+/*
+ * Docked sidebar (desktop): the menu stays open as you navigate and the page
+ * content / background sits beside it instead of underneath it.
+ * Toggled by body.kreezby-docked (set by sidebar-toggle.js) + body.kreezby-nav-open.
+ * Phones (<= 900px) keep the slide-over menu.
+ */
+@media (min-width: 901px) {
+    html body.kreezby-docked.kreezby-docked .core-viewport-wrapper,
+    html body.kreezby-docked.kreezby-docked .system-dashboard-wrapper {
+        box-sizing: border-box;
+        padding-left: 0;
+        transition: padding-left 0.2s ease;
+    }
+
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .core-viewport-wrapper,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .system-dashboard-wrapper {
+        padding-left: 256px !important;
+    }
+
+    /* Sidebar pinned under the header, always visible while docked-open */
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open aside.dark-sidebar-panel,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open aside.sidebar-panel,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open aside.kreezby-icon-sidebar {
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        box-shadow: none !important;
+    }
+
+    html body.kreezby-docked.kreezby-docked aside.dark-sidebar-panel,
+    html body.kreezby-docked.kreezby-docked aside.sidebar-panel,
+    html body.kreezby-docked.kreezby-docked aside.kreezby-icon-sidebar {
+        transition: transform 0.2s ease !important;
+    }
+
+    /* No dimming overlay: the page is not covered, it is pushed over */
+    html body.kreezby-docked.kreezby-docked .kreezby-nav-scrim,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .kreezby-nav-scrim,
+    html body.kreezby-docked.kreezby-docked.kreezby-retailer-home.kreezby-nav-open .kreezby-nav-scrim {
+        display: none !important;
+    }
+
+    /* The retailer home used to shift the frame itself; the wrapper padding does it now */
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .core-viewport-wrapper > .kreezby-turbo-main,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .system-dashboard-wrapper > .kreezby-turbo-main,
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open .core-viewport-wrapper > turbo-frame#kreezby-main-content {
+        margin-left: 0 !important;
+        width: auto !important;
+    }
+
+    html body.kreezby-docked.kreezby-docked.kreezby-nav-open::before {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html body.kreezby-docked.kreezby-docked .core-viewport-wrapper,
+    html body.kreezby-docked.kreezby-docked aside.dark-sidebar-panel,
+    html body.kreezby-docked.kreezby-docked aside.sidebar-panel {
+        transition: none !important;
+    }
+}

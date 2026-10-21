@@ -399,13 +399,10 @@
         if (openMenu && isHeadAdminPortal()) {
             items.push({ key: 'inquiry', label: 'Inquiry', href: 'inquiries-headadmin.html', icon: 'inquiry', top: true });
             items.push({ key: 'adminpermissions', label: 'Users', href: 'admin_permissions-headadmin.html', icon: 'users', top: true });
-            items.push({ key: 'profile', label: 'Profile', href: 'profile-headadmin.html', icon: 'users', top: true });
             items.push({ key: 'maintenance', label: 'Settings', href: 'maintenance-headadmin.html', icon: 'gear' });
         } else if (openMenu) {
             items.push({ key: 'maintenance', label: 'Users', href: 'maintenance-admin.html', icon: 'users' });
-            items.push({ key: 'profile', label: 'Settings', href: 'profile-admin.html', icon: 'gear', top: true });
         } else {
-            items.push({ key: 'profile', label: 'Settings', href: 'profile-admin.html', icon: 'gear', top: true });
         }
         return items.map(function (item) {
             var next = {

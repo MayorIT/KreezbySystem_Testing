@@ -220,13 +220,14 @@
         if (path.indexOf('/staff/') !== -1 || path.indexOf('/staff_names/') !== -1) return moduleLocalHref('profile-staff.html');
         if (path.indexOf('/head_admin/') !== -1) return moduleLocalHref('profile-headadmin.html');
         if (path.indexOf('/admin/') !== -1 || path.indexOf('/admin_names/') !== -1) return moduleLocalHref('profile-admin.html');
+        if (path.indexOf('/retailer/') !== -1) return '#profile-settings';
         return '';
     }
 
     function reportIssueMenuHtml() {
         var logout = '<a href="' + authLoginHref() + '" class="dropdown-item">\u21a9 Log Out</a>';
         var profileHref = profileMenuHref();
-        var profile = profileHref ? '<a href="' + profileHref + '" class="dropdown-item" data-profile-link="1">Profile</a>' : '';
+        var profile = profileHref ? '<a href="' + profileHref + '" class="dropdown-item" data-profile-link="1">\u2699 Profile Settings</a>' : '';
         if (isHeadAdminPortalPage()) return profile + logout;
         var issueHref = reportIssueHref();
         var issue = issueHref ? '<a href="' + issueHref + '" class="dropdown-item">Report Issue</a>' : '';
@@ -732,7 +733,7 @@
                 }
                 return;
             }
-            if (event.target.closest('aside.dark-sidebar-panel a, aside.sidebar-panel a, .kreezby-sidebar-nav-item')) closeAdminMenu();
+            if (!document.body.classList.contains('kreezby-docked') && event.target.closest('aside.dark-sidebar-panel a, aside.sidebar-panel a, .kreezby-sidebar-nav-item')) closeAdminMenu();
         }, true);
     }
 
@@ -830,8 +831,8 @@
     function retailerStoreName() {
         var sessionName = '';
         try {
-            var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
-            sessionName = sess && sess.userName ? String(sess.userName).trim() : '';
+            var info = portalAccount();
+            sessionName = info.user ? String(info.userName || info.user.name || info.user.username || '').trim() : '';
         } catch (e) { /* fall through to the sidebar brand */ }
         if (sessionName && !/^retailer$/i.test(sessionName)) return sessionName;
         var brand = document.querySelector('.panel-brand');
@@ -850,9 +851,94 @@
         document.head.appendChild(style);
     }
 
+    // Which portal this page belongs to, and the signed-in account only if it
+    // really belongs to that portal (no retailer name on the admin portal, etc.).
+    function portalAccount() {
+        var path = (window.location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        var kind = path.indexOf('/head_admin/') !== -1 ? 'head'
+            : (path.indexOf('/staff') !== -1 ? 'staff'
+            : (path.indexOf('/retailer/') !== -1 ? 'retailer' : 'admin'));
+        try {
+            var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+            var query = String(sess.identity || sess.userName || '').trim().toLowerCase();
+            var users = JSON.parse(localStorage.getItem('kreezby_maintenance_users') || '{}') || {};
+            var buckets = kind === 'staff' ? ['staff'] : (kind === 'retailer' ? ['retailers'] : ['admins']);
+            var found = null;
+            buckets.forEach(function (bucket) {
+                (users[bucket] || []).forEach(function (user) {
+                    if (!user || user.archived || !query) return;
+                    var head = /head|owner/i.test(String(user.accountType || '') + ' ' + String(user.role || ''));
+                    if (bucket === 'admins' && (kind === 'head') !== head) return;
+                    var hit = [user.username, user.email, user.name, user.id, user.user_id, user.contact].some(function (v) {
+                        return v && String(v).trim().toLowerCase() === query;
+                    });
+                    if (hit) found = user;
+                });
+            });
+            return { kind: kind, user: found, userName: sess.userName ? String(sess.userName) : '' };
+        } catch (e) {
+            return { kind: kind, user: null, userName: '' };
+        }
+    }
+
+    function savedProfileName() {
+        try {
+            var info = portalAccount();
+            var key = info.kind + ':' + (info.user ? String(info.user.username || info.user.id || '').toLowerCase() : '_guest');
+            var profiles = JSON.parse(localStorage.getItem('kreezby_portal_profiles') || '{}') || {};
+            var entry = profiles[key];
+            return entry && entry.name ? String(entry.name) : '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function pillRole(info) {
+        var user = info && info.user;
+        var role = user && user.role ? String(user.role) : '';
+        if (!role && user && user.accountType) role = String(user.accountType);
+        if (!role) {
+            var k = info && info.kind;
+            role = k === 'head' ? 'Head Admin' : k === 'staff' ? 'Staff' : k === 'retailer' ? 'Retailer' : 'Admin';
+        }
+        return role;
+    }
+
+    function paintPill(trigger, name, role) {
+        if (!document.getElementById('kreezby-pill-style')) {
+            var st = document.createElement('style');
+            st.id = 'kreezby-pill-style';
+            st.textContent =
+                '#user-dropdown-trigger.kz-pill{display:inline-flex;align-items:center;gap:8px;line-height:1.1;padding-top:5px;padding-bottom:5px;height:auto;min-height:38px;}' +
+                '#user-dropdown-trigger .kz-pill-text{display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left;}' +
+                '#user-dropdown-trigger .kz-pill-name{font-weight:800;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+                '#user-dropdown-trigger .kz-pill-role{font-size:10.5px;font-weight:600;opacity:.75;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}' +
+                '#user-dropdown-trigger .kz-pill-caret{font-size:11px;}';
+            document.head.appendChild(st);
+        }
+        trigger.classList.add('kz-pill');
+        trigger.textContent = '';
+        var box = document.createElement('span');
+        box.className = 'kz-pill-text';
+        var n = document.createElement('span');
+        n.className = 'kz-pill-name';
+        n.textContent = name;
+        var r = document.createElement('span');
+        r.className = 'kz-pill-role';
+        r.textContent = role;
+        box.appendChild(n);
+        box.appendChild(r);
+        var c = document.createElement('span');
+        c.className = 'kz-pill-caret';
+        c.textContent = '\u25be';
+        trigger.appendChild(box);
+        trigger.appendChild(c);
+    }
+
     function paintRetailerHeader(trigger) {
         var storeName = retailerStoreName();
-        trigger.textContent = 'Retailer \u25be';
+        var savedName = savedProfileName();
+        paintPill(trigger, savedName || 'Retailer', pillRole(portalAccount()));
         var right = trigger.closest('.top-nav-links-right');
         if (!right) return;
         ensureStoreNameStyle();
@@ -1009,10 +1095,11 @@
         } else if (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage()) {
             var sessionName = '';
             try {
-                var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
-                sessionName = sess && sess.userName ? String(sess.userName) : '';
+                var info = portalAccount();
+                sessionName = info.user ? (info.userName || info.user.name || info.user.username || '') : '';
+                sessionName = savedProfileName() || sessionName;
             } catch (e) { /* keep the role label */ }
-            trigger.textContent = (sessionName || 'Account') + ' \u25be';
+            paintPill(trigger, sessionName || 'Account', pillRole(portalAccount()));
             var welcome = document.querySelector('.admin-home h2');
             if (welcome && (isHeadAdminPortalPage() || isAdminLikePage() || isStaffPage())) {
                 welcome.textContent = sessionName ? ('Welcome, ' + sessionName) : 'Welcome';
@@ -1056,8 +1143,19 @@
         }, true);
     }
 
+    function ensureProfileSettingsLoaded() {
+        if (!profileMenuHref()) return;
+        if (window.KreezbyProfileSettings || document.getElementById('kreezby-profile-settings-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-profile-settings-script';
+        s.src = jsBase() + 'profile-settings-popup.js?v=20261022pill&t=' + Date.now();
+        s.defer = true;
+        document.head.appendChild(s);
+    }
+
     function wireUserDropdown() {
         refreshDropdownNodes();
+        ensureProfileSettingsLoaded();
     }
 
     function ensureActionButtonsLoaded() {

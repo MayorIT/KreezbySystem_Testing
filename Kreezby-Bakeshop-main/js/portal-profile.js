@@ -13,15 +13,65 @@
         }
     }
 
-    function session() {
+    function rawSession() {
         return readJson('kreezby_session', {});
+    }
+
+    // The signed-in account only counts on the portal it belongs to
+    // (retailer on retailer, staff on staff, head admin on head admin ...).
+    function session() {
+        return findAccount() ? rawSession() : {};
     }
 
     function portalKind() {
         var path = (window.location.pathname || '').replace(/\\/g, '/');
         if (/\/head_admin\//i.test(path)) return 'head';
         if (/\/staff\//i.test(path)) return 'staff';
+        if (/\/retailer\//i.test(path)) return 'retailer';
         return 'admin';
+    }
+
+    function defaultRole() {
+        var kind = portalKind();
+        return kind === 'head' ? 'Head Admin' : kind === 'staff' ? 'Staff' : kind === 'retailer' ? 'Retailer' : 'Admin';
+    }
+
+    // Profile details are kept per sign-in on this device, so every account
+    // (including head admin and retailers) can edit them even without a user record.
+    var PROFILES_KEY = 'kreezby_portal_profiles';
+
+    function profileKey() {
+        var account = findAccount();
+        return portalKind() + ':' + (account ? String(account.user.username || account.user.id || '').toLowerCase() : '_guest');
+    }
+
+    function readOverlay() {
+        var all = readJson(PROFILES_KEY, {});
+        return (all && all[profileKey()]) || {};
+    }
+
+    function writeOverlay(data) {
+        var all = readJson(PROFILES_KEY, {}) || {};
+        var key = profileKey();
+        all[key] = Object.assign({}, all[key], data);
+        try {
+            localStorage.setItem(PROFILES_KEY, JSON.stringify(all));
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function applyHeaderName(name) {
+        if (!name) return;
+        document.querySelectorAll('#user-dropdown-trigger').forEach(function (node) {
+            var nm = node.querySelector('.kz-pill-name');
+            if (nm) nm.textContent = name; else node.textContent = name + ' \u25be';
+        });
+        document.querySelectorAll('.admin-home h2').forEach(function (node) { node.textContent = 'Welcome, ' + name; });
+        document.querySelectorAll('[data-staff-name], [data-person]').forEach(function (node) { node.textContent = name; });
+        document.querySelectorAll('[data-initials]').forEach(function (node) { node.textContent = initials(name); });
+        document.dispatchEvent(new CustomEvent('kreezby:profile-saved', { detail: { name: name } }));
     }
 
     function identityMatches(user, query) {
@@ -32,24 +82,40 @@
         });
     }
 
-    function findAccount() {
+    function isHeadAccount(user) {
+        return /head|owner/i.test(String((user && user.accountType) || '') + ' ' + String((user && user.role) || ''));
+    }
+
+    function belongsToPortal(bucket, user) {
+        var kind = portalKind();
+        if (kind === 'staff') return bucket === 'staff';
+        if (kind === 'retailer') return bucket === 'retailers';
+        if (bucket !== 'admins') return false;
+        return kind === 'head' ? isHeadAccount(user) : !isHeadAccount(user);
+    }
+
+    function readUsers() {
         var api = window.KreezbyMaintenanceSettings;
-        if (!api || typeof api.getUsers !== 'function') return null;
-        var current = session();
+        if (api && typeof api.getUsers === 'function') {
+            try { return api.getUsers() || {}; } catch (e) { /* fall back to storage */ }
+        }
+        return readJson('kreezby_maintenance_users', {}) || {};
+    }
+
+    function findAccount() {
+        var current = rawSession();
         var query = String(current.identity || current.userName || '').trim().toLowerCase();
         if (!query) return null;
-        var users = api.getUsers();
-        var buckets = ['admins', 'staff'];
-        var b;
-        var i;
-        for (b = 0; b < buckets.length; b++) {
-            var list = users[buckets[b]] || [];
-            for (i = 0; i < list.length; i++) {
-                if (list[i] && list[i].archived) continue;
-                if (identityMatches(list[i], query)) return { bucket: buckets[b], user: list[i] };
-            }
-        }
-        return null;
+        var users = readUsers();
+        var found = null;
+        ['admins', 'staff', 'retailers'].forEach(function (bucket) {
+            (users[bucket] || []).forEach(function (user) {
+                if (!user || user.archived || !belongsToPortal(bucket, user) || !identityMatches(user, query)) return;
+                var exact = String(user.username || '').trim().toLowerCase() === query;
+                if (!found || (exact && !found.exact)) found = { bucket: bucket, user: user, exact: exact };
+            });
+        });
+        return found;
     }
 
     function roleLabel(user) {
@@ -104,20 +170,22 @@
     }
 
     function fill(account) {
-        var user = account ? account.user : {};
+        var user = Object.assign({}, account ? account.user : {}, readOverlay());
         var current = session();
         var name = document.getElementById('profile-full-name');
         var username = document.getElementById('profile-username');
         var email = document.getElementById('profile-email');
         var phone = document.getElementById('profile-phone');
+        var address = document.getElementById('profile-address');
         var role = document.getElementById('profile-role');
         var department = document.getElementById('profile-department');
         var threshold = document.getElementById('profile-threshold');
         if (name) name.value = user.name || current.userName || '';
-        if (username) username.value = user.username || current.identity || '';
+        if (username) username.value = (account && account.user.username) || '';
         if (email) email.value = user.email || '';
         if (phone) phone.value = user.phone || user.contact || '';
-        if (role) role.value = roleLabel(user);
+        if (address) address.value = user.address || '';
+        if (role) role.value = roleLabel(user) || defaultRole();
         if (department) {
             department.value = user.department || '';
             var wrap = document.getElementById('profile-department-wrap');
@@ -126,14 +194,10 @@
         if (threshold && window.KreezbyBrowserAlerts) threshold.value = String(window.KreezbyBrowserAlerts.settings().shop);
         paintAvatar(user);
         paintIdentity(user, current);
-        var locked = !account;
-        [name, email, phone].forEach(function (field) { if (field) field.disabled = locked; });
         var note = document.getElementById('profile-account-note');
         if (note) {
             note.hidden = !!account;
-            note.textContent = document.getElementById('profile-full-name')
-                ? 'Sign in to save a name, email, and photo.'
-                : 'Sign in to save the photo.';
+            note.textContent = 'No account for this portal is signed in here. Changes are saved on this device only.';
         }
         renderOverrides();
         renderPermission();
@@ -165,7 +229,9 @@
 
     function setStatus(message) {
         var node = document.getElementById('profile-status');
-        if (node) node.textContent = message || '';
+        if (!node) return;
+        node.textContent = message || '';
+        node.style.color = message && !/saved/i.test(message) ? '#c62828' : '';
     }
 
     function compressImage(file) {
@@ -203,70 +269,78 @@
 
     function saveProfile(avatarDataUrl) {
         if (!saveThreshold()) return;
-        var api = window.KreezbyMaintenanceSettings;
-        var account = findAccount();
         var nameField = document.getElementById('profile-full-name');
         var emailField = document.getElementById('profile-email');
         var phoneField = document.getElementById('profile-phone');
-        var photoOnly = !nameField && !emailField && !phoneField;
-        if (!api || !account) {
-            setStatus(photoOnly
-                ? 'Sign in to save the photo.'
-                : 'Sign in to save name and contact details.');
-            return;
-        }
-        var users = api.getUsers();
-        var list = users[account.bucket] || [];
-        var index = -1;
-        var i;
-        for (i = 0; i < list.length; i++) {
-            if (list[i] && list[i].id === account.user.id) index = i;
-        }
-        if (index < 0) {
-            setStatus('This account could not be updated.');
-            return;
-        }
-        var next = Object.assign({}, list[index]);
-        if (!photoOnly) {
+        var addressField = document.getElementById('profile-address');
+        var data = {};
+        if (nameField) {
             var name = (nameField.value || '').trim();
-            var email = emailField ? (emailField.value || '').trim() : '';
-            var phone = phoneField ? (phoneField.value || '').trim() : '';
             if (!name) {
                 setStatus('Enter a full name.');
                 return;
             }
+            data.name = name;
+        }
+        if (emailField) {
+            var email = (emailField.value || '').trim();
             if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 setStatus('Enter a valid email, or leave it blank.');
                 return;
             }
-            next.name = name;
-            next.email = email;
-            next.phone = phone;
-            next.contact = phone;
+            data.email = email;
         }
-        if (avatarDataUrl) next.avatarDataUrl = avatarDataUrl;
-        else if (photoOnly) {
+        if (phoneField) data.phone = (phoneField.value || '').trim();
+        if (addressField) data.address = (addressField.value || '').trim();
+        if (avatarDataUrl) data.avatarDataUrl = avatarDataUrl;
+        if (!Object.keys(data).length) {
             setStatus('Choose a photo first.');
             return;
         }
-        list[index] = next;
-        users[account.bucket] = list;
-        api.saveUsers(users);
-        if (!photoOnly) {
+        if (!writeOverlay(data)) {
+            setStatus('Could not save. Browser storage is full or blocked.');
+            return;
+        }
+
+        // Also update the account record when this sign-in has one.
+        var api = window.KreezbyMaintenanceSettings;
+        var account = api ? findAccount() : null;
+        if (api && account) {
+            var users = api.getUsers();
+            var list = users[account.bucket] || [];
+            for (var i = 0; i < list.length; i++) {
+                if (list[i] && list[i].id === account.user.id) {
+                    var next = Object.assign({}, list[i]);
+                    if (data.name !== undefined) next.name = data.name;
+                    if (data.email !== undefined) next.email = data.email;
+                    if (data.phone !== undefined) { next.phone = data.phone; next.contact = data.phone; }
+                    if (data.address !== undefined) next.address = data.address;
+                    if (data.avatarDataUrl) next.avatarDataUrl = data.avatarDataUrl;
+                    list[i] = next;
+                }
+            }
+            users[account.bucket] = list;
+            try { api.saveUsers(users); } catch (e) { /* overlay already saved */ }
+        }
+
+        if (data.name && account) {
             try {
-                var current = session();
-                current.userName = next.name;
+                var current = rawSession();
+                current.userName = data.name;
                 localStorage.setItem('kreezby_session', JSON.stringify(current));
             } catch (e) { /* session stays as it was */ }
         }
-        setStatus(photoOnly ? 'Photo saved.' : 'Profile saved.');
-        fill(findAccount());
+        if (data.name) applyHeaderName(data.name);
+        setStatus('Profile saved.');
+        fill(account);
     }
 
     function bind() {
         var root = document.getElementById('portal-profile');
         if (!root) return;
         fill(findAccount());
+        if (root.dataset.profileBound === '1') return;
+        root.dataset.profileBound = '1';
         var tries = 0;
         var timer = setInterval(function () {
             tries += 1;
@@ -331,6 +405,8 @@
         });
         document.addEventListener('kreezby:notify-permission', renderPermission);
     }
+
+    window.KreezbyPortalProfile = { bind: bind, refresh: function () { fill(findAccount()); } };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
     else bind();

@@ -615,3 +615,101 @@ body.kreezby-ops-dashboard #admin-dashboard-root {
         justify-items: center;
     }
 }
+
+/* ===== Dashboard polish (head admin + admin) ===== */
+body.kreezby-ops-dashboard #admin-dashboard-root {
+    padding: 18px 28px 36px !important;
+}
+
+.ops-title-row {
+    padding-bottom: 14px;
+    margin: 0 0 20px;
+    border-bottom: 1px solid #e9e1da;
+}
+
+.ops-title-row h1 {
+    color: #3d2c2a;
+    font-size: 28px;
+}
+
+.ops-title-row h1::after {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin-top: 8px;
+    border-radius: 99px;
+    background: #ffca28;
+}
+
+.ops-welcome { color: #8a7f78; }
+
+.ops-range-btn,
+.ops-select {
+    border-color: #e4d9d0;
+    color: #5d4037;
+}
+
+.ops-range-btn:hover,
+.ops-select:hover { border-color: #d3c1b4; background: #fffaf3; }
+
+.ops-range-btn:focus-visible,
+.ops-select:focus-visible,
+.ops-regen:focus-visible { outline: 2px solid #ffca28; outline-offset: 2px; }
+
+.ops-card {
+    border: 1px solid #efe7e0;
+    box-shadow: 0 2px 4px rgba(61, 44, 42, 0.04), 0 10px 26px rgba(61, 44, 42, 0.05);
+}
+
+.ops-card:hover { box-shadow: 0 2px 4px rgba(61, 44, 42, 0.05), 0 14px 32px rgba(61, 44, 42, 0.09); }
+
+.ops-kpi { position: relative; overflow: hidden; padding: 18px 18px 16px 22px; }
+
+.ops-kpi::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: #e0d6ce;
+}
+
+.ops-kpi:has(.sales)::before  { background: #e53935; }
+.ops-kpi:has(.orders)::before { background: #43a047; }
+.ops-kpi:has(.units)::before  { background: #1e88e5; }
+.ops-kpi:has(.low)::before    { background: #f5a623; }
+
+.ops-kpi-value { color: #3d2c2a; font-size: 28px; }
+
+.ops-card-head { padding: 16px 18px 12px; }
+.ops-card-head h2 { color: #3d2c2a; font-size: 15px; letter-spacing: -0.01em; }
+
+.ops-bar { background: #f3ece6; }
+
+.ops-insight {
+    background: linear-gradient(135deg, #fffaf0 0%, #ffffff 60%);
+    border-left: 5px solid #ffca28;
+}
+
+.ops-insight-head h2 { color: #3d2c2a; }
+.ops-regen { border-color: #e4d9d0; color: #5d4037; }
+.ops-regen:hover { background: #fff4d6; border-color: #ffca28; }
+
+/* Shared dashboard table colors (staff dashboard uses the same palette) */
+.ops-table-wrap { padding: 0 10px 12px; }
+
+.ops-table th {
+    background: #f7f0ea;
+    color: #6d4c41;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 2px solid #eadfd6;
+}
+
+.ops-table th:first-child { border-top-left-radius: 8px; }
+.ops-table th:last-child  { border-top-right-radius: 8px; }
+
+.ops-table td { color: #3d2c2a; border-bottom: 1px solid #f3ece6; }
+.ops-table tbody tr:nth-child(even) td { background: #fcf9f6; }
+.ops-table tbody tr:hover td { background: rgba(255, 202, 40, 0.14); }

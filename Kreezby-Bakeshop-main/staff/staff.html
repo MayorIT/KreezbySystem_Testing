@@ -16,10 +16,11 @@
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
-    <link rel="stylesheet" href="../css/pages/staff/staff-dashboard.css?v=20261021staffdash">
+    <link rel="stylesheet" href="../css/pages/staff/staff-dashboard.css?v=20261021tables">
+    <link rel="stylesheet" href="../css/shared/kreezby-docked-sidebar.css?v=20261021dock">
 </head>
 <body class="staff-dashboard-page">
-<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');if(window.innerWidth>900){document.body.classList.add('kreezby-docked');if(localStorage.getItem('kreezbyDockedSidebar')!=='0')document.body.classList.add('kreezby-nav-open');}}catch(e){}</script>
 
 
 
@@ -77,9 +78,9 @@
 <script src="../js/kreezby-data-dictionary.js?v=20261021staffalerts"></script>
 <script src="../js/staff-permissions.js?v=20261020logo"></script>
 <script src="../js/staff-dashboard.js?v=20261021fix"></script>
-<script src="../js/user-dropdown-nav.js?v=20261021fix"></script>
+<script src="../js/user-dropdown-nav.js?v=20261022pill"></script>
 <script src="../js/staff-sidebar.js?v=20261020logo"></script>
-<script src="../js/sidebar-toggle.js?v=20261020menu2"></script>
+<script src="../js/sidebar-toggle.js?v=20261021dock"></script>
 
 </body>
 </html>

@@ -323,7 +323,7 @@
     });
 
     document.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Escape') closeNav();
+        if (ev.key === 'Escape' && isPhone()) closeNav();
     });
 
     window.addEventListener('resize', function () {

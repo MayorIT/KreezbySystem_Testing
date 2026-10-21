@@ -11,7 +11,70 @@
         } catch (e) {}
     }
 
+    const dockedKey = 'kreezbyDockedSidebar';
+    const dockedStyleId = 'kreezby-docked-sidebar-style';
+    const desktopQuery = '(min-width: 901px)';
+
+    function isDesktop() {
+        return window.matchMedia ? window.matchMedia(desktopQuery).matches : window.innerWidth > 900;
+    }
+
+    function dockedWanted() {
+        try { return localStorage.getItem(dockedKey) !== '0'; } catch (e) { return true; }
+    }
+
+    function ensureDockedCss() {
+        if (document.getElementById(dockedStyleId)) return;
+        if (document.querySelector('link[href*="kreezby-docked-sidebar.css"]')) return;
+        let href = 'css/shared/kreezby-docked-sidebar.css';
+        const path = (window.location && window.location.pathname) ? window.location.pathname : '';
+        if (/\/retailer\/[^/]+\//i.test(path)) href = '../../' + href;
+        else if (/\/(admin|head_admin|staff|customer)\//i.test(path)) href = '../' + href;
+        const ref = document.querySelector('script[src*="sidebar-toggle.js"]');
+        if (ref && ref.getAttribute('src')) {
+            href = ref.getAttribute('src').replace(/js\/sidebar-toggle\.js.*$/, 'css/shared/kreezby-docked-sidebar.css');
+        }
+        const link = document.createElement('link');
+        link.id = dockedStyleId;
+        link.rel = 'stylesheet';
+        link.href = href + '?v=20261021dock';
+        document.head.appendChild(link);
+    }
+
+    function syncMenuButtons() {
+        const open = document.body.classList.contains('kreezby-nav-open');
+        const btn = document.querySelector('.hamburger-toggle');
+        if (btn) {
+            btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        }
+        const welcome = document.getElementById('admin-open-menu');
+        if (welcome) {
+            welcome.setAttribute('aria-expanded', open ? 'true' : 'false');
+            const welcomeLabel = welcome.querySelector('.admin-home-menu-btn__label');
+            if (welcomeLabel) welcomeLabel.textContent = open ? 'Close menu' : 'Open menu';
+        }
+    }
+
+    // Desktop: sidebar is docked open (content sits beside it) and stays that way
+    // across pages until the user collapses it with the menu button.
+    function applyDocked() {
+        const hasSidebar = !!document.querySelector('aside.sidebar-panel, aside.dark-sidebar-panel, aside.kreezby-icon-sidebar');
+        if (!hasSidebar || !document.querySelector('.core-viewport-wrapper')) return false;
+        if (!isDesktop()) {
+            body.classList.remove('kreezby-docked');
+            return false;
+        }
+        ensureDockedCss();
+        body.classList.add('kreezby-docked');
+        body.classList.toggle('kreezby-nav-open', dockedWanted());
+        syncMenuButtons();
+        return true;
+    }
+
     function restoreOpenState() {
+        if (applyDocked()) return;
         try {
             if (sessionStorage.getItem(openStateKey) !== '1') return;
         } catch (e) {
@@ -67,6 +130,13 @@
         if (event) {
             event.preventDefault();
             event.stopPropagation();
+        }
+        if (document.body.classList.contains('kreezby-docked') && isDesktop()) {
+            const nowOpen = !document.body.classList.contains('kreezby-nav-open');
+            document.body.classList.toggle('kreezby-nav-open', nowOpen);
+            try { localStorage.setItem(dockedKey, nowOpen ? '1' : '0'); } catch (e) {}
+            syncMenuButtons();
+            return;
         }
         if (window.KreezbyMobile) {
             if (document.body.classList.contains('kreezby-nav-open')) window.KreezbyMobile.closeNav();
@@ -187,7 +257,7 @@
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'kreezby-mobile.js');
         }
-        if (src.indexOf('?') < 0) src += '?v=20261004menu';
+        if (src.indexOf('?') < 0) src += '?v=20261021dock';
         const s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
         s.src = src;
@@ -263,4 +333,20 @@
     });
 
     window.addEventListener('load', restoreOpenState);
+
+    if (window.matchMedia) {
+        const mq = window.matchMedia(desktopQuery);
+        const onModeChange = function () {
+            if (mq.matches) {
+                applyDocked();
+            } else {
+                body.classList.remove('kreezby-docked');
+                if (window.KreezbyMobile && typeof window.KreezbyMobile.closeNav === 'function') window.KreezbyMobile.closeNav();
+                else body.classList.remove('kreezby-nav-open');
+                syncMenuButtons();
+            }
+        };
+        if (mq.addEventListener) mq.addEventListener('change', onModeChange);
+        else if (mq.addListener) mq.addListener(onModeChange);
+    }
 })();
