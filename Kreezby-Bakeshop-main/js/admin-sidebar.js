@@ -385,7 +385,11 @@
     function allowedNav() {
         var items = NAV.slice();
         var api = window.KreezbyAdminPermissions;
-        var openMenu = fullMenu() || viewerHasFullAccess() || isHeadAdminPortal();
+        // Only the owner (or a static preview with nobody signed in) sees every module.
+        // Other admins see just the modules the head admin allowed them.
+        var signedIn = false;
+        try { signedIn = !!(JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).accountType; } catch (e) { signedIn = false; }
+        var openMenu = !signedIn || viewerHasFullAccess();
         if (api && !openMenu) {
             items = items.filter(function (item) {
                 if (item.key === 'dashboard') return true;
