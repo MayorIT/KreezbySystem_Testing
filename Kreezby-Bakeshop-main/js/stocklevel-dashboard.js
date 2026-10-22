@@ -210,11 +210,11 @@
         { code: 'RM-CFS-01', name: 'Confectioner Sugar', category: 'Raw Materials', qty: 30 },
         { code: 'RM-PSB-01', name: 'Potassium Sorbate', category: 'Raw Materials', qty: 12 },
         { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', category: 'Finished Products', qty: 450 },
-        { code: 'CRK-ALM-P', name: 'Choco-Almond', category: 'Finished Products', qty: 320 },
-        { code: 'CRK-UBE-P', name: 'Ube Crinkles', category: 'Finished Products', qty: 180 },
+        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', category: 'Finished Products', qty: 320 },
+        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', category: 'Finished Products', qty: 210 },
         { code: 'CRK-LEM-P', name: 'Lemon Crinkles', category: 'Finished Products', qty: 85 },
         { code: 'CRK-MNG-J', name: 'Mango Crinkles', category: 'Finished Products', qty: 45 },
-        { code: 'CRK-RVV-P', name: 'Red Velvet', category: 'Finished Products', qty: 890 },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', category: 'Finished Products', qty: 180 },
         { code: 'PKG-SUP-01', name: 'Stand up pouch', category: 'Packaging', qty: 80 },
         { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', category: 'Packaging', qty: 12 }
     ];
@@ -415,9 +415,11 @@
 
     function slowTable(rows) {
 
+        if (!rows.length) return '<p class="sl-footer-note">No slow-moving products right now. Every finished product is selling through within 4 weeks of stock.</p>';
+
         return '<table class="sl-compact-table sl-slow-table" data-sl-skip-open="1"><thead><tr>'
 
-            + '<th>Item</th><th>Category</th><th>Units Sold (Last 3 Mo.)</th><th>Last Sold</th><th>Current Stock</th><th>Weeks</th><th>Status</th>'
+            + '<th>Item</th><th>Category</th><th>Units Sold (Last 7 Days)</th><th>Last Sold</th><th>Current Stock</th><th>Weeks</th><th>Status</th>'
 
             + '</tr></thead><tbody>'
 
@@ -612,28 +614,202 @@
         return inventoryCatalog().filter(function (item) { return item.category !== 'Finished Products'; });
     }
 
+    // Values always come from real quantity x unit cost, so they follow every stock movement.
     function savedValueMap() {
-        var map = readStore(VALUE_KEY, null);
-        if (!map || typeof map !== 'object' || Array.isArray(map)) return null;
-        return map;
+        return null;
+    }
+
+    var UNIT_COSTS = {
+        'RM-WFL-01': 48, 'RM-WSG-01': 42, 'RM-OIL-01': 95, 'RM-EGG-01': 9, 'RM-COC-01': 180,
+        'RM-BKP-01': 35, 'RM-SLT-01': 18, 'RM-CFS-01': 55, 'RM-PSB-01': 220,
+        'PKG-SUP-01': 12, 'PKG-STK-01': 3
+    };
+
+    function unitCost(item) {
+        var local = readStore(STOCK_KEY, {});
+        var costs = local.cost || {};
+        if (costs[item.code] != null && costs[item.code] !== '') return Number(costs[item.code]) || 0;
+        var extra = null;
+        (local.extra || []).forEach(function (row) { if (row && row.code === item.code) extra = row; });
+        if (extra && extra.cost != null) return Number(extra.cost) || 0;
+        return UNIT_COSTS[item.code] || 0;
     }
 
     function defaultValueMap() {
         var map = {};
-        var items = valueCatalog();
-        Object.keys(BASE_CATEGORY_VALUE).forEach(function (category) {
-            var group = items.filter(function (item) { return item.category === category; });
-            if (!group.length) return;
-            var amounts = allocateAmounts(BASE_CATEGORY_VALUE[category], group.map(function () { return 1; }));
-            group.forEach(function (item, index) { map[item.code] = amounts[index]; });
+        valueCatalog().forEach(function (item) {
+            map[item.code] = Math.round((Number(item.qty) || 0) * unitCost(item) * 100) / 100;
         });
         return map;
     }
 
-    function valueFor(item, saved, defaults) {
-        if (saved && Object.prototype.hasOwnProperty.call(saved, item.code)) return Number(saved[item.code]) || 0;
-        if (!saved && defaults && defaults[item.code] != null) return defaults[item.code];
-        return 0;
+    function valueFor(item) {
+        return (Number(item.qty) || 0) * unitCost(item);
+    }
+
+
+    var SNAP_KEY = 'kreezby_stock_snapshots_v1';
+    var MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function monthKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+
+    function recentSalesByCode() {
+        // units sold per product over the latest 7 days of recorded sales
+        var dict = window.KreezbyDictionary;
+        var rows = dict && typeof dict.salesTransactions === 'function' ? dict.salesTransactions() : [];
+        var dates = {};
+        rows.forEach(function (r) { if (r && r.sales_date) dates[String(r.sales_date).slice(0, 10)] = 1; });
+        var latest = Object.keys(dates).sort().slice(-7);
+        var inWindow = {};
+        latest.forEach(function (d) { inWindow[d] = 1; });
+        var out = {};
+        var last = {};
+        rows.forEach(function (r) {
+            if (!r || !r.product_id) return;
+            var day = String(r.sales_date).slice(0, 10);
+            if (inWindow[day]) out[r.product_id] = (out[r.product_id] || 0) + (Number(r.quantity_sold) || 0);
+            if (!last[r.product_id] || day > last[r.product_id]) last[r.product_id] = day;
+        });
+        return { week: out, last: last };
+    }
+
+    function monthlySales() {
+        var totals = {};
+        function add(dateValue, amount) {
+            var d = new Date(dateValue);
+            if (isNaN(d.getTime())) return;
+            var key = monthKey(d);
+            totals[key] = (totals[key] || 0) + (Number(amount) || 0);
+        }
+        (readStore('kreezby_pos_sales_v1', []) || []).forEach(function (sale) {
+            if (sale) add(sale.at || sale.date, sale.total);
+        });
+        (readStore('kreezbyOrders', []) || []).forEach(function (order) {
+            if (!order) return;
+            var status = String(order.status || '').toLowerCase();
+            if (status.indexOf('cancel') >= 0) return;
+            add(order.createdAt || order.placedAt || order.date, order.total || order.amount);
+        });
+        return totals;
+    }
+
+    function syncRealMetrics() {
+        var items = inventoryCatalog();
+        var dict = window.KreezbyDictionary;
+        var sales = recentSalesByCode();
+        function lineFor(item) {
+            var line = dict && typeof dict.alertLineFor === 'function' ? dict.alertLineFor(item.code) : null;
+            return line == null ? (item.category === 'Finished Products' ? 60 : item.category === 'Packaging' ? 20 : 15) : line;
+        }
+        function unitLabel(item) { return item.category === 'Finished Products' ? ' Pouches' : ''; }
+
+        var totalUnits = 0;
+        var byCat = {};
+        var counts = { well: 0, low: 0, out: 0 };
+        var catWell = {};
+        var catCount = {};
+        var catNames = {};
+        var health = [];
+        items.forEach(function (item) {
+            var qty = Number(item.qty) || 0;
+            var line = lineFor(item);
+            var status = qty <= 0 ? 'out' : (qty <= line ? 'low' : 'well');
+            totalUnits += qty;
+            byCat[item.category] = (byCat[item.category] || 0) + qty;
+            counts[status] += 1;
+            catCount[item.category] = (catCount[item.category] || 0) + 1;
+            if (status === 'well') catWell[item.category] = (catWell[item.category] || 0) + 1;
+            (catNames[item.category] = catNames[item.category] || []).push(item.name);
+            var weekly = sales.week[item.code] || 0;
+            var weeks = weekly > 0 ? Math.round(qty / weekly * 10) / 10 : null;
+            health.push({
+                item: item.name, code: item.code, category: item.category,
+                stock: qty + (item.category === 'Finished Products' ? ' Pouches' : ''),
+                reorder: line + (item.category === 'Finished Products' ? ' Pouches' : ''),
+                weeks: weeks == null ? '—' : weeks, status: status
+            });
+        });
+
+        DATA.kpis.totalUnits.value = totalUnits;
+        DATA.unitsByCategory = ['Raw Materials', 'Finished Products', 'Packaging'].map(function (name) {
+            var units = byCat[name] || 0;
+            return { category: name, units: units, pct: totalUnits ? Math.round(units / totalUnits * 100) : 0 };
+        });
+        DATA.health.total = items.length;
+        DATA.health.segments.forEach(function (seg) {
+            seg.count = counts[seg.key] || 0;
+            seg.pct = items.length ? Math.round(seg.count / items.length * 100) : 0;
+        });
+        DATA.healthItems = health;
+        DATA.categories.forEach(function (cat) {
+            cat.count = catCount[cat.name] || 0;
+            cat.pct = cat.count ? Math.round((catWell[cat.name] || 0) / cat.count * 100) : 0;
+            cat.tone = cat.pct >= 70 ? 'good' : 'warn';
+            cat.items = catNames[cat.name] || [];
+        });
+
+        // slow-moving finished products: more than 4 weeks of stock on hand at the current sales pace
+        DATA.slowMoving = items.filter(function (item) { return item.category === 'Finished Products'; }).map(function (item) {
+            var weekly = sales.week[item.code] || 0;
+            var qty = Number(item.qty) || 0;
+            var weeks = weekly > 0 ? Math.round(qty / weekly * 10) / 10 : null;
+            return {
+                item: item.name, category: item.category,
+                sold: weekly + ' Pouches',
+                lastSold: sales.last[item.code] || 'No sales yet',
+                stock: qty + ' Pouches', weeks: weeks == null ? '—' : weeks,
+                status: 'slow', _w: weeks == null ? 1e9 : weeks, _qty: qty
+            };
+        }).filter(function (row) { return row._qty > 0 && row._w > 4; }).sort(function (a, b) { return b._w - a._w; });
+
+        var sellers = health.filter(function (row) { return row.category === 'Finished Products' && typeof row.weeks === 'number'; });
+        DATA.kpis.weeksOfStock.value = sellers.length
+            ? Math.round(sellers.reduce(function (sum, row) { return sum + row.weeks; }, 0) / sellers.length * 10) / 10
+            : 0;
+
+        // storage: real units against the configured capacity of each area
+        var coldUnits = 0;
+        items.forEach(function (item) { if (item.code === 'RM-EGG-01') coldUnits += Number(item.qty) || 0; });
+        var dryUnits = (byCat['Raw Materials'] || 0) + (byCat['Packaging'] || 0) - coldUnits;
+        var finishedUnits = byCat['Finished Products'] || 0;
+        var zones = [['Dry Storage', 3000, dryUnits], ['Cold Storage', 500, coldUnits], ['Finished Goods', 1500, finishedUnits]];
+        DATA.capacityZones = zones.map(function (z) {
+            return { zone: z[0], capacity: z[1], used: z[2], pct: Math.min(100, Math.round(z[2] / z[1] * 100)) };
+        });
+        var capTotal = zones.reduce(function (sum, z) { return sum + z[1]; }, 0);
+        DATA.kpis.capacity.value = capTotal;
+        DATA.kpis.capacity.utilization = Math.min(100, Math.round(totalUnits / capTotal * 100));
+
+        // monthly history: value and units are saved each month this page is opened; sales come from real orders
+        var valueNow = 0;
+        valueCatalog().forEach(function (item) { valueNow += valueFor(item); });
+        var snaps = readStore(SNAP_KEY, {}) || {};
+        var now = new Date();
+        snaps[monthKey(now)] = { value: Math.round(valueNow), units: totalUnits };
+        try { localStorage.setItem(SNAP_KEY, JSON.stringify(snaps)); } catch (e) { /* ignore */ }
+        var months = [];
+        for (var i = 5; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+        var firstKnown = null;
+        months.forEach(function (d) { if (!firstKnown && snaps[monthKey(d)]) firstKnown = snaps[monthKey(d)]; });
+        var soldByMonth = monthlySales();
+        DATA.chartMonths = months.map(function (d) { return MONTH_NAMES[d.getMonth()]; });
+        DATA.trendKnown = months.map(function (d) { return !!snaps[monthKey(d)]; });
+        DATA.valueTrend = months.map(function (d) { var snap = snaps[monthKey(d)]; return snap ? snap.value : 0; });
+        DATA.unitsTrend = months.map(function (d) { var snap = snaps[monthKey(d)]; return snap ? snap.units : 0; });
+        DATA.stockSeries = DATA.valueTrend.slice();
+        DATA.salesSeries = months.map(function (d) { return Math.round(soldByMonth[monthKey(d)] || 0); });
+        var earlier = null;
+        months.slice(0, 5).forEach(function (d) { if (!earlier && snaps[monthKey(d)]) earlier = { snap: snaps[monthKey(d)], label: MONTH_NAMES[d.getMonth()] }; });
+        var tv = DATA.kpis.totalValue;
+        if (earlier && earlier.snap.value > 0) {
+            var change = (valueNow - earlier.snap.value) / earlier.snap.value * 100;
+            tv.trendDir = change < 0 ? 'down' : 'up';
+            tv.trend = (change >= 0 ? '+ ' : '− ') + Math.abs(Math.round(change * 10) / 10) + '% vs ' + earlier.label;
+        } else {
+            tv.trendDir = 'up';
+            tv.trend = 'Tracking started this month';
+        }
+        DATA.lastUpdated = now.toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
 
     function refreshInventoryTotals() {
@@ -814,7 +990,7 @@
 
             + '<div class="sl-detail-hero-caption">' + esc(k.caption) + '</div>'
 
-            + '<div class="sl-kpi-trend sl-trend-up">▲ ' + esc(k.trend) + '</div>'
+            + '<div class="sl-kpi-trend ' + (k.trendDir === 'down' ? 'sl-trend-down' : 'sl-trend-up') + '">' + (k.trendDir === 'down' ? '▼ ' : '▲ ') + esc(k.trend) + '</div>'
 
             + '<div class="sl-mini-chart sl-mini-chart-wide">' + miniSparkBars(DATA.valueTrend.map(function (v) { return v / 10000; }), '#4caf50') + '</div>'
 
@@ -846,7 +1022,7 @@
 
             + '<div class="sl-trend-months">' + DATA.chartMonths.map(function (m, i) {
 
-                return '<div class="sl-trend-month"><span>' + esc(m) + '</span><strong>' + money(DATA.valueTrend[i]) + '</strong></div>';
+                return '<div class="sl-trend-month"><span>' + esc(m) + '</span><strong>' + (DATA.trendKnown && !DATA.trendKnown[i] ? '—' : money(DATA.valueTrend[i])) + '</strong></div>';
 
             }).join('') + '</div></div>'
 
@@ -1232,15 +1408,16 @@
 
             + DATA.chartMonths.map(function (m, i) {
 
+                var known = !DATA.trendKnown || DATA.trendKnown[i];
                 var diff = DATA.stockSeries[i] - DATA.salesSeries[i];
 
                 return '<tr><td><strong>' + esc(m) + '</strong></td>'
 
-                    + '<td>' + money(DATA.stockSeries[i]) + '</td>'
+                    + '<td>' + (known ? money(DATA.stockSeries[i]) : '—') + '</td>'
 
                     + '<td>' + money(DATA.salesSeries[i]) + '</td>'
 
-                    + '<td>' + signedMoney(diff) + '</td>'
+                    + '<td>' + (known ? signedMoney(diff) : '—') + '</td>'
 
                     + '<td><button type="button" class="sl-view-breakdown" data-month-index="' + i + '">View</button></td></tr>';
 
@@ -1309,6 +1486,7 @@
         }
 
         syncOperationalAlerts();
+        syncRealMetrics();
         refreshInventoryTotals();
         var fn = RENDERERS[view] || renderValue;
 
@@ -1358,9 +1536,25 @@
         return /\/head_admin\//i.test(location.pathname || '');
     }
 
+    function ensureDictionary() {
+        if (window.KreezbyDictionary || document.getElementById('kreezby-sl-dictionary')) return;
+        var base = '';
+        Array.prototype.forEach.call(document.getElementsByTagName('script'), function (node) {
+            var src = node.getAttribute('src') || '';
+            var at = src.indexOf('stocklevel-dashboard.js');
+            if (at >= 0) base = src.slice(0, at);
+        });
+        var loader = document.createElement('script');
+        loader.id = 'kreezby-sl-dictionary';
+        loader.src = base + 'kreezby-data-dictionary.js?v=20261022mv2';
+        loader.onload = function () { render(document.getElementById('stocklevel-dashboard-root')); };
+        document.body.appendChild(loader);
+    }
+
     function boot() {
         if (headStock()) document.body.classList.add('kreezby-head-stock');
         render(document.getElementById('stocklevel-dashboard-root'));
+        ensureDictionary();
     }
 
 

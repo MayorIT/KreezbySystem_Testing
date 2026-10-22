@@ -93,7 +93,10 @@
         } catch (e) { /* cross-origin sheet */ }
       });
       try {
-        localStorage.setItem(KEY, JSON.stringify({ html: aside.innerHTML, cls: aside.className, css: css }));
+        var clone = aside.cloneNode(true);
+        Array.prototype.forEach.call(clone.querySelectorAll(".kz-sidebar-search, .kz-search-empty"), function (n) { n.remove(); });
+        Array.prototype.forEach.call(clone.querySelectorAll(".kz-hide, .kz-search-open"), function (n) { n.classList.remove("kz-hide", "kz-search-open"); });
+        localStorage.setItem(KEY, JSON.stringify({ html: clone.innerHTML, cls: aside.className, css: css }));
       } catch (e) { /* storage full or blocked */ }
       Array.prototype.forEach.call(document.querySelectorAll("style[data-kz-cache]"), function (el) { el.remove(); });
     }
@@ -103,6 +106,154 @@
       document.addEventListener(n, scheduleSnapshot);
     });
     window.addEventListener("load", function () { setTimeout(snapshot, 800); });
+  })();
+
+  // Search box at the top of the sidebar: type to narrow the menu (and sub-menus) instantly.
+  (function sidebarSearch() {
+    var lower = (location.pathname || "").replace(/\\/g, "/").toLowerCase();
+    if (!/\/(admin|head_admin|staff|retailer)\//.test(lower)) return;
+    var ASIDE = "aside.dark-sidebar-panel, aside.sidebar-panel";
+    var query = "";
+
+    function addStyle() {
+      if (document.getElementById("kz-sidebar-search-style")) return;
+      var st = document.createElement("style");
+      st.id = "kz-sidebar-search-style";
+      st.textContent = ""
+        + ".kz-sidebar-search{position:relative;flex:0 0 auto;margin:2px 4px 10px;}"
+        + ".kz-sidebar-search svg{position:absolute;left:11px;top:50%;width:16px;height:16px;transform:translateY(-50%);stroke:#bdbdbd;fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none;}"
+        + ".kz-sidebar-search input{width:100%;box-sizing:border-box;height:38px;padding:0 32px 0 34px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:13px;outline:none;}"
+        + ".kz-sidebar-search input::placeholder{color:#bdbdbd;}"
+        + ".kz-sidebar-search input:focus{border-color:#ffca28;background:rgba(255,255,255,.12);}"
+        + ".kz-sidebar-search input::-webkit-search-cancel-button{display:none;}"
+        + ".kz-sidebar-search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#bdbdbd;font-size:16px;line-height:1;cursor:pointer;display:none;}"
+        + ".kz-sidebar-search.has-text button{display:block;}"
+        + ".kz-hide{display:none!important;}"
+        + ".kreezby-sidebar-group.kz-search-open>.kreezby-sidebar-sub{display:flex!important;}"
+        + ".kz-search-empty{padding:12px 14px;color:#bdbdbd;font-size:13px;}"
+        + "body.sidebar-collapsed .kz-sidebar-search,body.sidebar-collapsed .kz-search-empty{display:none!important;}";
+      document.head.appendChild(st);
+    }
+
+    function textOf(el) { return String(el.textContent || "").toLowerCase().replace(/\s+/g, " ").trim(); }
+
+    function labelOf(item) {
+      var l = item.querySelector(".kreezby-sidebar-nav-label");
+      return textOf(l || item);
+    }
+
+    function apply(aside) {
+      var q = query.toLowerCase().trim();
+      var items = Array.prototype.slice.call(aside.querySelectorAll("a.kreezby-sidebar-nav-item"));
+      var any = false;
+      items.forEach(function (a) {
+        var group = a.closest(".kreezby-sidebar-group");
+        var target = group || a;
+        var subs = group ? Array.prototype.slice.call(group.querySelectorAll(".kreezby-sidebar-sub a")) : [];
+        if (!q) {
+          target.classList.remove("kz-hide", "kz-search-open");
+          subs.forEach(function (x) { x.classList.remove("kz-hide"); });
+          any = true;
+          return;
+        }
+        var selfHit = labelOf(a).indexOf(q) >= 0;
+        var subHit = false;
+        subs.forEach(function (x) {
+          var hit = selfHit || textOf(x).indexOf(q) >= 0;
+          x.classList.toggle("kz-hide", !hit);
+          if (hit && !selfHit) subHit = true;
+        });
+        var show = selfHit || subHit;
+        target.classList.toggle("kz-hide", !show);
+        if (group) group.classList.toggle("kz-search-open", show && subs.length > 0);
+        if (show) any = true;
+      });
+      var empty = aside.querySelector(".kz-search-empty");
+      if (q && !any) {
+        if (!empty) {
+          empty = document.createElement("div");
+          empty.className = "kz-search-empty";
+          empty.textContent = "No menu item matches.";
+          aside.appendChild(empty);
+        }
+      } else if (empty) {
+        empty.remove();
+      }
+    }
+
+    function firstVisibleLink(aside) {
+      var links = aside.querySelectorAll("a.kreezby-sidebar-nav-item, .kreezby-sidebar-sub a");
+      for (var i = 0; i < links.length; i++) {
+        var l = links[i];
+        if (l.classList.contains("kz-hide") || (l.closest(".kz-hide"))) continue;
+        return l;
+      }
+      return null;
+    }
+
+    function ensure(aside) {
+      if (!aside.querySelector("a.kreezby-sidebar-nav-item")) return;
+      var box = aside.querySelector(".kz-sidebar-search");
+      if (box) return;
+      addStyle();
+      box = document.createElement("div");
+      box.className = "kz-sidebar-search" + (query ? " has-text" : "");
+      box.setAttribute("role", "search");
+      box.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>'
+        + '<input type="search" placeholder="Search menu…" aria-label="Search menu" autocomplete="off" spellcheck="false">'
+        + '<button type="button" aria-label="Clear search">×</button>';
+      var input = box.querySelector("input");
+      var clear = box.querySelector("button");
+      input.value = query;
+      input.addEventListener("input", function () {
+        query = input.value;
+        box.classList.toggle("has-text", !!query);
+        apply(aside);
+      });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          input.value = ""; query = ""; box.classList.remove("has-text"); apply(aside);
+        } else if (e.key === "Enter") {
+          var hit = firstVisibleLink(aside);
+          if (hit && query) { e.preventDefault(); location.href = hit.getAttribute("href"); }
+        }
+      });
+      clear.addEventListener("click", function () {
+        input.value = ""; query = ""; box.classList.remove("has-text"); apply(aside); input.focus();
+      });
+      aside.insertBefore(box, aside.firstChild);
+      if (query) apply(aside);
+    }
+
+    var watched = null;
+    var observer = null;
+    function watch() {
+      var aside = document.querySelector(ASIDE);
+      if (!aside) return;
+      var hadFocus = document.activeElement && document.activeElement.closest && document.activeElement.closest(".kz-sidebar-search");
+      ensure(aside);
+      if (hadFocus) { var f = aside.querySelector(".kz-sidebar-search input"); if (f) f.focus(); }
+      if (watched !== aside) {
+        watched = aside;
+        if (observer) observer.disconnect();
+        observer = new MutationObserver(function () { ensure(aside); });
+        observer.observe(aside, { childList: true });
+      }
+    }
+
+    ["kreezby-admin-sidebar-ready", "kreezby-portal-sidebar-ready", "kreezby-staff-sidebar-ready"].forEach(function (n) {
+      document.addEventListener(n, watch);
+    });
+    document.addEventListener("DOMContentLoaded", function () { watch(); setTimeout(watch, 400); });
+    window.addEventListener("load", watch);
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      var el = document.activeElement;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (el && el.isContentEditable) return;
+      var input = document.querySelector(".kz-sidebar-search input");
+      if (input) { e.preventDefault(); input.focus(); }
+    });
   })();
 
   (function guardPortalSession() {
@@ -210,21 +361,45 @@
   var pending = {};
   var timer = null;
   var known = {};
+  var localWriteAt = {};
+  var inflight = {};
+
+  // A key this browser changed a moment ago must never be overwritten by an older copy
+  // coming back from the server (that made new stock appear and then vanish).
+  function isBusy(key) {
+    return pending[key] !== undefined || inflight[key] > 0 || Date.now() - (localWriteAt[key] || 0) < 8000;
+  }
 
   function flush() {
     timer = null;
     var items = pending;
     pending = {};
-    if (!Object.keys(items).length) return;
+    var keys = Object.keys(items);
+    if (!keys.length) return;
+    keys.forEach(function (key) { inflight[key] = (inflight[key] || 0) + 1; });
+    function settle(ok) {
+      keys.forEach(function (key) {
+        setTimeout(function () { inflight[key] = Math.max(0, (inflight[key] || 1) - 1); }, ok ? 2500 : 0);
+        if (!ok && pending[key] === undefined) pending[key] = items[key];
+      });
+      if (!ok) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(flush, 3000);
+      }
+    }
     try {
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/state", true);
       xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.timeout = 20000;
+      xhr.onload = function () { settle(xhr.status >= 200 && xhr.status < 300); };
+      xhr.onerror = xhr.ontimeout = function () { settle(false); };
       xhr.send(JSON.stringify({ items: items }));
-    } catch (e) { /* pages keep working from the browser copy */ }
+    } catch (e) { settle(false); }
   }
 
   function queue(key, value) {
+    localWriteAt[key] = Date.now();
     pending[key] = value;
     if (value == null) delete known[key];
     else known[key] = 1;
@@ -416,12 +591,12 @@
     var changedKeys = [];
     try {
       Object.keys(known).forEach(function (key) {
-        if (pending[key] !== undefined) return;
+        if (isBusy(key)) return;
         if (Object.prototype.hasOwnProperty.call(items, key)) return;
         nativeRemove.call(localStorage, key);
       });
       Object.keys(items).forEach(function (key) {
-        if (!isShared(key) || pending[key] !== undefined) return;
+        if (!isShared(key) || isBusy(key)) return;
         var next = items[key] == null ? null : String(items[key]);
         if (nativeGet.call(localStorage, key) === next) return;
         if (next == null) nativeRemove.call(localStorage, key);

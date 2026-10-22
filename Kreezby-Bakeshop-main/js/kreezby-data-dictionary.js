@@ -1424,6 +1424,7 @@
             return map[material.material_id] == null ? null : map[material.material_id];
         },
         alerts: alerts,
+        alertLineFor: function (code) { return configuredLine(code, ALERT_LINES[code]); },
         staffInventoryAlerts: staffInventoryAlerts,
         salesTransactions: salesTransactions,
         insightSnapshot: insightSnapshot,
