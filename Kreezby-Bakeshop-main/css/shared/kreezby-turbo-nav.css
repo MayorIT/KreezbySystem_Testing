@@ -219,3 +219,35 @@ button:active:not(:disabled),
         transition: none;
     }
 }
+
+/* ===== Sidebar stays put: no fade, slide or resize animation when moving between pages ===== */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none !important;
+}
+::view-transition-group(kreezby-sidebar),
+::view-transition-group(kreezby-top-nav) {
+    animation: none !important;
+}
+::view-transition-old(kreezby-sidebar),
+::view-transition-old(kreezby-top-nav) {
+    display: none !important;
+}
+::view-transition-new(kreezby-sidebar),
+::view-transition-new(kreezby-top-nav) {
+    animation: none !important;
+    opacity: 1 !important;
+}
+aside.dark-sidebar-panel,
+aside.sidebar-panel,
+aside.dark-sidebar-panel *,
+aside.sidebar-panel * {
+    transition: none !important;
+    animation: none !important;
+}
+aside.dark-sidebar-panel,
+aside.sidebar-panel {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+body.sidebar-collapsed .kreezby-sidebar-nav-label { transition: none !important; }
