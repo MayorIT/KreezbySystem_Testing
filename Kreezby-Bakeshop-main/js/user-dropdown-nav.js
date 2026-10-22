@@ -262,7 +262,7 @@
         if (document.getElementById('kreezby-data-dictionary-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-data-dictionary-script';
-        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261022cards';
+        s.src = jsBase() + 'kreezby-data-dictionary.js?v=20261022mv';
         s.async = false;
         document.head.appendChild(s);
     }

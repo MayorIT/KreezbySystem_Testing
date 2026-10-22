@@ -675,31 +675,195 @@
         return next;
     }
 
-    function recordMaterialMovement(materialName, movementType, quantity) {
-        var material = ensureMaterial(materialName);
-        if (!material) return null;
+    var lastMovementError = '';
+    var MOVEMENT_KINDS = {
+        'stock-in': 'Stock in',
+        'stock-out': 'Stock out',
+        'usage': 'Used in production',
+        'waste': 'Spoiled / waste'
+    };
+
+    function movementActor() {
+        try {
+            var sess = JSON.parse(localStorage.getItem('kreezby_session') || 'null') || {};
+            return String(sess.name || sess.fullName || sess.username || sess.email || sess.role || 'Staff');
+        } catch (e) { return 'Staff'; }
+    }
+
+    // Records a raw material movement in the ledger (date, who, balance before and after).
+    function recordMaterialMovement(materialName, movementType, quantity, note) {
+        lastMovementError = '';
         var kind = String(movementType || '').toLowerCase();
-        if (kind !== 'stock-in' && kind !== 'stock-out' && kind !== 'usage') return null;
+        if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
         var qty = Math.abs(Number(quantity) || 0);
-        if (!qty) return null;
+        if (!qty) { lastMovementError = 'Enter a quantity greater than zero.'; return null; }
+        var material = ensureMaterial(materialName);
+        if (!material) { lastMovementError = 'Type a raw material name.'; return null; }
         var saved = savedState();
         var stock = materialStockMap();
         var current = Number(stock[material.material_id]) || 0;
-        stock[material.material_id] = kind === 'stock-in' ? current + qty : Math.max(0, current - qty);
+        if (kind !== 'stock-in' && qty > current) {
+            lastMovementError = material.name + ' only has ' + current + ' on hand, so ' + qty + ' cannot be taken out.';
+            return null;
+        }
+        var after = kind === 'stock-in' ? current + qty : current - qty;
+        stock[material.material_id] = after;
         saved.material_stock = stock;
         var moves = saved.inventory_transactions_extra || [];
+        var text = String(note || '').trim();
         moves.push({
             type: kind,
             reference_id: material.material_id,
+            material: material.name,
             quantity: qty,
-            note: material.name + ' ' + kind.replace('-', ' ')
+            before: current,
+            after: after,
+            date: new Date().toISOString(),
+            by: movementActor(),
+            note: text || (material.name + ' ' + (MOVEMENT_KINDS[kind] || kind).toLowerCase())
         });
         saved.inventory_transactions_extra = moves;
         writeState(saved);
         snapshot();
         paintStockCells();
         notifyStocks();
-        return stock[material.material_id];
+        return after;
+    }
+
+    // Every raw material movement, newest first.
+    function materialMovements() {
+        var names = {};
+        allMaterials().forEach(function (m) { names[m.material_id] = m.name; });
+        var baseCount = BASE_MOVEMENTS.length;
+        return inventoryTransactions().map(function (row, index) {
+            return { row: row, index: index };
+        }).filter(function (entry) {
+            return names[entry.row.reference_id] != null;
+        }).map(function (entry) {
+            var r = entry.row;
+            return {
+                date: r.date || '',
+                material: names[r.reference_id],
+                code: r.reference_id,
+                type: r.type,
+                quantity: Number(r.quantity) || 0,
+                before: r.before,
+                after: r.after,
+                by: r.by || '',
+                note: r.note || '',
+                order: entry.index
+            };
+        }).sort(function (a, b) {
+            if (a.date && b.date) return a.date < b.date ? 1 : -1;
+            if (a.date) return -1;
+            if (b.date) return 1;
+            return b.order - a.order;
+        });
+    }
+
+    function formatMoveDate(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function ensureLedgerStyles() {
+        if (document.getElementById('kreezby-ledger-style')) return;
+        var style = document.createElement('style');
+        style.id = 'kreezby-ledger-style';
+        style.textContent = ''
+            + '#kreezby-fr-ledger{margin-top:16px;padding:16px 18px;background:#fff;border:1px solid #efe7e0;border-radius:16px;box-shadow:0 6px 18px rgba(93,64,55,.06);}'
+            + '#kreezby-fr-ledger h3{margin:0 0 4px;font-size:16px;color:#3d2c2a;}'
+            + '#kreezby-fr-ledger .rl-lead{margin:0 0 12px;color:#7a655c;font-size:13px;}'
+            + '#kreezby-fr-ledger .rl-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;}'
+            + '#kreezby-fr-ledger select,#kreezby-fr-ledger button{height:34px;border:1px solid #e4d9d0;border-radius:10px;background:#fff;color:#3d2c2a;font:inherit;font-size:13px;padding:0 10px;}'
+            + '#kreezby-fr-ledger button{background:#ffca28;border-color:#ffca28;font-weight:800;cursor:pointer;}'
+            + '#kreezby-fr-ledger .rl-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}'
+            + '#kreezby-fr-ledger .rl-chip{padding:6px 12px;border-radius:999px;background:#f7f0ea;color:#5d4037;font-size:12px;font-weight:700;}'
+            + '#kreezby-fr-ledger .rl-scroll{max-height:380px;overflow:auto;border:1px solid #f3ece6;border-radius:12px;}'
+            + '#kreezby-fr-ledger table{width:100%;border-collapse:collapse;font-size:13px;}'
+            + '#kreezby-fr-ledger th{position:sticky;top:0;background:#f7f0ea;color:#6d4c41;text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:9px 10px;}'
+            + '#kreezby-fr-ledger td{padding:9px 10px;border-top:1px solid #f3ece6;color:#3d2c2a;vertical-align:top;}'
+            + '#kreezby-fr-ledger td.rl-in{color:#2e7d32;font-weight:800;white-space:nowrap;}'
+            + '#kreezby-fr-ledger td.rl-out{color:#c62828;font-weight:800;white-space:nowrap;}'
+            + '#kreezby-fr-ledger .rl-empty{padding:18px;text-align:center;color:#7a655c;}';
+        document.head.appendChild(style);
+    }
+
+    function moveSign(type, qty) {
+        if (type === 'stock-in') return { cls: 'rl-in', text: '+' + qty };
+        if (type === 'adjustment') return { cls: qty < 0 ? 'rl-out' : 'rl-in', text: (qty > 0 ? '+' : '') + qty };
+        return { cls: 'rl-out', text: '−' + qty };
+    }
+
+    function renderLedger() {
+        var box = document.getElementById('kreezby-fr-ledger');
+        if (!box) return;
+        var materialSel = box.querySelector('#rl-material');
+        var typeSel = box.querySelector('#rl-type');
+        var wantMaterial = materialSel ? materialSel.value : '';
+        var wantType = typeSel ? typeSel.value : '';
+        var all = materialMovements();
+        var rows = all.filter(function (m) {
+            return (!wantMaterial || m.code === wantMaterial) && (!wantType || m.type === wantType);
+        });
+        var totals = { 'stock-in': 0, usage: 0, 'stock-out': 0, waste: 0 };
+        rows.forEach(function (m) { if (totals[m.type] != null) totals[m.type] += m.quantity; });
+        var options = '<option value="">All raw materials</option>' + allMaterials().map(function (m) {
+            return '<option value="' + esc(m.material_id) + '"' + (m.material_id === wantMaterial ? ' selected' : '') + '>' + esc(m.name) + '</option>';
+        }).join('');
+        var typeOptions = '<option value="">All movements</option>' + Object.keys(MOVEMENT_KINDS).concat(['adjustment']).map(function (k) {
+            return '<option value="' + k + '"' + (k === wantType ? ' selected' : '') + '>' + esc(MOVEMENT_KINDS[k] || 'Adjustment') + '</option>';
+        }).join('');
+        var body = rows.length ? rows.slice(0, 200).map(function (m) {
+            var sign = moveSign(m.type, m.quantity);
+            return '<tr><td>' + esc(formatMoveDate(m.date)) + '</td><td>' + esc(m.material) + '</td><td>' + esc(MOVEMENT_KINDS[m.type] || (m.type === 'adjustment' ? 'Adjustment' : m.type)) + '</td>'
+                + '<td class="' + sign.cls + '">' + esc(sign.text) + '</td>'
+                + '<td>' + (m.before != null ? esc(m.before) + ' → ' + esc(m.after) : '—') + '</td>'
+                + '<td>' + esc(m.by || '—') + '</td><td>' + esc(m.note) + '</td></tr>';
+        }).join('') : '<tr><td colspan="7" class="rl-empty">No raw material movements recorded yet. Use “Record movement” above.</td></tr>';
+        box.innerHTML = '<h3>Raw Material Movement Log</h3>'
+            + '<p class="rl-lead">Every stock-in, stock-out, usage and waste entry, with who recorded it and the balance before and after.</p>'
+            + '<div class="rl-bar"><select id="rl-material" aria-label="Filter by raw material">' + options + '</select>'
+            + '<select id="rl-type" aria-label="Filter by movement">' + typeOptions + '</select>'
+            + '<button type="button" id="rl-export">Export CSV</button></div>'
+            + '<div class="rl-chips"><span class="rl-chip">Entries: ' + rows.length + '</span>'
+            + '<span class="rl-chip">Stock in: ' + totals['stock-in'] + '</span>'
+            + '<span class="rl-chip">Used: ' + totals.usage + '</span>'
+            + '<span class="rl-chip">Stock out: ' + totals['stock-out'] + '</span>'
+            + '<span class="rl-chip">Waste: ' + totals.waste + '</span></div>'
+            + '<div class="rl-scroll"><table><thead><tr><th>Date</th><th>Raw material</th><th>Movement</th><th>Qty</th><th>Balance</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+        box.querySelector('#rl-material').addEventListener('change', renderLedger);
+        box.querySelector('#rl-type').addEventListener('change', renderLedger);
+        box.querySelector('#rl-export').addEventListener('click', function () {
+            var lines = [['Date', 'Raw material', 'Movement', 'Quantity', 'Balance before', 'Balance after', 'Recorded by', 'Note']];
+            rows.forEach(function (m) {
+                lines.push([m.date, m.material, m.type, m.quantity, m.before == null ? '' : m.before, m.after == null ? '' : m.after, m.by, m.note]);
+            });
+            var csv = lines.map(function (r) {
+                return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+            }).join('\r\n');
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+            a.download = 'raw-material-movements.csv';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+        });
+    }
+
+    function mountLedger() {
+        var table = document.getElementById('stocks-table-body');
+        if (!table) return;
+        if (document.getElementById('kreezby-fr-ledger')) { renderLedger(); return; }
+        var card = table.closest('.panel-data-card');
+        if (!card) return;
+        ensureLedgerStyles();
+        var box = document.createElement('section');
+        box.id = 'kreezby-fr-ledger';
+        card.insertAdjacentElement('afterend', box);
+        renderLedger();
     }
 
     function saveProductFields(productName, fields) {
@@ -976,7 +1140,8 @@
             price: '<path d="M12 2v20"/><path d="M17 6.5c0-1.5-2-2.5-5-2.5S7 5 7 7s2 2.5 5 2.5 5 1 5 2.5-2 2.5-5 2.5-5-1-5-2.5"/>',
             material: '<path d="M12 22V11"/><path d="M7 8c1.5 2 3 3.2 5 3.8C14 11.2 15.5 10 17 8c-1.4.2-2.8.8-4 2.2C11.8 8.8 10.4 8.2 9 8H7z"/><path d="M6 14c2 .8 4 .8 6 0 2 .8 4 .8 6 0"/>',
             move: '<path d="M7 7h11M15 4l3 3-3 3M17 17H6M9 14l-3 3 3 3"/>',
-            qty: '<path d="M5 9h14M5 15h14M10 4l-1.5 16M16 4l-1.5 16"/>'
+            qty: '<path d="M5 9h14M5 15h14M10 4l-1.5 16M16 4l-1.5 16"/>',
+            note: '<path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8"/>'
         };
         return '<span class="fr-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (paths[kind] || '') + '</svg></span>';
     }
@@ -1091,8 +1256,9 @@
                 + '<p class="fr-card__lead">Type any raw material, then record stock-in, stock-out, or usage.</p>'
                 + '<div class="fr-fields">'
                 + stockField('fr-material', 'Raw material', 'material', '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist>')
-                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select>')
+                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
+                + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Record movement</button></div>'
                 + '</div></section>'
                 + '</div>'
@@ -1117,8 +1283,9 @@
                 + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then record stock-in, stock-out, or usage.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
-                + '<label>Movement<br><select id="fr-move"><option>stock-in</option><option>stock-out</option><option>usage</option></select></label>'
+                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
+                + '<label>Note<br><input id="fr-note" type="text" placeholder="Supplier, batch or reason"></label>'
                 + '<button type="button" id="fr-save-move">Record movement</button>'
                 + '</div></div></section>'
                 + '<p id="fr-stock-note" style="margin:10px 0 0;"></p>';
@@ -1170,10 +1337,11 @@
         });
         document.getElementById('fr-save-move').addEventListener('click', function () {
             var name = String(document.getElementById('fr-material').value || '').trim();
-            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value) : null;
+            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value) : null;
             document.getElementById('fr-stock-note').textContent = !name
                 ? 'Type a raw material name.'
-                : (next == null ? 'Enter a quantity greater than zero.' : name + ' now has ' + next + ' on hand.');
+                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : name + ' now has ' + next + ' on hand. Movement saved to the log below.');
+            if (next != null && document.getElementById('fr-note')) document.getElementById('fr-note').value = '';
         });
         fillProduct();
     }
@@ -1225,6 +1393,7 @@
         ensureForecastStyles();
         decorateSaleCards();
         mountStockTools();
+        mountLedger();
         seedPartnerAlerts();
         notifyStocks();
     }
@@ -1239,6 +1408,8 @@
         lastSaleError: function () { return lastSaleError; },
         setProductStock: setProductStock,
         recordMaterialMovement: recordMaterialMovement,
+        lastMovementError: function () { return lastMovementError; },
+        materialMovements: materialMovements,
         saveProductFields: saveProductFields,
         historyFor: historyFor,
         productStock: function (name) {
@@ -1266,5 +1437,6 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('kreezby:page-load', apply);
+    document.addEventListener('kreezby:stocks-sync', function () { renderLedger(); });
     document.addEventListener('content:replaced', ensureForecastStyles);
 })();

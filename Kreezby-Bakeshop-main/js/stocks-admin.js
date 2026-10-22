@@ -175,7 +175,7 @@
             pages: pages,
             start: rows.length ? start + 1 : 0,
             end: Math.min(start + size, rows.length),
-            asset: rows.reduce(function (sum, item) { return sum + (liveQty(item) * (Number(item.cost) || 0)); }, 0)
+            asset: rows.filter(function (item) { return item.type !== 'finished-product'; }).reduce(function (sum, item) { return sum + (liveQty(item) * (Number(item.cost) || 0)); }, 0)
         };
     }
 
@@ -355,8 +355,10 @@
         openCode = code;
         var rows = historyRows(item);
         var lines = rows.length ? rows.map(function (row) {
-            return '<tr><td>' + esc(row.type || 'movement') + '</td><td class="po-num">' + esc(row.quantity) + '</td><td>' + esc(row.note || '') + '</td></tr>';
-        }).join('') : '<tr class="po-empty-row"><td colspan="3">No movements yet.</td></tr>';
+            var when = row.date ? new Date(row.date).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+            var balance = row.before != null ? esc(row.before) + ' → ' + esc(row.after) : '—';
+            return '<tr><td>' + esc(when) + '</td><td>' + esc(row.type || 'movement') + '</td><td class="po-num">' + esc(row.quantity) + '</td><td>' + balance + '</td><td>' + esc(row.by || '—') + '</td><td>' + esc(row.note || '') + '</td></tr>';
+        }).join('') : '<tr class="po-empty-row"><td colspan="6">No movements yet.</td></tr>';
         var content = document.getElementById('stocks-details-content');
         if (content) {
             content.innerHTML =
@@ -368,7 +370,7 @@
                 '<div><span>Asset value</span><strong>' + peso(liveQty(item) * (Number(item.cost) || 0)) + '</strong></div>' +
                 '</div>' +
                 '<h3 class="po-detail-subtitle">Movement history</h3>' +
-                '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Type</th><th>Quantity</th><th>Note</th></tr></thead><tbody>' +
+                '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Date</th><th>Type</th><th>Quantity</th><th>Balance</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>' +
                 lines + '</tbody></table></div>';
         }
         showDetails(item.code);
@@ -424,8 +426,10 @@
                 '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
                 '<form id="stocks-edit-form">' +
                 (raw
-                    ? '<label>Movement<select name="movement"><option>stock-in</option><option>stock-out</option><option>usage</option></select></label>' +
-                      '<label>Quantity<input name="quantity" type="number" min="1" value="1"></label>'
+                    ? '<label>Movement<select name="movement"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select></label>' +
+                      '<label>Quantity<input name="quantity" type="number" min="1" value="1"></label>' +
+                      '<label>Note<input name="note" type="text" placeholder="Supplier, batch or reason (optional)"></label>' +
+                      '<p class="po-note">On hand now: ' + liveQty(item) + '</p>'
                     : '<label>New quantity<input name="quantity" type="number" min="0" value="' + liveQty(item) + '"></label>') +
                 '<button class="btn-call-to-action" type="submit">Save adjustment</button>' +
                 '</form>';
@@ -452,9 +456,9 @@
         var qty = data.get('quantity');
         var dict = window.KreezbyDictionary;
         if (item.type === 'raw-material' && dict && typeof dict.recordMaterialMovement === 'function') {
-            var next = dict.recordMaterialMovement(item.name, data.get('movement'), qty);
+            var next = dict.recordMaterialMovement(item.name, data.get('movement'), qty, data.get('note'));
             if (next == null) {
-                showToast('Enter a quantity greater than zero.');
+                showToast((typeof dict.lastMovementError === 'function' && dict.lastMovementError()) || 'Enter a quantity greater than zero.');
                 return;
             }
             showToast(item.name + ' now has ' + next + ' on hand.');

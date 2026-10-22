@@ -16,7 +16,7 @@
 
             totalUnits: { value: 210000, caption: 'Total across all items' },
 
-            totalValue: { value: 598000, caption: 'Total inventory value', trend: '+ 12.5% vs last 12 months' },
+            totalValue: { value: 203400, caption: 'Total inventory value', trend: '+ 12.5% vs last 12 months' },
 
             capacity: { value: 250000, caption: 'Storage capacity', utilization: 81 },
 
@@ -36,11 +36,9 @@
 
         valueByCategory: [
 
-            { category: 'Raw Materials', value: 185400, pct: 31 },
+            { category: 'Raw Materials', value: 185400, pct: 91 },
 
-            { category: 'Finished Products', value: 394600, pct: 66 },
-
-            { category: 'Packaging', value: 18000, pct: 3 }
+            { category: 'Packaging', value: 18000, pct: 9 }
 
         ],
 
@@ -188,7 +186,7 @@
 
         unitsTrend: [176000, 184000, 192000, 198000, 204000, 210000],
 
-        valueTrend: [480000, 505000, 528000, 552000, 575000, 598000],
+        valueTrend: [163300, 171800, 179600, 187800, 195600, 203400],
 
         lastUpdated: 'May 20, 2024 09:30 AM'
 
@@ -610,6 +608,10 @@
         }
     }
 
+    function valueCatalog() {
+        return inventoryCatalog().filter(function (item) { return item.category !== 'Finished Products'; });
+    }
+
     function savedValueMap() {
         var map = readStore(VALUE_KEY, null);
         if (!map || typeof map !== 'object' || Array.isArray(map)) return null;
@@ -618,7 +620,7 @@
 
     function defaultValueMap() {
         var map = {};
-        var items = inventoryCatalog();
+        var items = valueCatalog();
         Object.keys(BASE_CATEGORY_VALUE).forEach(function (category) {
             var group = items.filter(function (item) { return item.category === category; });
             if (!group.length) return;
@@ -635,7 +637,7 @@
     }
 
     function refreshInventoryTotals() {
-        var items = inventoryCatalog();
+        var items = valueCatalog();
         var saved = savedValueMap();
         var defaults = saved ? null : defaultValueMap();
         var byCategory = {};
@@ -702,7 +704,7 @@
 
     function openValueEditor(root, trigger) {
         closeValueEditor();
-        var items = inventoryCatalog();
+        var items = valueCatalog();
         var saved = savedValueMap();
         var defaults = saved ? null : defaultValueMap();
         var groups = [];

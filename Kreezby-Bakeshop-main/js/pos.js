@@ -29,6 +29,7 @@
     var primeEdit = false;
     var editCustomer = '';
     var editPayment = 'Cash';
+    var editTender = '';
 
     function peso(amount) {
         return '₱' + Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -353,6 +354,8 @@
                 '<td>' + esc((sale.customer || 'Walk-in') + ' · ' + (sale.payment || '')) + '</td>' +
                 '<td>' + esc(summary) + '</td>' +
                 '<td>' + peso(sale.total) + '</td>' +
+                '<td>' + (sale.amountGiven != null ? peso(sale.amountGiven) : '—') + '</td>' +
+                '<td>' + (sale.change != null ? peso(sale.change) : '—') + '</td>' +
                 '<td class="pos-row-actions">' +
                     '<div class="pos-action' + (menuOpen ? ' is-open' : '') + '">' +
                         '<button type="button" class="pos-action-btn" data-pos-action="' + esc(sale.id) + '" aria-expanded="' + (menuOpen ? 'true' : 'false') + '">Action</button>' +
@@ -364,7 +367,7 @@
                             : '') +
                     '</div>' +
                 '</td></tr>';
-        }).join('') : '<tr><td class="pos-empty" colspan="5">No transactions yet.</td></tr>';
+        }).join('') : '<tr><td class="pos-empty" colspan="7">No transactions yet.</td></tr>';
         var payment = 'Cash';
         var existingPay = document.getElementById('pos-payment');
         var existingName = document.getElementById('pos-customer');
@@ -375,6 +378,7 @@
         if (primeEdit) {
             nameValue = editCustomer || 'Walk-in';
             payment = PAYMENTS.indexOf(editPayment) >= 0 ? editPayment : 'Cash';
+            tenderValue = editTender;
             primeEdit = false;
         }
         var saleTitle = editingId ? 'Edit sale' : 'Walk-in Sale';
@@ -391,14 +395,14 @@
                 '<label>Payment<select id="pos-payment">' + PAYMENTS.map(function (item) {
                     return '<option' + (item === payment ? ' selected' : '') + '>' + item + '</option>';
                 }).join('') + '</select></label>' +
-                '<label>Cash received<input id="pos-tender" type="number" min="0" step="0.01" value="' + esc(tenderValue) + '" placeholder="Exact amount"></label>' +
+                '<label>Amount given (cash)<input id="pos-tender" type="number" min="0" step="0.01" value="' + esc(tenderValue) + '" placeholder="Exact amount"></label>' +
                 '<ul class="pos-lines">' + cartHtml + '</ul>' +
                 '<p class="pos-total"><span>Total</span><strong>' + peso(total) + '</strong></p>' +
                 '<p id="pos-change" class="pos-change"></p>' +
                 '<p id="pos-status" class="pos-status"></p>' +
                 '<div class="pos-actions"><button type="button" id="pos-clear" class="pos-secondary">' + clearLabel + '</button><button type="button" id="pos-complete">' + completeLabel + '</button></div>' +
             '</section>' +
-            '<section class="pos-history' + (actionMenuId ? ' is-menu-open' : '') + '"><h3>Transaction History</h3><div class="pos-table-scroll"><table class="pos-table"><thead><tr><th>Sale</th><th>Customer</th><th>Items</th><th>Total</th><th></th></tr></thead><tbody>' + historyHtml + '</tbody></table></div></section>' +
+            '<section class="pos-history' + (actionMenuId ? ' is-menu-open' : '') + '"><h3>Transaction History</h3><div class="pos-table-scroll"><table class="pos-table"><thead><tr><th>Sale</th><th>Customer</th><th>Items</th><th>Total</th><th>Amount Given</th><th>Change</th><th></th></tr></thead><tbody>' + historyHtml + '</tbody></table></div></section>' +
             '</div>';
         updateChange();
     }
@@ -420,7 +424,9 @@
             return;
         }
         var due = cartTotal(cartLines()) - given;
-        note.textContent = due > 0 ? 'Still due ' + peso(due) : 'Change ' + peso(Math.abs(due));
+        note.textContent = due > 0
+            ? 'Amount given ' + peso(given) + ' · Still due ' + peso(due)
+            : 'Amount given ' + peso(given) + ' · Customer\'s change ' + peso(Math.abs(due));
     }
 
     function changeQty(code, delta) {
@@ -468,9 +474,12 @@
         var customer = (nameNode && nameNode.value.trim()) || 'Walk-in';
         var total = cartTotal(lines);
         if (payment === 'Cash' && tenderNode && tenderNode.value && Number(tenderNode.value) < total) {
-            setStatus('Cash received is less than the total.', 'warn');
+            setStatus('Amount given is less than the total.', 'warn');
             return;
         }
+        var amountGiven = total;
+        if (payment === 'Cash' && tenderNode && tenderNode.value) amountGiven = Math.round(Number(tenderNode.value) * 100) / 100;
+        var changeDue = Math.round((amountGiven - total) * 100) / 100;
         var date = todayStamp();
         var sales = readSales();
         var existingIndex = -1;
@@ -520,7 +529,9 @@
             lines: lines.map(function (line) {
                 return { code: line.code, name: line.name, qty: line.qty, price: line.price };
             }),
-            total: total
+            total: total,
+            amountGiven: amountGiven,
+            change: changeDue
         };
         if (previous) sales[existingIndex] = receipt;
         else sales.push(receipt);
@@ -530,8 +541,10 @@
         editingId = '';
         pendingDelete = '';
         actionMenuId = '';
+        var tenderBox = document.getElementById('pos-tender');
+        if (tenderBox) tenderBox.value = '';
         render();
-        setStatus(receipt.id + (previous ? ' updated.' : ' saved.') + ' Stock was updated.', 'ok');
+        setStatus(receipt.id + (previous ? ' updated.' : ' saved.') + ' Total ' + peso(total) + ' · Amount given ' + peso(amountGiven) + ' · Change ' + peso(changeDue) + '. Stock was updated.', 'ok');
     }
 
     function findSale(id) {
@@ -551,6 +564,7 @@
         primeEdit = true;
         editCustomer = sale.customer || 'Walk-in';
         editPayment = sale.payment || 'Cash';
+        editTender = sale.payment === 'Cash' && sale.amountGiven != null ? String(sale.amountGiven) : '';
         cart = {};
         (sale.lines || []).forEach(function (line) {
             var product = PRODUCTS.filter(function (item) {
@@ -763,7 +777,8 @@
         if (!root) return;
         document.body.classList.add('po-admin-page');
         var style = document.getElementById('kreezby-pos-style');
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261022posv4';
+        window.__kzPosCssStamp = window.__kzPosCssStamp || Date.now();
+        var styleHref = '../css/pages/admin/pos-admin.css?v=20261022posv5&t=' + window.__kzPosCssStamp;
         if (!style) {
             style = document.createElement('link');
             style.id = 'kreezby-pos-style';
