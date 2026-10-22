@@ -937,3 +937,33 @@ body.po-admin-page #pos-master.panel-data-card { display: block; height: auto; m
 #pos-master .pos-ticket { box-sizing: border-box; width: 100%; min-width: 0; margin-top: 0; }
 #pos-master .pos-product { min-width: 0; }
 @media (max-width: 1280px) { #pos-master .pos-layout { grid-template-columns: minmax(0, 1fr) 330px; column-gap: 18px; } }
+
+/* v2 fix 2: ticket owns the right column for both rows; history sits under the catalog only */
+#pos-master .pos-ticket { grid-column: 2; grid-row: 1 / span 2; position: sticky; top: 16px; align-self: start; z-index: 2; }
+#pos-master .pos-history { grid-column: 1; grid-row: 2; min-width: 0; position: relative; z-index: 1; }
+#pos-master .pos-table-scroll { overflow-x: auto; }
+@media (max-width: 1100px) {
+    #pos-master .pos-ticket { grid-column: 1; grid-row: auto; position: static; }
+    #pos-master .pos-history { grid-column: 1; grid-row: auto; }
+}
+
+/* v3 fix: responsive rules must come last so the history never sits under/behind the ticket */
+@media (max-width: 1100px) {
+    #pos-master .pos-layout { grid-template-columns: minmax(0, 1fr); row-gap: 18px; }
+    #pos-master .pos-catalog,
+    #pos-master .pos-ticket,
+    #pos-master .pos-history { grid-column: 1; grid-row: auto; width: 100%; max-width: 100%; }
+    #pos-master .pos-ticket { position: static; }
+    #pos-master .pos-history { position: relative; z-index: 1; clear: both; }
+}
+@media (max-width: 600px) {
+    #pos-master .pos-table-scroll { max-height: none; overflow-x: auto; }
+    #pos-master .pos-table td, #pos-master .pos-table th { padding: 9px 8px; }
+}
+/* the ticket column is exactly as tall as the catalog+history rows, never taller */
+#pos-master .pos-ticket { max-height: calc(100vh - 32px); overflow-y: auto; }
+@media (max-width: 1100px) { #pos-master .pos-ticket { max-height: none; overflow: visible; } }
+/* the row action menu opens above neighbouring rows and is never clipped */
+#pos-master .pos-history.is-menu-open,
+#pos-master .pos-history.is-menu-open .pos-table-scroll { overflow: visible; }
+#pos-master .pos-action-menu { z-index: 30; }
