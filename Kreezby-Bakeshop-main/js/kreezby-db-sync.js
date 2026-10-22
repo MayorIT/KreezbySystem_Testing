@@ -117,7 +117,9 @@
   function isShared(key) {
     return typeof key === "string" &&
       /^kreezby[A-Za-z0-9_-]{0,120}$/.test(key) &&
-      !LOCAL_ONLY[key];
+      !LOCAL_ONLY[key] &&
+      // Permissions travel on their own fast channel (/api/permissions), not the general state.
+      key !== "kreezby_staff_permissions" && key !== "kreezby_admin_permissions";
   }
 
   var nativeSet = Storage.prototype.setItem;
@@ -170,7 +172,9 @@
 
   function applySharedPermissions(doc) {
     if (!doc || typeof doc.updatedAt !== "number") return;
-    if (doc.updatedAt <= permissionStamp || doc.updatedAt < localPermissionEditAt) return;
+    // Ignore a stale copy while our own save is still on its way to the server.
+    if (Date.now() - localPermissionEditAt < 3000) return;
+    if (doc.updatedAt === permissionStamp) return;
     permissionStamp = doc.updatedAt;
     applyingRemote = true;
     var changedKeys = [];
@@ -266,6 +270,8 @@
 
   function schedulePermissionPublish(key) {
     if (!PERMISSION_KEYS[key]) return;
+    // Only the head admin pages edit permissions; admin/staff browsers just receive them.
+    if (!/\/head_admin\//i.test(location.pathname || "")) return;
     if (permissionPushTimer) clearTimeout(permissionPushTimer);
     permissionPushTimer = setTimeout(publishSharedPermissions, 250);
   }
@@ -394,12 +400,13 @@
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) { pull(false); pullSharedPermissions(); }
   });
+  window.addEventListener("focus", pullSharedPermissions);
 
   pullAccountCollections();
   pull(true);
   pullSharedPermissions();
   setInterval(function () { if (!document.hidden) pull(false); }, 4000);
-  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 4000);
+  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 2000);
 })();
 
 (function () {
