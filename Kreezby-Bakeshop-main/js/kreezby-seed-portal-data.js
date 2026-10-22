@@ -464,6 +464,13 @@
     function seedProfileIfNeeded() {
         var existing = readJson('kreezbyCustomerProfile', null);
         if (existing && existing.fullName && existing.fullName !== 'Bryle Atienza') return existing;
+        var sess = readJson('kreezby_session', null);
+        if (sess && sess.accountType === 'Customer' && sess.userName) {
+            // A real customer is signed in: never fall back to the demo profile.
+            var own = { accountId: sess.customerId || '', fullName: sess.userName, email: sess.email || '', contactNumber: sess.phone || '', defaultAddress: sess.address || '', addresses: [], avatarDataUrl: '', updatedAt: new Date().toISOString() };
+            writeJson('kreezbyCustomerProfile', own);
+            return own;
+        }
         writeJson('kreezbyCustomerProfile', clone(SEED_PROFILE));
         return SEED_PROFILE;
     }

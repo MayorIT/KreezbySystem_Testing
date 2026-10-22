@@ -45,6 +45,11 @@
     else if (portal === "retailer") allowed = type === "Retailer" || type === "Wholesaler";
     else if (portal === "customer") allowed = type === "Customer" || type === "Regular Customer";
     if (allowed && (session.identity || session.userName)) return;
+    // Signed-in non-head accounts can never open the head admin portal.
+    if (portal === "head" && type && type !== "Head Administrator") {
+      location.replace(path.replace(/\/head_admin\/.*$/i, "/admin/admin.html"));
+      return;
+    }
     // Static HTML pages remain directly viewable so each portal page can be
     // inspected without being forced into the authentication folder.
     return;
@@ -74,7 +79,12 @@
 
   var LIVE_API = "https://particle-instructions-retailer-civil.trycloudflare.com";
   var hostName = (location.hostname || "").toLowerCase();
-  if (hostName.endsWith("github.io") || hostName.endsWith("githubusercontent.com")) {
+  // Pages opened from another local server (e.g. VS Code Live Server on :5501) have no /api,
+  // so send API calls to the Kreezby server on :3000 instead.
+  var LOCAL_HOST = (hostName === "localhost" || hostName === "127.0.0.1" || hostName === "[::1]");
+  var OFF_SERVER = LOCAL_HOST && location.port && location.port !== "3000";
+  if (OFF_SERVER) LIVE_API = "http://" + (hostName === "[::1]" ? "localhost" : hostName) + ":3000";
+  if (OFF_SERVER || hostName.endsWith("github.io") || hostName.endsWith("githubusercontent.com")) {
     var nativeOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
       var args = Array.prototype.slice.call(arguments);
@@ -333,7 +343,11 @@
     ["admins", "staff", "retailers", "customers"].forEach(function (bucket) {
       if (!Array.isArray(accounts[bucket]) || !accounts[bucket].length) return;
       if (JSON.stringify(current[bucket] || []) !== JSON.stringify(accounts[bucket])) changed = true;
-      current[bucket] = accounts[bucket];
+      current[bucket] = accounts[bucket].map(function (row) {
+        row = row || {};
+        row.fromMongo = true;
+        return row;
+      });
     });
     if (!changed) return;
     applyingRemote = true;
@@ -364,8 +378,8 @@
   pullAccountCollections();
   pull(true);
   pullSharedPermissions();
-  setInterval(function () { pull(false); }, 4000);
-  setInterval(pullSharedPermissions, 4000);
+  setInterval(function () { if (!document.hidden) pull(false); }, 4000);
+  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 4000);
 })();
 
 (function () {

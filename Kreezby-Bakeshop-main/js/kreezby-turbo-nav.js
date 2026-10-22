@@ -582,7 +582,7 @@
                 page === 'stocks-admin.html' || page === 'stocks-headadmin.html' || page === 'stocks-staff.html' ||
                 page === 'saleslist-admin.html' || page === 'saleslist-headadmin.html' || page === 'saleslist-staff.html' ||
                 page === 'order-tracking-admin.html' || page === 'order-tracking-headadmin.html' || page === 'order-tracking-staff.html' ||
-                page === 'aiforecast_salesanalysis-admin.html' || page === 'aiforecast_salesanalysis-headadmin.html' || page === 'aiforecast_salesanalysis-staff.html' ||
+                page === 'aiforecast_salesanalysis-admin.html' || page === 'salesanalysis-headadmin.html' || page === 'aiforecast_salesanalysis-staff.html' ||
                 page === 'forecast-admin.html' || page === 'forecast-headadmin.html' || page === 'forecast-staff.html' ||
                 page === 'insight-admin.html' || page === 'insight-headadmin.html' || page === 'insight-staff.html' ||
                 page === 'deliveryschedule-admin.html' || page === 'deliveryschedule-headadmin.html' || page === 'deliveryschedule-staff.html' ||

@@ -36,7 +36,6 @@
         dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
-        inventoryreport: { label: 'Inventory Report', page: 'inventoryreport-staff.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-staff.html' },
         deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-staff.html' },
         ordertracking: {
@@ -57,14 +56,14 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'],
-        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer']
+        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer'],
+        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer']
     };
 
     var TASK_ORDER = [
         'dashboard', 'bo', 'stocks',
         'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
-        'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
+        'stocklevel', 'inbox', 'inbox_retailer'
     ];
 
     var PERMISSION_MATRIX_ORDER = TASK_ORDER.filter(function (key) {

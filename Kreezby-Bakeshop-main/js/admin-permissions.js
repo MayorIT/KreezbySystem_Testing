@@ -26,18 +26,17 @@
 
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'admin.html' },
-        bo: { label: 'Back Order', page: 'bo-admin.html' },
-        stocks: { label: 'Stocks', page: 'stocks-admin.html' },
-        saleslist: { label: 'Sales List', page: 'saleslist-admin.html' },
+        bo: { label: 'Orders', page: 'bo-admin.html' },
+        stocks: { label: 'Products', page: 'stocks-admin.html' },
+        saleslist: { label: 'Sales', page: 'saleslist-admin.html' },
         pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
-        aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-admin.html' },
-        deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-admin.html' },
-        alert: { label: 'Alert', page: 'alert-admin.html' },
-        stocklevel: { label: 'Stock Level', page: 'stocklevel-admin.html' },
-        maintenance: { label: 'Maintenance', page: 'maintenance-admin.html' },
+        aiforecast: { label: 'AI Insights', page: 'aiforecast_salesanalysis-admin.html' },
+        deliveryschedule: { label: 'Deliveries', page: 'deliveryschedule-admin.html' },
+        alert: { label: 'Alerts', page: 'alert-admin.html' },
+        stocklevel: { label: 'Inventory', page: 'stocklevel-admin.html' },
         inbox: { label: 'Inbox', page: 'inbox-admin.html' },
-        issuereports: { label: 'Report Center', page: 'issue-reports-admin.html' }
+        issuereports: { label: 'Reports', page: 'issue-reports-admin.html' }
     };
 
     var DEFAULT_PERMISSIONS = {
@@ -47,7 +46,7 @@
     var TASK_ORDER = [
         'dashboard', 'bo', 'stocks',
         'saleslist', 'pos', 'ordertracking', 'aiforecast', 'deliveryschedule', 'alert', 'stocklevel',
-        'maintenance', 'inbox', 'issuereports'
+        'inbox', 'issuereports'
     ];
 
     var PERMISSION_MATRIX_ORDER = TASK_ORDER.filter(function (key) {

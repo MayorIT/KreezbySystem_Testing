@@ -86,8 +86,8 @@
     },
     brentadmin: {
       userName: 'Brent Ramos',
-      accountType: 'Head Administrator',
-      redirectUrl: 'head_admin/head_admin.html'
+      accountType: 'Administrator',
+      redirectUrl: 'admin/admin.html'
     },
     ailoreadmin: {
       userName: 'Ailore Embalzado',
@@ -95,7 +95,7 @@
       redirectUrl: 'admin/admin.html'
     },
     headadmin: {
-      userName: 'Brent Ramos',
+      userName: 'Criselda Ramos',
       accountType: 'Head Administrator',
       redirectUrl: 'head_admin/head_admin.html'
     },
@@ -225,6 +225,58 @@
     }
 
     return DEMO_PASSWORD;
+  }
+
+  function findLocalCustomer(identity) {
+    var q = String(identity || '').trim().toLowerCase();
+    if (!q || !window.KreezbyMaintenanceSettings) return null;
+    var list = (KreezbyMaintenanceSettings.getUsers().customers) || [];
+    for (var i = 0; i < list.length; i++) {
+      var u = list[i] || {};
+      var fields = [u.email, u.username, u.name, u.user_id, u.id, u.contact];
+      for (var j = 0; j < fields.length; j++) {
+        if (fields[j] && String(fields[j]).trim().toLowerCase() === q) return u;
+      }
+    }
+    return null;
+  }
+
+  // The customer site reads one profile blob; make it belong to the account that just logged in.
+  function applyCustomerProfile(acct, fallbackName) {
+    try {
+      var id = String(acct.id || acct.user_id || '');
+      var current = {};
+      try { current = JSON.parse(localStorage.getItem('kreezbyCustomerProfile') || '{}') || {}; } catch (e0) { current = {}; }
+      if (id && current.accountId === id) return;
+      var address = acct.address || '';
+      var profile = {
+        accountId: id,
+        username: acct.username || '',
+        fullName: acct.name || fallbackName || '',
+        email: acct.email || '',
+        contactNumber: acct.phone || acct.contact || '',
+        defaultAddress: address,
+        addresses: address ? [{ id: 'addr-' + (id || 'home'), label: 'Home', address: address }] : [],
+        avatarDataUrl: '',
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('kreezbyCustomerProfile', JSON.stringify(profile));
+    } catch (e) { /* ignore */ }
+  }
+
+  function mongoLogin(identity, password) {
+    if (!window.fetch) return Promise.resolve(null);
+    return fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: identity, password: password })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        body = body || {};
+        body.status = res.status;
+        return body;
+      });
+    }).catch(function () { return null; });
   }
 
   function resolveLoginIdentity(identity) {
@@ -388,7 +440,7 @@
         var sid = String(s.id || '').toLowerCase();
         var username = String(s.username || '').toLowerCase();
         var name = String(s.name || '').toLowerCase();
-        if (sid === id || username === id || name === id) return s.id;
+        if (sid === id || username === id || name === id || String(s.email || '').toLowerCase() === id || String(s.user_id || '').toLowerCase() === id) return s.id;
       }
     }
     if (id.indexOf('imelda') >= 0) return 'staff-imelda';
@@ -607,15 +659,41 @@
             toast('Enter your password.', 'warn');
             return;
           }
-          var resolved = resolveLoginIdentity(identity);
-          if (!resolved) {
-            toast('Account not found. Use marcela_admin, brent_admin, or ailore_admin.', 'warn');
+          // Ask the server first: it checks the MongoDB account collections and tells us the portal.
+          if (!form.__kzMongoDone) {
+            mongoLogin(identity, password).then(function (result) {
+              form.__kzMongo = result;
+              form.__kzMongoDone = true;
+              try { form.dispatchEvent(new Event('submit', { cancelable: true })); }
+              finally { form.__kzMongoDone = false; }
+            });
             return;
           }
-          var expectedPassword = resolveExpectedPassword(identity, resolved);
-          if (password !== expectedPassword) {
-            toast('Invalid password. Please try again.', 'warn');
+          var mongo = form.__kzMongo;
+          form.__kzMongo = null;
+          var resolved = null;
+          if (mongo && mongo.ok && mongo.account) {
+            var acct = mongo.account;
+            resolved = {
+              identity: identity,
+              userName: acct.name || identity,
+              accountType: acct.accountType,
+              redirectUrl: loginRedirectForType(acct.accountType, acct.id || identity)
+            };
+          } else if (mongo && (mongo.status === 401 || mongo.status === 403)) {
+            toast(mongo.status === 403 ? 'This account is deactivated.' : 'Invalid password. Please try again.', 'warn');
             return;
+          } else {
+            resolved = resolveLoginIdentity(identity);
+            if (!resolved) {
+              toast('Account not found. Please check your email or username.', 'warn');
+              return;
+            }
+            var expectedPassword = resolveExpectedPassword(identity, resolved);
+            if (password !== expectedPassword) {
+              toast('Invalid password. Please try again.', 'warn');
+              return;
+            }
           }
           if (window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.isLoginBlocked(identity, resolved.userName)) {
             toast('This account is deactivated. It can be turned back on from Maintenance.', 'warn');
@@ -625,12 +703,21 @@
             KreezbyMaintenanceSettings.recordLogin(identity);
           }
           try {
-            localStorage.setItem('kreezby_session', JSON.stringify({
+            var sessionData = {
               identity: resolved.identity,
               userName: resolved.userName,
               accountType: resolved.accountType,
               accountArea: areaForLogin(resolved)
-            }));
+            };
+            if (resolved.accountType === 'Customer') {
+              var custAcct = (mongo && mongo.ok && mongo.account) || findLocalCustomer(identity) || {};
+              sessionData.customerId = custAcct.id || custAcct.user_id || '';
+              sessionData.email = custAcct.email || '';
+              sessionData.phone = custAcct.phone || custAcct.contact || '';
+              sessionData.address = custAcct.address || '';
+              applyCustomerProfile(custAcct, resolved.userName);
+            }
+            localStorage.setItem('kreezby_session', JSON.stringify(sessionData));
             if (resolved.accountType === 'Administrator' || resolved.accountType === 'Head Administrator') {
               var nid = normalizeLoginKey(resolved.identity || resolved.userName);
               var adminId = '';

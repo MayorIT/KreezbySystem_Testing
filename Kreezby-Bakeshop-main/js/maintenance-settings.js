@@ -13,7 +13,7 @@
     var DEFAULT_USERS = {
         admins: [
             { id: 'admin-owner', name: 'Criselda Ramos', username: 'marcela_admin', role: 'Owner', accountType: 'Head Administrator' },
-            { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Head Administrator' },
+            { id: 'admin-ops', name: 'Brent Ramos', username: 'brent_admin', role: 'Operation Manager', accountType: 'Administrator' },
             { id: 'admin-marketing', name: 'Ailore Embalzado', username: 'ailore_admin', role: 'Marketing', accountType: 'Administrator' }
         ],
         staff: [
@@ -186,6 +186,14 @@
         return fresh;
     }
 
+    function hasMongoAccounts(list) {
+        if (!Array.isArray(list)) return false;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] && list[i].fromMongo) return true;
+        }
+        return false;
+    }
+
     function usesOfficialStaff(list) {
         var official = DEFAULT_USERS.staff;
         if (!Array.isArray(list) || list.length !== official.length) return false;
@@ -240,7 +248,7 @@
                 users[bucket] = JSON.parse(JSON.stringify(DEFAULT_USERS[bucket]));
             }
         });
-        if (!usesOfficialStaff(users.staff)) {
+        if (!hasMongoAccounts(users.staff) && !usesOfficialStaff(users.staff)) {
             users.staff = JSON.parse(JSON.stringify(DEFAULT_USERS.staff));
             saveJson(USERS_KEY, users);
         }
@@ -249,7 +257,7 @@
             users.wholesalers = [];
             saveJson(USERS_KEY, users);
         }
-        if (importedCustomerList(users.customers)) {
+        if (!hasMongoAccounts(users.customers) && importedCustomerList(users.customers)) {
             users.customers = JSON.parse(JSON.stringify(DEFAULT_USERS.customers));
             saveJson(USERS_KEY, users);
         } else {
@@ -324,10 +332,10 @@
         if (!q) return null;
         var users = getUsers();
         var pools = [
-            { type: 'Customer', list: users.customers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
-            { type: 'Retailer', list: users.retailers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
+            { type: 'Administrator', list: users.admins, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; }, accountType: function (u) { return isHeadAdminAccount(u) ? 'Head Administrator' : 'Administrator'; } },
             { type: 'Staff', list: users.staff, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
-            { type: 'Administrator', list: users.admins, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; }, accountType: function (u) { return isHeadAdminAccount(u) ? 'Head Administrator' : 'Administrator'; } }
+            { type: 'Retailer', list: users.retailers, match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } },
+            { type: 'Customer', list: users.customers || [], match: function (u) { return identityMatches(u, q); }, label: function (u) { return u.name; } }
         ];
         for (var i = 0; i < pools.length; i++) {
             var pool = pools[i];
@@ -404,13 +412,13 @@
         return !user || user.active !== false;
     }
 
+    // Only the owner (Marcela) is the head administrator. Brent and Ailore are regular admins.
     function isHeadAdminAccount(user) {
         if (!user) return false;
-        if (user.accountType === 'Head Administrator') return true;
-        var role = String(user.role || '').toLowerCase();
-        if (role === 'owner' || role === 'operation manager' || role === 'operations manager' || role.indexOf('head admin') >= 0) return true;
-        var name = String(user.username || user.user_id || user.id || '').toLowerCase();
-        return name === 'brent_admin' || name === 'marcela_admin' || name === 'admin-owner' || name === 'admin-ops';
+        var key = String(user.username || user.user_id || user.id || '').toLowerCase();
+        if (key === 'marcela_admin' || key === 'admin-owner') return true;
+        if (key === 'brent_admin' || key === 'admin-ops' || key === 'ailore_admin' || key === 'ailore') return false;
+        return String(user.role || '').toLowerCase() === 'owner';
     }
 
     function findRecord(identity) {
@@ -548,7 +556,6 @@
         try {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/api/accounts', false);
-            xhr.timeout = 4000;
             xhr.send();
             if (xhr.status !== 200) return;
             var data = JSON.parse(xhr.responseText);
@@ -556,7 +563,9 @@
             if (!accounts) return;
             var users = loadJson(USERS_KEY, {});
             ['admins', 'staff', 'retailers', 'customers'].forEach(function (bucket) {
-                if (Array.isArray(accounts[bucket]) && accounts[bucket].length) users[bucket] = accounts[bucket];
+                if (Array.isArray(accounts[bucket]) && accounts[bucket].length) {
+                    users[bucket] = accounts[bucket].map(function (row) { row = row || {}; row.fromMongo = true; return row; });
+                }
             });
             saveJson(USERS_KEY, withDictionaryFields(users));
             try { localStorage.setItem(USERS_SEED_VERSION_KEY, USERS_SEED_VERSION); } catch (e) { /* ignore */ }

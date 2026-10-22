@@ -147,7 +147,7 @@
         if (href === 'admin.html') return 'head_admin.html';
         if (href === 'inquiries.html') return 'inquiries-headadmin.html';
         if (href === 'index.html') return href;
-        return String(href || '').replace(/-admin\.html(?=$|[?#])/i, '-headadmin.html');
+        return String(href || '').replace(/-admin\.html(?=$|[?#])/i, '-headadmin.html').replace(/^aiforecast_salesanalysis-headadmin\.html/, 'salesanalysis-headadmin.html');
     }
 
 
@@ -264,7 +264,7 @@
 
         if (filename.indexOf('deliveryschedule') === 0) return 'deliveryschedule';
 
-        if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
+        if (filename.indexOf('forecast-') === 0 || filename.indexOf('aiforecast_salesanalysis') === 0 || filename.indexOf('salesanalysis-') === 0 || filename.indexOf('insight-') === 0) return 'aiforecast';
 
 
         if (filename.indexOf('bo-') === 0) return 'bo';

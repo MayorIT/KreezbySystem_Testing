@@ -1079,6 +1079,8 @@ function placeOrder() {
         accountType: accountType,
         accountName: accountName,
         accountArea: accountArea,
+        customerId: session.customerId || '',
+        customerEmail: session.email || '',
         shippingInfo: {
             fullName: accountName || fields.fullName,
             phone: fields.phone,

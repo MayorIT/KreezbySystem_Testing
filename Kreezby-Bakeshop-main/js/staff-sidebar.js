@@ -174,12 +174,13 @@
         var taskOrder = api.TASK_ORDER || [
             'dashboard', 'bo', 'return', 'stocks',
             'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
-            'stocklevel', 'inventoryreport', 'inbox', 'inbox_retailer'
+            'stocklevel', 'inbox', 'inbox_retailer'
         ];
 
         taskOrder.forEach(function (taskKey) {
             if (allowed.indexOf(taskKey) === -1) return;
             if (taskKey === 'inbox_retailer') return;
+            if (taskKey === 'inventoryreport') return;
             if (taskKey === 'inbox') {
                 items.push({
                     key: 'inbox',

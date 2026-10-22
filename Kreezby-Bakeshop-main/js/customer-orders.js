@@ -58,10 +58,18 @@
     function loadOrders() {
         var orders = dedupeOrderList(loadAllOrders());
         var name = currentCustomerName().toLowerCase();
-        if (!name) return [];
+        var session = {};
+        try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
+        var cid = String(session.customerId || '').toLowerCase();
+        var email = String(session.email || '').toLowerCase();
+        if (!name && !cid && !email) return [];
         return orders.filter(function (o) {
-            var shipName = (((o.shippingInfo || {}).fullName) || o.poEntity || '').toLowerCase();
-            return shipName === name;
+            var oid = String(o.customerId || '').toLowerCase();
+            if (cid && oid) return oid === cid;
+            var oemail = String(o.customerEmail || '').toLowerCase();
+            if (email && oemail) return oemail === email;
+            var shipName = (((o.shippingInfo || {}).fullName) || o.accountName || o.poEntity || '').toLowerCase();
+            return !!name && shipName === name;
         });
     }
 

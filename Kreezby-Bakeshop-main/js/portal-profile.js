@@ -83,7 +83,10 @@
     }
 
     function isHeadAccount(user) {
-        return /head|owner/i.test(String((user && user.accountType) || '') + ' ' + String((user && user.role) || ''));
+        var key = String((user && (user.username || user.user_id || user.id)) || '').toLowerCase();
+        if (key === 'marcela_admin' || key === 'admin-owner') return true;
+        if (key === 'brent_admin' || key === 'admin-ops' || key === 'ailore_admin' || key === 'ailore') return false;
+        return String((user && user.role) || '').toLowerCase() === 'owner';
     }
 
     function belongsToPortal(bucket, user) {

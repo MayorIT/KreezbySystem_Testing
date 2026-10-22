@@ -147,10 +147,10 @@
         } catch (e) {}
         if (updateHistory === false) return true;
         var file = ((location.pathname || '').split('/').pop() || '').split('?')[0];
-        var url = file.indexOf('aiforecast_salesanalysis-') === 0 ? file : 'aiforecast_salesanalysis-admin.html';
-        if (file.indexOf('aiforecast_salesanalysis-') !== 0) {
+        var url = (file.indexOf('aiforecast_salesanalysis-') === 0 || file === 'salesanalysis-headadmin.html') ? file : 'aiforecast_salesanalysis-admin.html';
+        if (!(file.indexOf('aiforecast_salesanalysis-') === 0 || file === 'salesanalysis-headadmin.html')) {
             var path = (location.pathname || '').replace(/\\/g, '/');
-            if (path.indexOf('/head_admin/') >= 0) url = 'aiforecast_salesanalysis-headadmin.html';
+            if (path.indexOf('/head_admin/') >= 0) url = 'salesanalysis-headadmin.html';
             else if (path.indexOf('/staff/') >= 0) url = 'aiforecast_salesanalysis-staff.html';
         }
         if (key !== 'sales-analysis') url += '?tab=' + encodeURIComponent(key);

@@ -284,7 +284,7 @@ async function syncAccountCollections(raw) {
       const accountType = account.accountType === "Head Administrator"
         ? "Head Administrator"
         : ACCOUNT_TYPES[bucket];
-      const doc = { ...account, accountType, updatedAt: new Date() };
+      const doc = { ...account, accountType, syncedFromApp: true, updatedAt: new Date() };
       delete doc._id;
       delete doc.password;
       delete doc.password_hash;
@@ -297,7 +297,8 @@ async function syncAccountCollections(raw) {
       });
     }
     if (ops.length) await col.bulkWrite(ops, { ordered: false });
-    await col.deleteMany(ids.length ? { _id: { $nin: ids } } : {});
+    // Only remove accounts the app itself created. Accounts added directly in MongoDB stay.
+    await col.deleteMany(ids.length ? { _id: { $nin: ids }, syncedFromApp: true } : { syncedFromApp: true });
   }
 }
 
@@ -382,6 +383,7 @@ function publicAccount(doc) {
   const row = { ...doc, id: doc.id || String(doc._id) };
   delete row._id;
   delete row.updatedAt;
+  delete row.syncedFromApp;
   delete row.password;
   delete row.password_hash;
   return row;
@@ -398,6 +400,69 @@ app.get("/api/accounts", async (req, res) => {
       accounts[bucket] = docs.map(publicAccount);
     }
     res.json({ ok: true, accounts });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+function loginKey(value) {
+  return String(value == null ? "" : value).trim().toLowerCase();
+}
+
+app.post("/api/login", async (req, res) => {
+  if (!mongoReady) {
+    res.status(503).json({ ok: false, error: "Database is reconnecting." });
+    return;
+  }
+  try {
+    const identity = loginKey(req.body && req.body.identity);
+    const password = String((req.body && req.body.password) || "");
+    if (!identity || !password) {
+      res.status(400).json({ ok: false, error: "identity and password required" });
+      return;
+    }
+    const db = client.db(DB_NAME);
+    // Staff and admins first so an internal account is never taken for a customer.
+    const order = ["admins", "staff", "retailers", "customers"];
+    for (const bucket of order) {
+      const docs = await db.collection(ACCOUNT_COLLECTIONS[bucket]).find({}).toArray();
+      const doc = docs.find((row) =>
+        [row.email, row.username, row.user_id, row.id, row._id, row.name, row.contact]
+          .some((field) => field != null && loginKey(field) === identity));
+      if (!doc) continue;
+      if (doc.active === false) {
+        res.status(403).json({ ok: false, error: "This account is deactivated." });
+        return;
+      }
+      let valid = false;
+      for (const field of [doc.temporaryPassword, doc.password]) {
+        if (field && String(field) === password) valid = true;
+      }
+      if (!valid && doc.password_hash) {
+        try {
+          valid = await require("bcryptjs").compare(password, String(doc.password_hash));
+        } catch (error) {
+          valid = false;
+        }
+      }
+      if (!valid) {
+        res.status(401).json({ ok: false, error: "Invalid password." });
+        return;
+      }
+      const key = [doc.username, doc.user_id, doc.id, doc._id].map(loginKey).join("|");
+      const isHead = /(^|\|)(marcela_admin|admin-owner)(\||$)/.test(key) ||
+        (!/(^|\|)(brent_admin|admin-ops|ailore_admin|ailore)(\||$)/.test(key) && loginKey(doc.role) === "owner");
+      const accountType = bucket === "admins"
+        ? (isHead ? "Head Administrator" : "Administrator")
+        : { staff: "Staff", retailers: "Retailer", customers: "Customer" }[bucket];
+      res.json({
+        ok: true,
+        account: { ...publicAccount(doc), accountType },
+        bucket,
+      });
+      return;
+    }
+    res.status(404).json({ ok: false, error: "Account not found." });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -1042,7 +1107,12 @@ app.get("/", (req, res) => {
   res.redirect("/auth/start.html");
 });
 
-app.use(express.static(SITE_ROOT));
+app.use(express.static(SITE_ROOT, {
+  setHeaders(res, filePath) {
+    // Always revalidate code files so edits show up without a hard refresh.
+    if (/\.(html|js|css)$/i.test(filePath)) res.setHeader("Cache-Control", "no-cache");
+  },
+}));
 
 function listenOn(host) {
   const server = app.listen(PORT, host);
