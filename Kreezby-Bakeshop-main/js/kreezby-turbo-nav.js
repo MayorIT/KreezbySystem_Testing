@@ -646,10 +646,19 @@
         loadScript(root + 'js/maintenance-settings.js?v=20261018accounts', 'kreezby-maintenance-settings-script', loadPerms);
     }
 
+    /* The dashboard page hard-codes body.staff-dashboard-page; its CSS forces the
+       content frame to display:block, which squashes full-height pages (Inbox)
+       after an in-frame navigation. Keep the class only while the dashboard shows. */
+    function syncDashboardBodyClass(frame) {
+        var onDashboard = !!(frame && frame.querySelector('#staff-dashboard-root'));
+        document.body.classList.toggle('staff-dashboard-page', onDashboard);
+    }
+
     function onFrameLoad(event) {
         var frame = event.target;
         if (!frame || frame.id !== FRAME_ID) return;
 
+        syncDashboardBodyClass(frame);
         syncPurchaseOrderTheme();
         markTurboLinks(frame);
         loadScript(moduleRelativeRoot() + 'js/kreezby-seed-portal-data.js?v=20261005rnote', 'kreezby-seed-portal-data-script', function () {

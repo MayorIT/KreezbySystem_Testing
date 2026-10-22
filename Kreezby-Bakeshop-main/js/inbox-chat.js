@@ -930,6 +930,10 @@
             var contact = getContact(id);
             if (!contact) return;
             if (!options || !options.keepUnread) contact.unread = false;
+            if (contact.teamPeer) {
+                contact.unread = false;
+                markTeamRead(contact.teamPeer);
+            }
 
             var applySelection = function () {
                 activeId = id;
@@ -941,6 +945,9 @@
 
                 nameEl.textContent = contact.name;
                 statusEl.textContent = contact.online ? 'Active now' : 'Contact Info';
+                if (contact.teamPeer && teamApi()) {
+                    statusEl.textContent = (contact.role ? contact.role + ' · ' : '') + teamApi().statusText(contact.teamPeer);
+                }
                 statusEl.classList.toggle('is-live', Boolean(contact.online));
                 avatarEl.className = 'inbox-avatar' + (contact.online ? ' is-online' : '');
                 avatarEl.textContent = contact.initials || contact.name.charAt(0);
@@ -1277,6 +1284,31 @@
                 return;
             }
 
+            var teamContact = getContact(activeId);
+            if (teamContact && teamContact.teamPeer) {
+                var api = teamApi();
+                if (!api || !api.me()) {
+                    showAttachNote('Sign in as staff or admin to chat with the team.');
+                    return;
+                }
+                var parts = [];
+                if (text) parts.push(text);
+                if (pendingFiles.length) {
+                    parts.push(pendingFiles.map(function (item) { return '📎 ' + item.name; }).join('\n'));
+                    showAttachNote('Team chats share the file name only, not the file.');
+                }
+                pendingFiles.forEach(releasePending);
+                pendingFiles = [];
+                renderPending();
+                if (!api.send(teamContact.teamPeer, parts.join('\n'))) {
+                    showAttachNote('Message could not be saved. Try again.');
+                    return;
+                }
+                input.value = '';
+                syncTeamChats(true);
+                return;
+            }
+
             if (!messages[activeId]) messages[activeId] = [];
             var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             var attachments = pendingFiles.map(function (item) {
@@ -1455,7 +1487,153 @@
             });
         }
 
+        /* ---------- Team chat (staff <-> admin), stored by kreezby-presence.js ---------- */
+        var teamEnabled = role === 'staff' || role === 'admin';
+        var teamSignature = '';
+
+        function teamApi() {
+            return teamEnabled ? window.KreezbyTeamChat : null;
+        }
+
+        function teamReadKey(peer) {
+            var api = teamApi();
+            var me = api && api.me();
+            // Not a "kreezby*" key on purpose: read markers stay on this browser.
+            return 'kzTeamRead:' + (me ? me.id : 'guest') + ':' + peer;
+        }
+
+        function markTeamRead(peer) {
+            try { localStorage.setItem(teamReadKey(peer), String(Date.now())); } catch (e) { /* ignore */ }
+        }
+
+        function teamReadAt(peer) {
+            try { return Number(localStorage.getItem(teamReadKey(peer))) || 0; } catch (e) { return 0; }
+        }
+
+        function teamTime(at) {
+            var d = new Date(at);
+            if (d.toDateString() === new Date().toDateString()) {
+                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+
+        function teamInitials(name) {
+            var bits = String(name || '?').trim().split(/\s+/);
+            return ((bits[0] || '?').charAt(0) + (bits.length > 1 ? bits[bits.length - 1].charAt(0) : '')).toUpperCase();
+        }
+
+        function ensureTeamContact(peer, name, personRole) {
+            var id = 'team-' + peer;
+            var contact = getContact(id);
+            if (!contact) {
+                contact = {
+                    id: id,
+                    teamPeer: peer,
+                    channel: 'staff',
+                    name: name || peer,
+                    role: personRole || '',
+                    initials: teamInitials(name || peer),
+                    preview: 'Say hi 👋',
+                    time: '',
+                    unread: false,
+                    updatedAt: 0
+                };
+                var firstOther = 0;
+                while (firstOther < contacts.length && contacts[firstOther].helpTicket) firstOther++;
+                contacts.splice(firstOther, 0, contact);
+            }
+            if (name) {
+                contact.name = name;
+                contact.initials = teamInitials(name);
+            }
+            if (personRole) contact.role = personRole;
+            return contact;
+        }
+
+        function syncTeamChats(force) {
+            var api = teamApi();
+            if (!api || !api.me()) return;
+            var me = api.me().id;
+            var parts = [];
+            api.conversations().forEach(function (conv) {
+                var contact = ensureTeamContact(conv.peer, conv.name, conv.role);
+                var last = conv.last;
+                contact.messagesData = conv.messages;
+                contact.updatedAt = last.at;
+                contact.time = teamTime(last.at);
+                contact.preview = (last.from === me ? 'You: ' : '') + String(last.text).split('\n')[0];
+                contact.unread = activeId !== contact.id && last.from !== me && last.at > teamReadAt(conv.peer);
+                if (contact.unread) contact.archived = false;
+                messages[contact.id] = conv.messages.map(function (m) {
+                    return { type: m.from === me ? 'outgoing' : 'incoming', text: m.text, time: teamTime(m.at) };
+                });
+                parts.push(contact.id + ':' + last.at + ':' + (contact.unread ? 1 : 0));
+            });
+            contacts.forEach(function (contact) {
+                if (!contact.teamPeer) return;
+                contact.online = api.isOnline(contact.teamPeer);
+                parts.push(contact.id + (contact.online ? ':on' : ':off'));
+            });
+            // Most recent team conversations first (after customer help tickets).
+            var help = contacts.filter(function (c) { return c.helpTicket; });
+            var team = contacts.filter(function (c) { return !c.helpTicket && c.teamPeer; });
+            var rest = contacts.filter(function (c) { return !c.helpTicket && !c.teamPeer; });
+            team.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+            contacts.splice(0, contacts.length);
+            help.concat(team, rest).forEach(function (c) { contacts.push(c); });
+
+            var signature = parts.join('|');
+            if (!force && signature === teamSignature) return;
+            teamSignature = signature;
+            refreshContactList();
+            var current = activeId ? getContact(activeId) : null;
+            if (current && current.teamPeer) {
+                markTeamRead(current.teamPeer);
+                current.unread = false;
+                renderMessages(messageContainer, messages[current.id] || []);
+                if (statusEl) {
+                    statusEl.textContent = (current.role ? current.role + ' · ' : '') + api.statusText(current.teamPeer);
+                    statusEl.classList.toggle('is-live', Boolean(current.online));
+                }
+                if (avatarEl) avatarEl.className = 'inbox-avatar' + (current.online ? ' is-online' : '');
+            }
+        }
+
+        function openTeamChat(person) {
+            var api = teamApi();
+            if (!api || !person || !person.id) return;
+            var contact = ensureTeamContact(person.id, person.name, person.role);
+            contact.archived = false;
+            if (!messages[contact.id]) messages[contact.id] = [];
+            listFilter = 'all';
+            searchQuery = '';
+            var searchInput = mount.querySelector('#inbox-search-input');
+            if (searchInput) searchInput.value = '';
+            if (typeof syncFilterUi === 'function') {
+                try { syncFilterUi(); } catch (e) { /* optional */ }
+            }
+            syncTeamChats(true);
+            selectContact(contact.id);
+            if (input && !input.disabled) {
+                window.setTimeout(function () { try { input.focus(); } catch (e) { /* ignore */ } }, 200);
+            }
+        }
+
+        if (teamEnabled) {
+            syncTeamChats(true);
+            document.addEventListener('kreezby:remote-state', function () { syncTeamChats(false); });
+            window.addEventListener('storage', function (event) {
+                if (!event.key || /^kreezby(TeamChat|Presence)_/.test(event.key)) syncTeamChats(false);
+            });
+            window.setInterval(function () {
+                if (!document.body.contains(mount)) return;
+                syncTeamChats(false);
+            }, 3000);
+        }
+
         mount.kreezbyInboxApi = {
+            openTeamChat: openTeamChat,
             selectContact: selectContact,
             clearActive: clearActive,
             getContacts: function () { return contacts; },
