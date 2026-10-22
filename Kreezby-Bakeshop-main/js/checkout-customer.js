@@ -611,6 +611,17 @@ function initCheckout() {
             startPaymongo();
         });
     }
+    document.querySelectorAll('[data-paymongo-app]').forEach(function (appBtn) {
+        appBtn.addEventListener('click', function () {
+            const wallet = appBtn.getAttribute('data-paymongo-app');
+            if (wallet === 'qrph' && paymongoTestUrl) {
+                window.open(paymongoTestUrl, '_blank', 'noopener');
+                return;
+            }
+            appBtn.disabled = true;
+            Promise.resolve(startPaymongo(wallet)).finally(function () { appBtn.disabled = false; });
+        });
+    });
     resumePaymongoReturn();
 }
 
@@ -917,7 +928,7 @@ async function paymongoFetch(path, options) {
     return { response: lastResponse, data: lastData };
 }
 
-async function startPaymongo() {
+async function startPaymongo(walletOverride) {
     if (!hasCartItems()) {
         showCheckoutDialog('Your cart is empty. Add items before paying with QR Ph.', { type: 'warning', title: 'Cart Empty' });
         return;
@@ -925,10 +936,10 @@ async function startPaymongo() {
     const fields = shippingFields();
     if (!validCheckoutContact(fields)) return;
     const amount = checkoutTotalAmount();
-    const wallet = selectedPaymongoWallet();
+    const wallet = walletOverride || selectedPaymongoWallet();
     const button = document.getElementById('paymongo-pay-btn');
     if (button) button.disabled = true;
-    setPaymongoStatus('Creating the QR code…');
+    setPaymongoStatus(wallet === 'qrph' ? 'Creating the QR code…' : 'Opening the app…');
     let showedQr = false;
     try {
         const result = await paymongoFetch('/api/paymongo/e-wallet', {
@@ -958,6 +969,17 @@ async function startPaymongo() {
                 : 'PayMongo could not start the payment.'));
             return;
         }
+        if (data.redirectUrl) {
+            writePaymongoDraft(Object.assign({}, fields, {
+                wallet,
+                paymentIntentId: data.paymentIntentId,
+                placed: false
+            }));
+            showedQr = true;
+            setPaymongoStatus('Opening ' + (paymongoWalletLabel(wallet) || 'the app') + '. Finish the payment there, then come back to this page.');
+            window.location.assign(data.redirectUrl);
+            return;
+        }
         if (!showPaymongoQr(data.qrImage)) {
             setPaymongoStatus('QR Ph did not return a code.');
             return;
@@ -970,8 +992,8 @@ async function startPaymongo() {
                 button.disabled = false;
                 setPaymongoButtonLabel('Open payment page');
             }
-            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the secure PayMongo payment page, where you pick QR Ph, GCash or Maya and pay. This checkout places the order as soon as the payment is complete.';
-            setPaymongoStatus('Scan the code with your phone camera, finish paying on the PayMongo page, then come back here. This page checks every 5 seconds.');
+            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the PayMongo payment page. Follow the steps there (in test mode, choose Authorize). This checkout places the order as soon as the payment is complete.';
+            setPaymongoStatus('Scan the code with your phone camera and finish on the PayMongo page (test mode: choose Authorize). This page checks every 5 seconds.');
         } else if (button) {
             button.disabled = true;
             setPaymongoButtonLabel('QR code ready');

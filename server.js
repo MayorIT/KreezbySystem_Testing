@@ -1033,7 +1033,21 @@ function paymongoPublicIntent(resource) {
 
 const PAYMONGO_CHECKOUT_METHODS = {
   qrph: { type: "qrph" },
+  gcash: { type: "gcash", redirect: true },
+  paymaya: { type: "paymaya", redirect: true },
 };
+
+function paymongoRedirectUrl(nextAction) {
+  const raw = nextAction && nextAction.redirect && nextAction.redirect.url ? String(nextAction.redirect.url) : "";
+  try {
+    const parsed = new URL(raw);
+    const host = parsed.hostname.toLowerCase();
+    const okHost = host === "paymongo.com" || host.endsWith(".paymongo.com") || host === "pm.link";
+    return parsed.protocol === "https:" && okHost ? parsed.toString() : "";
+  } catch (error) {
+    return "";
+  }
+}
 
 function paymongoQrDataUri(nextAction) {
   const code = nextAction && nextAction.code;
@@ -1092,8 +1106,8 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
     res.status(400).json({ ok: false, error: "Enter the payer name and email before paying with QR Ph." });
     return;
   }
-  if (!Number.isFinite(amount) || centavos < 10000 || centavos > 100000000) {
-    res.status(400).json({ ok: false, error: "PayMongo accepts payments from ₱100.00 up to ₱1,000,000.00." });
+  if (!Number.isFinite(amount) || centavos < 2000 || centavos > 100000000) {
+    res.status(400).json({ ok: false, error: "PayMongo accepts payments from ₱20.00 up to ₱1,000,000.00." });
     return;
   }
   if (!paymongoReturnUrl(req, body.returnUrl)) {
@@ -1102,6 +1116,48 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   }
 
   try {
+    // GCash / Maya: send the customer straight into the app (or the wallet's sign-in page).
+    if (methodInfo.redirect) {
+      const walletIntent = await paymongoRequest("POST", "/v1/payment_intents", {
+        data: {
+          attributes: {
+            amount: centavos,
+            payment_method_allowed: [methodInfo.type],
+            currency: "PHP",
+            capture_type: "automatic",
+            description: String(body.description || "Kreezby Bakeshop order").slice(0, 255),
+            statement_descriptor: "KREEZBY",
+            metadata: { reference: String(body.reference || "").slice(0, 80), audience, wallet },
+          },
+        },
+      });
+      const walletMethod = await paymongoRequest("POST", "/v1/payment_methods", {
+        data: {
+          attributes: {
+            type: methodInfo.type,
+            billing: Object.assign({ name: name.slice(0, 80), email }, phone ? { phone: phone.slice(0, 20) } : {}),
+          },
+        },
+      });
+      const walletAttached = await paymongoRequest("POST", "/v1/payment_intents/" + walletIntent.data.id + "/attach", {
+        data: { attributes: { payment_method: walletMethod.data.id, return_url: String(body.returnUrl) } },
+      });
+      const walletAttributes = walletAttached.data.attributes || {};
+      const redirectUrl = paymongoRedirectUrl(walletAttributes.next_action);
+      if (!redirectUrl) {
+        res.status(502).json({ ok: false, error: "PayMongo did not return a link to the app." });
+        return;
+      }
+      res.json({
+        ok: true,
+        paymentIntentId: walletAttached.data.id,
+        status: walletAttributes.status || "",
+        redirectUrl,
+        wallet,
+      });
+      return;
+    }
+
     // Test mode (sk_test_ key): the QR Ph payment-intent flow. The QR opens PayMongo's test
     // page in any phone camera, where "Authorize" completes the payment.
     if (/^sk_test_/.test(paymongoSecret())) {

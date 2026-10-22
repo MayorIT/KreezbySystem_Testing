@@ -16,6 +16,18 @@
     <link rel="stylesheet" href="../css/shared/payment-summary.css">
     <link rel="stylesheet" href="../css/shared/customer-site-header.css?v=20261005brand">
     <link rel="stylesheet" href="../css/shared/customer-favorites-popup.css?v=20261010tabs">
+<style>
+.paymongo-apps{margin-top:16px;padding-top:14px;border-top:1px dashed #d8d2cb}
+.paymongo-apps__title{margin:0 0 10px;font-weight:600;color:#3e2723;font-size:14px}
+.paymongo-apps__row{display:flex;flex-wrap:wrap;gap:10px}
+.paymongo-app-btn{flex:1 1 140px;min-height:44px;padding:10px 16px;border:0;border-radius:10px;font-weight:700;font-size:15px;color:#fff;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.paymongo-app-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.paymongo-app-btn:disabled{opacity:.6;cursor:wait;transform:none;box-shadow:none}
+.paymongo-app-btn--gcash{background:#007dfe}
+.paymongo-app-btn--maya{background:#0b8f4a}
+.paymongo-app-btn--other{background:#3e2723}
+.paymongo-apps__note{margin:8px 0 0;font-size:12px;color:#6d5d57}
+</style>
 </head>
 <body>
     <header class="site-header">
@@ -145,6 +157,15 @@
                         <div class="paymongo-qr-frame" hidden>
                             <img id="paymongo-qr" class="paymongo-qr" alt="QR Ph code" hidden>
                         </div>
+                    </div>
+                    <div class="paymongo-apps" id="paymongo-apps">
+                        <p class="paymongo-apps__title">Or open your app to pay</p>
+                        <div class="paymongo-apps__row">
+                            <button type="button" class="paymongo-app-btn paymongo-app-btn--gcash" data-paymongo-app="gcash">GCash</button>
+                            <button type="button" class="paymongo-app-btn paymongo-app-btn--maya" data-paymongo-app="paymaya">Maya</button>
+                            <button type="button" class="paymongo-app-btn paymongo-app-btn--other" data-paymongo-app="qrph">Bank / other apps</button>
+                        </div>
+                        <p class="paymongo-apps__note">GCash and Maya open the app on your phone. Other banks: scan the QR code above.</p>
                     </div>
                 </div>
 
