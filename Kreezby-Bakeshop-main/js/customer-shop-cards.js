@@ -10,12 +10,12 @@
     function imgFallback(name) {
         var label = String(name || 'Kreezby').replace(/[<>&]/g, '');
         var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='#eee'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='10' fill='#999'>" + label + '</text></svg>';
-        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg).replace(/'/g, '%27');
     }
 
     function flavorCardHtml(prod, options) {
         var guest = options && options.guest;
-        var onerror = "this.src='" + imgFallback(prod.name) + "'";
+        var onerror = "this.onerror=null;this.src='" + imgFallback(prod.name) + "'";
         var isFavorite = false;
         try {
             isFavorite = !guest && typeof window.isFavoriteProduct === 'function' && window.isFavoriteProduct(prod.id);

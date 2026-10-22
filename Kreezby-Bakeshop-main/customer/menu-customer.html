@@ -167,6 +167,7 @@
                         </div>
                         <div class="profile-status-actions">
                             <button class="btn-action-primary" type="button" onclick="switchProfileEditMode('edit')">Edit Profile Information</button>
+                            <button class="btn-action-logout" type="button" onclick="customerLogOut()">↩ Log Out</button>
                         </div>
                     </div>
 
@@ -427,8 +428,8 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/notification-store.js"></script>
-    <script src="../js/customer-orders.js?v=20261019fn"></script>
-    <script src="../js/customer-shop-cards.js?v=20261010catalog"></script>
+    <script src="../js/customer-orders.js?v=20261022fix"></script>
+    <script src="../js/customer-shop-cards.js?v=20261022fix"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script>
         function toggleCategoryFeedback() {
@@ -2070,5 +2071,17 @@
         bootCustomerShop();
     </script>
     <script src="../js/customer-phone-shop.js?v=20261009acct"></script>
+<style>
+.profile-status-actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn-action-logout{padding:10px 18px;border:1.5px solid #c62828;border-radius:10px;background:#fff;color:#c62828;font-weight:700;font-size:14px;cursor:pointer}
+.btn-action-logout:hover{background:#c62828;color:#fff}
+</style>
+<script>
+function customerLogOut() {
+    try { localStorage.removeItem('kreezby_session'); } catch (e) {}
+    try { sessionStorage.clear(); } catch (e) {}
+    window.location.href = '../auth/log_in.html';
+}
+</script>
 </body>
 </html>

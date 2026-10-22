@@ -206,8 +206,10 @@
     };
 
     function imgFallback(name) {
-        var label = encodeURIComponent(name || 'Order');
-        return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%25' height='100%25' fill='%23eef2f7'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='10' fill='%2394a3b8'>" + label + '</text></svg>';
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="#eef2f7"/><text x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">' +
+            String(name || 'Order').replace(/[<>&"']/g, '').slice(0, 24) + '</text></svg>';
+        // fully percent-encoded (no quotes) so it is safe inside an inline onerror attribute
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg).replace(/'/g, '%27');
     }
 
     function resolveItemImage(itemId, item) {
@@ -384,7 +386,7 @@
             '</div>' +
             '<div class="order-list-card-body">' +
             '<div class="order-list-thumb">' +
-            '<img src="' + escapeHtml(imageSrc) + '" alt="' + escapeHtml(imageAlt) + '" onerror="this.src=\'' + imgFallback(imageAlt) + '\'">' +
+            '<img src="' + escapeHtml(imageSrc) + '" alt="' + escapeHtml(imageAlt) + '" onerror="this.onerror=null;this.src=\'' + imgFallback(imageAlt) + '\'">' +
             countBadge +
             '</div>' +
             '<div class="order-list-preview">' +
@@ -503,7 +505,7 @@
             return (
                 '<div class="order-detail-item">' +
                 '<div class="order-detail-item-thumb">' +
-                '<img src="' + imageSrc + '" alt="' + (item.name || 'Ordered item') + '" onerror="this.src=\'' + imgFallback(item.name) + '\'">' +
+                '<img src="' + imageSrc + '" alt="' + (item.name || 'Ordered item') + '" onerror="this.onerror=null;this.src=\'' + imgFallback(item.name) + '\'">' +
                 '</div>' +
                 '<div class="order-detail-item-info">' +
                 '<div class="order-detail-item-name">' + item.name + '</div>' +
