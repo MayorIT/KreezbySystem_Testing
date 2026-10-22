@@ -40,6 +40,24 @@
 
     function currentFile() { return (lower.split("/").pop() || "").split("?")[0]; }
 
+    // No "Home" button in the top bar on any page: the sidebar's Dashboard entry is the way home.
+    (function removeHomeButton() {
+      try {
+        var css = document.createElement("style");
+        css.setAttribute("data-kz-nohome", "1");
+        css.textContent = "a.home-badge,a.top-nav-item.home-badge{display:none!important}";
+        (document.head || document.documentElement).appendChild(css);
+        var sweep = function () {
+          Array.prototype.forEach.call(document.querySelectorAll("a.home-badge"), function (n) { n.remove(); });
+        };
+        sweep();
+        var mo = new MutationObserver(sweep);
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener("DOMContentLoaded", sweep);
+        window.addEventListener("load", function () { sweep(); setTimeout(function () { mo.disconnect(); sweep(); }, 4000); });
+      } catch (e) { /* ignore */ }
+    })();
+
     // The Insights menu entry is a single link: its three views live on the page as tabs.
     var INSIGHT_SUB = /sales analysis|management insight|production recommendation|product recommendation/i;
     function purgeInsightSubs(root) {

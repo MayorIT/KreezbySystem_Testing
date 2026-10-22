@@ -33,7 +33,6 @@
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
         pos: { label: 'Point of Sale', page: 'pos-staff.html' },
-        dailysales: { label: 'Daily Sales', page: 'dailysales-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
         stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-staff.html' },
@@ -56,13 +55,13 @@
     };
 
     var DEFAULT_PERMISSIONS = {
-        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer'],
-        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer']
+        'staff-imelda': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer'],
+        'staff-nichole': ['dashboard', 'bo', 'stocks', 'saleslist', 'pos', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking', 'stocklevel', 'inbox', 'inbox_retailer']
     };
 
     var TASK_ORDER = [
         'dashboard', 'bo', 'stocks',
-        'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
+        'saleslist', 'pos', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
         'stocklevel', 'inbox', 'inbox_retailer'
     ];
 
@@ -160,7 +159,7 @@
     function tasksForStaff(staff) {
         var text = (String(staff.department || '') + ' ' + String(staff.role || '')).toLowerCase();
         if (text.indexOf('sales') >= 0) {
-            return ['dashboard', 'saleslist', 'pos', 'dailysales', 'aiforecast', 'alert', 'deliveryschedule'];
+            return ['dashboard', 'saleslist', 'pos', 'aiforecast', 'alert', 'deliveryschedule'];
         }
         if (text.indexOf('software') >= 0 || text.indexOf('it') >= 0) {
             return ['dashboard', 'stocks', 'pos', 'alert', 'inbox', 'deliveryschedule'];

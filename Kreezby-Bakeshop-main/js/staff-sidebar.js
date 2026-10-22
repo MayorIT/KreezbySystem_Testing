@@ -33,7 +33,6 @@
         stocks: 'boxes',
         saleslist: 'sales',
         pos: 'cart',
-        dailysales: 'calendar',
         aiforecast: 'chart',
         deliveryschedule: 'truck',
         alert: 'bell',
@@ -169,7 +168,7 @@
 
         var taskOrder = api.TASK_ORDER || [
             'dashboard', 'bo', 'return', 'stocks',
-            'saleslist', 'pos', 'dailysales', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
+            'saleslist', 'pos', 'aiforecast', 'deliveryschedule', 'alert', 'ordertracking',
             'stocklevel', 'inbox', 'inbox_retailer'
         ];
 
@@ -230,7 +229,6 @@
         if (filename === 'saleslist-staff.html') return 'saleslist';
         if (filename.indexOf('pos-') === 0) return 'pos';
         if (filename === 'alert-staff.html') return 'alert';
-        if (filename === 'dailysales-staff.html') return 'dailysales';
         if (filename === 'inventoryreport-staff.html') return 'inventoryreport';
         if (filename === 'order-tracking-staff.html') return 'ordertracking';
         return '';
