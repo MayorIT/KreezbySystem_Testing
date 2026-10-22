@@ -78,20 +78,21 @@
         return String(value || '').toLowerCase().replace(/[\s_-]/g, '');
     }
 
+    // Only the owner (Marcela) is the head admin. Brent and Ailore are regular admins.
     function isHeadAdmin() {
         var session = readSession();
-        if (session.accountType === 'Head Administrator') return true;
         var id = normalizeIdentity(session.identity || session.userName);
-        return id === 'brentadmin' || id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' ||
-            (id.indexOf('brent') === 0 && id.indexOf('admin') >= 0) ||
+        if (id === 'brentadmin' || id === 'brentramos' || id === 'ailoreadmin' || id === 'ailoreembalzado') return false;
+        if (session.accountType === 'Head Administrator') return true;
+        return id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' ||
             (id.indexOf('marcela') === 0 && id.indexOf('admin') >= 0);
     }
 
     function knownAdminId(identity) {
         var id = normalizeIdentity(identity);
         if (!id) return '';
-        if (id === 'brentadmin' || id === 'brentramos' || id === 'adminops' || id === 'headadmin') return 'admin-ops';
-        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' || id === 'adminowner') return 'admin-owner';
+        if (id === 'brentadmin' || id === 'brentramos' || id === 'adminops') return 'admin-ops';
+        if (id === 'marcelaadmin' || id === 'marcelacriseldaramos' || id === 'criseldaramos' || id === 'adminowner' || id === 'headadmin') return 'admin-owner';
         if (id === 'ailoreadmin' || id === 'ailoreembalzado' || id === 'adminmarketing') return 'ailore';
         return '';
     }
@@ -177,6 +178,9 @@
 
     function defaultTasksForAdmin(account) {
         if (window.KreezbyMaintenanceSettings && window.KreezbyMaintenanceSettings.isHeadAdminAccount(account)) {
+            return TASK_ORDER.slice();
+        }
+        if (account && (account.id === 'admin-ops' || account.username === 'brent_admin')) {
             return TASK_ORDER.slice();
         }
         if (account && (account.id === 'ailore' || account.username === 'ailore_admin')) {

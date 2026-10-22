@@ -197,6 +197,22 @@
   }
 
   function pullSharedPermissions() {
+    // The server copy (MongoDB) is the shared one; the static file is only a fallback.
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/permissions?t=" + Date.now(), true);
+    xhr.timeout = 8000;
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        try { applySharedPermissions(JSON.parse(xhr.responseText)); return; } catch (e) { /* try the file */ }
+      }
+      pullPermissionsFile();
+    };
+    xhr.onerror = pullPermissionsFile;
+    xhr.ontimeout = pullPermissionsFile;
+    xhr.send();
+  }
+
+  function pullPermissionsFile() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", permissionsFileUrl() + "?t=" + Date.now(), true);
     xhr.timeout = 8000;
@@ -374,6 +390,10 @@
     };
     xhr.send();
   }
+
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) { pull(false); pullSharedPermissions(); }
+  });
 
   pullAccountCollections();
   pull(true);

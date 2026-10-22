@@ -6,6 +6,7 @@ const QRCode = require("qrcode");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3000;
+const SERVERLESS = !!process.env.VERCEL;
 const DB_NAME = "kreezby";
 const SITE_ROOT = path.join(__dirname, "Kreezby-Bakeshop-main");
 const SALES_LIST_FILE = path.join(SITE_ROOT, "data", "kreezby-sales-fake-admin.json");
@@ -37,9 +38,9 @@ function createMongoClient() {
   // not drop the link. Twenty is enough if several pages save together.
   // (5 pool + 2 monitoring) x 3 members is about 21 connections on the cluster.
   return new MongoClient(process.env.MONGODB_URI, {
-    minPoolSize: 5,
-    maxPoolSize: 20,
-    maxIdleTimeMS: 10 * 60 * 1000,
+    minPoolSize: SERVERLESS ? 0 : 5,
+    maxPoolSize: SERVERLESS ? 5 : 20,
+    maxIdleTimeMS: SERVERLESS ? 60 * 1000 : 10 * 60 * 1000,
     connectTimeoutMS: 10000,
     socketTimeoutMS: 30000,
     serverSelectionTimeoutMS: 10000,
@@ -313,6 +314,35 @@ async function refreshCache() {
 
 app.use(express.json({ limit: "12mb" }));
 
+// Vercel runs this file as a serverless function: connect on demand instead of the
+// always-on maintainMongo() loop, and keep the shared-state cache fresh per request.
+let lazyConnect = null;
+let lastCacheRefresh = 0;
+app.use("/api", async (req, res, next) => {
+  if (!SERVERLESS || !client) return next();
+  try {
+    if (!mongoReady) {
+      if (!lazyConnect) {
+        lazyConnect = (async () => {
+          await client.connect();
+          await client.db(DB_NAME).command({ ping: 1 });
+          await refreshCache();
+          lastCacheRefresh = Date.now();
+          mongoReady = true;
+        })().finally(() => { lazyConnect = null; });
+      }
+      await lazyConnect;
+    } else if (/^\/(state|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
+      lastCacheRefresh = Date.now();
+      await refreshCache();
+    }
+  } catch (error) {
+    mongoReady = false;
+    console.error("MongoDB unavailable. " + error.message);
+  }
+  next();
+});
+
 app.use("/api", (req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -526,17 +556,62 @@ function writePermissionFile(items) {
     if (typeof next[key] === "string") cache[key] = next[key];
   });
   if (!wrote) return null;
-  fs.mkdirSync(path.dirname(PERMISSION_FILE), { recursive: true });
-  fs.writeFileSync(PERMISSION_FILE, JSON.stringify(next, null, 2));
+  try {
+    fs.mkdirSync(path.dirname(PERMISSION_FILE), { recursive: true });
+    fs.writeFileSync(PERMISSION_FILE, JSON.stringify(next, null, 2));
+  } catch (error) {
+    /* Read-only hosting (Vercel): the copy in MongoDB below is the shared one. */
+  }
   return next;
 }
 
-app.post("/api/permissions", (req, res) => {
+async function storePermissionsInMongo(doc) {
+  if (!mongoReady) return;
+  const col = collection();
+  const ops = PERMISSION_KEYS
+    .filter((key) => typeof doc[key] === "string")
+    .map((key) => ({
+      updateOne: { filter: { _id: key }, update: { $set: { value: doc[key] } }, upsert: true },
+    }));
+  ops.push({
+    updateOne: {
+      filter: { _id: "shared_permissions_doc" },
+      update: { $set: { value: JSON.stringify(doc) } },
+      upsert: true,
+    },
+  });
+  await col.bulkWrite(ops, { ordered: false });
+}
+
+async function currentPermissionDoc() {
+  if (mongoReady) {
+    try {
+      const row = await collection().findOne({ _id: "shared_permissions_doc" });
+      if (row && typeof row.value === "string") {
+        const parsed = JSON.parse(row.value);
+        if (parsed && typeof parsed.updatedAt === "number") return parsed;
+      }
+    } catch (error) { /* fall back to the file */ }
+  }
+  return readPermissionFile();
+}
+
+app.get("/api/permissions", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json(await currentPermissionDoc());
+});
+
+app.post("/api/permissions", async (req, res) => {
   const items = req.body && typeof req.body === "object" ? req.body : {};
   const saved = writePermissionFile(items);
   if (!saved) {
     res.status(400).json({ ok: false, error: "Permission records are required." });
     return;
+  }
+  try {
+    await storePermissionsInMongo(saved);
+  } catch (error) {
+    console.error("Could not store permissions in MongoDB. " + error.message);
   }
   res.json({ ok: true, updatedAt: saved.updatedAt });
 });
@@ -1140,7 +1215,11 @@ async function main() {
   await maintainMongo();
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (require.main === module && !SERVERLESS) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
+
+module.exports = app;
