@@ -35,10 +35,33 @@
       var sess = JSON.parse(localStorage.getItem("kreezby_session") || "null") || {};
       who = String(sess.role || "") + ":" + String(sess.userId || sess.id || sess.email || sess.username || "");
     } catch (e) { who = ""; }
-    var KEY = "kzSidebarCache:" + folder + ":" + who;
+    var KEY = "kzSidebarCache2:" + folder + ":" + who;
     var ASIDE = "aside.dark-sidebar-panel, aside.sidebar-panel";
 
     function currentFile() { return (lower.split("/").pop() || "").split("?")[0]; }
+
+    // The Insights menu entry is a single link: its three views live on the page as tabs.
+    var INSIGHT_SUB = /sales analysis|management insight|production recommendation|product recommendation/i;
+    function purgeInsightSubs(root) {
+      if (!root || !root.querySelectorAll) return;
+      Array.prototype.forEach.call(root.querySelectorAll(".kreezby-sidebar-sub"), function (sub) {
+        var links = sub.querySelectorAll("a");
+        if (links.length && Array.prototype.every.call(links, function (l) { return INSIGHT_SUB.test(l.textContent || ""); })) sub.remove();
+      });
+    }
+    (function watchInsightSubs() {
+      var tries = 0;
+      function sweep() { purgeInsightSubs(document.querySelector(ASIDE)); }
+      var mo = new MutationObserver(sweep);
+      function start() {
+        var aside = document.querySelector(ASIDE);
+        if (!aside) { if (tries++ < 100) setTimeout(start, 50); return; }
+        sweep();
+        mo.observe(aside, { childList: true, subtree: true });
+        setTimeout(function () { mo.disconnect(); sweep(); }, 6000);
+      }
+      start();
+    })();
 
     function paint(aside, cache) {
       var css = document.createElement("style");
@@ -47,6 +70,7 @@
       document.head.appendChild(css);
       aside.className = cache.cls;
       aside.innerHTML = cache.html;
+      purgeInsightSubs(aside);
       var file = currentFile();
       Array.prototype.forEach.call(aside.querySelectorAll("a.kreezby-sidebar-nav-item"), function (a) {
         var f = String(a.getAttribute("href") || "").split("?")[0].split("#")[0].split("/").pop().toLowerCase();

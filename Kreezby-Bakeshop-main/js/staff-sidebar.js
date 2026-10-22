@@ -49,11 +49,7 @@
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'pos', label: 'Point of Sale', href: 'pos-staff.html', icon: 'cart' },
-        { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart', children: [
-            { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-            { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' },
-            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-staff.html?tab=product-recommendation' }
-        ] },
+        { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart' },
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
         { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' }
@@ -204,11 +200,6 @@
             };
             if (taskKey === 'aiforecast') {
                 entry.href = 'aiforecast_salesanalysis-staff.html';
-                entry.children = [
-                    { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-staff.html' },
-                    { key: 'management-insight', label: 'Management Insight', href: 'aiforecast_salesanalysis-staff.html?tab=management-insight' },
-                    { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-staff.html?tab=product-recommendation' }
-                ];
             }
             items.push(entry);
         });

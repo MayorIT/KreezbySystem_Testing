@@ -551,24 +551,50 @@
         };
     }
 
+    var ACCOUNTS_STAMP_KEY = 'kreezby_accounts_pulled_at';
+
+    function applyPulledAccounts(text) {
+        var data = JSON.parse(text);
+        var accounts = data && data.accounts;
+        if (!accounts) return;
+        var users = loadJson(USERS_KEY, {});
+        ['admins', 'staff', 'retailers', 'customers'].forEach(function (bucket) {
+            if (Array.isArray(accounts[bucket]) && accounts[bucket].length) {
+                users[bucket] = accounts[bucket].map(function (row) { row = row || {}; row.fromMongo = true; return row; });
+            }
+        });
+        saveJson(USERS_KEY, withDictionaryFields(users));
+        try { localStorage.setItem(USERS_SEED_VERSION_KEY, USERS_SEED_VERSION); } catch (e) { /* ignore */ }
+        try { sessionStorage.setItem(ACCOUNTS_STAMP_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+    }
+
+    // Blocking request only when this browser has no database accounts yet (first visit);
+    // otherwise refresh in the background so pages are not held up by the network.
     function pullAccountsNow() {
         if (location.protocol === 'file:') return;
+        var stamp = 0;
+        try { stamp = Number(sessionStorage.getItem(ACCOUNTS_STAMP_KEY) || 0); } catch (e) { stamp = 0; }
+        if (stamp && Date.now() - stamp < 60000) return;
+        var haveLocal = false;
+        try {
+            var cached = loadJson(USERS_KEY, {});
+            haveLocal = ['admins', 'staff', 'retailers', 'customers'].some(function (bucket) { return hasMongoAccounts(cached[bucket]); });
+        } catch (e) { haveLocal = false; }
         try {
             var xhr = new XMLHttpRequest();
+            if (haveLocal) {
+                xhr.open('GET', '/api/accounts', true);
+                xhr.onload = function () {
+                    if (xhr.status !== 200) return;
+                    try { applyPulledAccounts(xhr.responseText); } catch (e) { /* keep browser copy */ }
+                };
+                xhr.send();
+                return;
+            }
             xhr.open('GET', '/api/accounts', false);
             xhr.send();
             if (xhr.status !== 200) return;
-            var data = JSON.parse(xhr.responseText);
-            var accounts = data && data.accounts;
-            if (!accounts) return;
-            var users = loadJson(USERS_KEY, {});
-            ['admins', 'staff', 'retailers', 'customers'].forEach(function (bucket) {
-                if (Array.isArray(accounts[bucket]) && accounts[bucket].length) {
-                    users[bucket] = accounts[bucket].map(function (row) { row = row || {}; row.fromMongo = true; return row; });
-                }
-            });
-            saveJson(USERS_KEY, withDictionaryFields(users));
-            try { localStorage.setItem(USERS_SEED_VERSION_KEY, USERS_SEED_VERSION); } catch (e) { /* ignore */ }
+            applyPulledAccounts(xhr.responseText);
         } catch (e) { /* the page keeps the browser copy when the shop server is offline */ }
     }
 

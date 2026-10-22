@@ -77,11 +77,7 @@
 
         { key: 'alert', label: 'Alerts', href: 'alert-admin.html', icon: 'bell' },
 
-        { key: 'aiforecast', label: 'AI Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'spark', children: [
-            { key: 'sales-analysis', label: 'Sales Analysis', href: 'aiforecast_salesanalysis-admin.html' },
-            { key: 'management-insight', label: 'Management Insight', href: 'insight-admin.html' },
-            { key: 'product-recommendation', label: 'Production Recommendation', href: 'aiforecast_salesanalysis-admin.html?tab=product-recommendation' }
-        ] },
+        { key: 'aiforecast', label: 'AI Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'spark' },
 
         { key: 'issuereports', label: 'Reports', href: 'issue-reports-admin.html', icon: 'flag' },
 
