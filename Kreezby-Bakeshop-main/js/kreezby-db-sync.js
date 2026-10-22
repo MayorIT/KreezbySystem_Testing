@@ -233,8 +233,8 @@
       base = base.replace(/ Saved .*$/, "");
       el.setAttribute("data-permission-base", base);
       el.textContent = shared
-        ? base + " Saved for your groupmates."
-        : base + " Saved on this browser. Groupmates on the GitHub link see it after this change is published to the site.";
+        ? base + " Saved and shared with all accounts."
+        : base + " Saved on this browser only. It will be shared once the server is reachable.";
     });
   }
 
@@ -289,6 +289,46 @@
     if (this === localStorage && !applyingRemote) schedulePermissionPublish(key);
   };
 
+  // When another account (e.g. staff) changes shared data, refresh the page the admin or
+  // head admin is looking at, unless they are in the middle of typing or a dialog is open.
+  var liveRefreshTimer = null;
+  var lastLiveRefresh = 0;
+  var SELF_HANDLED = { "kreezby-po-orders-v1": 1, "kreezby-bo-orders-v1": 1, "kreezby-return-records-v1": 1 };
+  function userIsBusy() {
+    var el = document.activeElement;
+    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return true;
+    if (document.querySelector(".modal-triggered, .modal-box.active, .notification-modal-overlay.active, .system-modal-backdrop.modal-triggered")) return true;
+    var sel = window.getSelection && window.getSelection();
+    return !!(sel && String(sel).length > 0);
+  }
+  function scheduleLiveRefresh(keys) {
+    if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || "")) return;
+    if (/\/(admin_permissions|staff-permissions|maintenance|pos-)/i.test(location.pathname || "")) return;
+    var relevant = keys.filter(function (k) {
+      return !SELF_HANDLED[k] && !/^(kreezbyNotifications|kreezbyBrowserAlert|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer)/.test(k);
+    });
+    if (!relevant.length) return;
+    if (liveRefreshTimer) return;
+    liveRefreshTimer = setTimeout(function tryRefresh() {
+      if (document.hidden || userIsBusy() || Date.now() - lastLiveRefresh < 4000) {
+        liveRefreshTimer = setTimeout(tryRefresh, 2000);
+        return;
+      }
+      liveRefreshTimer = null;
+      lastLiveRefresh = Date.now();
+      var y = window.scrollY;
+      try { sessionStorage.setItem("kreezby_live_scroll", String(y)); } catch (e) { /* ignore */ }
+      location.reload();
+    }, 600);
+  }
+  try {
+    var savedScroll = sessionStorage.getItem("kreezby_live_scroll");
+    if (savedScroll != null) {
+      sessionStorage.removeItem("kreezby_live_scroll");
+      window.addEventListener("load", function () { setTimeout(function () { window.scrollTo(0, Number(savedScroll) || 0); }, 150); });
+    }
+  } catch (e) { /* ignore */ }
+
   function applyItems(items, uploadMissing) {
     if (!items) return;
     applyingRemote = true;
@@ -321,6 +361,7 @@
       try {
         document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
       } catch (e) { /* listeners are optional */ }
+      scheduleLiveRefresh(changedKeys);
     }
 
     known = {};
@@ -405,7 +446,35 @@
   pullAccountCollections();
   pull(true);
   pullSharedPermissions();
-  setInterval(function () { if (!document.hidden) pull(false); }, 4000);
+  // Near real-time: ask the server whether anything changed every 2 seconds and only
+  // download the full state when it did (full refresh every 30 seconds as a safety net).
+  var lastStateVersion = null;
+  var versionBroken = false;
+  var lastFullPull = Date.now();
+  function pollStateVersion() {
+    if (document.hidden) return;
+    if (versionBroken || Date.now() - lastFullPull > 30000) {
+      lastFullPull = Date.now();
+      pull(false);
+      if (versionBroken) return;
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/state-version?t=" + Date.now(), true);
+    xhr.timeout = 4000;
+    xhr.onload = function () {
+      if (xhr.status !== 200) { versionBroken = true; return; }
+      try {
+        var version = JSON.parse(xhr.responseText).version;
+        if (version !== lastStateVersion) {
+          var first = lastStateVersion === null;
+          lastStateVersion = version;
+          if (!first) { lastFullPull = Date.now(); pull(false); }
+        }
+      } catch (e) { versionBroken = true; }
+    };
+    xhr.send();
+  }
+  setInterval(pollStateVersion, 2000);
   setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 2000);
 })();
 

@@ -28,6 +28,7 @@ function isSharedKey(key) {
 }
 
 const app = express();
+let stateVersion = Date.now();
 let cache = {};
 let mongoReady = false;
 
@@ -332,7 +333,7 @@ app.use("/api", async (req, res, next) => {
         })().finally(() => { lazyConnect = null; });
       }
       await lazyConnect;
-    } else if (/^\/(state|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
+    } else if (/^\/(state(?!-)|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
       lastCacheRefresh = Date.now();
       await refreshCache();
     }
@@ -369,6 +370,19 @@ app.get("/api/health", async (req, res) => {
   } catch (error) {
     res.status(503).json({ ok: false, error: error.message });
   }
+});
+
+// Tiny "has anything changed?" check so browsers can poll every couple of seconds cheaply.
+app.get("/api/state-version", async (req, res) => {
+  if (!databaseReady(res)) return;
+  let version = stateVersion;
+  if (SERVERLESS) {
+    try {
+      const row = await collection().findOne({ _id: "state_meta" });
+      if (row && row.value) version = Number(row.value) || version;
+    } catch (error) { /* use the in-memory value */ }
+  }
+  res.json({ ok: true, version });
 });
 
 app.get("/api/state", (req, res) => {
@@ -652,7 +666,17 @@ app.post("/api/state", async (req, res) => {
     }
 
     writePermissionFile(items);
-    if (ops.length) await collection().bulkWrite(ops, { ordered: false });
+    if (ops.length) {
+      stateVersion = Date.now();
+      ops.push({
+        updateOne: {
+          filter: { _id: "state_meta" },
+          update: { $set: { value: String(stateVersion) } },
+          upsert: true,
+        },
+      });
+      await collection().bulkWrite(ops, { ordered: false });
+    }
     if (typeof items.kreezby_maintenance_users === "string") {
       await syncAccountCollections(items.kreezby_maintenance_users);
     }
