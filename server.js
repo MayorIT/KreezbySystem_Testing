@@ -480,7 +480,8 @@ app.post("/api/login", async (req, res) => {
         }
       }
       if (!valid) {
-        res.status(401).json({ ok: false, error: "Invalid password." });
+        const stored = ["temporaryPassword", "password", "password_hash"].filter((k) => doc[k]);
+        res.status(401).json({ ok: false, error: "Invalid password.", stored });
         return;
       }
       const key = [doc.username, doc.user_id, doc.id, doc._id].map(loginKey).join("|");
@@ -1101,7 +1102,52 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   }
 
   try {
-    // Hosted PayMongo Checkout: a normal https page that opens from any phone camera,
+    // Test mode (sk_test_ key): the QR Ph payment-intent flow. The QR opens PayMongo's test
+    // page in any phone camera, where "Authorize" completes the payment.
+    if (/^sk_test_/.test(paymongoSecret())) {
+      const intent = await paymongoRequest("POST", "/v1/payment_intents", {
+        data: {
+          attributes: {
+            amount: centavos,
+            payment_method_allowed: [methodInfo.type],
+            currency: "PHP",
+            capture_type: "automatic",
+            description: String(body.description || "Kreezby Bakeshop order").slice(0, 255),
+            statement_descriptor: "KREEZBY",
+            metadata: { reference: String(body.reference || "").slice(0, 80), audience, wallet },
+          },
+        },
+      });
+      const method = await paymongoRequest("POST", "/v1/payment_methods", {
+        data: {
+          attributes: {
+            type: methodInfo.type,
+            billing: Object.assign({ name: name.slice(0, 80), email }, phone ? { phone: phone.slice(0, 20) } : {}),
+          },
+        },
+      });
+      const attachedIntent = await paymongoRequest("POST", "/v1/payment_intents/" + intent.data.id + "/attach", {
+        data: { attributes: { payment_method: method.data.id, return_url: String(body.returnUrl) } },
+      });
+      const intentAttributes = attachedIntent.data.attributes || {};
+      const intentTestUrl = paymongoTestUrl(intentAttributes.next_action);
+      const intentQr = (intentTestUrl ? await scannableQr(intentTestUrl) : "") || paymongoQrDataUri(intentAttributes.next_action);
+      if (!intentQr) {
+        res.status(502).json({ ok: false, error: "PayMongo did not return a QR Ph code." });
+        return;
+      }
+      res.json({
+        ok: true,
+        paymentIntentId: attachedIntent.data.id,
+        status: intentAttributes.status || "",
+        qrImage: intentQr,
+        testUrl: intentTestUrl,
+        wallet,
+      });
+      return;
+    }
+
+    // Live mode: hosted PayMongo Checkout: a normal https page that opens from any phone camera,
     // where the customer picks QR Ph / GCash / Maya and pays.
     const referenceText = String(body.reference || "").slice(0, 80);
     const buildSession = (methods) => ({
@@ -1140,11 +1186,22 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       res.status(502).json({ ok: false, error: "PayMongo did not return a payment page." });
       return;
     }
-    const intentRef = attributes.payment_intent;
-    const intentId = intentRef && typeof intentRef === "object" ? intentRef.id : String(intentRef || "");
+    const intentOf = (attrs) => {
+      const ref = attrs && attrs.payment_intent;
+      return ref && typeof ref === "object" ? String(ref.id || "") : String(ref || "");
+    };
+    let intentId = intentOf(attributes);
+    if (!/^pi_/.test(intentId)) {
+      const again = await paymongoRequest("GET", "/v1/checkout_sessions/" + session.data.id);
+      intentId = intentOf(again.data && again.data.attributes);
+    }
+    if (!/^pi_[A-Za-z0-9]+$/.test(intentId)) {
+      res.status(502).json({ ok: false, error: "PayMongo did not return a payment reference." });
+      return;
+    }
     const qrImage = await scannableQr(checkoutUrl);
     const testUrl = checkoutUrl;
-    const attached = { data: { id: intentId || session.data.id } };
+    const attached = { data: { id: intentId } };
     res.json({
       ok: true,
       paymentIntentId: attached.data.id,

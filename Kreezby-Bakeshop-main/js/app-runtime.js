@@ -692,7 +692,8 @@
             }
             var expectedPassword = resolveExpectedPassword(identity, resolved);
             if (password !== expectedPassword) {
-              toast('Invalid password. Please try again.', 'warn');
+              var hint = (mongo && mongo.stored) ? ' (server has: ' + (mongo.stored.join(', ') || 'no password field') + ')' : '';
+              toast('Invalid password. Please try again.' + hint, 'warn');
               return;
             }
           }
