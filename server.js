@@ -468,6 +468,10 @@ app.post("/api/login", async (req, res) => {
       for (const field of [doc.temporaryPassword, doc.password]) {
         if (field && String(field) === password) valid = true;
       }
+      // Accounts with no stored password use the shared starter password, as the browser login does.
+      if (!valid && !doc.temporaryPassword && !doc.password && !doc.password_hash && password === "kreezby123") {
+        valid = true;
+      }
       if (!valid && doc.password_hash) {
         try {
           valid = await require("bcryptjs").compare(password, String(doc.password_hash));
@@ -1097,55 +1101,54 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
   }
 
   try {
-    const intent = await paymongoRequest("POST", "/v1/payment_intents", {
+    // Hosted PayMongo Checkout: a normal https page that opens from any phone camera,
+    // where the customer picks QR Ph / GCash / Maya and pays.
+    const referenceText = String(body.reference || "").slice(0, 80);
+    const buildSession = (methods) => ({
       data: {
         attributes: {
-          amount: centavos,
-          payment_method_allowed: [methodInfo.type],
-          currency: "PHP",
-          capture_type: "automatic",
+          billing: Object.assign({ name: name.slice(0, 80), email }, phone ? { phone: phone.slice(0, 20) } : {}),
+          send_email_receipt: true,
+          show_description: true,
+          show_line_items: true,
           description: String(body.description || "Kreezby Bakeshop order").slice(0, 255),
-          statement_descriptor: "KREEZBY",
-          metadata: {
-            reference: String(body.reference || "").slice(0, 80),
-            audience,
-            wallet,
-          },
+          line_items: [{
+            currency: "PHP",
+            amount: centavos,
+            name: "Kreezby Bakeshop order",
+            quantity: 1,
+          }],
+          payment_method_types: methods,
+          reference_number: referenceText || undefined,
+          success_url: String(body.returnUrl),
+          cancel_url: String(body.returnUrl),
+          metadata: { reference: referenceText, audience, wallet },
         },
       },
     });
-    const methodAttributes = {
-      type: methodInfo.type,
-      billing: Object.assign({
-        name: name.slice(0, 80),
-        email,
-      }, phone ? { phone: phone.slice(0, 20) } : {}),
-    };
-    if (methodInfo.bankCode) methodAttributes.details = { bank_code: methodInfo.bankCode };
-    const method = await paymongoRequest("POST", "/v1/payment_methods", {
-      data: { attributes: methodAttributes },
-    });
-    const attached = await paymongoRequest("POST", "/v1/payment_intents/" + intent.data.id + "/attach", {
-      data: {
-        attributes: {
-          payment_method: method.data.id,
-          return_url: String(body.returnUrl),
-        },
-      },
-    });
-    const attributes = attached.data.attributes || {};
-    const paymongoImage = paymongoQrDataUri(attributes.next_action);
-    const testUrl = paymongoTestUrl(attributes.next_action);
-    const scanImage = testUrl ? await scannableQr(testUrl) : "";
-    const qrImage = scanImage || paymongoImage;
-    if (!qrImage) {
-      res.status(502).json({ ok: false, error: "PayMongo did not return a QR Ph code." });
+    let session;
+    try {
+      session = await paymongoRequest("POST", "/v1/checkout_sessions", buildSession(["qrph", "gcash", "paymaya"]));
+    } catch (error) {
+      // A method that is not switched on for the account is rejected: retry with QR Ph only.
+      if (!error.status || error.status >= 500) throw error;
+      session = await paymongoRequest("POST", "/v1/checkout_sessions", buildSession(["qrph"]));
+    }
+    const attributes = (session.data && session.data.attributes) || {};
+    const checkoutUrl = paymongoTestUrl({ code: { test_url: attributes.checkout_url } });
+    if (!checkoutUrl) {
+      res.status(502).json({ ok: false, error: "PayMongo did not return a payment page." });
       return;
     }
+    const intentRef = attributes.payment_intent;
+    const intentId = intentRef && typeof intentRef === "object" ? intentRef.id : String(intentRef || "");
+    const qrImage = await scannableQr(checkoutUrl);
+    const testUrl = checkoutUrl;
+    const attached = { data: { id: intentId || session.data.id } };
     res.json({
       ok: true,
       paymentIntentId: attached.data.id,
-      status: attributes.status || "",
+      status: "awaiting_payment",
       qrImage,
       testUrl,
       wallet,

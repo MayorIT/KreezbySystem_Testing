@@ -680,10 +680,11 @@
               accountType: acct.accountType,
               redirectUrl: loginRedirectForType(acct.accountType, acct.id || identity)
             };
-          } else if (mongo && (mongo.status === 401 || mongo.status === 403)) {
-            toast(mongo.status === 403 ? 'This account is deactivated.' : 'Invalid password. Please try again.', 'warn');
+          } else if (mongo && mongo.status === 403) {
+            toast('This account is deactivated.', 'warn');
             return;
           } else {
+            // Not matched by the server (or a password changed on this browser): use the browser check.
             resolved = resolveLoginIdentity(identity);
             if (!resolved) {
               toast('Account not found. Please check your email or username.', 'warn');

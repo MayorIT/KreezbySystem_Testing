@@ -605,7 +605,7 @@ function initCheckout() {
         paymongoBtn.addEventListener('click', function () {
             if (paymongoTestUrl) {
                 window.open(paymongoTestUrl, '_blank', 'noopener');
-                setPaymongoStatus('Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.');
+                setPaymongoStatus('Finish paying on the PayMongo page. This checkout checks every 5 seconds.');
                 return;
             }
             startPaymongo();
@@ -854,7 +854,7 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                     amount: data.amount
                 };
                 isPaymentVerified = true;
-                setPaymongoStatus('Payment successful. QR Ph reference ' + data.paymentIntentId + '.');
+                setPaymongoStatus('Payment successful. Reference ' + data.paymentIntentId + '.');
                 updateActionButtons();
                 if (typeof onSucceeded === 'function') onSucceeded();
                 return;
@@ -869,9 +869,9 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
             setPaymongoStatus(paymongoTestUrl
                 ? 'Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.'
                 : 'Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
-            if (ticks > 36) {
+            if (ticks > 120) {
                 stopPaymongoPoll();
-                setPaymongoStatus('The QR code is still waiting. Show it again if you need a new one.');
+                setPaymongoStatus('Still waiting for the payment. Show the code again if you need a new one.');
             }
         } catch (error) {
             stopPaymongoPoll();
@@ -968,10 +968,10 @@ async function startPaymongo() {
         if (paymongoTestUrl) {
             if (button) {
                 button.disabled = false;
-                setPaymongoButtonLabel('Open PayMongo payment');
+                setPaymongoButtonLabel('Open payment page');
             }
-            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the PayMongo page. Choose Authorize, and this checkout places the order after that.';
-            setPaymongoStatus('Scan the code with your phone camera, then choose Authorize.');
+            if (lead) lead.textContent = 'Point your phone camera at this code. It opens the secure PayMongo payment page, where you pick QR Ph, GCash or Maya and pay. This checkout places the order as soon as the payment is complete.';
+            setPaymongoStatus('Scan the code with your phone camera, finish paying on the PayMongo page, then come back here. This page checks every 5 seconds.');
         } else if (button) {
             button.disabled = true;
             setPaymongoButtonLabel('QR code ready');
