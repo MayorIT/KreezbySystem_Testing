@@ -60,7 +60,6 @@
         document.querySelectorAll('.top-nav-links-right').forEach(function (right) {
             right.querySelectorAll('a.top-nav-item, a.expandable-nav-tab').forEach(function (link) {
                 if (link.closest('.user-dropdown, .user-dropdown-menu')) return;
-                if (isHomeNavAnchor(link)) return;
                 link.remove();
             });
         });
@@ -68,11 +67,11 @@
 
     function headerSnapshotKey() {
         var path = (location.pathname || '').toLowerCase();
-        if (path.indexOf('/staff') >= 0) return 'kreezby-top-navbar-html-staff';
-        if (path.indexOf('/retailer') >= 0) return 'kreezby-top-navbar-html-retailer';
-        if (path.indexOf('/customer') >= 0) return 'kreezby-top-navbar-html-customer';
-        if (path.indexOf('/head_admin') >= 0) return 'kreezby-top-navbar-html-head';
-        return 'kreezby-top-navbar-html-admin';
+        if (path.indexOf('/staff') >= 0) return 'kreezby-top-navbar-v2-html-staff';
+        if (path.indexOf('/retailer') >= 0) return 'kreezby-top-navbar-v2-html-retailer';
+        if (path.indexOf('/customer') >= 0) return 'kreezby-top-navbar-v2-html-customer';
+        if (path.indexOf('/head_admin') >= 0) return 'kreezby-top-navbar-v2-html-head';
+        return 'kreezby-top-navbar-v2-html-admin';
     }
 
     function pinTopNavbar() {

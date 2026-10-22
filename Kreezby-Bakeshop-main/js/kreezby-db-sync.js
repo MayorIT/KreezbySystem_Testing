@@ -43,18 +43,39 @@
     // No "Home" button in the top bar on any page: the sidebar's Dashboard entry is the way home.
     (function removeHomeButton() {
       try {
+        var HOME_FILES = /(^|\/)(admin|head_admin|staff|staff-\d+|retailer-portal|retailer)\.html?$/i;
         var css = document.createElement("style");
         css.setAttribute("data-kz-nohome", "1");
-        css.textContent = "a.home-badge,a.top-nav-item.home-badge{display:none!important}";
+        css.textContent = ".top-navbar-node a.home-badge,.top-navbar-node a.is-icon-only,.top-navbar-node .top-nav-links-right>a.top-nav-item:not([data-staff-inbox]):not([data-inbox]),a.home-badge{display:none!important}";
         (document.head || document.documentElement).appendChild(css);
-        var sweep = function () {
+        try {
+          Object.keys(sessionStorage).forEach(function (k) {
+            if (k.indexOf("kreezby-top-navbar-html") === 0) sessionStorage.removeItem(k);
+          });
+        } catch (e0) { /* ignore */ }
+        function isHome(a) {
+          if (a.closest(".user-dropdown, .user-dropdown-menu")) return false;
+          var c = a.classList;
+          if (c.contains("home-badge")) return true;
+          var label = String(a.getAttribute("aria-label") || a.getAttribute("title") || a.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+          if (label === "home") return true;
+          var href = String(a.getAttribute("href") || "").split("?")[0].split("#")[0];
+          return (c.contains("top-nav-item") || c.contains("expandable-nav-tab") || c.contains("is-icon-only")) && HOME_FILES.test(href);
+        }
+        var queued = false;
+        function sweep() {
+          queued = false;
+          Array.prototype.forEach.call(document.querySelectorAll(".top-navbar-node a.home-badge, .top-navbar-node a.top-nav-item, .top-navbar-node a.expandable-nav-tab, .top-navbar-node a.is-icon-only, .top-navbar-node .top-nav-links-right>a"), function (a) {
+            if (isHome(a)) a.remove();
+          });
           Array.prototype.forEach.call(document.querySelectorAll("a.home-badge"), function (n) { n.remove(); });
-        };
+        }
+        function queue() { sweep(); }
         sweep();
-        var mo = new MutationObserver(sweep);
-        mo.observe(document.documentElement, { childList: true, subtree: true });
+        new MutationObserver(queue).observe(document.documentElement, { childList: true, subtree: true });
         document.addEventListener("DOMContentLoaded", sweep);
-        window.addEventListener("load", function () { sweep(); setTimeout(function () { mo.disconnect(); sweep(); }, 4000); });
+        window.addEventListener("load", sweep);
+        window.addEventListener("pageshow", sweep);
       } catch (e) { /* ignore */ }
     })();
 
