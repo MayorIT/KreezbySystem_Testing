@@ -24,6 +24,87 @@
     document.head.appendChild(appleIcon);
   }
 
+  // Sidebar that never pops in: remember the finished sidebar (markup + the CSS it needs) and
+  // paint it again the instant the next page's <aside> appears, before the sidebar scripts run.
+  (function sidebarInstantPaint() {
+    var lower = (location.pathname || "").replace(/\\/g, "/").toLowerCase();
+    var folder = (lower.match(/\/(admin|head_admin|staff|retailer)\//) || [])[1];
+    if (!folder || !document.head) return;
+    var who = "";
+    try {
+      var sess = JSON.parse(localStorage.getItem("kreezby_session") || "null") || {};
+      who = String(sess.role || "") + ":" + String(sess.userId || sess.id || sess.email || sess.username || "");
+    } catch (e) { who = ""; }
+    var KEY = "kzSidebarCache:" + folder + ":" + who;
+    var ASIDE = "aside.dark-sidebar-panel, aside.sidebar-panel";
+
+    function currentFile() { return (lower.split("/").pop() || "").split("?")[0]; }
+
+    function paint(aside, cache) {
+      var css = document.createElement("style");
+      css.setAttribute("data-kz-cache", "1");
+      css.textContent = cache.css || "";
+      document.head.appendChild(css);
+      aside.className = cache.cls;
+      aside.innerHTML = cache.html;
+      var file = currentFile();
+      Array.prototype.forEach.call(aside.querySelectorAll("a.kreezby-sidebar-nav-item"), function (a) {
+        var f = String(a.getAttribute("href") || "").split("?")[0].split("#")[0].split("/").pop().toLowerCase();
+        var on = f === file;
+        a.classList.toggle("is-active", on);
+        if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+      });
+      try {
+        if (localStorage.getItem("kreezbySidebarCollapsed") === "1" && document.body) document.body.classList.add("sidebar-collapsed");
+      } catch (e) { /* ignore */ }
+    }
+
+    var cache = null;
+    try { cache = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { cache = null; }
+    if (cache && cache.html && cache.cls) {
+      var painted = false;
+      var observer = new MutationObserver(function () {
+        if (painted) return;
+        var aside = document.querySelector(ASIDE);
+        // wait until the parser has closed the <aside> so it is not appended to afterwards
+        if (!aside || !(aside.nextElementSibling || document.readyState !== "loading")) return;
+        painted = true;
+        observer.disconnect();
+        paint(aside, cache);
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      document.addEventListener("DOMContentLoaded", function () {
+        if (painted) return;
+        painted = true;
+        observer.disconnect();
+        var aside = document.querySelector(ASIDE);
+        if (aside) paint(aside, cache);
+      });
+    }
+
+    function snapshot() {
+      var aside = document.querySelector(ASIDE);
+      if (!aside || !aside.classList.contains("kreezby-sidebar-ready") || !aside.querySelector(".kreezby-sidebar-nav-item")) return;
+      var css = "";
+      Array.prototype.forEach.call(document.querySelectorAll('style[id^="kreezby-"], link[rel="stylesheet"][id^="kreezby-"]'), function (el) {
+        try {
+          if (el.tagName === "STYLE") css += el.textContent + "\n";
+          else if (el.sheet) css += Array.prototype.map.call(el.sheet.cssRules, function (r) { return r.cssText; }).join("\n") + "\n";
+        } catch (e) { /* cross-origin sheet */ }
+      });
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ html: aside.innerHTML, cls: aside.className, css: css }));
+      } catch (e) { /* storage full or blocked */ }
+      Array.prototype.forEach.call(document.querySelectorAll("style[data-kz-cache]"), function (el) { el.remove(); });
+    }
+    var snapTimer = null;
+    function scheduleSnapshot() { clearTimeout(snapTimer); snapTimer = setTimeout(snapshot, 500); }
+    ["kreezby-admin-sidebar-ready", "kreezby-portal-sidebar-ready", "kreezby-staff-sidebar-ready"].forEach(function (n) {
+      document.addEventListener(n, scheduleSnapshot);
+    });
+    window.addEventListener("load", function () { setTimeout(snapshot, 800); });
+  })();
+
   (function guardPortalSession() {
     var path = (location.pathname || "").replace(/\\/g, "/");
     var lower = path.toLowerCase();
