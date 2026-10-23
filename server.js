@@ -410,8 +410,9 @@ function sanitizeAccountInput(bucket, input) {
   const id = String(src.id || src.user_id || "").trim() || (prefix + "-" + Date.now());
   const name = String(src.name || "").trim();
   const email = String(src.email || "").trim();
-  const phone = String(src.phone || src.contact || "").trim();
-  const username = String(src.username || "").trim().toLowerCase().replace(/\s+/g, "_");
+  // Contact number is a phone number; never copy an email into it.
+  const phone = [src.phone, src.contact].map((v) => String(v || "").trim()).find((v) => v && v.indexOf("@") < 0) || "";
+  const username = String(src.username || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._]/g, "").slice(0, 30);
   const password = String(src.temporaryPassword || src.password || "").trim();
   const roles = { admins: "Admin", staff: "Staff", retailers: "Retailer", customers: "Customer", wholesalers: "Wholesaler" };
   const doc = {

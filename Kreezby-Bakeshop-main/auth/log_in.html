@@ -56,10 +56,10 @@
                 <div class="auth-panel is-active" data-auth-panel="login" role="tabpanel">
                     <form class="login-form" novalidate onsubmit="return false;">
                         <div class="auth-field">
-                            <label class="auth-label" for="identity">Email</label>
+                            <label class="auth-label" for="identity">Email / Username</label>
                             <div class="auth-input-wrap">
                                 <svg class="auth-input-icon" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                <input class="auth-input auth-input--icon-left" id="identity" type="text" name="identity" placeholder="you@example.com" autocomplete="username" required>
+                                <input class="auth-input auth-input--icon-left" id="identity" type="text" name="identity" placeholder="you@example.com or username" autocomplete="username" required>
                             </div>
                         </div>
 
@@ -109,10 +109,28 @@
                         </div>
 
                         <div class="auth-field">
-                            <label class="auth-label" for="contactInfo">Email or phone</label>
+                            <label class="auth-label" for="signup-username">Username</label>
                             <div class="auth-input-wrap">
-                                <svg class="auth-input-icon" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                <input class="auth-input auth-input--icon-left" id="contactInfo" type="text" name="contactInfo" placeholder="you@example.com" required>
+                                <svg class="auth-input-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+                                <input class="auth-input auth-input--icon-left" id="signup-username" type="text" name="username" placeholder="maria_santos" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="30" required>
+                            </div>
+                            <p class="auth-field-note" style="color:rgba(255,255,255,.55);font-size:12px;margin:6px 0 0;">3–30 letters, numbers, dots or underscores. You can log in with this.</p>
+                        </div>
+
+                        <div class="auth-row">
+                            <div class="auth-field">
+                                <label class="auth-label" for="signup-email">Email</label>
+                                <div class="auth-input-wrap">
+                                    <svg class="auth-input-icon" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                    <input class="auth-input auth-input--icon-left" id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                                </div>
+                            </div>
+                            <div class="auth-field">
+                                <label class="auth-label" for="signup-phone">Contact number</label>
+                                <div class="auth-input-wrap">
+                                    <svg class="auth-input-icon" viewBox="0 0 24 24"><rect width="12" height="20" x="6" y="2" rx="2"/><path d="M11 18h2"/></svg>
+                                    <input class="auth-input auth-input--icon-left" id="signup-phone" type="tel" name="phone" placeholder="09XXXXXXXXX" autocomplete="tel" inputmode="tel" maxlength="16" required>
+                                </div>
                             </div>
                         </div>
 
@@ -152,6 +170,6 @@
 <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
 <script src="../js/auth-shell.js?v=20261023pills"></script>
 <script src="../js/maintenance-settings.js?v=20261023mongo1"></script>
-<script src="../js/app-runtime.js?v=20261023smooth1"></script>
+<script src="../js/app-runtime.js?v=20261024user"></script>
 </body>
 </html>

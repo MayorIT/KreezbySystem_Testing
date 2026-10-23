@@ -1155,7 +1155,33 @@
             });
         }
 
+        function signedInCustomer() {
+            try {
+                const s = JSON.parse(localStorage.getItem('kreezby_session') || 'null');
+                return s && s.accountType === 'Customer' ? s : null;
+            } catch (e) { return null; }
+        }
+
+        function phoneOnly(value) {
+            const v = String(value == null ? '' : value).trim();
+            return v.indexOf('@') >= 0 ? '' : v;
+        }
+
         function defaultCustomerProfile() {
+            const s = signedInCustomer();
+            if (s) {
+                // The signed-in customer, never the demo account.
+                return {
+                    accountId: s.customerId || '',
+                    username: '',
+                    fullName: s.userName || '',
+                    email: s.email || '',
+                    contactNumber: phoneOnly(s.phone),
+                    defaultAddress: s.address || '',
+                    addresses: [],
+                    avatarDataUrl: ''
+                };
+            }
             return {
                 username: 'mark_cruz',
                 fullName: 'Mark Anthony Cruz',
@@ -1171,12 +1197,17 @@
 
         function loadCustomerProfile() {
             const fallback = defaultCustomerProfile();
-            const saved = readStoredJson(CUSTOMER_PROFILE_KEY, {});
-            return {
+            let saved = readStoredJson(CUSTOMER_PROFILE_KEY, {}) || {};
+            const s = signedInCustomer();
+            // A profile left behind by another account on this browser is not this customer's.
+            if (s && s.customerId && saved.accountId && saved.accountId !== s.customerId) saved = {};
+            const profile = {
                 ...fallback,
                 ...saved,
                 addresses: Array.isArray(saved.addresses) ? saved.addresses : []
             };
+            profile.contactNumber = phoneOnly(profile.contactNumber);
+            return profile;
         }
 
         function saveCustomerProfile(profile) {

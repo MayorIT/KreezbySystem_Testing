@@ -216,6 +216,12 @@
     return null;
   }
 
+  // A contact number is a phone number: older sign-ups stored the email there.
+  function phoneOnly(value) {
+    var v = String(value == null ? '' : value).trim();
+    return v.indexOf('@') >= 0 ? '' : v;
+  }
+
   // The customer site reads one profile blob; make it belong to the account that just logged in.
   function applyCustomerProfile(acct, fallbackName) {
     try {
@@ -229,7 +235,7 @@
         username: acct.username || '',
         fullName: acct.name || fallbackName || '',
         email: acct.email || '',
-        contactNumber: acct.phone || acct.contact || '',
+        contactNumber: phoneOnly(acct.phone) || phoneOnly(acct.contact),
         defaultAddress: address,
         addresses: address ? [{ id: 'addr-' + (id || 'home'), label: 'Home', address: address }] : [],
         avatarDataUrl: '',
@@ -708,7 +714,7 @@
               var custAcct = (mongo && mongo.ok && mongo.account) || findLocalCustomer(identity) || {};
               sessionData.customerId = custAcct.id || custAcct.user_id || '';
               sessionData.email = custAcct.email || '';
-              sessionData.phone = custAcct.phone || custAcct.contact || '';
+              sessionData.phone = phoneOnly(custAcct.phone) || phoneOnly(custAcct.contact);
               sessionData.address = custAcct.address || '';
               applyCustomerProfile(custAcct, resolved.userName);
             }
@@ -735,8 +741,9 @@
           var payload = {
             firstName: fd.get('firstName') || '',
             lastName: fd.get('lastName') || '',
-            contactInfo: fd.get('contactInfo') || '',
-            email: fd.get('contactInfo') || '',
+            username: String(fd.get('username') || '').trim().toLowerCase(),
+            email: String(fd.get('email') || '').trim(),
+            phone: String(fd.get('phone') || '').replace(/[\s-]/g, ''),
             birthday: fd.get('birthday') || '',
             password: fd.get('password') || '',
             confirmPassword: fd.get('confirmPassword') || ''
@@ -745,8 +752,16 @@
             toast('Enter your first and last name.', 'warn');
             return;
           }
-          if (!String(payload.contactInfo || '').trim()) {
-            toast('Enter an email or phone number.', 'warn');
+          if (!/^[a-z0-9._]{3,30}$/.test(payload.username)) {
+            toast('Username must be 3–30 letters, numbers, dots or underscores.', 'warn');
+            return;
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+            toast('Enter a valid email address.', 'warn');
+            return;
+          }
+          if (!/^\+?\d{10,15}$/.test(payload.phone)) {
+            toast('Enter a valid contact number (e.g. 09XXXXXXXXX).', 'warn');
             return;
           }
           if (!payload.password || String(payload.password).length < 6) {
@@ -762,15 +777,14 @@
           var submitBtn = form.querySelector('[type="submit"]');
           if (submitBtn) submitBtn.disabled = true;
           var customerName = (payload.firstName + ' ' + payload.lastName).trim();
-          var contact = String(payload.contactInfo || '').trim();
-          var isEmail = contact.indexOf('@') >= 0;
           var record = {
             id: 'cust-' + Date.now(),
             user_id: '',
             name: customerName || 'New Customer',
-            email: isEmail ? contact : '',
-            phone: isEmail ? '' : contact,
-            contact: contact,
+            username: payload.username,
+            email: payload.email,
+            phone: payload.phone,
+            contact: payload.phone,
             birthday: payload.birthday || '',
             joined: new Date().toISOString().slice(0, 10),
             role: 'Customer',
@@ -779,13 +793,12 @@
             active: true
           };
           record.user_id = record.id;
-          if (isEmail) record.username = contact.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '_') || record.id;
           if (window.KreezbyMaintenanceSettings) {
             var users = KreezbyMaintenanceSettings.getUsers();
             users.customers = users.customers || [];
             users.customers.push(record);
             KreezbyMaintenanceSettings.saveUsers(users);
-            KreezbyMaintenanceSettings.recordLogin(contact);
+            KreezbyMaintenanceSettings.recordLogin(payload.username);
           }
           var published = window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.publishAccount
             ? KreezbyMaintenanceSettings.publishAccount('customers', record)

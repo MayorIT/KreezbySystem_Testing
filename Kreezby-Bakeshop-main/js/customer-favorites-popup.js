@@ -125,13 +125,17 @@
     }
 
     function readProfile() {
-        var saved = readJson('kreezbyCustomerProfile', {});
+        var saved = readJson('kreezbyCustomerProfile', {}) || {};
+        var sess = readJson('kreezby_session', {}) || {};
+        if (sess.accountType === 'Customer' && sess.customerId && saved.accountId && saved.accountId !== sess.customerId) saved = {};
+        var phone = String(saved.contactNumber || sess.phone || '');
+        if (phone.indexOf('@') >= 0) phone = '';
         return {
-            username: saved.username || 'mark_cruz',
-            fullName: saved.fullName || 'Mark Anthony Cruz',
-            email: saved.email || 'mark.cruz@email.com',
-            contactNumber: saved.contactNumber || '09190882176',
-            defaultAddress: saved.defaultAddress || '22 General Luna St., Poblacion, San Juan, Batangas',
+            username: saved.username || '',
+            fullName: saved.fullName || sess.userName || '',
+            email: saved.email || sess.email || '',
+            contactNumber: phone || 'No contact number set',
+            defaultAddress: saved.defaultAddress || sess.address || '',
             addresses: Array.isArray(saved.addresses) ? saved.addresses : []
         };
     }
