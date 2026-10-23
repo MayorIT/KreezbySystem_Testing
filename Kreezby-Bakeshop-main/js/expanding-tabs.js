@@ -12,7 +12,6 @@
     var CSS_HREF = 'css/shared/expanding-tabs.css?v=20260927text';
 
     var LIST_SELECTOR = [
-        '.auth-tabs',
         '.po-order-tabs',
         '.bo-order-tabs',
         '.modal-tabs',
@@ -26,7 +25,6 @@
     var TAB_SELECTOR = [
         '.po-order-tab',
         '.bo-order-tab',
-        '.auth-tab',
         '.tab-link',
         '.forecast-tab-link',
         '.maintenance-tab-link',
@@ -229,8 +227,7 @@
     }
 
     function isDarkList(list) {
-        return list.classList.contains('auth-tabs')
-            || !!list.closest('.auth-card, .auth-shell, .top-navbar-node');
+        return !!list.closest('.auth-card, .auth-shell, .top-navbar-node');
     }
 
     function bindList(list) {
@@ -271,9 +268,10 @@
 
     function enhanceList(list) {
         if (!list) return;
+        if (list.classList.contains('auth-tabs') || list.closest('.auth-shell')) return;
         list.classList.add('expanding-tabs');
         if (isDarkList(list)) list.classList.add('expanding-tabs--on-dark');
-        if (!list.getAttribute('role') && (list.classList.contains('auth-tabs') || list.classList.contains('po-order-tabs') || list.classList.contains('bo-order-tabs') || list.classList.contains('modal-tabs'))) {
+        if (!list.getAttribute('role') && (list.classList.contains('po-order-tabs') || list.classList.contains('bo-order-tabs') || list.classList.contains('modal-tabs'))) {
             list.setAttribute('role', 'tablist');
         }
 

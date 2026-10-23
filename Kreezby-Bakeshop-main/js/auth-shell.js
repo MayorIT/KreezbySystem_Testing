@@ -124,10 +124,8 @@
                 panel.classList.toggle('is-active', panel.getAttribute('data-auth-panel') === name);
             });
             var slide = root.querySelector('[data-auth-slide]');
-            if (slide) {
-                slide.classList.toggle('is-signup', name === 'signup');
-                sizeAuthSlide(slide);
-            }
+            if (slide) slide.classList.toggle('is-signup', name === 'signup');
+            document.documentElement.dataset.authTab = name;
             if (updateHash !== false) {
                 try {
                     history.replaceState(null, '', name === 'signup' ? 'log_in.html?tab=signup' : 'log_in.html');
@@ -152,22 +150,6 @@
         var initial = params.get('tab') || hash || 'login';
         if (initial !== 'signup') initial = 'login';
         activate(initial, false);
-
-        var slide = root.querySelector('[data-auth-slide]');
-        if (slide && window.ResizeObserver) {
-            var observer = new ResizeObserver(function () { sizeAuthSlide(slide); });
-            slide.querySelectorAll('.auth-panel').forEach(function (panel) { observer.observe(panel); });
-        }
-        window.addEventListener('resize', function () { sizeAuthSlide(slide); });
-        window.addEventListener('load', function () { sizeAuthSlide(slide); });
-    }
-
-    function sizeAuthSlide(slide) {
-        if (!slide) return;
-        var active = slide.querySelector('.auth-panel.is-active');
-        if (!active) return;
-        var next = active.scrollHeight + 'px';
-        if (slide.style.height !== next) slide.style.height = next;
     }
 
     function wireSignupPasswordConfirm() {
@@ -222,37 +204,6 @@
         });
     }
 
-    function ensureExpandingTabs() {
-        if (window.KreezbyExpandingTabsLoaded) {
-            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
-                window.KreezbyExpandingTabs.init();
-            }
-            return;
-        }
-        if (document.getElementById('kreezby-expanding-tabs-script')) return;
-
-        var src = '../js/expanding-tabs.js?v=20260925sm';
-        var scripts = document.getElementsByTagName('script');
-        for (var i = 0; i < scripts.length; i++) {
-            var href = scripts[i].getAttribute('src') || '';
-            if (href.indexOf('auth-shell.js') >= 0) {
-                src = href.replace(/auth-shell\.js[^/]*$/, 'expanding-tabs.js?v=20260925sm');
-                break;
-            }
-        }
-
-        var s = document.createElement('script');
-        s.id = 'kreezby-expanding-tabs-script';
-        s.src = src;
-        s.defer = true;
-        s.onload = function () {
-            if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
-                window.KreezbyExpandingTabs.init();
-            }
-        };
-        document.head.appendChild(s);
-    }
-
     function init() {
         initParticles();
         wirePasswordToggles();
@@ -260,7 +211,6 @@
         wireSignupPasswordConfirm();
         wireForgotPassword();
         initTabs();
-        ensureExpandingTabs();
     }
 
     if (document.readyState === 'loading') {
