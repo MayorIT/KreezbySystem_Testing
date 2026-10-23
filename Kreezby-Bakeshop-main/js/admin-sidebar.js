@@ -299,7 +299,7 @@
     function navItem(item, activeKey) {
         var frameAttrs = frameAttrsFor(item);
         var filename = currentFilename();
-        var badge = notificationBadge(item.key);
+        var badge = item.key === activeKey ? seenBadge(item.key) : notificationBadge(item.key);
         var childrenHtml = '';
         if (item.children && item.children.length) {
             childrenHtml = '<div class="kreezby-sidebar-sub">' + item.children.map(function (child) {
@@ -336,14 +336,32 @@
 
     function notificationBadge(taskKey) {
         var api = window.KreezbyNotifications;
-        if (!api || typeof api.getUnreadCountForTask !== 'function') return '';
-        var count = api.getUnreadCountForTask(taskKey);
-        return count ? '<span class="kreezby-sidebar-notification-badge" data-notification-task="' + taskKey + '">' + (count > 99 ? '99+' : count) + '</span>' : '';
+        var count = api && typeof api.getUnreadCountForTask === 'function' ? api.getUnreadCountForTask(taskKey) : 0;
+        // Always render the badge so new activity can show it later; hide it at 0.
+        return '<span class="kreezby-sidebar-notification-badge" data-notification-task="' + taskKey + '"' + (count ? '' : ' hidden') + '>' + (count > 99 ? '99+' : count) + '</span>';
     }
+
+    // The page being viewed: mark its activity as seen so its badge clears.
+    function seenBadge(taskKey) {
+        var api = window.KreezbyNotifications;
+        if (api && typeof api.markTaskSeen === 'function' && seenMarkedKey !== taskKey) {
+            seenMarkedKey = taskKey;
+            try { api.markTaskSeen(taskKey); } catch (e) { /* badge is optional */ }
+        }
+        return notificationBadge(taskKey);
+    }
+
+    var seenMarkedKey = '';
 
     function updateNotificationBadges() {
         var api = window.KreezbyNotifications;
         if (!api || typeof api.getUnreadCountForTask !== 'function') return;
+        // The notification store may load after the sidebar: mark the open page seen once it is ready.
+        var openKey = activeKeyFor(currentFilename());
+        if (openKey && seenMarkedKey !== openKey && typeof api.markTaskSeen === 'function') {
+            seenMarkedKey = openKey;
+            try { api.markTaskSeen(openKey); } catch (e) { /* badge is optional */ }
+        }
         document.querySelectorAll('.kreezby-sidebar-notification-badge[data-notification-task]').forEach(function (badge) {
             var count = api.getUnreadCountForTask(badge.getAttribute('data-notification-task'));
             badge.textContent = count > 99 ? '99+' : String(count);

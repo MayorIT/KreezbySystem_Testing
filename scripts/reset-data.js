@@ -6,6 +6,9 @@
  *   node scripts/reset-data.js --apply    -> saves a backup, then makes the changes
  *   node scripts/reset-data.js --restore backups/<file>.json   -> puts a backup back
  *
+ * The server (server.js) also runs this reset once by itself after deploy, with its backup
+ * stored in MongoDB collections named backup_20261023_*.
+ *
  * What it does:
  *   - Removes every customer account except Mark Anthony Cruz (cust-mark-cruz).
  *   - Keeps Mark's orders, receipts and the purchase-order entry for his order.
@@ -207,6 +210,106 @@ function planState(items, extra) {
   return { changes, report, removedCustomers, markOrderNumbers: [...markOrderNumbers] };
 }
 
+const RESET_FLAG_ID = "reset_20261023_done";
+const RESET_LOCK_ID = "reset_20261023_lock";
+const RESET_COLLECTIONS = ["app_state", "customer_accounts", "customer_orders", "sales_orders", "sales_route_sheets", "sales_procurement"];
+
+/**
+ * Plans (and with apply=true, performs) the reset against an open MongoDB database.
+ * backup: "file" writes a JSON file in backups/, "db" copies each collection to backup_20261023_<name>.
+ */
+async function runReset(db, options) {
+  const opts = Object.assign({ apply: false, backup: "file", log: console.log }, options || {});
+  const log = opts.log;
+  const collections = {};
+  for (const name of RESET_COLLECTIONS) collections[name] = await db.collection(name).find({}).toArray();
+
+  let backupWhere = "";
+  if (opts.backup === "file") {
+    const { BSON } = require("mongodb");
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupFile = path.join(backupDir(), "kreezby-backup-" + stamp + ".json");
+    fs.writeFileSync(backupFile, BSON.EJSON.stringify({ createdAt: new Date(), collections }, null, 0, { relaxed: false }));
+    backupWhere = backupFile;
+  } else if (opts.backup === "db" && opts.apply) {
+    for (const name of RESET_COLLECTIONS) {
+      const target = db.collection("backup_20261023_" + name);
+      if (await target.countDocuments({}, { limit: 1 })) continue;
+      if (collections[name].length) await target.insertMany(collections[name], { ordered: false });
+    }
+    backupWhere = "MongoDB collections backup_20261023_*";
+  }
+  if (backupWhere) log("Backup saved: " + backupWhere);
+
+  const items = {};
+  collections.app_state.forEach((doc) => { if (typeof doc.value === "string") items[doc._id] = doc.value; });
+  const plan = planState(items, { customerAccounts: collections.customer_accounts });
+  const markOrderIds = new Set(plan.markOrderNumbers);
+
+  const deletions = {
+    customer_accounts: collections.customer_accounts.filter((d) => String(d._id) !== KEEP_CUSTOMER_ID && !isKeptCustomer(d)).map((d) => d._id),
+    customer_orders: collections.customer_orders.filter((d) => !isMarkOrder(d) && !markOrderIds.has(String(d.orderNumber || d._id))).map((d) => d._id),
+    sales_orders: collections.sales_orders.filter((d) => !markOrderIds.has(String(d._id)) && !KEEP_NAME_RE.test(String(d.Customer_ID || ""))).map((d) => d._id),
+    sales_route_sheets: collections.sales_route_sheets.filter((d) => d._id !== "_meta").map((d) => d._id),
+    sales_procurement: collections.sales_procurement.map((d) => d._id),
+  };
+
+  log("Changes to shared app data:");
+  plan.report.forEach((line) => log("  - " + line));
+  log("Database records to delete:");
+  Object.entries(deletions).forEach(([name, ids]) => {
+    const sample = name === "customer_accounts" ? " (" + ids.join(", ") + ")" : "";
+    log("  - " + name + ": " + ids.length + " of " + collections[name].length + sample);
+  });
+  log("Not touched: admin_accounts, staff_accounts, retailer_accounts, permissions, products.");
+  if (!opts.apply) return { applied: false, plan, deletions, backupWhere };
+
+  for (const [name, ids] of Object.entries(deletions)) {
+    if (ids.length) {
+      const result = await db.collection(name).deleteMany({ _id: { $in: ids } });
+      log("Deleted from " + name + ": " + result.deletedCount);
+    }
+  }
+  await db.collection("sales_route_sheets").updateOne(
+    { _id: "_meta" },
+    { $set: Object.assign({}, SALES_META, { updatedAt: new Date() }) },
+    { upsert: true }
+  );
+  const ops = Object.entries(plan.changes).map(([key, value]) => ({
+    updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: new Date() } }, upsert: true },
+  }));
+  ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(Date.now()) } }, upsert: true } });
+  await db.collection("app_state").bulkWrite(ops, { ordered: false });
+  log("Updated shared app data keys: " + Object.keys(plan.changes).length);
+  return { applied: true, plan, deletions, backupWhere };
+}
+
+/**
+ * Runs the reset once per database: the server calls this on start. A lock document stops
+ * two server instances from running it at the same time; a flag document marks it done.
+ */
+async function runResetOnce(db, log) {
+  const state = db.collection("app_state");
+  if (await state.findOne({ _id: RESET_FLAG_ID })) return false;
+  try {
+    await state.insertOne({ _id: RESET_LOCK_ID, at: new Date() });
+  } catch (error) {
+    if (error && error.code === 11000) return false; // another instance is running it
+    throw error;
+  }
+  try {
+    const result = await runReset(db, { apply: true, backup: "db", log: log || console.log });
+    await state.updateOne(
+      { _id: RESET_FLAG_ID },
+      { $set: { at: new Date(), removedCustomers: result.deletions.customer_accounts.map(String), backup: result.backupWhere } },
+      { upsert: true }
+    );
+    return true;
+  } finally {
+    await state.deleteOne({ _id: RESET_LOCK_ID });
+  }
+}
+
 function backupDir() {
   const dir = path.join(__dirname, "..", "backups");
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -216,7 +319,6 @@ function backupDir() {
 async function main() {
   require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
   const { MongoClient, BSON } = require("mongodb");
-  const EJSON = BSON.EJSON;
   const uri = process.env.MONGODB_URI;
   if (!uri) {
     console.error("MONGODB_URI is not set. Add it to the .env file next to server.js (copy it from Vercel).");
@@ -225,7 +327,6 @@ async function main() {
   const args = process.argv.slice(2);
   const apply = args.includes("--apply");
   const restoreAt = args.indexOf("--restore");
-
   const client = new MongoClient(uri, { serverSelectionTimeoutMS: 15000 });
   await client.connect();
   const db = client.db(DB_NAME);
@@ -233,7 +334,7 @@ async function main() {
     if (restoreAt >= 0) {
       const file = args[restoreAt + 1];
       if (!file) throw new Error("Give the backup file: --restore backups/<file>.json");
-      const backup = EJSON.parse(fs.readFileSync(file, "utf8"));
+      const backup = BSON.EJSON.parse(fs.readFileSync(file, "utf8"));
       for (const [name, docs] of Object.entries(backup.collections || {})) {
         await db.collection(name).deleteMany({});
         if (docs.length) await db.collection(name).insertMany(docs);
@@ -242,68 +343,18 @@ async function main() {
       console.log("Restore finished.");
       return;
     }
-
-    const names = ["app_state", "customer_accounts", "customer_orders", "sales_orders", "sales_route_sheets", "sales_procurement"];
-    const collections = {};
-    for (const name of names) collections[name] = await db.collection(name).find({}).toArray();
-
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupFile = path.join(backupDir(), "kreezby-backup-" + stamp + ".json");
-    fs.writeFileSync(backupFile, EJSON.stringify({ createdAt: new Date(), collections }, null, 0, { relaxed: false }));
-    console.log("Backup saved: " + backupFile);
-
-    const items = {};
-    collections.app_state.forEach((doc) => { if (typeof doc.value === "string") items[doc._id] = doc.value; });
-    const plan = planState(items, { customerAccounts: collections.customer_accounts });
-    const markOrderIds = new Set(plan.markOrderNumbers);
-
-    const deletions = {
-      customer_accounts: collections.customer_accounts.filter((d) => String(d._id) !== KEEP_CUSTOMER_ID && !isKeptCustomer(d)).map((d) => d._id),
-      customer_orders: collections.customer_orders.filter((d) => !isMarkOrder(d) && !markOrderIds.has(String(d.orderNumber || d._id))).map((d) => d._id),
-      sales_orders: collections.sales_orders.filter((d) => !markOrderIds.has(String(d._id)) && !KEEP_NAME_RE.test(String(d.Customer_ID || ""))).map((d) => d._id),
-      sales_route_sheets: collections.sales_route_sheets.filter((d) => d._id !== "_meta").map((d) => d._id),
-      sales_procurement: collections.sales_procurement.map((d) => d._id),
-    };
-
-    console.log("\nChanges to shared app data:");
-    plan.report.forEach((line) => console.log("  - " + line));
-    console.log("\nDatabase records to delete:");
-    Object.entries(deletions).forEach(([name, ids]) => {
-      const sample = name === "customer_accounts" ? " (" + ids.join(", ") + ")" : "";
-      console.log("  - " + name + ": " + ids.length + " of " + collections[name].length + sample);
-    });
-    console.log("  - sales_route_sheets _meta: reset to 0 reports");
-    console.log("\nNot touched: admin_accounts, staff_accounts, retailer_accounts, permissions, products.");
-
-    if (!apply) {
-      console.log("\nDry run only. Nothing was changed. Run again with --apply to make these changes.");
-      return;
+    const result = await runReset(db, { apply, backup: "file" });
+    if (!result.applied) console.log("\nDry run only. Nothing was changed. Run again with --apply to make these changes.");
+    else {
+      await db.collection("app_state").updateOne({ _id: RESET_FLAG_ID }, { $set: { at: new Date(), backup: result.backupWhere } }, { upsert: true });
+      console.log("\nDone.");
     }
-
-    for (const [name, ids] of Object.entries(deletions)) {
-      if (ids.length) {
-        const result = await db.collection(name).deleteMany({ _id: { $in: ids } });
-        console.log("Deleted from " + name + ": " + result.deletedCount);
-      }
-    }
-    await db.collection("sales_route_sheets").updateOne(
-      { _id: "_meta" },
-      { $set: Object.assign({}, SALES_META, { updatedAt: new Date() }) },
-      { upsert: true }
-    );
-    const ops = Object.entries(plan.changes).map(([key, value]) => ({
-      updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: new Date() } }, upsert: true },
-    }));
-    ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(Date.now()) } }, upsert: true } });
-    await db.collection("app_state").bulkWrite(ops, { ordered: false });
-    console.log("Updated shared app data keys: " + Object.keys(plan.changes).length);
-    console.log("\nDone. Backup: " + backupFile);
   } finally {
     await client.close();
   }
 }
 
-module.exports = { planState, isMarkOrder, isKeptCustomer };
+module.exports = { planState, isMarkOrder, isKeptCustomer, runReset, runResetOnce };
 
 if (require.main === module) {
   main().catch((error) => {

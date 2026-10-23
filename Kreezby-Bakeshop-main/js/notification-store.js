@@ -62,6 +62,24 @@
         forecast: ['aiforecast']
     };
 
+    // Sidebar badges: each kind of activity counts on ONE menu item only, and a badge
+    // only counts activity that happened after that account last opened the page.
+    var BADGE_TASKS = {
+        order: ['bo'],
+        payment: ['saleslist'],
+        po: ['bo'],
+        receive: ['bo'],
+        return: ['ordertracking'],
+        alert: ['alert'],
+        stock: ['stocks'],
+        delivery: ['deliveryschedule'],
+        inbox: ['inbox', 'inbox_retailer'],
+        forecast: ['aiforecast']
+    };
+    var BADGE_SEEN_KEY = 'kreezbyBadgeSeen';
+    // Activity before this moment never shows as a badge (old demo notifications).
+    var BADGE_BASELINE = '2026-10-23T07:00:00.000Z';
+
     function isStaffPortal() {
         return /\/staff\//i.test(window.location.pathname || '');
     }
@@ -260,11 +278,37 @@
         return getAll().filter(function (n) { return !n.read; }).length;
     }
 
+    function badgeViewerKey() {
+        return currentAccountId() || audienceKey();
+    }
+
+    function badgeSeenAt(taskKey) {
+        var all = readJson(BADGE_SEEN_KEY, {});
+        var mine = (all && all[badgeViewerKey()]) || {};
+        var seen = mine[taskKey] || '';
+        return seen > BADGE_BASELINE ? seen : BADGE_BASELINE;
+    }
+
+    function markTaskSeen(taskKey) {
+        if (!taskKey) return;
+        var all = readJson(BADGE_SEEN_KEY, {});
+        if (!all || typeof all !== 'object' || Array.isArray(all)) all = {};
+        var viewer = badgeViewerKey();
+        var mine = Object.assign({}, all[viewer] || {});
+        mine[taskKey] = new Date().toISOString();
+        all[viewer] = mine;
+        writeJson(BADGE_SEEN_KEY, all);
+        emit({ type: 'task-seen', task: taskKey, unread: getUnreadCount() });
+    }
+
     function getUnreadCountForTask(taskKey) {
         var count = 0;
+        var since = badgeSeenAt(taskKey);
         getAll().forEach(function (item) {
-            var tasks = SOURCE_TASKS[item.source || 'system'] || [];
-            if (tasks.indexOf(taskKey) !== -1 && !item.read) count += 1;
+            var tasks = BADGE_TASKS[item.source || 'system'] || [];
+            if (tasks.indexOf(taskKey) === -1 || item.read) return;
+            var at = item.timestamp instanceof Date ? item.timestamp.toISOString() : String(item.timestamp || '');
+            if (at > since) count += 1;
         });
         return count;
     }
@@ -410,6 +454,7 @@
         getAll: getAll,
         getUnreadCount: getUnreadCount,
         getUnreadCountForTask: getUnreadCountForTask,
+        markTaskSeen: markTaskSeen,
         push: push,
         markRead: markRead,
         markAllRead: markAllRead,

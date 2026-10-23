@@ -71,11 +71,52 @@ async function resetClient() {
   client = createMongoClient();
 }
 
+// One-time data reset (2026-10-23): removes the 9 demo customers (keeps Mark Cruz) and zeroes the
+// demo orders, purchasing, stock and sales. Runs once per database; backup in backup_20261023_*.
+// Removed in the 2026-10-23 reset. A browser tab that still holds the old data must not
+// bring these back when it saves.
+const RETIRED_CUSTOMER_IDS = new Set([
+  "cust-maria-santos", "cust-bryle-atienza", "cust-kyla-ramos", "cust-ana-reyes", "cust-christine-bautista",
+  "cust-paolo-mendoza", "cust-jericho-villanueva", "cust-angela-flores", "cust-nicole-garcia",
+]);
+const RETIRED_ORDER_NUMBERS = new Set(["ORD-2026-1042", "ORD-2026-1038", "ORD-2026-1021", "ORD-2026-1015", "ORD-2026-1008"]);
+
+function dropRetired(key, stored) {
+  try {
+    if (key === "kreezby_maintenance_users") {
+      const users = JSON.parse(stored);
+      if (users && Array.isArray(users.customers)) {
+        const kept = users.customers.filter((c) => !c || !RETIRED_CUSTOMER_IDS.has(String(c.id || c.user_id || "")));
+        if (kept.length !== users.customers.length) return JSON.stringify(Object.assign({}, users, { customers: kept }));
+      }
+    } else if (key === "kreezbyOrders" || key === "kreezbyCustomerReceipts" || key === "kreezbyOwnerReceipts") {
+      const list = JSON.parse(stored);
+      if (Array.isArray(list)) {
+        const kept = list.filter((o) => !o || !RETIRED_ORDER_NUMBERS.has(String(o.orderNumber || "")));
+        if (kept.length !== list.length) return JSON.stringify(kept);
+      }
+    }
+  } catch (error) {
+    /* not JSON: store as sent */
+  }
+  return stored;
+}
+
+async function runOneTimeReset() {
+  try {
+    const done = await require("./scripts/reset-data.js").runResetOnce(client.db(DB_NAME), (line) => console.log("[reset] " + line));
+    if (done) console.log("[reset] One-time data reset finished.");
+  } catch (error) {
+    console.error("[reset] One-time data reset failed: " + error.message);
+  }
+}
+
 async function activateMongo() {
   if (!client) throw new Error("Missing MONGODB_URI in .env");
   await client.connect();
   await client.db(DB_NAME).command({ ping: 1 });
   if (!mongoReady) {
+    await runOneTimeReset();
     await ensureSalesList();
     await refreshCache();
     await ensureCustomerOrders();
@@ -334,6 +375,7 @@ app.use("/api", async (req, res, next) => {
         lazyConnect = (async () => {
           await client.connect();
           await client.db(DB_NAME).command({ ping: 1 });
+          await runOneTimeReset();
           await refreshCache();
           lastCacheRefresh = Date.now();
           mongoReady = true;
@@ -660,7 +702,8 @@ app.post("/api/state", async (req, res) => {
         delete cache[key];
         continue;
       }
-      const stored = String(value);
+      const stored = dropRetired(key, String(value));
+      if (stored !== String(value)) items[key] = stored;
       if (stored.length > 12 * 1024 * 1024) continue;
       ops.push({
         updateOne: {

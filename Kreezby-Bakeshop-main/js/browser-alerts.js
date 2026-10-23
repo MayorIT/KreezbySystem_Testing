@@ -9,6 +9,7 @@
 
     var SETTINGS_KEY = 'kreezbyAlertSettings';
     var ACTIVE_KEY = 'kreezbyAlertActive';
+    var LAST_QTY_KEY = 'kreezbyAlertLastQty';
     var SEEN_KEY = 'kreezbyBrowserAlertSeen';
     var STOCK_KEY = 'kreezby-stock-local-v1';
     var NOTES_KEY = 'kreezbyNotifications';
@@ -360,12 +361,24 @@
         if (!allowedRole()) return;
         var active = readJson(ACTIVE_KEY, {});
         if (!active || typeof active !== 'object') active = {};
+        // Last stock count seen per item. A notification is sent only when an item
+        // drops to or below its alert line; items that were already low (for example
+        // right after the data reset set every count to 0) don't create a burst of alerts.
+        var last = readJson(LAST_QTY_KEY, {});
+        if (!last || typeof last !== 'object' || Array.isArray(last)) last = {};
+        var lastChanged = false;
         var changed = false;
         stockRows().forEach(function (row) {
             var open = active[row.code];
+            var before = Object.prototype.hasOwnProperty.call(last, row.code) ? Number(last[row.code]) : null;
+            if (before !== row.qty) {
+                last[row.code] = row.qty;
+                lastChanged = true;
+            }
             if (row.qty <= row.threshold) {
                 if (open && open.id) return;
-                active[row.code] = { id: pushAlert(row), qty: row.qty, threshold: row.threshold };
+                var dropped = before != null && before > row.threshold;
+                active[row.code] = { id: dropped ? pushAlert(row) : ('quiet-' + row.code), qty: row.qty, threshold: row.threshold };
                 changed = true;
                 return;
             }
@@ -375,6 +388,7 @@
             }
         });
         if (changed) writeJson(ACTIVE_KEY, active);
+        if (lastChanged) writeJson(LAST_QTY_KEY, last);
         renderLiveRows();
         renderThresholdBar();
     }
