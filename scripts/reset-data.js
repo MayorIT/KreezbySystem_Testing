@@ -310,6 +310,54 @@ async function runResetOnce(db, log) {
   }
 }
 
+/**
+ * Second one-time step: after stock was zeroed, the old alert code created an "out of stock"
+ * notification for every item. Remove those stock-alert notifications from 2026-10-23 and
+ * clear the active-alert list, so the bell and menu badges start clean.
+ */
+async function runAlertCleanupOnce(db, log) {
+  const say = log || console.log;
+  const state = db.collection("app_state");
+  const FLAG = "reset_20261023b_done";
+  const LOCK = "reset_20261023b_lock";
+  if (await state.findOne({ _id: FLAG })) return false;
+  try {
+    await state.insertOne({ _id: LOCK, at: new Date() });
+  } catch (error) {
+    if (error && error.code === 11000) return false;
+    throw error;
+  }
+  try {
+    const doc = await state.findOne({ _id: "kreezbyNotifications" });
+    let removed = 0;
+    if (doc && typeof doc.value === "string") {
+      const list = parse(doc.value, null);
+      if (Array.isArray(list)) {
+        const kept = list.filter((n) => {
+          if (!n) return false;
+          const isStockAlert = n.source === "alert" && String(n.id || "").indexOf("stock-") === 0;
+          const today = String(n.timestamp || "").slice(0, 10) === "2026-10-23";
+          return !(isStockAlert && today);
+        });
+        removed = list.length - kept.length;
+        if (removed) {
+          if (await db.collection("backup_20261023_notifications").countDocuments({}, { limit: 1 }) === 0) {
+            await db.collection("backup_20261023_notifications").insertOne({ _id: "kreezbyNotifications", value: doc.value, at: new Date() });
+          }
+          await state.updateOne({ _id: "kreezbyNotifications" }, { $set: { value: JSON.stringify(kept), updatedAt: new Date() } });
+        }
+      }
+    }
+    await state.updateOne({ _id: "kreezbyAlertActive" }, { $set: { value: "{}", updatedAt: new Date() } }, { upsert: true });
+    await state.updateOne({ _id: "state_meta" }, { $set: { value: String(Date.now()) } }, { upsert: true });
+    await state.updateOne({ _id: FLAG }, { $set: { at: new Date(), removedNotifications: removed } }, { upsert: true });
+    say("Removed " + removed + " stock-alert notifications created by the reset.");
+    return true;
+  } finally {
+    await state.deleteOne({ _id: LOCK });
+  }
+}
+
 function backupDir() {
   const dir = path.join(__dirname, "..", "backups");
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -354,7 +402,7 @@ async function main() {
   }
 }
 
-module.exports = { planState, isMarkOrder, isKeptCustomer, runReset, runResetOnce };
+module.exports = { planState, isMarkOrder, isKeptCustomer, runReset, runResetOnce, runAlertCleanupOnce };
 
 if (require.main === module) {
   main().catch((error) => {

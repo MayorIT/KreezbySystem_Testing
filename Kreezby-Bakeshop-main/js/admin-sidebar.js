@@ -520,6 +520,18 @@
 
         ensureNotificationStoreLoaded();
         document.addEventListener('kreezby:notification-change', updateNotificationBadges);
+        // Clicking a menu item clears its badge for good (stored per account).
+        document.addEventListener('click', function (e) {
+            var link = e.target && e.target.closest ? e.target.closest('a.kreezby-sidebar-nav-item') : null;
+            if (!link) return;
+            var badge = link.querySelector('.kreezby-sidebar-notification-badge[data-notification-task]');
+            if (!badge) return;
+            var api = window.KreezbyNotifications;
+            if (api && typeof api.markTaskSeen === 'function') {
+                try { api.markTaskSeen(badge.getAttribute('data-notification-task')); } catch (err) { /* optional */ }
+            }
+            badge.hidden = true;
+        }, true);
         window.addEventListener('load', updateNotificationBadges);
 
     }

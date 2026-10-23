@@ -243,6 +243,8 @@
             if (line != null && qty <= line) {
                 pushAlert(list, 'low_stock', 'Admin', product.product_id, product.product_name + ' is at ' + qty + ' pouches, at or below the alert line of ' + line + '.');
             }
+            // No stock means no batch on hand, so no expiry alert for it.
+            if (qty <= 0) return;
             var days = daysUntil(product.expiration_date);
             if (days == null) return;
             var threshold = Number(product.expiry_threshold_days);
@@ -262,6 +264,7 @@
             if (line != null && qty <= line) {
                 pushAlert(list, 'low_stock', 'Staff', item.material_id, item.name + ' is at ' + qty + ', at or below the alert line of ' + line + '.');
             }
+            if (qty <= 0) return;
             var days = daysUntil(item.expiration_date);
             if (days == null) return;
             var threshold = Number(item.expiry_threshold_days);

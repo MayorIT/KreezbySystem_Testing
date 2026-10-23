@@ -156,6 +156,7 @@
     function latestDataDay() {
         var latest = '';
         salesRows().forEach(function (row) {
+            if (!(Number(row.quantity_sold) > 0)) return; // empty placeholder days are not data
             var day = parseDay(row.sales_date);
             if (day && day > latest) latest = day;
         });
@@ -448,7 +449,9 @@
         root.querySelector('[data-kpi="sales"]').textContent = money(model.sales.value);
         root.querySelector('[data-kpi="orders"]').textContent = count(model.orders.total);
         root.querySelector('[data-kpi="units"]').textContent = count(model.sales.units) + ' pcs';
-        root.querySelector('[data-kpi="low"]').textContent = count(model.inventory.low + model.inventory.out);
+        // Items that still have stock but are under the reorder line. Products with no stock at
+        // all are shown as "Out of Stock" in the Inventory Status chart instead.
+        root.querySelector('[data-kpi="low"]').textContent = count(model.inventory.low);
         setTrend(root.querySelector('[data-trend="sales"]'), salesTrend);
         setTrend(root.querySelector('[data-trend="orders"]'), orderTrend);
         setTrend(root.querySelector('[data-trend="units"]'), unitTrend);
@@ -493,8 +496,9 @@
 
         var today = iso(new Date());
         var horizon = addDays(today, state.expiryDays);
+        // A product with no stock has nothing that can expire, so it is not listed.
         var expiring = model.stocks.filter(function (row) {
-            return row.expires && row.expires <= horizon;
+            return row.stock > 0 && row.expires && row.expires <= horizon;
         }).sort(function (a, b) { return a.expires < b.expires ? -1 : 1; });
         var table = root.querySelector('[data-expiry]');
         table.innerHTML = expiring.length

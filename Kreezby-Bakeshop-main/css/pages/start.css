@@ -1261,3 +1261,51 @@ main.workspace-canvas {
         margin-top: 16px;
     }
 }
+
+/* Start page: switch between "How are you visiting" and "Guest Access" with a fade instead of a
+   sideways slide. Both panels share one grid cell, so the card keeps the height of the taller
+   panel and never jumps, and nothing is clipped half-way. */
+.splash-slide {
+    height: auto !important;
+    overflow: visible;
+    transition: none;
+}
+
+.splash-slide__track,
+.splash-slide.is-guest .splash-slide__track {
+    display: grid;
+    grid-template-columns: 100%;
+    transform: none !important;
+    transition: none;
+}
+
+.splash-slide .main-choice-container,
+.splash-slide .guest-choice-container,
+.splash-slide .main-choice-container.hidden,
+.splash-slide .guest-choice-container.active {
+    grid-area: 1 / 1;
+    align-self: center;
+    /* hiding: fade out quickly */
+    transition: opacity 0.12s ease, visibility 0s linear 0.12s;
+}
+
+.splash-slide .guest-choice-container,
+.splash-slide.is-guest .main-choice-container {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-slide .main-choice-container,
+.splash-slide.is-guest .guest-choice-container {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    /* showing: start after the other panel has faded out */
+    transition: opacity 0.18s ease 0.12s, visibility 0s linear 0.12s;
+}
+
+/* No hover fill on a button that appears under the cursor while switching. */
+.splash-slide.is-switching .origin-btn {
+    pointer-events: none !important;
+}

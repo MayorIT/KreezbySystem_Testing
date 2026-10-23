@@ -282,22 +282,35 @@
         return currentAccountId() || audienceKey();
     }
 
+    // One stored record per account, so accounts never overwrite each other's badges.
+    function badgeSeenKey() {
+        return BADGE_SEEN_KEY + '_' + String(badgeViewerKey() || 'viewer').replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 80);
+    }
+
+    function readBadgeSeen() {
+        var mine = readJson(badgeSeenKey(), {});
+        return mine && typeof mine === 'object' && !Array.isArray(mine) ? mine : {};
+    }
+
     function badgeSeenAt(taskKey) {
-        var all = readJson(BADGE_SEEN_KEY, {});
-        var mine = (all && all[badgeViewerKey()]) || {};
+        var mine = readBadgeSeen();
+        if (!mine._since) {
+            // First time this account sees badges: only activity from now on counts,
+            // so a backlog of old notifications never shows up as menu numbers.
+            mine._since = new Date().toISOString();
+            writeJson(badgeSeenKey(), mine);
+        }
+        var floor = mine._since > BADGE_BASELINE ? mine._since : BADGE_BASELINE;
         var seen = mine[taskKey] || '';
-        return seen > BADGE_BASELINE ? seen : BADGE_BASELINE;
+        return seen > floor ? seen : floor;
     }
 
     function markTaskSeen(taskKey) {
         if (!taskKey) return;
-        var all = readJson(BADGE_SEEN_KEY, {});
-        if (!all || typeof all !== 'object' || Array.isArray(all)) all = {};
-        var viewer = badgeViewerKey();
-        var mine = Object.assign({}, all[viewer] || {});
+        var mine = readBadgeSeen();
+        if (!mine._since) mine._since = new Date().toISOString();
         mine[taskKey] = new Date().toISOString();
-        all[viewer] = mine;
-        writeJson(BADGE_SEEN_KEY, all);
+        writeJson(badgeSeenKey(), mine);
         emit({ type: 'task-seen', task: taskKey, unread: getUnreadCount() });
     }
 

@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Welcome</title>
-    <link rel="stylesheet" href="../css/pages/start.css?v=20261020space">
+    <link rel="stylesheet" href="../css/pages/start.css?v=20261023fade">
     <link rel="stylesheet" href="../css/shared/origin-button.css">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20261020icon2">
 </head>
@@ -49,12 +49,14 @@
     </div>
 
     <script>
+        // The card's height comes from CSS (both panels share one grid cell), so there is
+        // nothing to measure. This only pauses clicks/hover briefly while the panels fade.
         function sizeSplash() {
             const slide = document.getElementById('splashSlide');
-            const panel = slide.classList.contains('is-guest')
-                ? document.getElementById('guestChoiceScreen')
-                : document.getElementById('mainChoiceScreen');
-            slide.style.height = panel.scrollHeight + 'px';
+            slide.style.height = '';
+            slide.classList.add('is-switching');
+            clearTimeout(sizeSplash.timer);
+            sizeSplash.timer = setTimeout(function () { slide.classList.remove('is-switching'); }, 320);
         }
 
         function showGuestOptions() {

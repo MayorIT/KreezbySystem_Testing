@@ -104,8 +104,11 @@ function dropRetired(key, stored) {
 
 async function runOneTimeReset() {
   try {
-    const done = await require("./scripts/reset-data.js").runResetOnce(client.db(DB_NAME), (line) => console.log("[reset] " + line));
+    const reset = require("./scripts/reset-data.js");
+    const log = (line) => console.log("[reset] " + line);
+    const done = await reset.runResetOnce(client.db(DB_NAME), log);
     if (done) console.log("[reset] One-time data reset finished.");
+    await reset.runAlertCleanupOnce(client.db(DB_NAME), log);
   } catch (error) {
     console.error("[reset] One-time data reset failed: " + error.message);
   }

@@ -16,23 +16,23 @@
     var DEFAULT_THRESHOLD = 50;
 
     var CATALOG = [
-        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', kind: 'finished', qty: 450, alert: 100 },
-        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', kind: 'finished', qty: 320, alert: 80 },
-        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', kind: 'finished', qty: 85, alert: 90 },
-        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', kind: 'finished', qty: 210, alert: 70 },
-        { code: 'CRK-MNG-J', name: 'Mango Crinkles', kind: 'finished', qty: 45, alert: 60 },
-        { code: 'CRK-UBE-P', name: 'Ube Crinkles', kind: 'finished', qty: 180, alert: 50 },
-        { code: 'RM-WFL-01', name: 'Wheat Flour', kind: 'material', qty: 120, alert: 40 },
-        { code: 'RM-WSG-01', name: 'White Sugar', kind: 'material', qty: 90, alert: 30 },
-        { code: 'RM-OIL-01', name: 'Vegetable Oil', kind: 'material', qty: 48, alert: 20 },
-        { code: 'RM-EGG-01', name: 'Egg', kind: 'material', qty: 36, alert: 24 },
-        { code: 'RM-COC-01', name: 'Cocoa', kind: 'material', qty: 45, alert: 20 },
-        { code: 'RM-BKP-01', name: 'Baking Powder', kind: 'material', qty: 22, alert: 10 },
-        { code: 'RM-SLT-01', name: 'Salt', kind: 'material', qty: 70, alert: 15 },
-        { code: 'RM-CFS-01', name: 'Confectioner Sugar', kind: 'material', qty: 30, alert: 12 },
-        { code: 'RM-PSB-01', name: 'Potassium Sorbate', kind: 'material', qty: 12, alert: 5 },
-        { code: 'PKG-SUP-01', name: 'Stand up pouch', kind: 'material', qty: 80, alert: 25 },
-        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', kind: 'material', qty: 12, alert: 8 }
+        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', kind: 'finished', qty: 0, alert: 100 },
+        { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', kind: 'finished', qty: 0, alert: 80 },
+        { code: 'CRK-LEM-P', name: 'Lemon Crinkles', kind: 'finished', qty: 0, alert: 90 },
+        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', kind: 'finished', qty: 0, alert: 70 },
+        { code: 'CRK-MNG-J', name: 'Mango Crinkles', kind: 'finished', qty: 0, alert: 60 },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', kind: 'finished', qty: 0, alert: 50 },
+        { code: 'RM-WFL-01', name: 'Wheat Flour', kind: 'material', qty: 0, alert: 40 },
+        { code: 'RM-WSG-01', name: 'White Sugar', kind: 'material', qty: 0, alert: 30 },
+        { code: 'RM-OIL-01', name: 'Vegetable Oil', kind: 'material', qty: 0, alert: 20 },
+        { code: 'RM-EGG-01', name: 'Egg', kind: 'material', qty: 0, alert: 24 },
+        { code: 'RM-COC-01', name: 'Cocoa', kind: 'material', qty: 0, alert: 20 },
+        { code: 'RM-BKP-01', name: 'Baking Powder', kind: 'material', qty: 0, alert: 10 },
+        { code: 'RM-SLT-01', name: 'Salt', kind: 'material', qty: 0, alert: 15 },
+        { code: 'RM-CFS-01', name: 'Confectioner Sugar', kind: 'material', qty: 0, alert: 12 },
+        { code: 'RM-PSB-01', name: 'Potassium Sorbate', kind: 'material', qty: 0, alert: 5 },
+        { code: 'PKG-SUP-01', name: 'Stand up pouch', kind: 'material', qty: 0, alert: 25 },
+        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', kind: 'material', qty: 0, alert: 8 }
     ];
 
     function readJson(key, fallback) {
@@ -164,7 +164,7 @@
             var stored = Number(localQty[item.code]);
             if (Number.isFinite(stored)) return stored;
         }
-        return item.qty;
+        return NaN; // no real stock source on this page
     }
 
     function stockRows() {
@@ -172,11 +172,13 @@
         var qty = local && local.qty ? local.qty : {};
         return CATALOG.map(function (item) {
             var current = liveQty(item, qty);
-            if (!Number.isFinite(current)) current = item.qty;
+            var fallback = !Number.isFinite(current);
+            if (fallback) current = item.qty;
             return {
                 code: item.code,
                 name: item.name,
                 kind: item.kind,
+                fallback: fallback,
                 qty: current,
                 count: countPhrase(item, current),
                 threshold: thresholdFor(item.code)
@@ -369,6 +371,8 @@
         var lastChanged = false;
         var changed = false;
         stockRows().forEach(function (row) {
+            // A page without real stock data must not record or alert on placeholder counts.
+            if (row.fallback) return;
             var open = active[row.code];
             var before = Object.prototype.hasOwnProperty.call(last, row.code) ? Number(last[row.code]) : null;
             if (before !== row.qty) {
@@ -408,7 +412,7 @@
         if (!table) return;
         var active = readJson(ACTIVE_KEY, {});
         var lows = stockRows().filter(function (row) {
-            return row.qty <= row.threshold && !(active[row.code] && active[row.code].muted);
+            return !row.fallback && row.qty <= row.threshold && !(active[row.code] && active[row.code].muted);
         });
         var signature = lows.map(function (row) { return row.code + ':' + row.qty + ':' + row.threshold; }).join('|');
         var expiry = [];

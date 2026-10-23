@@ -1031,6 +1031,7 @@
       return {
         key: key,
         invoice: invoice,
+        orderNumber: order.orderNumber || '',
         date: dateLabel,
         customer: customer,
         items: names,
@@ -1047,7 +1048,12 @@
     }).then(function (payload) {
       var records = payload && payload.records ? payload.records : [];
       var seen = {};
-      customerCache.forEach(function (row) { if (row.invoice) seen[row.invoice] = true; });
+      // One row per sale: a shop order is listed by its receipt (invoice) number, while the
+      // database copy uses the order number, so mark both as already shown.
+      customerCache.forEach(function (row) {
+        if (row.invoice) seen[row.invoice] = true;
+        if (row.orderNumber) seen[row.orderNumber] = true;
+      });
       records.forEach(function (row, index) {
         var invoice = row.Order_ID || '';
         if (invoice && seen[invoice]) return;
