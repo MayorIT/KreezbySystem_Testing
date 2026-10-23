@@ -13,22 +13,22 @@
     var viewMode = 'active';
 
     var SEED = [
-        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouches', qty: 450, cost: 120 },
-        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouches', qty: 320, cost: 125 },
-        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouches', qty: 85, cost: 120 },
-        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Pouches', qty: 210, cost: 150 },
-        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Pouches', qty: 45, cost: 150 },
-        { code: 'RM-WFL-01', type: 'raw-material', name: 'Wheat Flour', unit: 'Quantity', qty: 120, cost: 48 },
-        { code: 'RM-WSG-01', type: 'raw-material', name: 'White Sugar', unit: 'Quantity', qty: 90, cost: 42 },
-        { code: 'RM-OIL-01', type: 'raw-material', name: 'Vegetable Oil', unit: 'Quantity', qty: 48, cost: 95 },
-        { code: 'RM-EGG-01', type: 'raw-material', name: 'Egg', unit: 'Quantity', qty: 36, cost: 9 },
-        { code: 'RM-COC-01', type: 'raw-material', name: 'Cocoa', unit: 'Quantity', qty: 45, cost: 180 },
-        { code: 'RM-BKP-01', type: 'raw-material', name: 'Baking Powder', unit: 'Quantity', qty: 22, cost: 35 },
-        { code: 'RM-SLT-01', type: 'raw-material', name: 'Salt', unit: 'Quantity', qty: 70, cost: 18 },
-        { code: 'RM-CFS-01', type: 'raw-material', name: 'Confectioner Sugar', unit: 'Quantity', qty: 30, cost: 55 },
-        { code: 'RM-PSB-01', type: 'raw-material', name: 'Potassium Sorbate', unit: 'Quantity', qty: 12, cost: 220 },
-        { code: 'PKG-SUP-01', type: 'packaging-material', name: 'Stand up pouch', unit: 'Quantity', qty: 80, cost: 12 },
-        { code: 'PKG-STK-01', type: 'packaging-material', name: 'Stickers (Per Flavor)', unit: 'Quantity', qty: 12, cost: 3 },
+        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouches', qty: 0, cost: 120 },
+        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouches', qty: 0, cost: 125 },
+        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouches', qty: 0, cost: 120 },
+        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Pouches', qty: 0, cost: 150 },
+        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Pouches', qty: 0, cost: 150 },
+        { code: 'RM-WFL-01', type: 'raw-material', name: 'Wheat Flour', unit: 'Quantity', qty: 0, cost: 48 },
+        { code: 'RM-WSG-01', type: 'raw-material', name: 'White Sugar', unit: 'Quantity', qty: 0, cost: 42 },
+        { code: 'RM-OIL-01', type: 'raw-material', name: 'Vegetable Oil', unit: 'Quantity', qty: 0, cost: 95 },
+        { code: 'RM-EGG-01', type: 'raw-material', name: 'Egg', unit: 'Quantity', qty: 0, cost: 9 },
+        { code: 'RM-COC-01', type: 'raw-material', name: 'Cocoa', unit: 'Quantity', qty: 0, cost: 180 },
+        { code: 'RM-BKP-01', type: 'raw-material', name: 'Baking Powder', unit: 'Quantity', qty: 0, cost: 35 },
+        { code: 'RM-SLT-01', type: 'raw-material', name: 'Salt', unit: 'Quantity', qty: 0, cost: 18 },
+        { code: 'RM-CFS-01', type: 'raw-material', name: 'Confectioner Sugar', unit: 'Quantity', qty: 0, cost: 55 },
+        { code: 'RM-PSB-01', type: 'raw-material', name: 'Potassium Sorbate', unit: 'Quantity', qty: 0, cost: 220 },
+        { code: 'PKG-SUP-01', type: 'packaging-material', name: 'Stand up pouch', unit: 'Quantity', qty: 0, cost: 12 },
+        { code: 'PKG-STK-01', type: 'packaging-material', name: 'Stickers (Per Flavor)', unit: 'Quantity', qty: 0, cost: 3 },
     ];
 
     function readJson(key, fallback) {

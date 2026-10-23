@@ -159,33 +159,8 @@
       accountType: 'Staff',
       redirectUrl: 'staff/staff.html'
     },
-    customer: {
-      userName: 'Maria Santos',
-      accountType: 'Customer',
-      redirectUrl: 'customer/customer.html'
-    },
-    customer1: {
-      userName: 'Maria Santos',
-      accountType: 'Customer',
-      redirectUrl: 'customer/customer.html'
-    },
-    mariasantosemailcom: {
-      userName: 'Maria Santos',
-      accountType: 'Customer',
-      redirectUrl: 'customer/customer.html'
-    },
     guest: {
       userName: 'Guest Customer',
-      accountType: 'Customer',
-      redirectUrl: 'customer/customer.html'
-    },
-    kylaramosemailcom: {
-      userName: 'Kyla Ramos',
-      accountType: 'Customer',
-      redirectUrl: 'customer/customer.html'
-    },
-    'kylaramos@emailcom': {
-      userName: 'Kyla Ramos',
       accountType: 'Customer',
       redirectUrl: 'customer/customer.html'
     }

@@ -9,25 +9,7 @@
 
     var STORAGE_KEY = 'kreezby-return-records-v1';
 
-    var DEFAULT_RETURNS = {
-        'RET-0001': {
-            code: 'RET-0001', poOrigin: 'PO-0002', dateCreated: '2021-11-03 16:13',
-            entity: 'Retailer 102', entityType: 'retailer', status: 'RETURNED', statusClass: 'rejected',
-            reason: 'Damaged item container packaging seals identified during delivery receiving validation loops.',
-            items: [
-                { qty: 300, unit: 'Quantity', name: 'Item 102', note: 'Sample validation package details notes text', cost: 200, total: 60000 },
-                { qty: 200, unit: 'Quantity', name: 'Item 104', note: 'Sample validation package details notes text', cost: 205, total: 41000 }
-            ]
-        },
-        'RET-0002': {
-            code: 'RET-0002', poOrigin: 'PO-0005', dateCreated: '2021-11-02 11:45',
-            entity: 'Customer 401', entityType: 'customer', status: 'RETURNED', statusClass: 'rejected',
-            reason: 'Customer reported damaged packaging on delivery.',
-            items: [
-                { qty: 1, unit: 'Pouch', name: 'Choco Butternut', note: 'Seal broken', cost: 120, total: 120 }
-            ]
-        }
-    };
+    var DEFAULT_RETURNS = {};
 
     var RETURN_STATUSES = [
         { class: 'rejected', label: 'Returned', value: 'RETURNED' },

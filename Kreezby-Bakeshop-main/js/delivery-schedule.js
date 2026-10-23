@@ -17,24 +17,7 @@
     var PAYMENTS = ['GCash', 'Check', 'Cash', 'Cons'];
     var AREAS = []; // Will be populated from manifest
 
-    var SEED = [
-        { id: 'po-0002', area: 'Batangas', date: '2026-10-15', stop: 'SIDC Main', detail: '80 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-btg-003', area: 'Batangas', date: '2026-10-15', stop: '3M', detail: '24 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-btg-014', area: 'Batangas', date: '2026-10-15', stop: 'SIDC Tulo', detail: '36 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-0012', area: 'Lipa', date: '2026-10-15', stop: 'SIDC Mahabang Parang', detail: '410 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lpa-021', area: 'Sto. Tomas', date: '2026-10-15', stop: 'Lucias Cafe Lipa', detail: '16 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-bau-008', area: 'Tagaytay', date: '2026-10-16', stop: 'SIDC Bauan', detail: '48 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-bau-011', area: 'Citimart', date: '2026-10-16', stop: 'Dyan\'s', detail: '18 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-ctm-002', area: 'Lucena', date: '2026-10-16', stop: 'Citimart Rosario', detail: '60 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-ctm-006', area: 'Citimart', date: '2026-10-16', stop: 'Citimart Bauan', detail: '40 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-lcn-004', area: 'Lucena', date: '2026-10-16', stop: 'SIDC Tiaong', detail: '72 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-lcn-009', area: 'Lucena', date: '2026-10-16', stop: 'Kope Right Lucena', detail: '20 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-rsr-005', area: 'Lucena', date: '2026-10-17', stop: 'SIDC IBAAN', detail: '54 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-sto-003', area: 'Sto. Tomas', date: '2026-10-18', stop: 'JMA', detail: '30 pouches Chocolate Crinkles', payment: 'GCash' },
-        { id: 'po-sto-007', area: 'Sto. Tomas', date: '2026-10-18', stop: 'Lucias Cafe Sto Tomas', detail: '18 pouches Chocolate Crinkles', payment: 'Cash' },
-        { id: 'po-tgy-002', area: 'Tagaytay', date: '2026-10-18', stop: 'Pamana', detail: '28 pouches Chocolate Crinkles', payment: 'Check' },
-        { id: 'po-tgy-008', area: 'Tagaytay', date: '2026-10-18', stop: 'Jaytees Main', detail: '36 pouches Chocolate Crinkles', payment: 'GCash' }
-    ];
+    var SEED = [];
 
     function copyRow(row) {
         var copy = {};

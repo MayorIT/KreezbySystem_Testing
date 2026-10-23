@@ -127,11 +127,11 @@
     function readProfile() {
         var saved = readJson('kreezbyCustomerProfile', {});
         return {
-            username: saved.username || 'maria_santos',
-            fullName: saved.fullName || 'Maria Santos',
-            email: saved.email || 'maria.santos@email.com',
-            contactNumber: saved.contactNumber || '09171234567',
-            defaultAddress: saved.defaultAddress || '18 Dolorosa St., Poblacion, Batangas City',
+            username: saved.username || 'mark_cruz',
+            fullName: saved.fullName || 'Mark Anthony Cruz',
+            email: saved.email || 'mark.cruz@email.com',
+            contactNumber: saved.contactNumber || '09190882176',
+            defaultAddress: saved.defaultAddress || '22 General Luna St., Poblacion, San Juan, Batangas',
             addresses: Array.isArray(saved.addresses) ? saved.addresses : []
         };
     }
@@ -404,7 +404,7 @@
         if (security && security.password) return String(security.password).trim();
         var profile = readProfile();
         var creds = readJson('kreezbyAuthCredentials', {});
-        var keys = ['customer', 'customer1', 'maria.santos@email.com', 'Maria Santos', profile.username, profile.email, profile.fullName];
+        var keys = ['customer', 'customer1', 'mark.cruz@email.com', 'Mark Anthony Cruz', profile.username, profile.email, profile.fullName];
         for (var i = 0; i < keys.length; i += 1) {
             var key = identityKey(keys[i]);
             if (key && creds[key] && creds[key].password) return String(creds[key].password).trim();
@@ -432,7 +432,7 @@
         localStorage.setItem('kreezbyCustomerSecurity', JSON.stringify({ password: next, updatedAt: updatedAt }));
         var profile = readProfile();
         var creds = readJson('kreezbyAuthCredentials', {});
-        ['customer', 'customer1', 'maria.santos@email.com', 'Maria Santos', profile.username, profile.email, profile.fullName].forEach(function (alias) {
+        ['customer', 'customer1', 'mark.cruz@email.com', 'Mark Anthony Cruz', profile.username, profile.email, profile.fullName].forEach(function (alias) {
             var key = identityKey(alias);
             if (!key) return;
             creds[key] = { password: next, accountType: 'Customer', updatedAt: updatedAt };

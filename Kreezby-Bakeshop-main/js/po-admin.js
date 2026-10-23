@@ -9,38 +9,7 @@
 
     var STORAGE_KEY = 'kreezby-po-orders-v1';
 
-    var DEFAULT_ORDERS = {
-        'PO-0001': {
-            code: 'PO-0001', dateCreated: '2021-11-03 11:20', entity: 'Retailer 101',
-            entityType: 'retailer', area: 'Batangas City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Standard replenishment order',
-            items: [{ qty: 100, unit: 'Quantity', name: 'Item 101', note: 'Standard batch', cost: 150, total: 15000 }]
-        },
-        'PO-0002': {
-            code: 'PO-0002', dateCreated: '2021-11-03 11:50', entity: 'Retailer 102',
-            entityType: 'retailer', area: 'Lipa City', status: 'PENDING', statusClass: 'pending',
-            remarks: 'Sample PO Only',
-            items: [
-                { qty: 300, unit: 'Quantity', name: 'Item 102', note: 'Sample only', cost: 200, total: 60000 },
-                { qty: 200, unit: 'Quantity', name: 'Item 104', note: 'Sample only', cost: 205, total: 41000 }
-            ]
-        },
-        'PO-C001': {
-            code: 'PO-C001', dateCreated: '2021-11-03 11:50', entity: 'Bryle Atienza',
-            entityType: 'customer', area: 'Lipa City', status: 'PROCESSING', statusClass: 'pending',
-            remarks: 'Customer walk-in order',
-            items: [
-                { qty: 10, unit: 'Pouches', name: 'Chocolate', note: 'Crinkles', cost: 50, total: 500 },
-                { qty: 5, unit: 'Pouches', name: 'Lemon', note: 'Crinkles', cost: 45, total: 225 }
-            ]
-        },
-        'PO-C002': {
-            code: 'PO-C002', dateCreated: '2021-11-03 11:20', entity: 'Maria Santos',
-            entityType: 'customer', area: 'Batangas City', status: 'PROCESSING', statusClass: 'pending',
-            remarks: 'Pre-order pickup',
-            items: [{ qty: 8, unit: 'Pouches', name: 'Choco Butternut', note: '', cost: 120, total: 960 }]
-        }
-    };
+    var DEFAULT_ORDERS = {};
 
     var PO_ORDERS = {};
     var currentPoCode = null;

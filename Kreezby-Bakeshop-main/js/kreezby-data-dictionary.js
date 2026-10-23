@@ -16,33 +16,33 @@
     var FORECAST_DATE = '2026-09-27';
 
     var PRODUCTS = [
-        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', batch_number: 'BCH-2026-0918-CHO', production_date: '2026-09-18', expiration_date: '2026-11-18', expiry_threshold_days: 3, quantities: [100, 120, 110, 130, 140, 150, 160] },
-        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', batch_number: 'BCH-2026-0917-ALM', production_date: '2026-09-17', expiration_date: '2026-11-17', expiry_threshold_days: 3, quantities: [80, 90, 85, 88, 92, 95, 100] },
-        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', batch_number: 'BCH-2026-0920-LEM', production_date: '2026-09-20', expiration_date: '2026-10-21', expiry_threshold_days: 3, quantities: [50, 55, 48, 60, 52, 58, 62] },
-        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', batch_number: 'BCH-2026-0915-BUT', production_date: '2026-09-15', expiration_date: '2026-11-15', expiry_threshold_days: 3, quantities: [70, 75, 80, 72, 78, 74, 76] },
-        { product_id: 'CRK-MNG-J', product_name: 'Mango Crinkles', batch_number: 'BCH-2026-0908-MNG', production_date: '2026-09-08', expiration_date: '2026-09-26', expiry_threshold_days: 3, quantities: [30, 32, 34, 36, 38, 40, 42] },
-        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', batch_number: 'BCH-2026-0919-UBE', production_date: '2026-09-19', expiration_date: '2026-11-19', expiry_threshold_days: 3, quantities: [40, 42, 44, 46, 48, 50, 52] }
+        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', batch_number: 'BCH-2026-0918-CHO', production_date: '2026-09-18', expiration_date: '2026-11-18', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] },
+        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', batch_number: 'BCH-2026-0917-ALM', production_date: '2026-09-17', expiration_date: '2026-11-17', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] },
+        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', batch_number: 'BCH-2026-0920-LEM', production_date: '2026-09-20', expiration_date: '2026-10-21', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] },
+        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', batch_number: 'BCH-2026-0915-BUT', production_date: '2026-09-15', expiration_date: '2026-11-15', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] },
+        { product_id: 'CRK-MNG-J', product_name: 'Mango Crinkles', batch_number: 'BCH-2026-0908-MNG', production_date: '2026-09-08', expiration_date: '2026-09-26', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] },
+        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', batch_number: 'BCH-2026-0919-UBE', production_date: '2026-09-19', expiration_date: '2026-11-19', expiry_threshold_days: 3, quantities: [0, 0, 0, 0, 0, 0, 0] }
     ];
 
     var RAW_MATERIALS = [
-        { material_id: 'RM-WFL-01', name: 'Wheat Flour', current_stock: 120, expiration_date: '2027-03-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-WSG-01', name: 'White Sugar', current_stock: 90, expiration_date: '2027-06-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-OIL-01', name: 'Vegetable Oil', current_stock: 48, expiration_date: '2027-01-15', expiry_threshold_days: 7 },
-        { material_id: 'RM-EGG-01', name: 'Egg', current_stock: 36, expiration_date: '2026-10-22', expiry_threshold_days: 7 },
-        { material_id: 'RM-COC-01', name: 'Cocoa', current_stock: 45, expiration_date: '2026-12-20', expiry_threshold_days: 7 },
-        { material_id: 'RM-BKP-01', name: 'Baking Powder', current_stock: 22, expiration_date: '2027-04-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-SLT-01', name: 'Salt', current_stock: 70, expiration_date: '2028-01-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-CFS-01', name: 'Confectioner Sugar', current_stock: 30, expiration_date: '2027-05-01', expiry_threshold_days: 7 },
-        { material_id: 'RM-PSB-01', name: 'Potassium Sorbate', current_stock: 12, expiration_date: '2027-08-01', expiry_threshold_days: 7 }
+        { material_id: 'RM-WFL-01', name: 'Wheat Flour', current_stock: 0, expiration_date: '2027-03-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-WSG-01', name: 'White Sugar', current_stock: 0, expiration_date: '2027-06-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-OIL-01', name: 'Vegetable Oil', current_stock: 0, expiration_date: '2027-01-15', expiry_threshold_days: 7 },
+        { material_id: 'RM-EGG-01', name: 'Egg', current_stock: 0, expiration_date: '2026-10-22', expiry_threshold_days: 7 },
+        { material_id: 'RM-COC-01', name: 'Cocoa', current_stock: 0, expiration_date: '2026-12-20', expiry_threshold_days: 7 },
+        { material_id: 'RM-BKP-01', name: 'Baking Powder', current_stock: 0, expiration_date: '2027-04-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-SLT-01', name: 'Salt', current_stock: 0, expiration_date: '2028-01-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-CFS-01', name: 'Confectioner Sugar', current_stock: 0, expiration_date: '2027-05-01', expiry_threshold_days: 7 },
+        { material_id: 'RM-PSB-01', name: 'Potassium Sorbate', current_stock: 0, expiration_date: '2027-08-01', expiry_threshold_days: 7 }
     ];
 
     var PROCUREMENT = [
-        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', current_stock: 450, recommended_quantity: 400 },
-        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', current_stock: 85, recommended_quantity: 200 },
-        { product_id: 'CRK-MNG-J', product_name: 'Mango Crinkles', current_stock: 45, recommended_quantity: 200 },
-        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', current_stock: 320, recommended_quantity: 300 },
-        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', current_stock: 210, recommended_quantity: 200 },
-        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', current_stock: 180, recommended_quantity: 200 }
+        { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', current_stock: 0, recommended_quantity: 400 },
+        { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', current_stock: 0, recommended_quantity: 200 },
+        { product_id: 'CRK-MNG-J', product_name: 'Mango Crinkles', current_stock: 0, recommended_quantity: 200 },
+        { product_id: 'CRK-ALM-P', product_name: 'Choco-Almond Crinkles', current_stock: 0, recommended_quantity: 300 },
+        { product_id: 'CRK-BUT-J', product_name: 'Choco Butternut Crinkles', current_stock: 0, recommended_quantity: 200 },
+        { product_id: 'CRK-UBE-P', product_name: 'Ube Crinkles', current_stock: 0, recommended_quantity: 200 }
     ];
 
     var FLAVOR_CHOICES = [
@@ -346,12 +346,7 @@
         return rows;
     }
 
-    var BASE_MOVEMENTS = [
-        { type: 'stock-in', reference_id: 'RM-WFL-01', quantity: 25, note: 'Wheat Flour delivery received' },
-        { type: 'stock-out', reference_id: 'CRK-CHO-P', quantity: 160, note: 'Finished goods sold on 2026-09-26' },
-        { type: 'usage', reference_id: 'RM-COC-01', quantity: 4, note: 'Cocoa used in production' },
-        { type: 'adjustment', reference_id: 'RM-EGG-01', quantity: -2, note: 'Egg count corrected after inventory check' }
-    ];
+    var BASE_MOVEMENTS = [];
 
     function inventoryTransactions() {
         return BASE_MOVEMENTS.concat(savedState().inventory_transactions_extra || []);
