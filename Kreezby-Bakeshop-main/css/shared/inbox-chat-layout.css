@@ -64,7 +64,6 @@
 .inbox-resize-handle {
     width: 4px;
     cursor: col-resize;
-    background: transparent;
     transition: background 0.15s ease;
     flex-shrink: 0;
 }
@@ -136,7 +135,6 @@
     height: 36px;
     border: none;
     border-radius: 8px;
-    background: transparent;
     color: #444;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -215,7 +213,6 @@
     padding: 6px 8px 6px 6px;
     border: none;
     border-bottom: 1px solid #f3f4f6;
-    background: transparent;
     text-align: left;
     transition: background 0.2s ease;
 }
@@ -228,6 +225,8 @@
     padding: 6px 8px;
     border: none;
     background: transparent;
+    color: inherit;
+    font: inherit;
     text-align: left;
     cursor: pointer;
     border-radius: 10px;
@@ -256,7 +255,6 @@
     height: 32px;
     border: none;
     border-radius: 8px;
-    background: transparent;
     color: #6b7280;
     cursor: pointer;
     flex-shrink: 0;
@@ -550,7 +548,6 @@
     outline: none;
     font-size: 14px;
     padding: 10px 8px;
-    background: transparent;
 }
 
 .inbox-composer-bar.composer-readonly {
@@ -805,12 +802,10 @@
 .inbox-messenger .thread-item-card.inbox-contact-item {
     border-bottom: none;
     padding: 1px 8px;
-    background: transparent;
 }
 
 .inbox-messenger .inbox-contact-item:hover,
 .inbox-messenger .inbox-contact-item.is-active {
-    background: transparent;
 }
 
 .inbox-messenger .inbox-contact-select {
@@ -1076,7 +1071,6 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
-    background: transparent;
     pointer-events: none;
 }
 
@@ -1252,7 +1246,6 @@
     height: 36px;
     border: 0;
     border-radius: 8px;
-    background: transparent;
     font-size: 22px;
     line-height: 1;
     cursor: pointer;
@@ -1374,7 +1367,6 @@
     padding: 0 10px;
     border: 0;
     border-radius: 999px;
-    background: transparent;
     color: #65676b;
     font: inherit;
     font-size: 12px;
@@ -1454,4 +1446,34 @@
 .inbox-messenger.is-dark .inbox-queue-pill.is-live {
     background: #1d3b2a;
     color: #b7ebc9;
+}
+
+/* Safeguard: inbox must fill the content area even if another page's body
+   class (e.g. staff-dashboard-page) is still present after in-frame navigation. */
+body #kreezby-main-content:has(> .inbox-page-main) {
+    display: flex !important;
+    min-height: 0 !important;
+}
+body #kreezby-main-content > main.inbox-page-main {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    padding: 8px !important;
+}
+
+/* Dark mode: chat rows stay dark (no light row / button backgrounds). */
+.inbox-messenger.is-dark .inbox-contact-item,
+.inbox-messenger.is-dark .inbox-contact-item:hover,
+.inbox-messenger.is-dark .inbox-contact-item.is-active,
+.inbox-messenger.is-dark .thread-item-card.selected-active {
+    background: transparent;
+}
+.inbox-messenger.is-dark .inbox-thread-archive {
+    background: transparent;
+    color: #b0b3b8;
+}
+.inbox-messenger.is-dark .inbox-thread-archive:hover {
+    background: #3a3b3c;
+    color: #e4e6eb;
 }

@@ -395,6 +395,20 @@
     }
   }
 
+  // Staff/admin online status (heartbeat + "Active" strip in the inbox).
+  (function loadPresence() {
+    if (!/\/(staff|staff_names|admin|admin_names|head_admin)\//i.test(location.pathname || "")) return;
+    if (document.getElementById("kreezby-presence-script")) return;
+    var me = document.currentScript && document.currentScript.getAttribute("src") || "";
+    var at = me.indexOf("js/kreezby-db-sync.js");
+    var base = at !== -1 ? me.slice(0, at) : "../";
+    var s = document.createElement("script");
+    s.id = "kreezby-presence-script";
+    s.src = base + "js/kreezby-presence.js?v=20261022a";
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  })();
+
   if (location.protocol === "file:") return;
 
   var LOCAL_ONLY = {
@@ -624,7 +638,7 @@
     if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || "")) return;
     if (/\/(admin_permissions|staff-permissions|maintenance|pos-)/i.test(location.pathname || "")) return;
     var relevant = keys.filter(function (k) {
-      return !SELF_HANDLED[k] && !/^(kreezbyNotifications|kreezbyBrowserAlert|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer)/.test(k);
+      return !SELF_HANDLED[k] && !/^(kreezbyNotifications|kreezbyBrowserAlert|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_)/.test(k);
     });
     if (!relevant.length) return;
     if (liveRefreshTimer) return;
