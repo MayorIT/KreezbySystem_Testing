@@ -122,6 +122,7 @@ async function activateMongo() {
     await runOneTimeReset();
     await ensureSalesList();
     await refreshCache();
+    await backfillMirrors();
     await ensureCustomerOrders();
     if (cache.kreezby_maintenance_users) {
       await syncAccountCollections(cache.kreezby_maintenance_users);
@@ -380,6 +381,7 @@ app.use("/api", async (req, res, next) => {
           await client.db(DB_NAME).command({ ping: 1 });
           await runOneTimeReset();
           await refreshCache();
+          await backfillMirrors();
           lastCacheRefresh = Date.now();
           mongoReady = true;
         })().finally(() => { lazyConnect = null; });
@@ -570,10 +572,81 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Every transaction the app saves is also stored one-document-per-record in its own collection.
+const { mirrorTransactions } = require("./scripts/transaction-mirror.js");
+
+async function mirrorSaved(items) {
+  try {
+    await mirrorTransactions(client.db(DB_NAME), items);
+  } catch (error) {
+    console.error("Transaction mirror failed: " + error.message);
+  }
+}
+
+// Fill the transaction collections once from what is already saved.
+let mirrorBackfillStarted = false;
+async function backfillMirrors() {
+  if (mirrorBackfillStarted) return;
+  mirrorBackfillStarted = true;
+  try {
+    const state = client.db(DB_NAME).collection("app_state");
+    if (await state.findOne({ _id: "mirror_backfill_20261023_done" })) return;
+    await mirrorTransactions(client.db(DB_NAME), Object.assign({}, cache));
+    await state.updateOne({ _id: "mirror_backfill_20261023_done" }, { $set: { at: new Date() } }, { upsert: true });
+    console.log("Transaction collections filled from saved data.");
+  } catch (error) {
+    mirrorBackfillStarted = false;
+    console.error("Transaction backfill failed: " + error.message);
+  }
+}
+
+function mergeByField(raw, record, field) {
+  let list = [];
+  try { list = JSON.parse(raw || "[]"); } catch (error) { list = []; }
+  if (!Array.isArray(list)) list = [];
+  const id = String(record[field] || "");
+  const at = list.findIndex((row) => row && String(row[field] || "") === id);
+  if (at >= 0) list[at] = Object.assign({}, list[at], record);
+  else list.push(record);
+  return JSON.stringify(list);
+}
+
+// Checkout posts each new order here and waits for it, so an order is in MongoDB
+// (customer_orders, sales_orders, receipts and the shared order list) before the page moves on.
+app.post("/api/customer-orders", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const order = req.body && req.body.order;
+    const receipt = req.body && req.body.receipt;
+    if (!order || typeof order !== "object" || !customerOrderId(order)) {
+      res.status(400).json({ ok: false, error: "order with orderNumber required" });
+      return;
+    }
+    const items = { kreezbyOrders: mergeByField(cache.kreezbyOrders, order, "orderNumber") };
+    if (receipt && typeof receipt === "object" && receipt.receiptNumber) {
+      items.kreezbyCustomerReceipts = mergeByField(cache.kreezbyCustomerReceipts, receipt, "receiptNumber");
+      items.kreezbyOwnerReceipts = mergeByField(cache.kreezbyOwnerReceipts, receipt, "receiptNumber");
+    }
+    const now = new Date();
+    const ops = Object.entries(items).map(([key, value]) => {
+      cache[key] = value;
+      return { updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } };
+    });
+    stateVersion = Date.now();
+    ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(stateVersion) } }, upsert: true } });
+    await collection().bulkWrite(ops, { ordered: false });
+    await syncCustomerOrderDocs([order]);
+    await mirrorSaved(items);
+    res.json({ ok: true, orderNumber: customerOrderId(order) });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.get("/api/customer-orders", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
-    const records = await client.db(DB_NAME).collection("customer_orders").find({}).sort({ date: -1 }).toArray();
+    const records = await client.db(DB_NAME).collection("customer_orders").find({ inApp: { $ne: false } }).sort({ date: -1 }).toArray();
     const orders = records.map((doc) => {
       const order = { ...doc, orderNumber: doc.orderNumber || String(doc._id) };
       delete order._id;
@@ -736,6 +809,7 @@ app.post("/api/state", async (req, res) => {
     if (typeof items.kreezbyOrders === "string") {
       await syncCustomerOrderDocs(readCachedCustomerOrders());
     }
+    await mirrorSaved(items);
     res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });

@@ -1029,6 +1029,28 @@ function resumePaymongoReturn() {
     });
 }
 
+// Sends the finished order (and its receipt) straight to the server, which stores it in
+// MongoDB (customer_orders, sales_orders, receipts). Resolves either way after at most 8 s;
+// if it fails, the regular sync still delivers the order from this browser.
+function saveOrderToServer(order, receipt) {
+    var body;
+    try { body = JSON.stringify({ order: order, receipt: receipt || null }); } catch (e) { return Promise.resolve(false); }
+    var attempt = function () {
+        return fetch('/api/customer-orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body,
+            credentials: 'same-origin',
+            keepalive: body.length < 60000
+        }).then(function (res) { return res.ok; }).catch(function () { return false; });
+    };
+    var timeout = new Promise(function (resolve) { setTimeout(function () { resolve(false); }, 8000); });
+    return Promise.race([
+        attempt().then(function (ok) { return ok ? true : new Promise(function (r) { setTimeout(r, 1200); }).then(attempt); }),
+        timeout
+    ]);
+}
+
 function nextCustomerOrderNumber() {
     const year = new Date().getFullYear();
     let max = 1000;
@@ -1169,6 +1191,8 @@ function placeOrder() {
         localStorage.setItem('kreezbyNotificationCursor', JSON.stringify(cursor));
     } catch (e) {}
 
+    var serverSave = saveOrderToServer(order, receipt);
+
     localStorage.removeItem('kreezbyCart');
     cartData = {};
     try { sessionStorage.removeItem(PAYMONGO_DRAFT_KEY); } catch (error) {}
@@ -1194,6 +1218,7 @@ function placeOrder() {
     ).then(function () {
         localStorage.setItem('kreezbyOpenOrdersAfterCheckout', '1');
         localStorage.setItem('kreezbyLatestOrderNumber', orderNumber);
-        window.location.href = 'customer.html';
+        // Leave only once the order is stored on the server (or after the 8 s limit).
+        return serverSave.then(function () { window.location.href = 'customer.html'; });
     });
 }

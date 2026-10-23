@@ -447,6 +447,54 @@
     return pending[key] !== undefined || inflight[key] > 0 || Date.now() - (localWriteAt[key] || 0) < 8000;
   }
 
+  // Outbox: every change waiting to reach the server is also kept in this browser, so a
+  // page change (for example checkout redirecting right after saving the order) can never
+  // lose it. The next page sends it again before it reads the server copy.
+  var OUTBOX_KEY = "kzSyncOutbox";
+  function readOutbox() {
+    try {
+      var box = JSON.parse(nativeGet.call(localStorage, OUTBOX_KEY) || "{}");
+      return box && typeof box === "object" && !Array.isArray(box) ? box : {};
+    } catch (e) { return {}; }
+  }
+  function writeOutbox(box) {
+    try {
+      if (Object.keys(box).length) nativeSet.call(localStorage, OUTBOX_KEY, JSON.stringify(box));
+      else nativeRemove.call(localStorage, OUTBOX_KEY);
+    } catch (e) { /* storage full: the in-memory queue still sends it */ }
+  }
+  function outboxAdd(key, value) {
+    var box = readOutbox();
+    box[key] = { v: value, at: Date.now() };
+    writeOutbox(box);
+  }
+  function outboxDone(sent) {
+    var box = readOutbox();
+    var changed = false;
+    Object.keys(sent).forEach(function (key) {
+      if (box[key] && box[key].v === sent[key]) { delete box[key]; changed = true; }
+    });
+    if (changed) writeOutbox(box);
+  }
+
+  // Leaving the page: send whatever is still waiting with a request the browser finishes
+  // even after the page is gone.
+  function flushOnLeave() {
+    var items = {};
+    Object.keys(pending).forEach(function (key) { items[key] = pending[key]; });
+    var box = readOutbox();
+    Object.keys(box).forEach(function (key) { if (!(key in items)) items[key] = box[key].v; });
+    if (!Object.keys(items).length) return;
+    var body = JSON.stringify({ items: items });
+    try {
+      if (body.length < 60000 && window.fetch) {
+        fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: body, keepalive: true, credentials: "same-origin" });
+      } else if (navigator.sendBeacon && body.length < 60000) {
+        navigator.sendBeacon("/api/state", new Blob([body], { type: "application/json" }));
+      }
+    } catch (e) { /* the outbox is resent on the next page */ }
+  }
+
   function flush() {
     timer = null;
     var items = pending;
@@ -469,7 +517,11 @@
       xhr.open("POST", "/api/state", true);
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.timeout = 20000;
-      xhr.onload = function () { settle(xhr.status >= 200 && xhr.status < 300); };
+      xhr.onload = function () {
+        var ok = xhr.status >= 200 && xhr.status < 300;
+        if (ok) outboxDone(items);
+        settle(ok);
+      };
       xhr.onerror = xhr.ontimeout = function () { settle(false); };
       xhr.send(JSON.stringify({ items: items }));
     } catch (e) { settle(false); }
@@ -478,6 +530,7 @@
   function queue(key, value) {
     localWriteAt[key] = Date.now();
     pending[key] = value;
+    outboxAdd(key, value);
     if (value == null) delete known[key];
     else known[key] = 1;
     if (timer) clearTimeout(timer);
@@ -775,6 +828,33 @@
     if (!document.hidden) { pull(false); pullSharedPermissions(); }
   });
   window.addEventListener("focus", pullSharedPermissions);
+
+  // Resend anything an earlier page saved but could not deliver, before reading the
+  // server copy (so the older server copy cannot overwrite it).
+  (function resendOutbox() {
+    var box = readOutbox();
+    var keys = Object.keys(box);
+    if (!keys.length) return;
+    var now = Date.now();
+    keys.forEach(function (key) {
+      var entry = box[key];
+      if (!entry || now - (entry.at || 0) > 15 * 60 * 1000 || !isShared(key)) { delete box[key]; return; }
+      applyingRemote = true;
+      try {
+        if (entry.v == null) nativeRemove.call(localStorage, key);
+        else if (nativeGet.call(localStorage, key) !== entry.v) nativeSet.call(localStorage, key, entry.v);
+      } finally { applyingRemote = false; }
+      localWriteAt[key] = now;
+      pending[key] = entry.v;
+    });
+    writeOutbox(box);
+    if (Object.keys(pending).length) {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(flush, 0);
+    }
+  })();
+  window.addEventListener("pagehide", flushOnLeave);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) flushOnLeave(); });
 
   pullAccountCollections();
   pull(true);
