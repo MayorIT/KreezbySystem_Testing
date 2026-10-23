@@ -268,3 +268,47 @@
     color: #0f172a;
     font-size: 16px;
 }
+
+/* Cart line controls: change quantity or remove the item. */
+#kreezby-favorites-popup .favorites-popup__cart-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+#kreezby-favorites-popup .favorites-popup__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #dbe7f4;
+    border-radius: 999px;
+    overflow: hidden;
+}
+#kreezby-favorites-popup .favorites-popup__qty button {
+    width: 32px;
+    height: 30px;
+    border: 0;
+    background: #f1f5f9;
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#kreezby-favorites-popup .favorites-popup__qty button:hover { background: #e2e8f0; }
+#kreezby-favorites-popup .favorites-popup__qty span {
+    min-width: 34px;
+    text-align: center;
+    font-weight: 700;
+    color: #0f172a;
+}
+#kreezby-favorites-popup .favorites-popup__remove {
+    border: 1px solid #fecaca;
+    background: #fff;
+    color: #b91c1c;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#kreezby-favorites-popup .favorites-popup__remove:hover { background: #fef2f2; }

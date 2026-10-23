@@ -713,6 +713,12 @@
             if (resolved.accountType === 'Customer') {
               var custAcct = (mongo && mongo.ok && mongo.account) || findLocalCustomer(identity) || {};
               sessionData.customerId = custAcct.id || custAcct.user_id || '';
+              // The cart on this browser belongs to whoever filled it; another customer starts empty.
+              try {
+                var cartOwner = localStorage.getItem('kzCartOwner');
+                if (cartOwner && cartOwner !== sessionData.customerId) localStorage.removeItem('kreezbyCart');
+                localStorage.setItem('kzCartOwner', sessionData.customerId);
+              } catch (cartErr) { /* ignore */ }
               sessionData.email = custAcct.email || '';
               sessionData.phone = phoneOnly(custAcct.phone) || phoneOnly(custAcct.contact);
               sessionData.address = custAcct.address || '';
@@ -826,6 +832,7 @@
               toast((result && result.error) || 'Account could not be saved to the database. Please try again.', 'warn');
               return;
             }
+            try { localStorage.removeItem('kreezbyCart'); localStorage.setItem('kzCartOwner', record.id); } catch (cartErr) { /* ignore */ }
             toast('Account created successfully! Please log in.', 'success');
             setTimeout(function () { location.href = 'log_in.html'; }, 800);
           }).catch(function () {

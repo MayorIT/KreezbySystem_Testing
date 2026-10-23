@@ -115,6 +115,27 @@
         }
     }
 
+    // Change one cart line (delta) or remove it (delta = null), then tell the page.
+    function updateCartLine(productId, delta) {
+        var cart = readJson(CART_KEY, {});
+        if (!cart || typeof cart !== 'object' || Array.isArray(cart) || !cart[productId]) return;
+        if (delta == null) delete cart[productId];
+        else {
+            cart[productId].qty = (Number(cart[productId].qty) || 0) + delta;
+            if (cart[productId].qty <= 0) delete cart[productId];
+        }
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        var units = Object.keys(cart).reduce(function (sum, id) {
+            return sum + Number((cart[id] && cart[id].qty) || 0);
+        }, 0);
+        var badge = document.getElementById('global-cart-count');
+        if (badge) {
+            badge.hidden = units <= 0;
+            badge.textContent = String(units);
+        }
+        try { document.dispatchEvent(new CustomEvent('kreezby:cart-change', { detail: { cart: cart } })); } catch (e) { /* ignore */ }
+    }
+
     function customerName() {
         try {
             var session = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
@@ -288,10 +309,19 @@
             count += item.qty;
             total += item.cost * item.qty;
             var image = item.img ? '<img src="' + item.img + '" alt="' + item.name + '">' : '';
-            return '<article class="favorites-popup__card">' + image +
+            var id = escapeHtml(item.id);
+            return '<article class="favorites-popup__card" data-cart-line="' + id + '">' + image +
                 '<div>' +
                     '<div class="favorites-popup__meta"><span>' + item.qty + ' × ' + item.variant + '</span><strong>' + money(item.cost * item.qty) + '</strong></div>' +
                     '<h3>' + item.name + '</h3>' +
+                    '<div class="favorites-popup__cart-actions">' +
+                        '<div class="favorites-popup__qty" role="group" aria-label="Quantity">' +
+                            '<button type="button" data-cart-qty="-1" data-cart-id="' + id + '" aria-label="One less">−</button>' +
+                            '<span>' + item.qty + '</span>' +
+                            '<button type="button" data-cart-qty="1" data-cart-id="' + id + '" aria-label="One more">+</button>' +
+                        '</div>' +
+                        '<button type="button" class="favorites-popup__remove" data-cart-remove="' + id + '">Remove</button>' +
+                    '</div>' +
                 '</div>' +
             '</article>';
         }).join('');
@@ -467,6 +497,16 @@
                 });
             }
             paintFeed();
+        });
+
+        document.addEventListener('click', function (event) {
+            var qty = event.target.closest('[data-cart-qty]');
+            var remove = event.target.closest('[data-cart-remove]');
+            if ((!qty && !remove) || !event.target.closest('#kreezby-favorites-popup')) return;
+            event.preventDefault();
+            if (remove) updateCartLine(remove.getAttribute('data-cart-remove'), null);
+            else updateCartLine(qty.getAttribute('data-cart-id'), Number(qty.getAttribute('data-cart-qty')) || 0);
+            if (activePanel === 'cart') paintFeed();
         });
 
         document.addEventListener('click', function (event) {

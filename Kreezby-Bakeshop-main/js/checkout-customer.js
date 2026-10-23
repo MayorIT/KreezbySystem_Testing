@@ -578,6 +578,12 @@ function initCheckout() {
     renderOrderSummary();
     syncPaymentPanels();
     updateActionButtons();
+    // Items changed or removed from the Cart popup: refresh the order summary here too.
+    document.addEventListener('kreezby:cart-change', function () {
+        cartData = normalizeCartData(parseStoredJson('kreezbyCart', {}));
+        renderOrderSummary();
+        updateActionButtons();
+    });
 
     const copyBtn = document.getElementById('gcash-copy-btn');
     const numberEl = document.getElementById('gcash-shop-number');

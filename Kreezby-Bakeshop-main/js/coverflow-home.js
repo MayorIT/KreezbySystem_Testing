@@ -103,17 +103,19 @@
         function metrics() {
             var width = stage.clientWidth || 360;
             var narrow = width < 700;
+            // The flavor photos are square: keep the cards close to square so the pouch and
+            // cookies show instead of being cropped at the sides.
             var cardW = narrow
-                ? Math.max(248, Math.min(340, Math.round(width * 0.82)))
-                : Math.max(220, Math.min(330, Math.round(width * 0.46)));
+                ? Math.max(260, Math.min(380, Math.round(width * 0.86)))
+                : Math.max(260, Math.min(430, Math.round(width * 0.46)));
             var cardH = narrow
-                ? Math.max(420, Math.min(Math.round(window.innerHeight * 0.68), Math.round(cardW * 1.55)))
-                : Math.min(500, Math.round(cardW * 1.45));
+                ? Math.max(360, Math.min(Math.round(window.innerHeight * 0.66), Math.round(cardW * 1.2)))
+                : Math.min(520, Math.round(cardW * 1.16));
             return {
                 w: cardW,
                 h: cardH,
-                near: narrow ? Math.round(Math.min(width * 0.16, cardW * 0.38)) : Math.min(285, Math.round(width * 0.3)),
-                far: narrow ? Math.round(width * 0.7) : Math.min(510, Math.round(width * 0.48))
+                near: narrow ? Math.round(Math.min(width * 0.16, cardW * 0.38)) : Math.min(340, Math.round(width * 0.33)),
+                far: narrow ? Math.round(width * 0.7) : Math.min(600, Math.round(width * 0.52))
             };
         }
 

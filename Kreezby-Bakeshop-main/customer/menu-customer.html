@@ -922,6 +922,13 @@
             }
         }
 
+        // Items changed or removed from the Cart popup.
+        document.addEventListener('kreezby:cart-change', function () {
+            shoppingCartStateMap = {};
+            loadPersistedCart();
+            try { refreshGlobalCartInterfaceState(); } catch (err) { /* page without the cart panel */ }
+        });
+
         function commitItemToCartState(prodId) {
             const itemConfig = productFlavorsCatalog.find(f => f.id === prodId);
             const inputQtyVal = parseInt(document.getElementById(`qty-val-${prodId}`).textContent) || 1;
