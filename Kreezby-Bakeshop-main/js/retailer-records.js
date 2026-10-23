@@ -80,7 +80,10 @@
       '.kz-rr-stat strong { display: block; font-size: 16px; color: #3e2723; }' +
       '.kz-rr-empty { text-align: center; padding: 24px; color: #8d6e63; }' +
       '.kz-rr-picker { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }' +
-      '.kz-rr-picker select { min-width: 260px; padding: 6px 8px; }';
+      '.kz-rr-picker select { min-width: 260px; padding: 6px 8px; }' +
+      '.kz-rr-sheets { padding-top: 12px; }' +
+      '.kz-rr-sheets-title { margin: 0 0 4px; padding: 0 18px; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: #3e2723; }' +
+      '.kz-rr-sheet-note td { font-size: 12px; color: #8d6e63; }';
     document.head.appendChild(s);
   }
 
@@ -138,22 +141,117 @@
     return (data && data.error) || fallback;
   }
 
-  // Retailer: only this retailer's rows.
+  // Retailer: its own route-sheet rows, shown in the same sheet template the head admin,
+  // admin and staff use, inside the Payment summary card, one delivery date at a time.
+  function monthName(ym) {
+    var d = new Date(ym + '-01T12:00:00');
+    return isNaN(d.getTime()) ? ym : d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long' });
+  }
+
+  function sheetHead() {
+    return '<colgroup>' +
+      '<col class="sl-col-num"><col class="sl-col-loc"><col class="sl-col-ar">' +
+      '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty">' +
+      '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-money">' +
+      '</colgroup><thead>' +
+      '<tr class="manual-sheet-group-row"><th rowspan="2">#</th><th rowspan="2">Locations</th>' +
+      '<th rowspan="2">Account<br>Receivable</th><th colspan="4">Date</th>' +
+      '<th colspan="3">Pulled Out &amp; Replaced</th><th rowspan="2">Collected</th></tr>' +
+      '<tr class="manual-sheet-subhead"><th>Cons</th><th>COD</th><th>Staff</th><th>Check</th>' +
+      '<th>F</th><th>P.O</th><th>R</th></tr></thead>';
+  }
+
+  var SHEET_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced'];
+
+  function sheetHtml(rows, account) {
+    var totals = {};
+    var collected = 0;
+    var body = rows.map(function (r, i) {
+      SHEET_FIELDS.forEach(function (f) { totals[f] = (totals[f] || 0) + (Number(r[f]) || 0); });
+      collected += Number(r.collected) || 0;
+      var html = '<tr><td>' + (i + 1) + '</td><td class="loc-cell">' + esc(account.name) + '</td>';
+      SHEET_FIELDS.forEach(function (f) { html += '<td>' + cell(r[f]) + '</td>'; });
+      html += '<td class="money-cell">' + (r.collected ? '<span class="money-cell">' + money(r.collected) + '</span>' : '—') + '</td></tr>';
+      if (r.notes) html += '<tr class="kz-rr-sheet-note"><td></td><td colspan="10">Note: ' + esc(r.notes) + '</td></tr>';
+      return html;
+    }).join('');
+    var foot = '<tr><td colspan="3" style="text-align:right;">TOTALS</td>';
+    SHEET_FIELDS.slice(1).forEach(function (f) { foot += '<td>' + cell(totals[f] || null) + '</td>'; });
+    foot += '<td class="money-cell">' + (collected ? '<span class="money-cell">' + money(collected) + '</span>' : '—') + '</td></tr>';
+    return '<article class="manual-route-sheet-card">' +
+      '<div class="manual-sheet-header">' +
+        '<span class="sheet-brand">Kreezby Philippines</span>' +
+        '<span class="sheet-meta"><strong>AREA:</strong> ' + esc(account.area || '—') + '</span>' +
+        '<span class="sheet-meta"><strong>DATE:</strong> ' + esc(rows[0].reportDate) + '</span>' +
+      '</div>' +
+      '<div class="manual-sheet-scroll"><table class="manual-sheet-table">' + sheetHead() +
+        '<tbody>' + body + '</tbody><tfoot>' + foot + '</tfoot></table></div>' +
+      '<div class="manual-sheet-footer"><div class="manual-sheet-summary">' +
+        '<div class="summary-line total"><strong>Collected from your store</strong><span>' + money(collected) + '</span></div>' +
+      '</div></div>' +
+    '</article>';
+  }
+
   function initRetailerView() {
-    var stack = document.querySelector('#saleslist-retailer-page .sales-ledger-stack');
-    if (!stack || stack.querySelector('.kz-rr-card')) return;
+    var page = document.getElementById('saleslist-retailer-page');
+    var host = document.querySelector('#saleslist-retailer-page .sales-ledger-stack .card-body-padded');
+    if (!page || !host || host.querySelector('.kz-rr-sheets')) return;
     injectStyle();
-    var el = card('Kreezby deliveries', 'Each date Kreezby delivered to your store, and what was collected.');
-    stack.insertBefore(el, stack.firstChild);
-    var body = el.querySelector('.kz-rr-body');
-    var sub = el.querySelector('.kz-rr-sub');
+    var box = document.createElement('div');
+    box.className = 'kz-rr-sheets';
+    box.innerHTML =
+      '<h4 class="kz-rr-sheets-title">Delivery sheets</h4>' +
+      '<p class="sales-count-line kz-rr-sub">Loading your deliveries…</p>' +
+      '<div class="route-sheet-filters">' +
+        '<div class="filter-field"><label for="kz-rr-month">Month</label><select id="kz-rr-month"></select></div>' +
+        '<div class="filter-field"><label for="kz-rr-date">Date</label><select id="kz-rr-date"></select></div>' +
+      '</div>' +
+      '<div class="manual-route-sheets-wrap kz-rr-sheet-wrap"><p class="kz-rr-empty">Loading…</p></div>';
+    host.appendChild(box);
+    var sub = box.querySelector('.kz-rr-sub');
+    var monthSel = box.querySelector('#kz-rr-month');
+    var dateSel = box.querySelector('#kz-rr-date');
+    var wrap = box.querySelector('.kz-rr-sheet-wrap');
+
     request('').then(function (data) {
       if (!data.ok) {
-        body.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your records.')) + '</p>';
+        sub.textContent = '';
+        wrap.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your deliveries.')) + '</p>';
         return;
       }
-      if (sub && data.account) sub.textContent = data.account.name + ' · each date Kreezby delivered to your store, and what was collected.';
-      renderRows(body, data, { empty: 'No deliveries recorded for your store yet.', showName: false, retailer: true });
+      var account = data.account || { name: 'Your store', area: '' };
+      var byDate = {};
+      (data.sales || []).forEach(function (r) {
+        if (!r.reportDate) return;
+        (byDate[r.reportDate] = byDate[r.reportDate] || []).push(r);
+      });
+      var dates = Object.keys(byDate).sort().reverse();
+      if (!dates.length) {
+        sub.textContent = account.name;
+        monthSel.innerHTML = '<option>No data</option>';
+        dateSel.innerHTML = '<option>No deliveries yet</option>';
+        wrap.innerHTML = '<p class="kz-rr-empty">No deliveries recorded for your store yet.</p>';
+        return;
+      }
+      var total = (data.sales || []).reduce(function (sum, r) { return sum + (Number(r.collected) || 0); }, 0);
+      sub.textContent = account.name + ' · ' + dates.length + ' delivery date' + (dates.length === 1 ? '' : 's') +
+        ' · ' + money(total) + ' collected in all';
+      var months = [];
+      dates.forEach(function (d) { var m = d.slice(0, 7); if (months.indexOf(m) < 0) months.push(m); });
+      monthSel.innerHTML = months.map(function (m) { return '<option value="' + esc(m) + '">' + esc(monthName(m)) + '</option>'; }).join('');
+
+      function fillDates() {
+        var list = dates.filter(function (d) { return d.slice(0, 7) === monthSel.value; });
+        dateSel.innerHTML = list.map(function (d) { return '<option value="' + esc(d) + '">' + dateLabel(d) + '</option>'; }).join('');
+        show();
+      }
+      function show() {
+        var rows = byDate[dateSel.value] || [];
+        wrap.innerHTML = rows.length ? sheetHtml(rows, account) : '<p class="kz-rr-empty">No delivery on this date.</p>';
+      }
+      monthSel.addEventListener('change', fillDates);
+      dateSel.addEventListener('change', show);
+      fillDates();
     });
   }
 
