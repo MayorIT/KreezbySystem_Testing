@@ -5,15 +5,84 @@
   'use strict';
 
   var AREAS = [
-    { value: 'lucena', label: 'Lucena' },
     { value: 'batangas', label: 'Batangas' },
-    { value: 'stotomas', label: 'Sto. Tomas' },
+    { value: 'bauan', label: 'Bauan' },
+    { value: 'citimart', label: 'Citimart' },
     { value: 'lipa', label: 'Lipa' },
-    { value: 'tagaytay', label: 'Tagaytay' },
-    { value: 'citimart', label: 'Citimart' }
+    { value: 'lucena', label: 'Lucena' },
+    { value: 'manila', label: 'Manila' },
+    { value: 'rosario', label: 'Rosario' },
+    { value: 'stotomas', label: 'Sto. Tomas' },
+    { value: 'tagaytay', label: 'Tagaytay' }
   ];
+  var AREA_BY_LABEL = {};
+  AREAS.forEach(function (a) { AREA_BY_LABEL[a.label.toLowerCase()] = a.value; });
 
   var editingReportId = null;
+  var editingReport = null;
+  var originalEntries = [];
+  // Retailer accounts, so each row can be linked to the store that bought it.
+  var accounts = [];
+  var accountsLoaded = null;
+
+  function sessionToken() {
+    try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
+  }
+
+  function loadAccounts() {
+    if (accountsLoaded) return accountsLoaded;
+    var token = sessionToken();
+    if (!token || !window.fetch) return (accountsLoaded = Promise.resolve([]));
+    accountsLoaded = fetch('/api/retailer-records', { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Kreezby-Token': token } })
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        accounts = (body && body.accounts) || [];
+        accounts.forEach(function (a) { a.source = AREA_BY_LABEL[String(a.area || '').toLowerCase()] || ''; });
+        return accounts;
+      })
+      .catch(function () { accountsLoaded = null; return []; });
+    return accountsLoaded;
+  }
+
+  function cleanName(v) {
+    return String(v || '').toLowerCase().replace(/&/g, ' and ').replace(/'/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function accountByName(name) {
+    var key = cleanName(name);
+    if (!key) return null;
+    for (var i = 0; i < accounts.length; i++) {
+      if (cleanName(accounts[i].name) === key) return accounts[i];
+    }
+    return null;
+  }
+
+  function accountById(id) {
+    for (var i = 0; i < accounts.length; i++) if (accounts[i].id === id) return accounts[i];
+    return null;
+  }
+
+  function fillAccountList() {
+    var list = document.getElementById('sheet-editor-accounts');
+    if (!list) return;
+    var src = (document.getElementById('sheet-editor-source') || {}).value || '';
+    var inArea = accounts.filter(function (a) { return a.source === src; });
+    var others = accounts.filter(function (a) { return a.source !== src; });
+    list.innerHTML = inArea.concat(others).map(function (a) {
+      return '<option value="' + esc(a.name) + '">' + esc(a.area || '') + '</option>';
+    }).join('');
+  }
+
+  // Text keeps what was written on the sheet ("1,300 (10)", "GCASH"); plain numbers stay numbers.
+  function val(v) {
+    var s = String(v == null ? '' : v).trim();
+    if (!s) return null;
+    return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : s;
+  }
+
+  function inputValue(v) {
+    return v == null ? '' : String(v);
+  }
 
   function api() {
     return window.KreezbySales;
@@ -42,21 +111,34 @@
     );
   }
 
-  function editorRowHtml(idx, row) {
+  function linkLabel(accountId) {
+    var a = accountId ? accountById(accountId) : null;
+    if (a) return '<span class="sheet-acct-link is-linked" title="Linked to this retailer account">✓ ' + esc(a.name) + '</span>';
+    if (accountId) return '<span class="sheet-acct-link is-linked">✓ linked</span>';
+    return '<span class="sheet-acct-link">Not a retailer account</span>';
+  }
+
+  function cellInput(cls, value) {
+    return '<td><input type="text" inputmode="decimal" class="sheet-inp ' + cls + '" value="' + esc(inputValue(value)) + '"></td>';
+  }
+
+  function editorRowHtml(idx, row, origIdx, prefill) {
     row = row || {};
     return (
-      '<tr data-row-idx="' + idx + '">' +
+      '<tr data-row-idx="' + idx + '" data-orig="' + (origIdx == null ? '' : origIdx) + '"' +
+      ' data-account-id="' + esc(row.accountId || '') + '"' + (prefill ? ' data-prefill="1"' : '') + '>' +
       '<td>' + (idx + 1) + '</td>' +
-      '<td><input type="text" class="sheet-inp loc-inp" value="' + esc(row.retailerName || '') + '" placeholder="Location"></td>' +
-      '<td><input type="number" class="sheet-inp ar-inp" min="0" step="1" value="' + esc(row.accountReceivable != null ? row.accountReceivable : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp cons-inp" min="0" step="1" value="' + esc(row.cons != null ? row.cons : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp cod-inp" min="0" step="1" value="' + esc(row.cod != null ? row.cod : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp staff-inp" min="0" step="1" value="' + esc(row.staff != null ? row.staff : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp check-inp" min="0" step="1" value="' + esc(row.check != null ? row.check : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp f-inp" min="0" step="1" value="' + esc(row.f != null ? row.f : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp po-inp" min="0" step="1" value="' + esc(row.po != null ? row.po : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp rep-inp" min="0" step="1" value="' + esc(row.replaced != null ? row.replaced : '') + '"></td>' +
-      '<td><input type="number" class="sheet-inp col-inp" min="0" step="0.01" value="' + esc(row.collected != null ? row.collected : '') + '"></td>' +
+      '<td><input type="text" class="sheet-inp loc-inp" list="sheet-editor-accounts" value="' + esc(row.retailerName || '') + '" placeholder="Store / location">' +
+      '<div class="sheet-acct-cell">' + linkLabel(row.accountId) + '</div></td>' +
+      cellInput('ar-inp', row.accountReceivable) +
+      cellInput('cons-inp', row.cons) +
+      cellInput('cod-inp', row.cod) +
+      cellInput('staff-inp', row.staff) +
+      cellInput('check-inp', row.check) +
+      cellInput('f-inp', row.f) +
+      cellInput('po-inp', row.po) +
+      cellInput('rep-inp', row.replaced) +
+      cellInput('col-inp', row.collected) +
       '<td><button type="button" class="sheet-row-del" title="Remove row">✕</button></td>' +
       '</tr>'
     );
@@ -69,18 +151,28 @@
     tbody.querySelectorAll('tr[data-row-idx]').forEach(function (tr) {
       var name = (tr.querySelector('.loc-inp') || {}).value || '';
       if (!name.trim()) return;
-      rows.push({
-        retailerName: name.trim(),
-        accountReceivable: num((tr.querySelector('.ar-inp') || {}).value),
-        cons: num((tr.querySelector('.cons-inp') || {}).value),
-        cod: num((tr.querySelector('.cod-inp') || {}).value),
-        staff: num((tr.querySelector('.staff-inp') || {}).value),
-        check: num((tr.querySelector('.check-inp') || {}).value),
-        f: num((tr.querySelector('.f-inp') || {}).value),
-        po: num((tr.querySelector('.po-inp') || {}).value),
-        replaced: num((tr.querySelector('.rep-inp') || {}).value),
-        collected: num((tr.querySelector('.col-inp') || {}).value)
-      });
+      var fields = {
+        accountReceivable: val((tr.querySelector('.ar-inp') || {}).value),
+        cons: val((tr.querySelector('.cons-inp') || {}).value),
+        cod: val((tr.querySelector('.cod-inp') || {}).value),
+        staff: val((tr.querySelector('.staff-inp') || {}).value),
+        check: val((tr.querySelector('.check-inp') || {}).value),
+        f: val((tr.querySelector('.f-inp') || {}).value),
+        po: val((tr.querySelector('.po-inp') || {}).value),
+        replaced: val((tr.querySelector('.rep-inp') || {}).value),
+        collected: val((tr.querySelector('.col-inp') || {}).value)
+      };
+      var hasValue = Object.keys(fields).some(function (k) { return fields[k] != null; });
+      // Store rows filled in from the account list are only kept if something was entered.
+      if (tr.getAttribute('data-prefill') === '1' && !hasValue) return;
+      var orig = originalEntries[Number(tr.getAttribute('data-orig'))] || {};
+      var row = { retailerName: name.trim() };
+      if (orig.notes) row.notes = orig.notes;
+      if (orig.retailerSlug) row.retailerSlug = orig.retailerSlug;
+      Object.keys(fields).forEach(function (k) { row[k] = fields[k]; });
+      var accountId = tr.getAttribute('data-account-id') || '';
+      if (accountId) row.accountId = accountId;
+      rows.push(row);
     });
     return rows;
   }
@@ -113,14 +205,14 @@
     if (tfoot) {
       var t = { cons: 0, cod: 0, staff: 0, check: 0, f: 0, po: 0, replaced: 0, collected: 0 };
       entries.forEach(function (e) {
-        t.cons += e.cons || 0;
-        t.cod += e.cod || 0;
-        t.staff += e.staff || 0;
-        t.check += e.check || 0;
-        t.f += e.f || 0;
-        t.po += e.po || 0;
-        t.replaced += e.replaced || 0;
-        t.collected += e.collected || 0;
+        t.cons += Number(e.cons) || 0;
+        t.cod += Number(e.cod) || 0;
+        t.staff += Number(e.staff) || 0;
+        t.check += Number(e.check) || 0;
+        t.f += Number(e.f) || 0;
+        t.po += Number(e.po) || 0;
+        t.replaced += Number(e.replaced) || 0;
+        t.collected += Number(e.collected) || 0;
       });
       tfoot.innerHTML =
         '<tr><td colspan="3" style="text-align:right;font-weight:700;">TOTALS</td>' +
@@ -135,7 +227,10 @@
     var tbody = document.getElementById('sheet-editor-tbody');
     if (!tbody) return;
 
-    tbody.addEventListener('input', updateEditorTotals);
+    tbody.addEventListener('input', function (ev) {
+      if (ev.target && ev.target.classList.contains('loc-inp')) relinkRow(ev.target.closest('tr'));
+      updateEditorTotals();
+    });
     tbody.addEventListener('click', function (ev) {
       if (ev.target.classList.contains('sheet-row-del')) {
         ev.target.closest('tr').remove();
@@ -148,11 +243,24 @@
     if (exp) exp.addEventListener('input', updateEditorTotals);
   }
 
-  function addEditorRow(row) {
+  // Typing a retailer account's name links the row to that account.
+  function relinkRow(tr) {
+    if (!tr) return;
+    var name = (tr.querySelector('.loc-inp') || {}).value || '';
+    var orig = originalEntries[Number(tr.getAttribute('data-orig'))];
+    var match = accountByName(name);
+    var id = match ? match.id : '';
+    if (!id && orig && orig.accountId && cleanName(orig.retailerName) === cleanName(name)) id = orig.accountId;
+    tr.setAttribute('data-account-id', id);
+    var cell = tr.querySelector('.sheet-acct-cell');
+    if (cell) cell.innerHTML = linkLabel(id);
+  }
+
+  function addEditorRow(row, origIdx, prefill) {
     var tbody = document.getElementById('sheet-editor-tbody');
     if (!tbody) return;
     var idx = tbody.querySelectorAll('tr[data-row-idx]').length;
-    tbody.insertAdjacentHTML('beforeend', editorRowHtml(idx, row));
+    tbody.insertAdjacentHTML('beforeend', editorRowHtml(idx, row, origIdx, prefill));
     reindexEditorRows();
     updateEditorTotals();
   }
@@ -177,13 +285,14 @@
 
     if (tbody) {
       tbody.innerHTML = '';
-      var entries = (report && report.entries) || [];
-      if (!entries.length) {
+      originalEntries = ((report && report.entries) || []).filter(function (e) { return e && e.retailerName; });
+      if (!originalEntries.length) {
         addEditorRow({});
       } else {
-        entries.forEach(function (e) { addEditorRow(e); });
+        originalEntries.forEach(function (e, i) { addEditorRow(e, i); });
       }
     }
+    fillAccountList();
     updateEditorTotals();
   }
 
@@ -225,12 +334,15 @@
       '<div class="form-field-unit"><label>Area label (on sheet)</label><input type="text" id="sheet-editor-area-label" placeholder="e.g. Bauan - 210"></div>' +
       '</div>' +
       '<p class="sheet-editor-hint">Same layout as the handwritten log. <strong>Cash Collected</strong> = sum of Collected column. <strong>Net Sales</strong> = Cash Collected − Total Expense.</p>' +
+      '<p class="sheet-editor-hint">Pick each store from the list so its row shows in that retailer\'s own Sales List. Other retailers never see it.</p>' +
+      '<datalist id="sheet-editor-accounts"></datalist>' +
       '<div class="manual-sheet-scroll"><table class="manual-sheet-table sheet-editor-table">' +
       manualEditorHead() +
       '<tbody id="sheet-editor-tbody"></tbody>' +
       '<tfoot id="sheet-editor-tfoot"></tfoot>' +
       '</table></div>' +
-      '<button type="button" class="btn-call-to-action" id="sheet-editor-add-row" style="margin:12px 0;background:#00897b;">+ Add location row</button>' +
+      '<button type="button" class="btn-call-to-action" id="sheet-editor-add-row" style="margin:12px 0;background:#00897b;">+ Add location row</button> ' +
+      '<button type="button" class="btn-call-to-action" id="sheet-editor-add-area" style="margin:12px 0;background:#6d4c41;">+ Add this area\'s retailer accounts</button>' +
       '<div class="sheet-editor-financials">' +
       '<div class="form-field-unit"><label>Total Expense (₱)</label><input type="number" id="sheet-editor-expense" min="0" step="0.01" value="0"></div>' +
       '<div class="manual-sheet-summary sheet-editor-live-summary">' +
@@ -247,6 +359,9 @@
     document.getElementById('sheet-editor-close').addEventListener('click', closeEditor);
     document.getElementById('sheet-editor-cancel').addEventListener('click', closeEditor);
     document.getElementById('sheet-editor-add-row').addEventListener('click', function () { addEditorRow({}); });
+    document.getElementById('sheet-editor-add-area').addEventListener('click', function () {
+      loadAccounts().then(function () { addAreaAccounts(true); });
+    });
     document.getElementById('sheet-editor-save').addEventListener('click', saveEditor);
     document.getElementById('sheet-editor-source').addEventListener('change', function () {
       var src = document.getElementById('sheet-editor-source').value;
@@ -254,8 +369,52 @@
       if (a && !document.getElementById('sheet-editor-area-label').value) {
         document.getElementById('sheet-editor-area-label').value = a.areaLabel(src);
       }
+      fillAccountList();
+      // Swap the untouched store rows for the new area's retailer accounts.
+      var tbody = document.getElementById('sheet-editor-tbody');
+      if (tbody && !editingReportId) {
+        tbody.querySelectorAll('tr[data-prefill="1"]').forEach(function (tr) {
+          var filled = Array.prototype.some.call(tr.querySelectorAll('input:not(.loc-inp)'), function (i) { return i.value.trim(); });
+          if (!filled) tr.remove();
+        });
+        loadAccounts().then(function () { addAreaAccounts(true); });
+      }
     });
+    injectEditorStyle();
     wireEditorEvents();
+  }
+
+  function injectEditorStyle() {
+    if (document.getElementById('sheet-editor-acct-style')) return;
+    var st = document.createElement('style');
+    st.id = 'sheet-editor-acct-style';
+    st.textContent = '.sheet-acct-cell{font-size:11px;margin-top:3px;color:#a1887f;white-space:nowrap}' +
+      '.sheet-acct-link.is-linked{color:#2e7d32;font-weight:600}' +
+      '.sheet-editor-table th:nth-child(2),.sheet-editor-table td:nth-child(2){min-width:210px;width:210px}' +
+      '.sheet-editor-table th:nth-child(3),.sheet-editor-table td:nth-child(3){min-width:110px;width:110px}' +
+      '.sheet-editor-table td .sheet-inp{width:100%;min-width:0;box-sizing:border-box}';
+    document.head.appendChild(st);
+  }
+
+  // Adds a row for every retailer account in the chosen area that is not on the sheet yet.
+  function addAreaAccounts(force) {
+    var tbody = document.getElementById('sheet-editor-tbody');
+    var src = (document.getElementById('sheet-editor-source') || {}).value || '';
+    if (!tbody) return;
+    var present = {};
+    tbody.querySelectorAll('tr[data-row-idx]').forEach(function (tr) {
+      var id = tr.getAttribute('data-account-id');
+      if (id) present[id] = true;
+      var name = ((tr.querySelector('.loc-inp') || {}).value || '').trim();
+      if (!name && !force) return;
+      if (!name) tr.remove();
+    });
+    accounts.filter(function (a) { return a.source === src && !present[a.id]; }).forEach(function (a) {
+      addEditorRow({ retailerName: a.name, accountId: a.id }, null, true);
+    });
+    if (!tbody.querySelector('tr[data-row-idx]')) addEditorRow({});
+    reindexEditorRows();
+    updateEditorTotals();
   }
 
   function openEditor(reportId) {
@@ -272,7 +431,9 @@
         return;
       }
       report = JSON.parse(JSON.stringify(report));
+      editingReport = report;
     } else {
+      editingReport = null;
       var src = '';
       var date = new Date().toISOString().slice(0, 10);
       if (window.getCurrentRouteFilters) {
@@ -292,15 +453,32 @@
     fillEditor(report);
     var overlay = document.getElementById('create-saleslist-modal-overlay');
     if (overlay) overlay.classList.add('modal-triggered');
+    var isNew = !reportId;
+    loadAccounts().then(function () {
+      fillAccountList();
+      var tbody = document.getElementById('sheet-editor-tbody');
+      if (tbody) tbody.querySelectorAll('tr[data-row-idx]').forEach(function (tr) {
+        if (!tr.getAttribute('data-account-id')) relinkRow(tr);
+        else {
+          var cell = tr.querySelector('.sheet-acct-cell');
+          if (cell) cell.innerHTML = linkLabel(tr.getAttribute('data-account-id'));
+        }
+      });
+      // A new sheet starts with the area's retailer accounts, ready to fill in.
+      if (isNew) addAreaAccounts(true);
+    });
   }
 
   function closeEditor() {
     var overlay = document.getElementById('create-saleslist-modal-overlay');
     if (overlay) overlay.classList.remove('modal-triggered');
     editingReportId = null;
+    editingReport = null;
   }
 
+  var saving = false;
   function saveEditor() {
+    if (saving) return;
     var a = api();
     if (!a) return;
 
@@ -335,11 +513,19 @@
     report.cashCollected = fin.cashCollected;
     report.netSales = fin.netSales;
 
+    saving = true;
+    var saveBtn = document.getElementById('sheet-editor-save');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
     a.saveReport(report).then(function () {
       closeEditor();
       if (window.refreshRouteSheetView) window.refreshRouteSheetView();
       if (window.refreshRouteFilterOptions) window.refreshRouteFilterOptions(report);
-      salesNotice('Route sheet saved.');
+      salesNotice('Route sheet saved to the database.');
+    }).catch(function (err) {
+      salesNotice((err && err.message) || 'Could not save the route sheet.');
+    }).then(function () {
+      saving = false;
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save route sheet'; }
     });
   }
 

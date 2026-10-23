@@ -239,8 +239,9 @@
     } catch (e) { /* ignore */ }
   }
 
-  function mongoLogin(identity, password) {
+  function mongoLogin(identity, password, attempt) {
     if (!window.fetch) return Promise.resolve(null);
+    attempt = attempt || 0;
     return fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -249,9 +250,21 @@
       return res.json().catch(function () { return {}; }).then(function (body) {
         body = body || {};
         body.status = res.status;
+        if (res.status === 503 && attempt < 4) {
+          return new Promise(function (resolve) {
+            setTimeout(function () { resolve(mongoLogin(identity, password, attempt + 1)); }, 700 * (attempt + 1));
+          });
+        }
         return body;
       });
-    }).catch(function () { return null; });
+    }).catch(function () {
+      if (attempt < 4) {
+        return new Promise(function (resolve) {
+          setTimeout(function () { resolve(mongoLogin(identity, password, attempt + 1)); }, 700 * (attempt + 1));
+        });
+      }
+      return null;
+    });
   }
 
   function resolveLoginIdentity(identity) {
@@ -728,6 +741,14 @@
             password: fd.get('password') || '',
             confirmPassword: fd.get('confirmPassword') || ''
           };
+          if (!String(payload.firstName || '').trim() || !String(payload.lastName || '').trim()) {
+            toast('Enter your first and last name.', 'warn');
+            return;
+          }
+          if (!String(payload.contactInfo || '').trim()) {
+            toast('Enter an email or phone number.', 'warn');
+            return;
+          }
           if (!payload.password || String(payload.password).length < 6) {
             toast('Password must be at least 6 characters.', 'warn');
             return;
@@ -736,21 +757,69 @@
             toast('Passwords do not match. Please try again.', 'warn');
             return;
           }
+          if (form.__kzSignupBusy) return;
+          form.__kzSignupBusy = true;
+          var submitBtn = form.querySelector('[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
           var customerName = (payload.firstName + ' ' + payload.lastName).trim();
+          var contact = String(payload.contactInfo || '').trim();
+          var isEmail = contact.indexOf('@') >= 0;
+          var record = {
+            id: 'cust-' + Date.now(),
+            user_id: '',
+            name: customerName || 'New Customer',
+            email: isEmail ? contact : '',
+            phone: isEmail ? '' : contact,
+            contact: contact,
+            birthday: payload.birthday || '',
+            joined: new Date().toISOString().slice(0, 10),
+            role: 'Customer',
+            accountType: 'Customer',
+            temporaryPassword: String(payload.password),
+            active: true
+          };
+          record.user_id = record.id;
+          if (isEmail) record.username = contact.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '_') || record.id;
           if (window.KreezbyMaintenanceSettings) {
             var users = KreezbyMaintenanceSettings.getUsers();
-            users.customers.push({
-              id: 'cust-' + Date.now(),
-              name: customerName || 'New Customer',
-              email: payload.email,
-              phone: payload.contactInfo,
-              joined: new Date().toISOString().slice(0, 10)
-            });
+            users.customers = users.customers || [];
+            users.customers.push(record);
             KreezbyMaintenanceSettings.saveUsers(users);
-            KreezbyMaintenanceSettings.recordLogin(payload.email);
+            KreezbyMaintenanceSettings.recordLogin(contact);
           }
-          toast('Account created successfully! Please log in.', 'success');
-          setTimeout(function () { location.href = 'log_in.html'; }, 800);
+          var published = window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.publishAccount
+            ? KreezbyMaintenanceSettings.publishAccount('customers', record)
+            : fetch('/api/accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ bucket: 'customers', account: record })
+              }).then(function (res) {
+                return res.json().catch(function () { return {}; }).then(function (body) {
+                  body = body || {};
+                  body.status = res.status;
+                  body.ok = !!(res.ok && body.ok);
+                  return body;
+                });
+              });
+          Promise.resolve(published).then(function (result) {
+            form.__kzSignupBusy = false;
+            if (submitBtn) submitBtn.disabled = false;
+            if (result && result.status === 409) {
+              toast(result.error || 'An account with that email or phone already exists.', 'warn');
+              return;
+            }
+            if (!result || !result.ok) {
+              toast((result && result.error) || 'Account could not be saved to the database. Please try again.', 'warn');
+              return;
+            }
+            toast('Account created successfully! Please log in.', 'success');
+            setTimeout(function () { location.href = 'log_in.html'; }, 800);
+          }).catch(function () {
+            form.__kzSignupBusy = false;
+            if (submitBtn) submitBtn.disabled = false;
+            toast('Account could not be saved to the database. Please try again.', 'warn');
+          });
           return;
         }
 

@@ -23,14 +23,26 @@ const LOCAL_ONLY = new Set([
   "kreezby_wholesaler_home",
   "kreezby_admin_delivery_nav_v1",
   "kreezby_staff_delivery_nav_v1",
+  "kreezbyBrowserAlertSeen",
+  "kreezbyNotifyPrompted",
+  "kreezbyCart",
+  "kreezbyCustomerProfile",
+  "kreezbyDockedSidebar",
+  "kreezby_admin_pos_nav_v1",
+  "kreezby_staff_pos_nav_v1",
 ]);
 
 function isSharedKey(key) {
   return KEY_RE.test(key) && !LOCAL_ONLY.has(key);
 }
 
+function isEphemeralKey(key) {
+  // Bookkeeping that should be saved but must not make every open page re-download the state.
+  return /^(kreezbyPresence_|kreezbyTeamChat_|kreezbyBrowserAlert|kreezbyBadgeSeen_|kreezbyNotificationCursor$|kreezbyAlertLastQty$|kreezby_login_history$)/.test(String(key || ""));
+}
+
 const app = express();
-let stateVersion = Date.now();
+let stateVersion = 0;
 let cache = {};
 let mongoReady = false;
 
@@ -358,20 +370,21 @@ async function syncAccountCollections(raw) {
   for (const [bucket, collectionName] of Object.entries(ACCOUNT_COLLECTIONS)) {
     if (!Array.isArray(users[bucket])) continue;
     const col = db.collection(collectionName);
-    const ids = [];
     const ops = [];
     for (const account of users[bucket]) {
       if (!account || typeof account !== "object") continue;
       const id = String(account.id || account.user_id || account.email || account.username || "").trim();
       if (!id) continue;
-      ids.push(id);
       const accountType = account.accountType === "Head Administrator"
         ? "Head Administrator"
         : ACCOUNT_TYPES[bucket];
-      const doc = { ...account, accountType, syncedFromApp: true, updatedAt: new Date() };
+      const doc = { ...account, id, user_id: account.user_id || id, accountType, syncedFromApp: true, updatedAt: new Date() };
       delete doc._id;
-      delete doc.password;
-      delete doc.password_hash;
+      // Keep login secrets (temporaryPassword / password). Dummy password_hash values from
+      // the browser seed are not real hashes and must not overwrite a stored hash.
+      if (typeof doc.password_hash === "string" && doc.password_hash.indexOf("ph_") === 0) {
+        delete doc.password_hash;
+      }
       ops.push({
         updateOne: {
           filter: { _id: id },
@@ -381,9 +394,130 @@ async function syncAccountCollections(raw) {
       });
     }
     if (ops.length) await col.bulkWrite(ops, { ordered: false });
-    // Only remove accounts the app itself created. Accounts added directly in MongoDB stay.
-    await col.deleteMany(ids.length ? { _id: { $nin: ids }, syncedFromApp: true } : { syncedFromApp: true });
+    // Upsert only. A browser with a partial user list must never delete accounts
+    // that already live in MongoDB (including newly signed-up customers).
   }
+}
+
+function accountIdentityValues(account) {
+  if (!account || typeof account !== "object") return [];
+  return [account.email, account.username, account.user_id, account.id, account._id, account.contact, account.phone];
+}
+
+function sanitizeAccountInput(bucket, input) {
+  const src = input && typeof input === "object" ? input : {};
+  const prefix = bucket === "customers" ? "cust" : bucket.slice(0, 4);
+  const id = String(src.id || src.user_id || "").trim() || (prefix + "-" + Date.now());
+  const name = String(src.name || "").trim();
+  const email = String(src.email || "").trim();
+  const phone = String(src.phone || src.contact || "").trim();
+  const username = String(src.username || "").trim().toLowerCase().replace(/\s+/g, "_");
+  const password = String(src.temporaryPassword || src.password || "").trim();
+  const roles = { admins: "Admin", staff: "Staff", retailers: "Retailer", customers: "Customer", wholesalers: "Wholesaler" };
+  const doc = {
+    id,
+    user_id: String(src.user_id || id).trim(),
+    name,
+    role: String(src.role || roles[bucket] || "Customer"),
+    accountType: src.accountType === "Head Administrator" ? "Head Administrator" : ACCOUNT_TYPES[bucket],
+    active: src.active !== false,
+    joined: String(src.joined || new Date().toISOString().slice(0, 10)).slice(0, 10),
+    syncedFromApp: true,
+    updatedAt: new Date(),
+  };
+  if (email) doc.email = email;
+  if (phone) {
+    doc.phone = phone;
+    doc.contact = phone;
+  }
+  if (username) doc.username = username;
+  if (src.birthday) doc.birthday = String(src.birthday).slice(0, 10);
+  if (src.address) doc.address = String(src.address).trim();
+  if (src.area) doc.area = String(src.area).trim();
+  if (password) doc.temporaryPassword = password;
+  return doc;
+}
+
+async function findAccountClash(db, account, exceptId) {
+  const keys = accountIdentityValues(account).map(loginKey).filter(Boolean);
+  if (!keys.length) return null;
+  for (const collectionName of Object.values(ACCOUNT_COLLECTIONS)) {
+    const docs = await db.collection(collectionName).find({}).toArray();
+    for (const row of docs) {
+      if (String(row._id) === exceptId || String(row.id) === exceptId) continue;
+      if (accountIdentityValues(row).some((field) => field != null && keys.includes(loginKey(field)))) {
+        return row;
+      }
+    }
+  }
+  return null;
+}
+
+async function persistUsersState(users) {
+  const stored = JSON.stringify(users);
+  cache.kreezby_maintenance_users = stored;
+  stateVersion = Date.now();
+  await collection().bulkWrite([
+    {
+      updateOne: {
+        filter: { _id: "kreezby_maintenance_users" },
+        update: { $set: { value: stored, updatedAt: new Date() } },
+        upsert: true,
+      },
+    },
+    {
+      updateOne: {
+        filter: { _id: "state_meta" },
+        update: { $set: { value: String(stateVersion) } },
+        upsert: true,
+      },
+    },
+  ], { ordered: false });
+}
+
+async function upsertAccountRecord(bucket, input) {
+  const collectionName = ACCOUNT_COLLECTIONS[bucket];
+  if (!collectionName) {
+    return { status: 400, body: { ok: false, error: "Unknown account group." } };
+  }
+  const doc = sanitizeAccountInput(bucket, input);
+  if (!doc.name) {
+    return { status: 400, body: { ok: false, error: "Name is required." } };
+  }
+  if (bucket === "customers" && !doc.email && !doc.phone && !doc.username) {
+    return { status: 400, body: { ok: false, error: "Email or phone is required." } };
+  }
+  if ((bucket === "staff" || bucket === "admins") && !doc.username) {
+    return { status: 400, body: { ok: false, error: "Username is required." } };
+  }
+  const db = client.db(DB_NAME);
+  const clash = await findAccountClash(db, doc, doc.id);
+  if (clash) {
+    return { status: 409, body: { ok: false, error: "An account with that email, username, or phone already exists." } };
+  }
+  const stored = { ...doc };
+  delete stored._id;
+  await db.collection(collectionName).updateOne(
+    { _id: doc.id },
+    { $set: stored },
+    { upsert: true }
+  );
+  let users = {};
+  try {
+    users = JSON.parse(cache.kreezby_maintenance_users || "{}");
+  } catch (error) {
+    users = {};
+  }
+  if (!users || typeof users !== "object") users = {};
+  if (!Array.isArray(users[bucket])) users[bucket] = [];
+  const idx = users[bucket].findIndex((row) => String((row && (row.id || row.user_id)) || "") === doc.id);
+  const stateRow = { ...stored };
+  delete stateRow.updatedAt;
+  delete stateRow.syncedFromApp;
+  if (idx >= 0) users[bucket][idx] = Object.assign({}, users[bucket][idx], stateRow);
+  else users[bucket].push(stateRow);
+  await persistUsersState(users);
+  return { status: 200, body: { ok: true, account: publicAccount({ ...stored, _id: doc.id }), bucket } };
 }
 
 async function refreshCache() {
@@ -415,11 +549,13 @@ app.use("/api", async (req, res, next) => {
         lazyConnect = (async () => {
           await client.connect();
           await client.db(DB_NAME).command({ ping: 1 });
-          await runOneTimeReset();
           await refreshCache();
-          await backfillMirrors();
           lastCacheRefresh = Date.now();
           mongoReady = true;
+          Promise.resolve()
+            .then(() => runOneTimeReset())
+            .then(() => backfillMirrors())
+            .catch((error) => console.error("MongoDB setup: " + error.message));
         })().finally(() => { lazyConnect = null; });
       }
       await lazyConnect;
@@ -465,19 +601,24 @@ app.get("/api/health", async (req, res) => {
 // Tiny "has anything changed?" check so browsers can poll every couple of seconds cheaply.
 app.get("/api/state-version", async (req, res) => {
   if (!databaseReady(res)) return;
-  let version = stateVersion;
-  if (SERVERLESS) {
-    try {
-      const row = await collection().findOne({ _id: "state_meta" });
-      if (row && row.value) version = Number(row.value) || version;
-    } catch (error) { /* use the in-memory value */ }
-  }
-  res.json({ ok: true, version });
+  try {
+    const row = await collection().findOne({ _id: "state_meta" });
+    if (row && row.value) stateVersion = Number(row.value) || stateVersion;
+  } catch (error) { /* use the last known version */ }
+  res.json({ ok: true, version: Number(stateVersion) || 0 });
 });
 
-app.get("/api/state", (req, res) => {
+app.get("/api/state", async (req, res) => {
   if (!databaseReady(res)) return;
-  res.json({ items: cache });
+  try {
+    if (SERVERLESS) {
+      await refreshCache();
+      lastCacheRefresh = Date.now();
+    }
+    res.json({ items: cache });
+  } catch (error) {
+    res.status(503).json({ ok: false, error: error.message });
+  }
 });
 
 const RECORD_COLLECTIONS = {
@@ -526,6 +667,36 @@ app.get("/api/sales-list", async (req, res) => {
       dailyReports,
       sales: [],
     });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Admin / staff save a route sheet (new or edited) straight into sales_route_sheets.
+app.post("/api/route-sheets", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = staffToken(req, res);
+  if (!token) return;
+  try {
+    const db = client.db(DB_NAME);
+    const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1 } }).toArray();
+    const built = retailerRecords.buildRouteSheet(req.body || {}, accounts);
+    if (built.error) return res.status(400).json({ ok: false, error: built.error });
+    const col = salesListCollection();
+    const existing = await col.findOne({ _id: built.doc.id });
+    const doc = Object.assign({}, built.doc, {
+      dataset: (existing && existing.dataset) || "system",
+      updatedAt: new Date(),
+      updatedBy: token.id,
+    });
+    if (!existing) doc.createdAt = new Date();
+    await col.updateOne({ _id: doc.id }, { $set: doc }, { upsert: true });
+    const saved = await col.findOne({ _id: doc.id });
+    await retailerRecords.tagSheets(db, [saved]);
+    const report = { ...saved, id: doc.id };
+    delete report._id;
+    delete report.updatedAt;
+    res.json({ ok: true, report });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -591,6 +762,17 @@ app.get("/api/accounts", async (req, res) => {
       accounts[bucket] = docs.map(publicAccount);
     }
     res.json({ ok: true, accounts });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/accounts", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const bucket = String((req.body && req.body.bucket) || "customers").trim();
+    const result = await upsertAccountRecord(bucket, req.body && req.body.account);
+    res.status(result.status).json(result.body);
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -865,8 +1047,10 @@ app.post("/api/state", async (req, res) => {
     }
 
     const ops = [];
+    let meaningful = false;
     for (const [key, value] of Object.entries(items)) {
       if (!isSharedKey(key)) continue;
+      if (!isEphemeralKey(key)) meaningful = true;
       if (value == null) {
         ops.push({ deleteOne: { filter: { _id: key } } });
         delete cache[key];
@@ -887,14 +1071,16 @@ app.post("/api/state", async (req, res) => {
 
     writePermissionFile(items);
     if (ops.length) {
-      stateVersion = Date.now();
-      ops.push({
-        updateOne: {
-          filter: { _id: "state_meta" },
-          update: { $set: { value: String(stateVersion) } },
-          upsert: true,
-        },
-      });
+      if (meaningful) {
+        stateVersion = Date.now();
+        ops.push({
+          updateOne: {
+            filter: { _id: "state_meta" },
+            update: { $set: { value: String(stateVersion) } },
+            upsert: true,
+          },
+        });
+      }
       await collection().bulkWrite(ops, { ordered: false });
     }
     if (typeof items.kreezby_maintenance_users === "string") {

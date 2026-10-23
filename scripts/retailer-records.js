@@ -125,4 +125,68 @@ async function tagSheets(db, sheets) {
   return names;
 }
 
-module.exports = { cleanName, accountForEntry, loadNameMap, issueToken, readToken, recordsForAccount, tagSheets };
+const ROUTE_AREAS = new Set(["batangas", "bauan", "citimart", "lipa", "lucena", "manila", "rosario", "stotomas", "tagaytay"]);
+const ROUTE_FIELDS = ["notes", "accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "collected"];
+
+function routeValue(v) {
+  if (v === null || v === undefined || v === "") return undefined;
+  if (typeof v === "number") return isFinite(v) ? v : undefined;
+  const s = String(v).trim().slice(0, 120);
+  if (!s) return undefined;
+  return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : s;
+}
+
+/**
+ * Cleans a route sheet sent by the editor. Each row keeps what was written, and is linked to
+ * a retailer account: the account chosen in the editor, else an account with the same name.
+ * Returns { doc } or { error }.
+ */
+function buildRouteSheet(body, accounts) {
+  const id = String(body.id || "").trim();
+  const reportDate = String(body.reportDate || "").trim();
+  const source = String(body.source || "").trim();
+  if (!/^[A-Za-z0-9_.-]{3,80}$/.test(id) || id === "_meta") return { error: "Invalid sheet id." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) return { error: "Choose a date." };
+  if (!ROUTE_AREAS.has(source)) return { error: "Choose an area." };
+  const byId = new Map((accounts || []).map((a) => [String(a._id), a]));
+  const byName = new Map((accounts || []).map((a) => [cleanName(a.name), String(a._id)]));
+  const entries = [];
+  (Array.isArray(body.entries) ? body.entries.slice(0, 300) : []).forEach((raw) => {
+    if (!raw || typeof raw !== "object") return;
+    const retailerName = String(raw.retailerName || "").trim().slice(0, 120);
+    if (!retailerName) return;
+    const entry = { retailerName };
+    ROUTE_FIELDS.forEach((f) => {
+      const v = routeValue(raw[f]);
+      if (v === undefined) return;
+      if (f === "collected" && typeof v !== "number") {
+        entry.notes = (entry.notes ? entry.notes + "; " : "") + "Collected written as: " + v;
+        return;
+      }
+      entry[f] = v;
+    });
+    const chosen = String(raw.accountId || "");
+    const accountId = byId.has(chosen) ? chosen : (byName.get(cleanName(retailerName)) || "");
+    if (accountId) entry.accountId = accountId;
+    if (raw.retailerSlug) entry.retailerSlug = String(raw.retailerSlug).slice(0, 80);
+    entries.push(entry);
+  });
+  if (!entries.length) return { error: "Add at least one location with a name." };
+  const totalExpense = Number(routeValue(body.totalExpense)) || 0;
+  const cashCollected = entries.reduce((sum, e) => sum + (Number(e.collected) || 0), 0);
+  return {
+    doc: {
+      id,
+      reportDate,
+      source,
+      areaLabel: String(body.areaLabel || "").trim().slice(0, 120) || source,
+      entries,
+      totalExpense,
+      cashCollected,
+      netSales: cashCollected - totalExpense,
+      isTestData: false,
+    },
+  };
+}
+
+module.exports = { buildRouteSheet, cleanName, accountForEntry, loadNameMap, issueToken, readToken, recordsForAccount, tagSheets };

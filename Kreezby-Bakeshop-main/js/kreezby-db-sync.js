@@ -70,7 +70,11 @@
           });
           Array.prototype.forEach.call(document.querySelectorAll("a.home-badge"), function (n) { n.remove(); });
         }
-        function queue() { sweep(); }
+        function queue() {
+          if (queued) return;
+          queued = true;
+          (window.requestAnimationFrame || setTimeout)(sweep);
+        }
         sweep();
         new MutationObserver(queue).observe(document.documentElement, { childList: true, subtree: true });
         document.addEventListener("DOMContentLoaded", sweep);
@@ -420,7 +424,14 @@
     kreezby_admin_delivery_nav_v1: 1,
     kreezby_staff_delivery_nav_v1: 1,
     kreezbyBrowserAlertSeen: 1,
-    kreezbyNotifyPrompted: 1
+    kreezbyNotifyPrompted: 1,
+    // Per-device / per-shopper state: syncing these made every browser share one cart,
+    // one customer profile and one sidebar layout, which flipped back and forth.
+    kreezbyCart: 1,
+    kreezbyCustomerProfile: 1,
+    kreezbyDockedSidebar: 1,
+    kreezby_admin_pos_nav_v1: 1,
+    kreezby_staff_pos_nav_v1: 1
   };
 
   function isShared(key) {
@@ -563,6 +574,28 @@
       var grew = false;
       Object.keys(held).forEach(function (k) { if (!(k in out)) { out[k] = held[k]; grew = true; } });
       return grew ? JSON.stringify(out) : null;
+    }
+    if (key === "kreezby_maintenance_users" && server && held && typeof server === "object" && typeof held === "object") {
+      var usersOut = Object.assign({}, server);
+      var addedAccount = false;
+      ["admins", "staff", "retailers", "customers", "wholesalers", "suppliers"].forEach(function (bucket) {
+        if (!Array.isArray(held[bucket])) return;
+        var list = Array.isArray(usersOut[bucket]) ? usersOut[bucket].slice() : [];
+        var seen = {};
+        list.forEach(function (row, i) {
+          var id = recordKey(row, "id") || String((row && (row.user_id || row.email || row.username)) || "");
+          if (id) seen[id] = i;
+        });
+        held[bucket].forEach(function (row) {
+          var id = recordKey(row, "id") || String((row && (row.user_id || row.email || row.username)) || "");
+          if (!id || seen[id] != null) return;
+          list.push(row);
+          seen[id] = list.length - 1;
+          addedAccount = true;
+        });
+        usersOut[bucket] = list;
+      });
+      return addedAccount ? JSON.stringify(usersOut) : null;
     }
     return null;
   }
@@ -724,6 +757,8 @@
 
   Storage.prototype.setItem = function (key, value) {
     var stored = String(value);
+    // Writing the same value again is a no-op: no upload, no "something changed" for others.
+    if (this === localStorage && !applyingRemote && nativeGet.call(this, key) === stored && pending[key] === undefined) return;
     nativeSet.call(this, key, stored);
     if (this === localStorage && !applyingRemote && isShared(key)) queue(key, stored);
     if (this === localStorage && !applyingRemote) schedulePermissionPublish(key);
@@ -739,6 +774,12 @@
   // head admin is looking at, unless they are in the middle of typing or a dialog is open.
   var liveRefreshTimer = null;
   var lastLiveRefresh = 0;
+  var pageOpenedAt = Date.now();
+  // Never reload under someone who is clicking, scrolling or typing.
+  var lastUserAction = 0;
+  ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(function (name) {
+    window.addEventListener(name, function () { lastUserAction = Date.now(); }, { capture: true, passive: true });
+  });
   var SELF_HANDLED = { "kreezby-po-orders-v1": 1, "kreezby-bo-orders-v1": 1, "kreezby-return-records-v1": 1 };
   function userIsBusy() {
     var el = document.activeElement;
@@ -747,17 +788,19 @@
     var sel = window.getSelection && window.getSelection();
     return !!(sel && String(sel).length > 0);
   }
-  function scheduleLiveRefresh(keys) {
+  function scheduleLiveRefresh(keys, fromFirstPull) {
+    if (fromFirstPull) return;
+    if (Date.now() - pageOpenedAt < 8000) return;
     if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || "")) return;
     if (/\/(admin_permissions|staff-permissions|maintenance|pos-)/i.test(location.pathname || "")) return;
     var relevant = keys.filter(function (k) {
-      return !SELF_HANDLED[k] && !/^(kreezbyNotifications|kreezbyBrowserAlert|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_)/.test(k);
+      return !SELF_HANDLED[k] && !/^(kreezbyNotification|kreezbyBrowserAlert|kreezbyAlert|kreezbyBadgeSeen|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_|kreezbyHelpQueue|kreezby_data_dictionary|kreezby_stock_snapshots|kreezbyPortalSeedVersion|kreezby_users_seed_version|kreezbyDockedSidebar|kreezby_(admin|staff)_pos_nav)/.test(k);
     });
     if (!relevant.length) return;
     if (liveRefreshTimer) return;
     liveRefreshTimer = setTimeout(function tryRefresh() {
-      if (document.hidden || userIsBusy() || Date.now() - lastLiveRefresh < 4000) {
-        liveRefreshTimer = setTimeout(tryRefresh, 2000);
+      if (document.hidden || userIsBusy() || Date.now() - lastUserAction < 20000 || Date.now() - lastLiveRefresh < 60000) {
+        liveRefreshTimer = setTimeout(tryRefresh, 2500);
         return;
       }
       liveRefreshTimer = null;
@@ -765,7 +808,7 @@
       var y = window.scrollY;
       try { sessionStorage.setItem("kreezby_live_scroll", String(y)); } catch (e) { /* ignore */ }
       location.reload();
-    }, 600);
+    }, 1200);
   }
   try {
     var savedScroll = sessionStorage.getItem("kreezby_live_scroll");
@@ -775,16 +818,21 @@
     }
   } catch (e) { /* ignore */ }
 
-  function applyItems(items, uploadMissing) {
+  function applyItems(items, uploadMissing, fromFirstPull) {
     if (!items) return;
     applyingRemote = true;
     var changedKeys = [];
     try {
-      Object.keys(known).forEach(function (key) {
-        if (isBusy(key)) return;
-        if (Object.prototype.hasOwnProperty.call(items, key)) return;
-        nativeRemove.call(localStorage, key);
-      });
+      var incomingCount = Object.keys(items).length;
+      var knownCount = Object.keys(known).length;
+      var snapshotLooksComplete = !knownCount || incomingCount >= Math.max(3, knownCount * 0.5);
+      if (snapshotLooksComplete) {
+        Object.keys(known).forEach(function (key) {
+          if (isBusy(key)) return;
+          if (Object.prototype.hasOwnProperty.call(items, key)) return;
+          nativeRemove.call(localStorage, key);
+        });
+      }
       Object.keys(items).forEach(function (key) {
         if (!isShared(key) || isBusy(key)) return;
         var next = items[key] == null ? null : String(items[key]);
@@ -807,7 +855,7 @@
       try {
         document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
       } catch (e) { /* listeners are optional */ }
-      scheduleLiveRefresh(changedKeys);
+      scheduleLiveRefresh(changedKeys, fromFirstPull);
     }
 
     known = {};
@@ -825,28 +873,57 @@
   }
 
   var synced = false;
+  var pullInFlight = false;
 
   function pull(uploadMissing) {
+    if (pullInFlight) return;
+    pullInFlight = true;
     var poll = new XMLHttpRequest();
     poll.open("GET", "/api/state", true);
-    poll.timeout = 2500;
+    poll.timeout = 20000;
     function retryFirst() {
+      pullInFlight = false;
       // Keep trying until this page has read the server once; held writes wait for it.
-      if (!firstPullDone) setTimeout(function () { pull(uploadMissing); }, 1500);
+      if (!firstPullDone) setTimeout(function () { pull(uploadMissing); }, 2000);
     }
     poll.onload = function () {
       if (poll.status !== 200) { retryFirst(); return; }
+      pullInFlight = false;
       try {
         var items = JSON.parse(poll.responseText).items;
+        if (!items || typeof items !== "object") { retryFirst(); return; }
         var first = !firstPullDone;
         firstPullDone = true;
-        applyItems(items, uploadMissing && !synced);
+        applyItems(items, uploadMissing && !synced, first);
         synced = true;
         if (first) releaseHeld(items);
       } catch (e) { retryFirst(); }
     };
     poll.onerror = poll.ontimeout = retryFirst;
     poll.send();
+  }
+
+  function accountRowKey(row) {
+    return String((row && (row.id || row.user_id || row.email || row.username)) || "").trim();
+  }
+
+  function mergeAccountLists(localList, mongoList) {
+    var byId = {};
+    var order = [];
+    function take(row, fromMongo) {
+      var id = accountRowKey(row);
+      if (!id) return;
+      var prev = byId[id] || {};
+      var next = Object.assign({}, prev, row || {});
+      if (fromMongo) next.fromMongo = true;
+      if (!next.temporaryPassword && prev.temporaryPassword) next.temporaryPassword = prev.temporaryPassword;
+      if (!next.password && prev.password) next.password = prev.password;
+      byId[id] = next;
+      if (order.indexOf(id) < 0) order.push(id);
+    }
+    (localList || []).forEach(function (row) { take(row, false); });
+    (mongoList || []).forEach(function (row) { take(row, true); });
+    return order.map(function (id) { return byId[id]; });
   }
 
   function applyAccountCollections(accounts) {
@@ -860,12 +937,9 @@
     var changed = false;
     ["admins", "staff", "retailers", "customers"].forEach(function (bucket) {
       if (!Array.isArray(accounts[bucket]) || !accounts[bucket].length) return;
-      if (JSON.stringify(current[bucket] || []) !== JSON.stringify(accounts[bucket])) changed = true;
-      current[bucket] = accounts[bucket].map(function (row) {
-        row = row || {};
-        row.fromMongo = true;
-        return row;
-      });
+      var merged = mergeAccountLists(current[bucket], accounts[bucket]);
+      if (JSON.stringify(current[bucket] || []) !== JSON.stringify(merged)) changed = true;
+      current[bucket] = merged;
     });
     if (!changed) return;
     applyingRemote = true;
@@ -931,20 +1005,18 @@
   // Near real-time: ask the server whether anything changed every 2 seconds and only
   // download the full state when it did (full refresh every 30 seconds as a safety net).
   var lastStateVersion = null;
-  var versionBroken = false;
   var lastFullPull = Date.now();
   function pollStateVersion() {
     if (document.hidden) return;
-    if (versionBroken || Date.now() - lastFullPull > 30000) {
+    if (Date.now() - lastFullPull > 30000) {
       lastFullPull = Date.now();
       pull(false);
-      if (versionBroken) return;
     }
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/api/state-version?t=" + Date.now(), true);
-    xhr.timeout = 4000;
+    xhr.timeout = 8000;
     xhr.onload = function () {
-      if (xhr.status !== 200) { versionBroken = true; return; }
+      if (xhr.status !== 200) return;
       try {
         var version = JSON.parse(xhr.responseText).version;
         if (version !== lastStateVersion) {
@@ -952,7 +1024,7 @@
           lastStateVersion = version;
           if (!first) { lastFullPull = Date.now(); pull(false); }
         }
-      } catch (e) { versionBroken = true; }
+      } catch (e) { /* keep polling the cheap version check */ }
     };
     xhr.send();
   }

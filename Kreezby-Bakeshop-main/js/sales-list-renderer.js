@@ -743,11 +743,13 @@
       window.refreshRouteFilterOptions = function (report) {
         filterMeta = api.getRouteFilterOptions();
         if (report && monthEl && dateEl && areaEl) {
+          // A new month or area may have appeared: rebuild every list, then select the sheet.
+          fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
           monthEl.value = report.reportDate.slice(0, 7);
-          refreshDateOptions();
-          dateEl.value = report.reportDate;
           refreshAreaOptions();
           areaEl.value = report.source;
+          refreshDateOptions();
+          dateEl.value = report.reportDate;
         }
         rerender();
       };

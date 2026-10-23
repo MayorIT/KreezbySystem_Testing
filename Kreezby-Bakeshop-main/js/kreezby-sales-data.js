@@ -136,6 +136,11 @@
     loadPromise = loadFromDatabase().then(function (data) {
       var applied = applyBasePayload(data);
       if (applied) applied._fromDatabase = true;
+      uploadLocalOverrides().then(function (moved) {
+        if (moved && window.refreshRouteSheetView) {
+          reloadFromServer().then(function () { window.refreshRouteSheetView(); });
+        }
+      });
       return applied;
     }).catch(function () {
       return loadLocalSales();
@@ -345,17 +350,63 @@
     };
   }
 
+  function sessionToken() {
+    try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
+  }
+
+  // Route sheets are saved in MongoDB (sales_route_sheets), so retailer accounts and every
+  // admin/staff browser see the same sheet. Resolves with the saved sheet; rejects with a message.
+  function postReport(report) {
+    var token = sessionToken();
+    if (!token) return Promise.reject(new Error('Please log out and log in again, then save the sheet.'));
+    return fetch('/api/route-sheets', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': token },
+      body: JSON.stringify(report)
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok || !body || !body.ok) {
+          var msg = (body && body.error) || ('Could not save the route sheet (' + res.status + ').');
+          if (res.status === 401) msg = 'Please log out and log in again, then save the sheet.';
+          throw new Error(msg);
+        }
+        return body.report;
+      });
+    });
+  }
+
+  function reloadFromServer() {
+    resetLoadState();
+    window.__kreezbySalesListRequest = null;
+    return load();
+  }
+
   function saveReport(report) {
-    return load().then(function () {
-      var overrides = loadOverrides();
-      var idx = overrides.findIndex(function (r) { return r.id === report.id; });
-      var copy = applyFinancialsToReport(JSON.parse(JSON.stringify(report)));
-      if (idx >= 0) overrides[idx] = copy;
-      else overrides.push(copy);
+    return postReport(report).then(function (saved) {
+      // Drop any browser-only copy of this sheet now that MongoDB has it.
+      var overrides = loadOverrides().filter(function (r) { return r.id !== report.id; });
       saveOverridesToStorage(overrides);
-      loadPromise = null;
-      try { sessionStorage.removeItem(SESSION_CACHE_KEY); } catch (e) { /* ignore */ }
-      return applyCache(mergeOverrides(BASE_CACHE || CACHE));
+      return reloadFromServer().then(function () { return saved; });
+    });
+  }
+
+  // Sheets that older versions saved only in a browser: upload them once, then clear them.
+  var uploadingOverrides = false;
+  function uploadLocalOverrides() {
+    if (uploadingOverrides || !sessionToken()) return Promise.resolve(false);
+    var overrides = loadOverrides();
+    if (!overrides.length) return Promise.resolve(false);
+    uploadingOverrides = true;
+    var left = [];
+    return overrides.reduce(function (chain, r) {
+      return chain.then(function () {
+        return postReport(r).catch(function () { left.push(r); });
+      });
+    }, Promise.resolve()).then(function () {
+      saveOverridesToStorage(left);
+      uploadingOverrides = false;
+      return left.length < overrides.length;
     });
   }
 

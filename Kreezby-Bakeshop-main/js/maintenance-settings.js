@@ -283,7 +283,7 @@
             if (user.dataset) return true;
             if (country && country !== 'philippines') return true;
             if (email.indexOf('@example.') >= 0) return true;
-            if (/^cust-\d+$/.test(String(user.id || ''))) return true;
+            if (/^cust-\d{1,6}$/.test(String(user.id || ''))) return true;
         }
         return false;
     }
@@ -494,9 +494,32 @@
             record.area = String((fields && fields.area) || '').trim();
             if (!record.email) return { ok: false, message: 'Email is required.' };
         }
+        if (!record.temporaryPassword) record.temporaryPassword = 'kreezby123';
         users[bucket].push(record);
         saveUsers(withDictionaryFields(users));
+        publishAccount(bucket, record);
         return { ok: true, message: name + ' was added and can be activated or deactivated from this list.', id: record.id };
+    }
+
+    function publishAccount(bucket, record) {
+        if (location.protocol === 'file:' || !window.fetch) {
+            return Promise.resolve({ ok: false, skipped: true });
+        }
+        return fetch('/api/accounts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ bucket: bucket, account: record })
+        }).then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (body) {
+                body = body || {};
+                body.status = res.status;
+                if (body.ok && body.account && record) record.fromMongo = true;
+                return body;
+            });
+        }).catch(function () {
+            return { ok: false, error: 'Could not reach the database.' };
+        });
     }
 
     var BACKUP_KEYS = [
@@ -544,6 +567,29 @@
 
     var ACCOUNTS_STAMP_KEY = 'kreezby_accounts_pulled_at';
 
+    function accountRowKey(row) {
+        return String((row && (row.id || row.user_id || row.email || row.username)) || '').trim();
+    }
+
+    function mergeAccountLists(localList, mongoList) {
+        var byId = {};
+        var order = [];
+        function take(row, fromMongo) {
+            var id = accountRowKey(row);
+            if (!id) return;
+            var prev = byId[id] || {};
+            var next = Object.assign({}, prev, row || {});
+            if (fromMongo) next.fromMongo = true;
+            if (!next.temporaryPassword && prev.temporaryPassword) next.temporaryPassword = prev.temporaryPassword;
+            if (!next.password && prev.password) next.password = prev.password;
+            byId[id] = next;
+            if (order.indexOf(id) < 0) order.push(id);
+        }
+        (localList || []).forEach(function (row) { take(row, false); });
+        (mongoList || []).forEach(function (row) { take(row, true); });
+        return order.map(function (id) { return byId[id]; });
+    }
+
     function applyPulledAccounts(text) {
         var data = JSON.parse(text);
         var accounts = data && data.accounts;
@@ -551,7 +597,7 @@
         var users = loadJson(USERS_KEY, {});
         ['admins', 'staff', 'retailers', 'customers'].forEach(function (bucket) {
             if (Array.isArray(accounts[bucket]) && accounts[bucket].length) {
-                users[bucket] = accounts[bucket].map(function (row) { row = row || {}; row.fromMongo = true; return row; });
+                users[bucket] = mergeAccountLists(users[bucket], accounts[bucket]);
             }
         });
         saveJson(USERS_KEY, withDictionaryFields(users));
@@ -607,6 +653,7 @@
         setAccountStatus: setAccountStatus,
         isHeadAdminAccount: isHeadAdminAccount,
         createAccount: createAccount,
+        publishAccount: publishAccount,
         exportBackup: exportBackup,
         restoreBackup: restoreBackup,
         DEFAULT_USERS: DEFAULT_USERS

@@ -1,6 +1,27 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" }
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/", "destination": "/Kreezby-Bakeshop-main/auth/start.html" },
+    { "source": "/auth", "destination": "/Kreezby-Bakeshop-main/auth/start.html" },
+    { "source": "/favicon.ico", "destination": "/Kreezby-Bakeshop-main/favicon.ico" },
+    { "source": "/sw-alerts.js", "destination": "/Kreezby-Bakeshop-main/sw-alerts.js" },
+    { "source": "/auth/:path*", "destination": "/Kreezby-Bakeshop-main/auth/:path*" },
+    { "source": "/admin/:path*", "destination": "/Kreezby-Bakeshop-main/admin/:path*" },
+    { "source": "/head_admin/:path*", "destination": "/Kreezby-Bakeshop-main/head_admin/:path*" },
+    { "source": "/staff/:path*", "destination": "/Kreezby-Bakeshop-main/staff/:path*" },
+    { "source": "/retailer/:path*", "destination": "/Kreezby-Bakeshop-main/retailer/:path*" },
+    { "source": "/customer/:path*", "destination": "/Kreezby-Bakeshop-main/customer/:path*" },
+    { "source": "/it_kreezby/:path*", "destination": "/Kreezby-Bakeshop-main/it_kreezby/:path*" },
+    { "source": "/js/:path*", "destination": "/Kreezby-Bakeshop-main/js/:path*" },
+    { "source": "/css/:path*", "destination": "/Kreezby-Bakeshop-main/css/:path*" },
+    { "source": "/assets/:path*", "destination": "/Kreezby-Bakeshop-main/assets/:path*" },
+    { "source": "/data/:path*", "destination": "/Kreezby-Bakeshop-main/data/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)\\.(html|js|css)$",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    }
   ],
   "functions": {
     "api/index.js": {
