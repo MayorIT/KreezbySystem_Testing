@@ -937,24 +937,12 @@
     }
 
     function paintRetailerHeader(trigger) {
-        var storeName = retailerStoreName();
         var savedName = savedProfileName();
-        paintPill(trigger, savedName || 'Retailer', pillRole(portalAccount()));
+        paintPill(trigger, savedName || retailerStoreName() || 'Retailer', pillRole(portalAccount()));
         var right = trigger.closest('.top-nav-links-right');
         if (!right) return;
-        ensureStoreNameStyle();
-        var nameEl = right.querySelector('.portal-store-name');
-        if (storeName) {
-            if (!nameEl) {
-                nameEl = document.createElement('span');
-                nameEl.className = 'portal-store-name';
-            }
-            var dropdown = trigger.closest('.user-dropdown');
-            right.insertBefore(nameEl, dropdown || trigger);
-            nameEl.textContent = storeName;
-        } else if (nameEl) {
-            nameEl.remove();
-        }
+        // The store name is already on the account pill; no second copy beside the bell.
+        right.querySelectorAll('.portal-store-name').forEach(function (el) { el.remove(); });
     }
 
     function ensureStaffUserDropdownShell() {
