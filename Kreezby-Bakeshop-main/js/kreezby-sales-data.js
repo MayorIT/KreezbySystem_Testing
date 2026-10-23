@@ -81,8 +81,17 @@
 
   function loadFromDatabase() {
     if (!window.__kreezbySalesListRequest) {
-      window.__kreezbySalesListRequest = fetch('/api/sales-list', { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+      var token = '';
+      try { token = (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { token = ''; }
+      window.__kreezbySalesListRequest = fetch('/api/sales-list', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: token ? { 'X-Kreezby-Token': token } : {}
+      }).then(function (res) {
+        // The server only gives route sheets to admins and staff with a current sign-in.
+        if (res.status === 401 || res.status === 403) window.__kreezbySalesNeedLogin = res.status;
         if (!res.ok) throw new Error('sales list ' + res.status);
+        window.__kreezbySalesNeedLogin = 0;
         return res.json();
       }).then(function (data) {
         if (!data || !data.dailyReports || !data.dailyReports.length) throw new Error('empty sales list');

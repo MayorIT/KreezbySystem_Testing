@@ -5,6 +5,7 @@ const { MongoClient } = require("mongodb");
 const QRCode = require("qrcode");
 require("dotenv").config();
 const crypto = require("crypto");
+const retailerRecords = require("./scripts/retailer-records.js");
 
 const PORT = process.env.PORT || 3000;
 const SERVERLESS = !!process.env.VERCEL;
@@ -436,7 +437,7 @@ app.use("/api", async (req, res, next) => {
 app.use("/api", (req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Kreezby-Token");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") {
     res.sendStatus(204);
@@ -485,12 +486,29 @@ const RECORD_COLLECTIONS = {
   sales_procurement: 1,
 };
 
+// Route sheets hold every retailer's records, so only admins and staff may read them.
+// A retailer reads its own rows from /api/retailer-records.
+function staffToken(req, res) {
+  const token = retailerRecords.readToken(req);
+  if (!token) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log in again to see the sales list." });
+    return null;
+  }
+  if (token.bucket !== "admins" && token.bucket !== "staff") {
+    res.status(403).json({ ok: false, error: "Only admins and staff can see every route sheet." });
+    return null;
+  }
+  return token;
+}
+
 app.get("/api/sales-list", async (req, res) => {
   if (!databaseReady(res)) return;
+  if (!staffToken(req, res)) return;
   try {
     const col = salesListCollection();
     const meta = await col.findOne({ _id: "_meta" }) || {};
     const reports = await col.find({ _id: { $ne: "_meta" } }).sort({ reportDate: 1, _id: 1 }).toArray();
+    await retailerRecords.tagSheets(client.db(DB_NAME), reports);
     const dailyReports = reports.map((doc) => {
       const report = { ...doc, id: doc.id || String(doc._id) };
       delete report._id;
@@ -508,6 +526,45 @@ app.get("/api/sales-list", async (req, res) => {
       dailyReports,
       sales: [],
     });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// A retailer's own delivery & collection rows. Admins and staff may pass ?account=<id>.
+app.get("/api/retailer-records", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log in again to see your records." });
+    return;
+  }
+  let accountId = token.id;
+  if (token.bucket === "admins" || token.bucket === "staff") {
+    accountId = String(req.query.account || "");
+  } else if (token.bucket !== "retailers") {
+    res.status(403).json({ ok: false, error: "Only retailer accounts have route-sheet records." });
+    return;
+  }
+  try {
+    const db = client.db(DB_NAME);
+    if (!accountId) {
+      // Admin/staff without an account: list the retailer accounts and how many rows each has.
+      const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1 } }).sort({ name: 1 }).toArray();
+      const reports = await salesListCollection().find({ _id: { $ne: "_meta" }, isTestData: { $ne: true } }).toArray();
+      await retailerRecords.tagSheets(db, reports);
+      const counts = {};
+      reports.forEach((sheet) => (sheet.entries || []).forEach((e) => { if (e.accountId) counts[e.accountId] = (counts[e.accountId] || 0) + 1; }));
+      res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", rows: counts[String(a._id)] || 0 })) });
+      return;
+    }
+    const account = await db.collection("retailer_accounts").findOne({ _id: accountId }, { projection: { name: 1, area: 1 } });
+    if (!account) {
+      res.status(404).json({ ok: false, error: "Retailer account not found." });
+      return;
+    }
+    const sales = await retailerRecords.recordsForAccount(db, accountId);
+    res.json({ ok: true, account: { id: accountId, name: account.name || accountId, area: account.area || "" }, sales });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -598,6 +655,8 @@ app.post("/api/login", async (req, res) => {
         ok: true,
         account: { ...publicAccount(doc), accountType },
         bucket,
+        // Proves who signed in; pages send it back to read their own records.
+        token: retailerRecords.issueToken(String(doc._id), bucket),
       });
       return;
     }
@@ -1188,7 +1247,7 @@ function allowLocalPaymongo(req, res, next) {
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Kreezby-Token");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Private-Network", "true");
   }

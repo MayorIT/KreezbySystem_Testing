@@ -772,7 +772,11 @@
       }
 
       var badge = document.getElementById('bauan-import-badge');
-      if (badge && api.getImportSummary) {
+      if (badge && window.__kreezbySalesNeedLogin) {
+        badge.textContent = window.__kreezbySalesNeedLogin === 401
+          ? 'Please log out and log in again to load the route sheets.'
+          : 'Only admin and staff accounts can open the route sheets.';
+      } else if (badge && api.getImportSummary) {
         var s = api.getImportSummary();
         badge.textContent =
           s.total + ' location entries · ' + filterMeta.months.length + ' months · ' +
@@ -1150,7 +1154,8 @@
     try { orders = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}'); } catch (e) { orders = {}; }
     var rows = Object.keys(orders).map(function (key) { return orders[key]; }).filter(function (order) {
       if (!order || order.entityType !== 'retailer') return false;
-      if (genericShop) return true;
+      // Never fall back to every shop's orders: an unknown sign-in sees none.
+      if (genericShop) return false;
       return String(order.entity || '').toLowerCase() === shop.toLowerCase();
     });
     rows.sort(function (a, b) {

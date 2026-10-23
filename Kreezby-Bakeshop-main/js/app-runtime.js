@@ -686,6 +686,11 @@
               accountType: resolved.accountType,
               accountArea: areaForLogin(resolved)
             };
+            if (mongo && mongo.ok && mongo.account) {
+              // Signed by the server: lets this account read only its own records.
+              if (mongo.token) sessionData.token = mongo.token;
+              sessionData.accountId = mongo.account.id || '';
+            }
             if (resolved.accountType === 'Customer') {
               var custAcct = (mongo && mongo.ok && mongo.account) || findLocalCustomer(identity) || {};
               sessionData.customerId = custAcct.id || custAcct.user_id || '';

@@ -250,7 +250,8 @@ async function runReset(db, options) {
     customer_accounts: collections.customer_accounts.filter((d) => String(d._id) !== KEEP_CUSTOMER_ID && !isKeptCustomer(d)).map((d) => d._id),
     customer_orders: collections.customer_orders.filter((d) => !isMarkOrder(d) && !markOrderIds.has(String(d.orderNumber || d._id))).map((d) => d._id),
     sales_orders: collections.sales_orders.filter((d) => !markOrderIds.has(String(d._id)) && !KEEP_NAME_RE.test(String(d.Customer_ID || ""))).map((d) => d._id),
-    sales_route_sheets: collections.sales_route_sheets.filter((d) => d._id !== "_meta").map((d) => d._id),
+    // Only the imported test sheets; real retailer records (dataset "retailer-records") stay.
+    sales_route_sheets: collections.sales_route_sheets.filter((d) => d._id !== "_meta" && d.isTestData === true).map((d) => d._id),
     sales_procurement: collections.sales_procurement.map((d) => d._id),
   };
 
