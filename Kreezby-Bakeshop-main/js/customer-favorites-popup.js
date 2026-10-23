@@ -10,7 +10,7 @@
     var STORAGE_KEY = 'kreezbyCustomerFavoritesV1';
     var CART_KEY = 'kreezbyCart';
     var CATALOG = [
-        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouches', cost: 20, img: 'flavors/crinkle-chocolate.jpg' },
+        { id: 'flavor-choc', name: 'Chocolate Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/crinkle-chocolate.jpg' },
         { id: 'flavor-almond', name: 'Choco-Almond Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-almond-crinkles.jpg' },
         { id: 'flavor-cashew', name: 'Choco-Cashew Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/choco-cashew-crinkles.jpg' },
         { id: 'flavor-straw', name: 'Strawberry Crinkles', variant: 'Pouches', cost: 165, img: 'flavors/strawberry-crinkles.jpg' },

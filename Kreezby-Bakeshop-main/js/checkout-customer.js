@@ -329,6 +329,9 @@ ${buildCopy('CUSTOMER COPY')}
     receiptWin.document.close();
 }
 
+// Current prices win over a price saved in an older cart.
+const CURRENT_PRICES = { 'flavor-choc': 165 };
+
 function normalizeCartData(rawCart) {
     if (!rawCart || typeof rawCart !== 'object') return {};
     const safeCart = {};
@@ -336,7 +339,7 @@ function normalizeCartData(rawCart) {
     Object.keys(rawCart).forEach((key) => {
         const item = rawCart[key];
         if (!item) return;
-        const cost = Number(item.cost);
+        const cost = CURRENT_PRICES[key] != null ? CURRENT_PRICES[key] : Number(item.cost);
         const qty = Number(item.qty);
 
         if (!Number.isFinite(cost) || !Number.isFinite(qty) || qty <= 0) return;
