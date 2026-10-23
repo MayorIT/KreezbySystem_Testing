@@ -22,6 +22,23 @@
     <link rel="stylesheet" href="../css/pages/customer/coverflow-home.css?v=20261020fit2">
 
     
+<style id="kz-cart-header-fix">
+/* Keep the header on screen while the cart or a popup is open: lock scrolling on the page
+   root only, so the sticky header still sticks (body overflow:hidden made it scroll away). */
+body:has(#global-modal-overlay-context.active) { overflow: visible !important; }
+html:has(#global-modal-overlay-context.active) { overflow: hidden; }
+@media (max-width: 900px) {
+    body.cart-sidebar-open .cart-sidebar.open { top: var(--kz-header-h, 64px) !important; }
+}
+/* Small "Added to cart" note instead of opening the cart on every add. */
+.kz-cart-toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); z-index: 3000;
+    background: #3e2723; color: #fff; padding: 11px 18px; border-radius: 999px; font-weight: 700; font-size: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.cart-remove-btn { margin-top: 8px; border: 1px solid #fecaca; background: #fff; color: #b91c1c; border-radius: 999px;
+    padding: 5px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.cart-remove-btn:hover { background: #fef2f2; }
+.kz-cart-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+</style>
 </head>
 <body>
 
@@ -787,9 +804,26 @@
             if (dropdownMenu) dropdownMenu.classList.remove('active');
         }
 
+        function showCartToast(message) {
+            let toast = document.getElementById('kz-cart-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'kz-cart-toast';
+                toast.className = 'kz-cart-toast';
+                toast.setAttribute('role', 'status');
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('is-on');
+            clearTimeout(showCartToast.timer);
+            showCartToast.timer = setTimeout(function () { toast.classList.remove('is-on'); }, 1800);
+        }
+
         function setCartSidebarOpen(shouldOpen) {
             const sidePanel = document.getElementById('interactive-cart-sidebar');
             if (!sidePanel) return;
+            const siteHeader = document.querySelector('header, .site-header');
+            if (siteHeader) document.documentElement.style.setProperty('--kz-header-h', siteHeader.offsetHeight + 'px');
 
             sidePanel.classList.toggle('open', Boolean(shouldOpen));
             document.body.classList.toggle('cart-sidebar-open', Boolean(shouldOpen));
@@ -847,7 +881,9 @@
 
             if (qtyNode) qtyNode.textContent = "1";
             refreshGlobalCartInterfaceState();
-            setCartSidebarOpen(true);
+            // Do not pop the cart open on every add: a short note and a tap on the Cart button.
+            pulseHeaderNav('cart');
+            showCartToast(inputQtyVal + ' × ' + itemConfig.name + ' added to cart');
             if (itemConfig) {
                 pushRealtimeNotification(
                     'Added to Cart',
@@ -905,6 +941,7 @@
                                     <span class="cart-counter-value">${line.qty}</span>
                                     <button class="cart-counter-btn" type="button" onclick="changeCartLineQty('${key}', 1)">+</button>
                                 </div>
+                                <button class="cart-remove-btn" type="button" onclick="changeCartLineQty('${key}', -shoppingCartStateMap['${key}'].qty)">Remove</button>
                             </div>
                         </div>
                     `;
