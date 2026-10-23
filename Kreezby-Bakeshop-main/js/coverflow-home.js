@@ -11,14 +11,14 @@
             titleLine1: 'Chocolate',
             titleLine2: 'Crinkles',
             desc: 'The classic pouch. Soft, dark, and the one people come back for.',
-            img: 'flavors/chocolate-crinkles.jpg'
+            img: 'flavors/crinkle-chocolate.jpg'
         },
         {
             tag: '#Specialty',
             titleLine1: 'Choco Butternut',
             titleLine2: 'Crinkles',
             desc: 'The specialty pouch. Chocolate butternut, packed to share.',
-            img: 'flavors/choco-butternut-crinkles.jpg'
+            img: 'flavors/crinkle-choco-butternut.jpg'
         },
         {
             tag: '#Classic',
