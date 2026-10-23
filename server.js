@@ -81,6 +81,40 @@ const RETIRED_CUSTOMER_IDS = new Set([
 ]);
 const RETIRED_ORDER_NUMBERS = new Set(["ORD-2026-1042", "ORD-2026-1038", "ORD-2026-1021", "ORD-2026-1015", "ORD-2026-1008"]);
 
+// Orders and receipts are records of what happened: a save never removes one. The incoming
+// list is merged with the stored list (same number = the incoming version wins), so a page
+// that sends an empty or outdated list cannot wipe orders.
+const APPEND_ONLY_LISTS = { kreezbyOrders: "orderNumber", kreezbyCustomerReceipts: "receiptNumber", kreezbyOwnerReceipts: "receiptNumber" };
+
+function keepStoredRecords(key, incoming) {
+  const field = APPEND_ONLY_LISTS[key];
+  if (!field || typeof cache[key] !== "string") return incoming;
+  let next;
+  let stored;
+  try { next = JSON.parse(incoming); stored = JSON.parse(cache[key]); } catch (error) { return incoming; }
+  if (!Array.isArray(next) || !Array.isArray(stored)) return incoming;
+  // A paid order never goes back to unpaid because a page sent an older copy.
+  let upgraded = false;
+  if (key === "kreezbyOrders") {
+    const paid = new Map();
+    stored.forEach((row) => { if (row && row.paymentStatus === "paid" && row.orderNumber) paid.set(String(row.orderNumber), row); });
+    next.forEach((row) => {
+      const was = row && paid.get(String(row.orderNumber || ""));
+      if (!was || row.paymentStatus === "paid") return;
+      ["paymentStatus", "paymentVerified", "paidAt", "paymongo"].forEach((k) => { if (was[k] !== undefined) row[k] = was[k]; });
+      if (row.status === "Awaiting payment" || row.status === "Payment expired") row.status = was.status;
+      upgraded = true;
+    });
+  }
+  const ids = new Set(next.map((row) => row && String(row[field] || "")).filter(Boolean));
+  const missing = stored.filter((row) => {
+    const id = row && String(row[field] || "");
+    return id && !ids.has(id) && !RETIRED_ORDER_NUMBERS.has(String(row.orderNumber || ""));
+  });
+  if (!missing.length) return upgraded ? JSON.stringify(next) : incoming;
+  return JSON.stringify(next.concat(missing));
+}
+
 function dropRetired(key, stored) {
   try {
     if (key === "kreezby_maintenance_users") {
@@ -109,6 +143,7 @@ async function runOneTimeReset() {
     const done = await reset.runResetOnce(client.db(DB_NAME), log);
     if (done) console.log("[reset] One-time data reset finished.");
     await reset.runAlertCleanupOnce(client.db(DB_NAME), log);
+    await reset.runRestoreMarkOnce(client.db(DB_NAME), log);
   } catch (error) {
     console.error("[reset] One-time data reset failed: " + error.message);
   }
@@ -778,7 +813,7 @@ app.post("/api/state", async (req, res) => {
         delete cache[key];
         continue;
       }
-      const stored = dropRetired(key, String(value));
+      const stored = keepStoredRecords(key, dropRetired(key, String(value)));
       if (stored !== String(value)) items[key] = stored;
       if (stored.length > 12 * 1024 * 1024) continue;
       ops.push({
@@ -1449,7 +1484,12 @@ app.get("/api/paymongo/payment-intents/:id", async (req, res) => {
   }
   try {
     const intent = await paymongoRequest("GET", "/v1/payment_intents/" + req.params.id);
-    res.json(Object.assign({ ok: true }, paymongoPublicIntent(intent)));
+    const info = paymongoPublicIntent(intent);
+    // The status check also settles a waiting order, in case the webhook is not set up.
+    if (info.status === "succeeded") {
+      try { await settleQrOrder(info.paymentIntentId, "paid", { amount: info.amount }); } catch (error) { /* the page still updates */ }
+    }
+    res.json(Object.assign({ ok: true }, info));
   } catch (error) {
     res.status(error.status && error.status < 500 ? error.status : 502).json({
       ok: false,
@@ -1460,7 +1500,77 @@ app.get("/api/paymongo/payment-intents/:id", async (req, res) => {
 
 // PayMongo webhook: https://<site>/api/paymongo/webhook
 // Needs PAYMONGO_WEBHOOK_SECRET (the whsk_... secret of the webhook in the PayMongo dashboard).
-app.post("/api/paymongo/webhook", (req, res) => {
+// Marks a waiting QR Ph order paid (or expired) on the server, so it updates even if the
+// customer never returns to the checkout page after paying in GCash.
+async function settleQrOrder(paymentIntentId, outcome, details) {
+  if (!mongoReady || !paymentIntentId || typeof cache.kreezbyOrders !== "string") return null;
+  let orders;
+  try { orders = JSON.parse(cache.kreezbyOrders); } catch (error) { return null; }
+  if (!Array.isArray(orders)) return null;
+  const order = orders.find((o) => o && o.paymongo && o.paymongo.paymentIntentId === paymentIntentId);
+  if (!order || order.paymentStatus === "paid") return order || null;
+  const now = new Date();
+  if (outcome === "paid") {
+    order.paymentStatus = "paid";
+    order.paymentVerified = true;
+    if (order.status === "Awaiting payment") order.status = "Processing";
+    order.paidAt = order.paidAt || now.toISOString();
+    order.paymongo = Object.assign({}, order.paymongo, details || {}, { status: "succeeded" });
+    delete order.paymongo.qrImage;
+  } else if (outcome === "expired") {
+    if (order.paymentStatus !== "awaiting_payment") return order;
+    order.paymentStatus = "expired";
+    order.status = "Payment expired";
+    order.paymongo = Object.assign({}, order.paymongo, { status: "expired" });
+  } else {
+    return order;
+  }
+  const items = { kreezbyOrders: JSON.stringify(orders) };
+  ["kreezbyCustomerReceipts", "kreezbyOwnerReceipts"].forEach((key) => {
+    if (typeof cache[key] !== "string") return;
+    try {
+      const list = JSON.parse(cache[key]);
+      if (!Array.isArray(list)) return;
+      let touched = false;
+      list.forEach((r) => {
+        if (r && r.orderNumber === order.orderNumber) {
+          r.paymentStatus = outcome === "paid" ? "Paid" : "Payment expired";
+          touched = true;
+        }
+      });
+      if (touched) items[key] = JSON.stringify(list);
+    } catch (error) { /* leave receipts as they are */ }
+  });
+  if (outcome === "paid") {
+    try {
+      const notes = JSON.parse(cache.kreezbyNotifications || "[]");
+      if (Array.isArray(notes) && !notes.some((n) => n && n.id === "n-paid-" + order.orderNumber)) {
+        notes.unshift({
+          id: "n-paid-" + order.orderNumber,
+          title: "Payment Received",
+          description: "QR Ph payment received for order " + order.orderNumber + " (" + order.total + ").",
+          timestamp: now.toISOString(),
+          read: false,
+          source: "payment",
+        });
+        items.kreezbyNotifications = JSON.stringify(notes);
+      }
+    } catch (error) { /* notification is optional */ }
+  }
+  const ops = Object.entries(items).map(([key, value]) => {
+    cache[key] = value;
+    return { updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } };
+  });
+  stateVersion = Date.now();
+  ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(stateVersion) } }, upsert: true } });
+  await collection().bulkWrite(ops, { ordered: false });
+  await syncCustomerOrderDocs([order]);
+  await mirrorSaved(items);
+  console.log("QR order " + order.orderNumber + " marked " + outcome);
+  return order;
+}
+
+app.post("/api/paymongo/webhook", async (req, res) => {
   const secret = String(process.env.PAYMONGO_WEBHOOK_SECRET || "").trim();
   if (!secret) {
     console.error("PayMongo webhook: PAYMONGO_WEBHOOK_SECRET is not set");
@@ -1489,6 +1599,16 @@ app.post("/api/paymongo/webhook", (req, res) => {
   // also polls /api/paymongo/payment-intents/:id and places the order once it reads "succeeded".
   console.log("PayMongo webhook:", attrs.type, resource.id || "", resourceAttrs.payment_intent_id || "",
     resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : "");
+  try {
+    const intentId = String(resourceAttrs.payment_intent_id || (resource.id && String(resource.id).indexOf("pi_") === 0 ? resource.id : "") || "");
+    if (attrs.type === "payment.paid" || attrs.type === "checkout_session.payment.paid") {
+      await settleQrOrder(intentId, "paid", { paymentId: resource.id || "", amount: resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : undefined });
+    } else if (attrs.type === "qrph.expired" || attrs.type === "payment.failed") {
+      await settleQrOrder(intentId, attrs.type === "qrph.expired" ? "expired" : "failed");
+    }
+  } catch (error) {
+    console.error("Webhook could not update the order: " + error.message);
+  }
   res.json({ ok: true });
 });
 

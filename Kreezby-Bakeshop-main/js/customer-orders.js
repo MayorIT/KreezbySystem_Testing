@@ -223,6 +223,17 @@
         return { id: entries[0][0], item: entries[0][1] || {} };
     }
 
+    (function addPayQrStyle() {
+        if (document.getElementById('kz-order-pay-qr-style')) return;
+        var s = document.createElement('style');
+        s.id = 'kz-order-pay-qr-style';
+        s.textContent = '.order-pay-qr{display:flex;flex-direction:column;align-items:center;gap:10px;margin:12px 0 4px;padding:14px;background:#fff;border:1px solid #efe6d4;border-radius:16px;text-align:center}' +
+            '.order-pay-qr img{width:min(100%,220px);height:auto}' +
+            '.order-pay-qr__download{display:block;width:100%;max-width:260px;padding:11px 14px;border-radius:999px;background:#ffca28;color:#2b2118;font-weight:800;text-decoration:none}' +
+            '.order-pay-qr p{margin:0;font-size:13px;color:#5d4037;line-height:1.45}';
+        (document.head || document.documentElement).appendChild(s);
+    })();
+
     function isPaymentFailed(order) {
         return !!(order && (order.paymentStatus === 'failed' || order.paymentFailed));
     }
@@ -546,7 +557,18 @@
             (order.paymongo && order.paymongo.paymentIntentId ? '<div class="order-detail-summary-row"><span>QR Ph payment</span><span>' + order.paymongo.paymentIntentId + '</span></div>' : '') +
             (order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber ? '<div class="order-detail-summary-row"><span>Webpay reference</span><span>' + order.gcashWebpay.webpayReferenceNumber + '</span></div>' : (order.gcashReference ? '<div class="order-detail-summary-row"><span>GCash reference</span><span>' + order.gcashReference + '</span></div>' : '')) +
             (String(order.paymentMethod || '').toLowerCase() === 'gcash' ? '<div class="order-detail-summary-row"><span>Paid to</span><span>0917 800 1650</span></div>' : '') +
-            (isPaymentFailed(order)
+            (order.paymentStatus === 'awaiting_payment'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">⏳ Awaiting payment</span></span></div>' +
+                  (order.paymongo && String(order.paymongo.qrImage || '').indexOf('data:image/') === 0
+                    ? '<div class="order-pay-qr">' +
+                        '<img src="' + order.paymongo.qrImage + '" alt="QR Ph code for ' + order.orderNumber + '">' +
+                        '<a class="order-pay-qr__download" href="' + order.paymongo.qrImage + '" download="kreezby-qr-' + order.orderNumber + '.png">Download QR code</a>' +
+                        '<p>Open GCash (or Maya or your bank app), tap <strong>Pay QR</strong>, then <strong>Upload QR</strong> and pick the saved image. This order turns Paid by itself.</p>' +
+                      '</div>'
+                    : '')
+            : order.paymentStatus === 'expired'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Payment expired</span></span></div>'
+            : isPaymentFailed(order)
                 ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Failed transaction</span></span></div>'
                 : (webpayPaid(order)
                     ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Paid</span></span></div>'

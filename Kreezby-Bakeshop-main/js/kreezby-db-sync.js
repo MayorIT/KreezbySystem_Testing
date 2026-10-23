@@ -527,7 +527,67 @@
     } catch (e) { settle(false); }
   }
 
+  // Writes made before this page has read the server copy are held back. They are almost
+  // always defaults written by page scripts on load (an empty order list, a demo profile);
+  // sending them would overwrite the real data on the server. After the first read, a held
+  // key the server already has is dropped (the server copy wins); a new key is sent.
+  var firstPullDone = false;
+  var heldBeforePull = {};
+  // Transaction lists and maps: a held write is merged with the server copy (records are
+  // added, never removed), so a real order placed in the first second is kept while an empty
+  // default changes nothing.
+  var MERGE_LIST_KEYS = { kreezbyOrders: "orderNumber", kreezbyCustomerReceipts: "receiptNumber", kreezbyOwnerReceipts: "receiptNumber", kreezbyNotifications: "id", kreezby_pos_sales_v1: "id" };
+  var MERGE_MAP_KEYS = { "kreezby-po-orders-v1": 1, "kreezby-recv-receipts-v1": 1, "kreezby-bo-orders-v1": 1, "kreezby-return-records-v1": 1 };
+  function recordKey(row, field) {
+    if (!row || typeof row !== "object") return "";
+    return String(row[field] || row.id || row.orderNumber || row.receiptNumber || row.code || "");
+  }
+  function mergeHeld(key, serverRaw, heldRaw) {
+    var server, held;
+    try { server = JSON.parse(serverRaw); held = JSON.parse(heldRaw); } catch (e) { return null; }
+    if (MERGE_LIST_KEYS[key] && Array.isArray(server) && Array.isArray(held)) {
+      var field = MERGE_LIST_KEYS[key];
+      var seen = {};
+      var merged = server.slice();
+      server.forEach(function (row, i) { var id = recordKey(row, field); if (id) seen[id] = i; });
+      var added = false;
+      held.forEach(function (row) {
+        var id = recordKey(row, field);
+        if (!id) return;
+        if (seen[id] == null) { merged.push(row); seen[id] = merged.length - 1; added = true; }
+      });
+      return added ? JSON.stringify(merged) : null;
+    }
+    if (MERGE_MAP_KEYS[key] && server && held && typeof server === "object" && typeof held === "object" && !Array.isArray(server) && !Array.isArray(held)) {
+      var out = Object.assign({}, server);
+      var grew = false;
+      Object.keys(held).forEach(function (k) { if (!(k in out)) { out[k] = held[k]; grew = true; } });
+      return grew ? JSON.stringify(out) : null;
+    }
+    return null;
+  }
+  function releaseHeld(items) {
+    var held = heldBeforePull;
+    heldBeforePull = {};
+    Object.keys(held).forEach(function (key) {
+      if (items && Object.prototype.hasOwnProperty.call(items, key)) {
+        if (held[key] == null || items[key] == null) return;
+        var merged = mergeHeld(key, String(items[key]), String(held[key]));
+        if (merged == null) return; // the server copy already has everything
+        applyingRemote = true;
+        try { nativeSet.call(localStorage, key, merged); } finally { applyingRemote = false; }
+        queue(key, merged);
+        return;
+      }
+      queue(key, held[key]);
+    });
+  }
+
   function queue(key, value) {
+    if (!firstPullDone) {
+      heldBeforePull[key] = value;
+      return;
+    }
     localWriteAt[key] = Date.now();
     pending[key] = value;
     outboxAdd(key, value);
@@ -770,13 +830,22 @@
     var poll = new XMLHttpRequest();
     poll.open("GET", "/api/state", true);
     poll.timeout = 2500;
+    function retryFirst() {
+      // Keep trying until this page has read the server once; held writes wait for it.
+      if (!firstPullDone) setTimeout(function () { pull(uploadMissing); }, 1500);
+    }
     poll.onload = function () {
-      if (poll.status !== 200) return;
+      if (poll.status !== 200) { retryFirst(); return; }
       try {
-        applyItems(JSON.parse(poll.responseText).items, uploadMissing && !synced);
+        var items = JSON.parse(poll.responseText).items;
+        var first = !firstPullDone;
+        firstPullDone = true;
+        applyItems(items, uploadMissing && !synced);
         synced = true;
-      } catch (e) { /* ignore */ }
+        if (first) releaseHeld(items);
+      } catch (e) { retryFirst(); }
     };
+    poll.onerror = poll.ontimeout = retryFirst;
     poll.send();
   }
 

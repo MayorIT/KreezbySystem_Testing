@@ -20,8 +20,24 @@
         return fallback;
     }
 
+    // Write only real changes. In particular, never create a key with an empty default:
+    // on a browser that has not loaded the server data yet, that empty list would be sent
+    // to the server and wipe the real orders, receipts or purchase orders.
+    function isEmptyValue(value) {
+        if (value == null) return true;
+        if (Array.isArray(value)) return value.length === 0;
+        if (typeof value === 'object') return Object.keys(value).length === 0;
+        return false;
+    }
+
     function writeJson(key, value) {
-        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* ignore */ }
+        try {
+            var next = JSON.stringify(value);
+            var current = localStorage.getItem(key);
+            if (current === next) return;
+            if (current == null && isEmptyValue(value)) return;
+            localStorage.setItem(key, next);
+        } catch (e) { /* ignore */ }
     }
 
     function currentVersion() {

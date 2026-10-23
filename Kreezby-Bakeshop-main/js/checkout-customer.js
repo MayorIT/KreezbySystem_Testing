@@ -158,7 +158,7 @@ function buildReceipt(order) {
         paymentMethod: paymentMethodLabel(order.paymentMethod),
         gcashReference: order.gcashReference || '',
         gcashPaidTo: order.gcashPaidTo || GCASH_SHOP_NUMBER,
-        paymentStatus: order.paymentStatus === 'paid' ? 'Paid' : (order.paymentVerified ? 'Verified' : 'Awaiting verification'),
+        paymentStatus: order.paymentStatus === 'paid' ? 'Paid' : (order.paymentStatus === 'awaiting_payment' ? 'Awaiting payment' : (order.paymentVerified ? 'Verified' : 'Awaiting verification')),
         gcashWebpay: order.gcashWebpay || null,
         paymongoPaymentIntentId: order.paymongo && order.paymongo.paymentIntentId ? order.paymongo.paymentIntentId : '',
         subtotal: Number(order.subtotal) || 0,
@@ -872,10 +872,13 @@ function watchPaymongo(paymentIntentId, onSucceeded) {
                 updateActionButtons();
                 return;
             }
+            const waiting = (readPaymongoDraft() || {}).orderNumber;
             setPaymongoStatus(paymongoTestUrl
                 ? 'Choose Authorize on the PayMongo page. This checkout checks every 5 seconds.'
-                : 'Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
-            if (ticks > 120) {
+                : (waiting
+                    ? 'Order ' + waiting + ' is awaiting payment. ' + (isPhoneScreen() ? 'Download the QR and upload it in GCash.' : 'Scan the QR Ph code with any participating app.') + ' This page checks every 5 seconds.'
+                    : 'Scan the QR Ph code with any participating app. This page checks every 5 seconds.'));
+            if (ticks > 360) {
                 stopPaymongoPoll();
                 setPaymongoStatus('Still waiting for the payment. Show the code again if you need a new one.');
             }
@@ -999,13 +1002,15 @@ async function startPaymongo(walletOverride) {
             paymentIntentId: data.paymentIntentId,
             placed: false
         }));
-        watchPaymongo(data.paymentIntentId, function () {
-            const current = readPaymongoDraft() || {};
-            if (current.placed || !claimPaymongoOrder(data.paymentIntentId)) return;
-            current.placed = true;
-            writePaymongoDraft(current);
-            placeOrder();
-        });
+        // Save the order now as "Awaiting payment" so the customer can leave for GCash.
+        const pendingNumber = placePendingQrOrder(data.paymentIntentId, data.qrImage, wallet);
+        if (!paymongoTestUrl) showQrSave(data.qrImage, pendingNumber);
+        if (pendingNumber) {
+            setPaymongoStatus(isPhoneScreen()
+                ? 'Order ' + pendingNumber + ' saved. Download the QR, then upload it in GCash. This page checks every 5 seconds.'
+                : 'Order ' + pendingNumber + ' saved. Scan the QR Ph code with any participating app. This page checks every 5 seconds.');
+        }
+        watchPaymongo(data.paymentIntentId, function () { onQrPaid(data.paymentIntentId); });
     } catch (error) {
         setPaymongoStatus('The shop server is not running. Start it, then try PayMongo again.');
     } finally {
@@ -1013,21 +1018,140 @@ async function startPaymongo(walletOverride) {
     }
 }
 
-function resumePaymongoReturn() {
-    if (!/[?&]paymongo=return(?:&|$)/.test(window.location.search)) return;
+// ---- Pay on a phone: download the QR, upload it in GCash ----
+
+function isPhoneScreen() {
+    return (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+}
+
+function showQrSave(qrImage, orderNumber) {
+    const box = document.getElementById('paymongo-qr-save');
+    const link = document.getElementById('paymongo-qr-download');
+    const note = document.getElementById('paymongo-order-note');
+    if (!box || !link || !String(qrImage || '').startsWith('data:image/')) return;
+    link.href = qrImage;
+    link.setAttribute('download', 'kreezby-qr-' + (orderNumber || 'payment') + '.png');
+    box.hidden = false;
+    if (note) note.textContent = orderNumber ? ('Order ' + orderNumber + ' is saved and awaiting payment.') : '';
+    if (isPhoneScreen()) {
+        const frame = document.querySelector('.paymongo-qr-frame');
+        if (frame && frame.scrollIntoView) frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Saves the order as "Awaiting payment" as soon as the QR exists (once per payment).
+function placePendingQrOrder(paymentIntentId, qrImage, wallet) {
+    const draft = readPaymongoDraft() || {};
+    if (draft.orderNumber && draft.paymentIntentId === paymentIntentId) return draft.orderNumber;
+    const order = placeOrder({ paymentIntentId: paymentIntentId, qrImage: qrImage, wallet: wallet });
+    if (!order) return '';
+    const next = readPaymongoDraft() || draft;
+    next.paymentIntentId = paymentIntentId;
+    next.orderNumber = order.orderNumber;
+    writePaymongoDraft(next);
+    return order.orderNumber;
+}
+
+// Payment confirmed: turn the waiting order into a paid one (stock, receipt, notification).
+function markQrOrderPaid(orderNumber, payment) {
+    const orders = parseStoredJson('kreezbyOrders', []);
+    const order = orders.find(function (row) { return row && row.orderNumber === orderNumber; });
+    try { sessionStorage.removeItem(PAYMONGO_DRAFT_KEY); } catch (error) {}
+    if (!order) {
+        showCheckoutDialog('Your payment went through. Order ' + orderNumber + ' will show as paid in My Orders.', { type: 'success', title: 'Payment Received' })
+            .then(function () { window.location.href = 'customer.html'; });
+        return;
+    }
+    const alreadyPaid = order.paymentStatus === 'paid';
+    order.paymentStatus = 'paid';
+    order.paymentVerified = true;
+    if (order.status === 'Awaiting payment') order.status = 'Processing';
+    order.paidAt = order.paidAt || new Date().toISOString();
+    order.paymongo = Object.assign({}, order.paymongo || {}, payment || {}, { status: 'succeeded' });
+    delete order.paymongo.qrImage;
+    localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+    deductOrderStock(order, orders);
+
+    const receipt = buildReceipt(order);
+    if (order.receiptNumber) receipt.receiptNumber = order.receiptNumber;
+    saveReceiptCopies(receipt);
+
+    if (!alreadyPaid) {
+        try {
+            const notes = parseStoredJson('kreezbyNotifications', []);
+            notes.unshift({
+                id: 'n-paid-' + orderNumber,
+                title: 'Payment Received',
+                description: 'QR Ph payment received for order ' + orderNumber + ' (' + order.total + ').',
+                timestamp: new Date().toISOString(),
+                read: false,
+                source: 'payment'
+            });
+            localStorage.setItem('kreezbyNotifications', JSON.stringify(notes));
+        } catch (e) {}
+    }
+
+    const serverSave = saveOrderToServer(order, receipt);
+    openReceiptWindow(receipt, 'Customer Copy');
+    showCheckoutDialog('Your payment went through. Keep this receipt for the order.', {
+        type: 'success',
+        title: 'Payment Received',
+        buttonText: 'Go To My Orders',
+        details: [
+            { label: 'Order number', value: orderNumber },
+            { label: 'Payment', value: 'QR Ph' },
+            order.paymongo && order.paymongo.paymentIntentId ? { label: 'Payment intent', value: order.paymongo.paymentIntentId, mono: true } : null,
+            { label: 'Receipt', value: order.receiptNumber },
+            { label: 'Total', value: order.total, emphasis: true }
+        ]
+    }).then(function () {
+        localStorage.setItem('kreezbyOpenOrdersAfterCheckout', '1');
+        localStorage.setItem('kreezbyLatestOrderNumber', orderNumber);
+        return serverSave.then(function () { window.location.href = 'customer.html'; });
+    });
+}
+
+// What to do when PayMongo says the payment succeeded.
+function onQrPaid(paymentIntentId) {
+    const current = readPaymongoDraft() || {};
+    if (current.orderNumber) {
+        if (!claimPaymongoOrder(paymentIntentId)) return;
+        markQrOrderPaid(current.orderNumber, paymongoPayment);
+        return;
+    }
+    if (current.placed || !claimPaymongoOrder(paymentIntentId)) return;
+    current.placed = true;
+    writePaymongoDraft(current);
+    placeOrder();
+}
+
+// Back on the checkout page (from GCash, a refresh, or the PayMongo page): keep waiting.
+function resumePendingQr() {
     const draft = readPaymongoDraft();
+    if (!draft || !draft.paymentIntentId || !draft.orderNumber || paymongoPollTimer) return;
+    restoreShippingFields(draft);
+    selectPayment('paymongo');
+    const order = parseStoredJson('kreezbyOrders', []).find(function (row) { return row && row.orderNumber === draft.orderNumber; });
+    const qr = order && order.paymongo && order.paymongo.qrImage;
+    if (qr && showPaymongoQr(qr)) showQrSave(qr, draft.orderNumber);
+    setPaymongoStatus('Order ' + draft.orderNumber + ' is awaiting payment. Pay with the QR; this page checks every 5 seconds.');
+    watchPaymongo(draft.paymentIntentId, function () { onQrPaid(draft.paymentIntentId); });
+}
+
+function resumePaymongoReturn() {
+    const draft = readPaymongoDraft();
+    if (draft && draft.orderNumber) { resumePendingQr(); return; }
+    if (!/[?&]paymongo=return(?:&|$)/.test(window.location.search)) return;
     if (!draft || !draft.paymentIntentId || draft.placed) return;
     restoreShippingFields(draft);
     selectPayment('paymongo');
     setPaymongoStatus('Checking PayMongo…');
-    watchPaymongo(draft.paymentIntentId, function () {
-        const current = readPaymongoDraft() || draft;
-        if (current.placed || !claimPaymongoOrder(draft.paymentIntentId)) return;
-        current.placed = true;
-        writePaymongoDraft(current);
-        placeOrder();
-    });
+    watchPaymongo(draft.paymentIntentId, function () { onQrPaid(draft.paymentIntentId); });
 }
+
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) resumePendingQr();
+});
 
 // Sends the finished order (and its receipt) straight to the server, which stores it in
 // MongoDB (customer_orders, sales_orders, receipts). Resolves either way after at most 8 s;
@@ -1063,7 +1187,9 @@ function nextCustomerOrderNumber() {
     return 'ORD-' + year + '-' + String(max + 1).padStart(4, '0');
 }
 
-function placeOrder() {
+// pendingQr: { paymentIntentId, wallet, qrImage } saves the order straight away as
+// "Awaiting payment", so a customer on a phone can download the QR and pay in GCash.
+function placeOrder(pendingQr) {
     if (!hasCartItems()) {
         showCheckoutDialog('Your cart is empty. Add products before placing an order.', { type: 'warning', title: 'Cart Empty' });
         return;
@@ -1072,7 +1198,7 @@ function placeOrder() {
     const payingWithPaymongo = isPaymongoCheckout();
     const fields = shippingFields();
     if (!validCheckoutContact(fields)) return;
-    if (payingWithPaymongo && !paymongoSucceeded()) {
+    if (payingWithPaymongo && !pendingQr && !paymongoSucceeded()) {
         showCheckoutDialog('Pay with QR Ph before placing the order.', { type: 'warning', title: 'Payment Needed' });
         return;
     }
@@ -1110,8 +1236,10 @@ function placeOrder() {
         gcashReference: '',
         gcashPaidTo: '',
         gcashWebpay: null,
-        paymongo: payingWithPaymongo ? paymongoPayment : null,
-        paymentStatus: payingWithPaymongo ? 'paid' : 'pending',
+        paymongo: pendingQr
+            ? { paymentIntentId: pendingQr.paymentIntentId, wallet: pendingQr.wallet || 'qrph', status: 'awaiting_payment', qrImage: pendingQr.qrImage || '' }
+            : (payingWithPaymongo ? paymongoPayment : null),
+        paymentStatus: pendingQr ? 'awaiting_payment' : (payingWithPaymongo ? 'paid' : 'pending'),
         receiptNumber: '',
         accountType: accountType,
         accountName: accountName,
@@ -1124,9 +1252,9 @@ function placeOrder() {
             address: fields.address,
             notes: fields.notes
         },
-        status: 'Processing',
+        status: pendingQr ? 'Awaiting payment' : 'Processing',
         date: new Date().toISOString(),
-        paymentVerified: payingWithPaymongo,
+        paymentVerified: payingWithPaymongo && !pendingQr,
         inventoryDeducted: false
     };
 
@@ -1144,37 +1272,16 @@ function placeOrder() {
 
     localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
 
-    if (window.KreezbyDictionary && typeof KreezbyDictionary.recordSale === 'function') {
-        var stockPosted = true;
-        Object.keys(cartData).forEach(function (key) {
-            var item = cartData[key];
-            if (!item || !item.name) return;
-            var known = typeof KreezbyDictionary.productId === 'function' && KreezbyDictionary.productId(item.name);
-            if (!known) {
-                stockPosted = false;
-                return;
-            }
-            if (KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10)) == null) stockPosted = false;
-        });
-        if (stockPosted) {
-            order.inventoryDeducted = true;
-            orders.forEach(function (row) {
-                if (row && row.orderNumber === order.orderNumber) row.inventoryDeducted = true;
-            });
-            localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
-            var postedOrders = parseStoredJson('kreezby-po-orders-v1', {});
-            if (postedOrders && postedOrders[order.orderNumber]) {
-                postedOrders[order.orderNumber].inventoryDeducted = true;
-                localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(postedOrders));
-            }
-        }
-    }
+    // Stock is taken out only once the order is paid (or for cash on delivery right away).
+    if (!pendingQr) deductOrderStock(order, orders);
 
     try {
         const note = {
             id: 'n-order-' + orderNumber,
             title: 'Customer Order Placed',
-            description: payingWithPaymongo
+            description: pendingQr
+                ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + ' is awaiting payment.')
+                : payingWithPaymongo
                 ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + '. Payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
                 : ('New cash on delivery order ' + orderNumber + ' from ' + fields.fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
@@ -1195,6 +1302,13 @@ function placeOrder() {
 
     localStorage.removeItem('kreezbyCart');
     cartData = {};
+
+    if (pendingQr) {
+        // Stay on the page: the customer still needs the QR to pay.
+        try { renderOrderSummary(); updateActionButtons(); } catch (e) { /* summary refresh is optional */ }
+        return order;
+    }
+
     try { sessionStorage.removeItem(PAYMONGO_DRAFT_KEY); } catch (error) {}
 
     openReceiptWindow(receipt, 'Customer Copy');
@@ -1221,4 +1335,33 @@ function placeOrder() {
         // Leave only once the order is stored on the server (or after the 8 s limit).
         return serverSave.then(function () { window.location.href = 'customer.html'; });
     });
+}
+
+function deductOrderStock(order, orders) {
+    if (order.inventoryDeducted) return;
+    if (window.KreezbyDictionary && typeof KreezbyDictionary.recordSale === 'function') {
+        var stockPosted = true;
+        Object.keys(order.items || {}).forEach(function (key) {
+            var item = order.items[key];
+            if (!item || !item.name) return;
+            var known = typeof KreezbyDictionary.productId === 'function' && KreezbyDictionary.productId(item.name);
+            if (!known) {
+                stockPosted = false;
+                return;
+            }
+            if (KreezbyDictionary.recordSale(item.name, item.qty, String(order.date || '').slice(0, 10)) == null) stockPosted = false;
+        });
+        if (stockPosted) {
+            order.inventoryDeducted = true;
+            orders.forEach(function (row) {
+                if (row && row.orderNumber === order.orderNumber) row.inventoryDeducted = true;
+            });
+            localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+            var postedOrders = parseStoredJson('kreezby-po-orders-v1', {});
+            if (postedOrders && postedOrders[order.orderNumber]) {
+                postedOrders[order.orderNumber].inventoryDeducted = true;
+                localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(postedOrders));
+            }
+        }
+    }
 }

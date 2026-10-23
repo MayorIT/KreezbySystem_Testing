@@ -1434,9 +1434,37 @@
         productRecommendationSnapshot: productRecommendationSnapshot
     };
 
+    // A QR Ph order paid in GCash can be confirmed on the server while the customer is away
+    // from the checkout page. Admin and staff pages take its items out of stock once.
+    function deductPaidQrOrders() {
+        if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || '')) return;
+        var orders = readJson('kreezbyOrders', []);
+        if (!Array.isArray(orders)) return;
+        var changed = false;
+        orders.forEach(function (order) {
+            if (!order || order.inventoryDeducted || order.paymentStatus !== 'paid' || order.paymentMethod !== 'paymongo') return;
+            if (/cancel|return|reject/i.test(String(order.status || ''))) return;
+            order.inventoryDeducted = true; // claim first so it is never taken twice
+            changed = true;
+            Object.keys(order.items || {}).forEach(function (key) {
+                var item = order.items[key];
+                if (item && item.name && productId(item.name)) recordSale(item.name, Number(item.qty) || 0, String(order.paidAt || order.date || '').slice(0, 10));
+            });
+        });
+        if (changed) {
+            try { localStorage.setItem('kreezbyOrders', JSON.stringify(orders)); } catch (e) { /* ignore */ }
+        }
+    }
+
     function boot() {
         apply();
+        // Wait for the server copy before checking, so an older local copy is never used.
+        setTimeout(deductPaidQrOrders, 5000);
     }
+    document.addEventListener('kreezby:remote-state', function (e) {
+        var keys = e && e.detail && e.detail.keys;
+        if (keys && keys.indexOf('kreezbyOrders') !== -1) deductPaidQrOrders();
+    });
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();

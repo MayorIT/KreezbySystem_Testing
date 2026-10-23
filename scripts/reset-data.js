@@ -358,6 +358,82 @@ async function runAlertCleanupOnce(db, log) {
   }
 }
 
+/**
+ * One-time repair: Mark Cruz's order was wiped from the shared order list by a browser that
+ * sent an empty list. Put his orders, receipts and purchase-order entries back, taking them
+ * from customer_orders (kept by the transaction mirror) and the reset backup.
+ */
+async function runRestoreMarkOnce(db, log) {
+  const say = log || console.log;
+  const state = db.collection("app_state");
+  const FLAG = "restore_mark_20261023_done";
+  const LOCK = "restore_mark_20261023_lock";
+  if (await state.findOne({ _id: FLAG })) return false;
+  try {
+    await state.insertOne({ _id: LOCK, at: new Date() });
+  } catch (error) {
+    if (error && error.code === 11000) return false;
+    throw error;
+  }
+  try {
+    const strip = (doc) => {
+      const copy = Object.assign({}, doc);
+      ["_id", "updatedAt", "sourceKey", "inApp", "mirroredAt", "removedFromAppAt", "syncedFromApp"].forEach((k) => delete copy[k]);
+      return copy;
+    };
+    const byNumber = new Map();
+    const fromBackup = await db.collection("backup_20261023_customer_orders").find({}).toArray().catch(() => []);
+    fromBackup.filter(isMarkOrder).forEach((doc) => byNumber.set(String(doc.orderNumber || doc._id), strip(doc)));
+    const current = await db.collection("customer_orders").find({}).toArray();
+    current.filter(isMarkOrder).forEach((doc) => byNumber.set(String(doc.orderNumber || doc._id), Object.assign({}, byNumber.get(String(doc.orderNumber || doc._id)) || {}, strip(doc))));
+    const orders = [...byNumber.values()].filter((o) => o.orderNumber);
+    const numbers = new Set(orders.map((o) => String(o.orderNumber)));
+
+    const read = async (id) => {
+      const doc = await state.findOne({ _id: id });
+      return doc && typeof doc.value === "string" ? doc.value : null;
+    };
+    const backupState = {};
+    (await db.collection("backup_20261023_app_state").find({}).toArray().catch(() => [])).forEach((doc) => {
+      if (typeof doc.value === "string") backupState[doc._id] = doc.value;
+    });
+    const mergeList = (raw, add, field) => {
+      const list = Array.isArray(parse(raw, null)) ? parse(raw, []) : [];
+      const have = new Set(list.map((r) => r && String(r[field] || "")));
+      add.forEach((r) => { if (r && r[field] && !have.has(String(r[field]))) list.push(r); });
+      return list;
+    };
+    const changes = {};
+    changes.kreezbyOrders = JSON.stringify(mergeList(await read("kreezbyOrders"), orders, "orderNumber"));
+    for (const key of ["kreezbyCustomerReceipts", "kreezbyOwnerReceipts"]) {
+      const old = parse(backupState[key], []);
+      const marks = (Array.isArray(old) ? old : []).filter((r) => r && (numbers.has(String(r.orderNumber || "")) || KEEP_NAME_RE.test(String(r.customerName || ""))));
+      changes[key] = JSON.stringify(mergeList(await read(key), marks, "receiptNumber"));
+    }
+    const po = parse(await read("kreezby-po-orders-v1"), {}) || {};
+    const oldPo = parse(backupState["kreezby-po-orders-v1"], {}) || {};
+    Object.keys(oldPo).forEach((k) => { if (numbers.has(k) && !po[k]) po[k] = oldPo[k]; });
+    changes["kreezby-po-orders-v1"] = JSON.stringify(po);
+
+    const now = new Date();
+    const ops = Object.entries(changes).map(([key, value]) => ({ updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } }));
+    ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(Date.now()) } }, upsert: true } });
+    await state.bulkWrite(ops, { ordered: false });
+    for (const order of orders) {
+      await db.collection("customer_orders").updateOne(
+        { _id: String(order.orderNumber) },
+        { $set: Object.assign({}, order, { inApp: true, updatedAt: now }), $unset: { removedFromAppAt: "" } },
+        { upsert: true }
+      );
+    }
+    await state.updateOne({ _id: FLAG }, { $set: { at: now, restored: [...numbers] } }, { upsert: true });
+    say("Restored Mark Cruz's orders: " + ([...numbers].join(", ") || "none found"));
+    return true;
+  } finally {
+    await state.deleteOne({ _id: LOCK });
+  }
+}
+
 function backupDir() {
   const dir = path.join(__dirname, "..", "backups");
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -402,7 +478,7 @@ async function main() {
   }
 }
 
-module.exports = { planState, isMarkOrder, isKeptCustomer, runReset, runResetOnce, runAlertCleanupOnce };
+module.exports = { planState, isMarkOrder, isKeptCustomer, runReset, runResetOnce, runAlertCleanupOnce, runRestoreMarkOnce };
 
 if (require.main === module) {
   main().catch((error) => {

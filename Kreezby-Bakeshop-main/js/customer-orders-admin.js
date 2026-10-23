@@ -85,6 +85,7 @@
 
     function paymentStatusLabel(order) {
         if (isPaid(order)) return 'Paid';
+        if (String(order.paymentStatus || '') === 'expired') return 'Payment expired';
         if (/cash_on_delivery|cod/i.test(String(order.paymentMethod || ''))) return 'Pay on delivery';
         return 'Awaiting payment';
     }

@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
-    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261015qr">
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261023qrsave">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20261020icon2">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20261020nav">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
@@ -156,6 +156,15 @@
                         </div>
                         <div class="paymongo-qr-frame" hidden>
                             <img id="paymongo-qr" class="paymongo-qr" alt="QR Ph code" hidden>
+                            <div class="paymongo-qr-save" id="paymongo-qr-save" hidden>
+                                <a class="paymongo-save-btn" id="paymongo-qr-download" href="#" download="kreezby-qr.png">Download QR code</a>
+                                <ol class="paymongo-phone-steps">
+                                    <li>Tap <strong>Download QR code</strong> (or press and hold the QR and choose Save image).</li>
+                                    <li>Open <strong>GCash</strong> (or Maya or your bank app), tap <strong>Pay QR</strong>, then <strong>Upload QR</strong> and pick the saved image.</li>
+                                    <li>Pay the exact amount. Your order is already saved as <strong>Awaiting payment</strong> and turns <strong>Paid</strong> by itself.</li>
+                                </ol>
+                                <p class="paymongo-order-note" id="paymongo-order-note"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
