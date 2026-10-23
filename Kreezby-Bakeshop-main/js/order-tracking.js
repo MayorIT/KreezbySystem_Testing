@@ -93,11 +93,9 @@
                 return sum + ((Number(item.cost) || 0) * (Number(item.qty) || 0));
             }, 0);
         }
-        var deliveryFee = order.deliveryFee != null ? Number(order.deliveryFee) : 0;
         return {
             subtotal: Number(subtotal) || 0,
-            deliveryFee: Number(deliveryFee) || 0,
-            total: (Number(subtotal) || 0) + (Number(deliveryFee) || 0)
+            total: Number(subtotal) || 0
         };
     }
 
@@ -124,7 +122,6 @@
             customerAddress: shipping.address || '',
             paymentMethod: paymentMethodLabel(order.paymentMethod),
             subtotal: totals.subtotal,
-            deliveryFee: totals.deliveryFee,
             total: totals.total,
             items: items,
             shippingNotes: shipping.notes || ''
@@ -184,7 +181,6 @@
             if (!sheet) return;
             var issuedAt = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString('en-PH') : '';
             var subtotal = Number(receipt.subtotal) || 0;
-            var deliveryFee = Number(receipt.deliveryFee) || 0;
             var grossTotal = Number(receipt.total) || 0;
             var netTotal = Math.max(grossTotal, 0);
             var vatableSales = netTotal / 1.12;
@@ -204,7 +200,6 @@
                     { label: 'Phone', value: receipt.customerPhone },
                     { label: 'Address', value: receipt.customerAddress },
                     { label: 'Subtotal', value: formatMoney(subtotal) },
-                    { label: 'Delivery fee', value: formatMoney(deliveryFee) },
                     { label: 'VATable sales', value: formatMoney(vatableSales) },
                     { label: 'VAT', value: formatMoney(vatAmount) }
                 ],
@@ -849,7 +844,6 @@
             subtotal: po && po.items ? po.items.reduce(function (n, item) {
                 return n + ((Number(item.cost) || 0) * (Number(item.qty) || 0));
             }, 0) : 0,
-            deliveryFee: 0,
             total: po ? poOrderTotal(po) : '₱0.00',
             paymentMethod: po && po.paymentMethod ? po.paymentMethod : 'po',
             shippingInfo: {

@@ -1121,7 +1121,6 @@
             poEntity: order.entity,
             items: {},
             subtotal: orderTotal(order),
-            deliveryFee: prior && prior.deliveryFee ? prior.deliveryFee : 0,
             total: prior && prior.total ? prior.total : ('₱' + Number(orderTotal(order)).toFixed(2)),
             paymentMethod: order.paymentMethod || (prior && prior.paymentMethod) || 'cash_on_delivery',
             gcashReference: order.gcashReference || (prior && prior.gcashReference) || '',

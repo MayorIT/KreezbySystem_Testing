@@ -234,7 +234,7 @@
                 'ms-choco': { name: 'Chocolate Crinkles', cost: 165, qty: 3 },
                 'ms-ube': { name: 'Ube Crinkles', cost: 165, qty: 2 }
             },
-            subtotal: 825, deliveryFee: 50, total: '₱875.00',
+            subtotal: 825, total: '₱825.00',
             paymentMethod: 'gcash', gcashReference: '8291042165831', gcashPaidTo: '09178001650',
             paymentStatus: 'pending', receiptNumber: 'RCP-2026-00012',
             shippingInfo: {
@@ -248,7 +248,7 @@
         {
             orderNumber: 'ORD-2026-1038', poCode: 'PO-C-MS-002', poEntity: 'Maria Santos',
             items: { 'ms-lemon': { name: 'Lemon Crinkles', cost: 165, qty: 4 } },
-            subtotal: 660, deliveryFee: 50, total: '₱710.00',
+            subtotal: 660, total: '₱660.00',
             paymentMethod: 'cash_on_delivery', receiptNumber: 'RCP-2026-00011',
             shippingInfo: {
                 fullName: 'Maria Santos', phone: '09171234567',
@@ -266,7 +266,7 @@
                 'ms-choco-2': { name: 'Chocolate Crinkles', cost: 165, qty: 2 },
                 'ms-straw': { name: 'Strawberry Crinkles', cost: 165, qty: 1 }
             },
-            subtotal: 495, deliveryFee: 50, total: '₱545.00',
+            subtotal: 495, total: '₱495.00',
             paymentMethod: 'maya', receiptNumber: 'RCP-2026-00008',
             shippingInfo: {
                 fullName: 'Maria Santos', phone: '09171234567',
@@ -281,7 +281,7 @@
         {
             orderNumber: 'ORD-2026-1015', poCode: 'PO-C-KR-001', poEntity: 'Kyla Ramos',
             items: { 'kr-almond': { name: 'Choco Almond Crinkles', cost: 175, qty: 6 } },
-            subtotal: 1050, deliveryFee: 50, total: '₱1,100.00',
+            subtotal: 1050, total: '₱1,050.00',
             paymentMethod: 'gcash', gcashReference: '7049182635501', gcashPaidTo: '09178001650',
             paymentStatus: 'verified', receiptNumber: 'RCP-2026-00007',
             shippingInfo: {
@@ -297,7 +297,7 @@
         {
             orderNumber: 'ORD-2026-1008', poCode: 'PO-C-BA-001', poEntity: 'Bryle Atienza',
             items: { 'ba-mango': { name: 'Mango Crinkles', cost: 165, qty: 2 } },
-            subtotal: 330, deliveryFee: 50, total: '₱380.00',
+            subtotal: 330, total: '₱330.00',
             paymentMethod: 'cash_on_delivery', receiptNumber: 'RCP-2026-00006',
             shippingInfo: {
                 fullName: 'Bryle Atienza', phone: '09189876543',
@@ -313,7 +313,7 @@
             receiptNumber: 'RCP-2026-00012', orderNumber: 'ORD-2026-1042',
             issuedAt: '2026-09-22T08:21:00.000Z', customerName: 'Maria Santos',
             customerPhone: '09171234567', customerAddress: '18 Dolorosa St., Poblacion, Batangas City',
-            paymentMethod: 'GCash', subtotal: 825, deliveryFee: 50, total: 875,
+            paymentMethod: 'GCash', subtotal: 825, total: 825,
             items: [
                 { name: 'Chocolate Crinkles', qty: 3, price: 165, lineTotal: 495 },
                 { name: 'Ube Crinkles', qty: 2, price: 165, lineTotal: 330 }
@@ -324,7 +324,7 @@
             receiptNumber: 'RCP-2026-00011', orderNumber: 'ORD-2026-1038',
             issuedAt: '2026-09-18T16:11:00.000Z', customerName: 'Maria Santos',
             customerPhone: '09171234567', customerAddress: '18 Dolorosa St., Poblacion, Batangas City',
-            paymentMethod: 'Cash on Delivery', subtotal: 660, deliveryFee: 50, total: 710,
+            paymentMethod: 'Cash on Delivery', subtotal: 660, total: 660,
             items: [{ name: 'Lemon Crinkles', qty: 4, price: 165, lineTotal: 660 }],
             shippingNotes: '', status: 'Shipped'
         },
@@ -332,7 +332,7 @@
             receiptNumber: 'RCP-2026-00008', orderNumber: 'ORD-2026-1021',
             issuedAt: '2026-09-10T10:01:00.000Z', customerName: 'Maria Santos',
             customerPhone: '09171234567', customerAddress: '18 Dolorosa St., Poblacion, Batangas City',
-            paymentMethod: 'Maya', subtotal: 495, deliveryFee: 50, total: 545,
+            paymentMethod: 'Maya', subtotal: 495, total: 495,
             items: [
                 { name: 'Chocolate Crinkles', qty: 2, price: 165, lineTotal: 330 },
                 { name: 'Strawberry Crinkles', qty: 1, price: 165, lineTotal: 165 }

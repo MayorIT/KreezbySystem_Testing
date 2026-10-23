@@ -1,6 +1,3 @@
-// TESTING: delivery fee set to 0. Change back to 50 when done testing.
-const DELIVERY_FEE = 0;
-
 let selectedPaymentMethod = 'paymongo';
 let cartData = {};
 let isPaymentVerified = false;
@@ -165,8 +162,7 @@ function buildReceipt(order) {
         gcashWebpay: order.gcashWebpay || null,
         paymongoPaymentIntentId: order.paymongo && order.paymongo.paymentIntentId ? order.paymongo.paymentIntentId : '',
         subtotal: Number(order.subtotal) || 0,
-        deliveryFee: Number(order.deliveryFee) || 0,
-        total: Number(order.subtotal || 0) + Number(order.deliveryFee || 0),
+        total: Number(order.subtotal) || 0,
         items: lineItems,
         shippingNotes: shipping.notes || '',
         status: order.status || 'Processing'
@@ -206,7 +202,6 @@ function openReceiptWindow(receipt, heading) {
     const notes = escapeHtml(receipt.shippingNotes || '-');
     const copyTitle = escapeHtml(heading || 'Receipt');
     const subtotal = Number(receipt.subtotal) || 0;
-    const deliveryFee = Number(receipt.deliveryFee) || 0;
     const grossTotal = Number(receipt.total) || 0;
     const discount = 0;
     const netTotal = Math.max(grossTotal - discount, 0);
@@ -240,7 +235,6 @@ function openReceiptWindow(receipt, heading) {
         <tbody>${rows}</tbody>
         <tfoot>
             <tr><td colspan="3" class="num">Subtotal</td><td class="num">${formatCurrency(subtotal)}</td></tr>
-            <tr><td colspan="3" class="num">Delivery Fee</td><td class="num">${formatCurrency(deliveryFee)}</td></tr>
             <tr><td colspan="3" class="num">Discount</td><td class="num">${formatCurrency(discount)}</td></tr>
             <tr><td colspan="3" class="num grand">Grand Total</td><td class="num grand">${formatCurrency(netTotal)}</td></tr>
         </tfoot>
@@ -666,12 +660,10 @@ function renderOrderSummary() {
         };
     });
 
-    const deliveryFee = subtotal > 0 ? DELIVERY_FEE : 0;
-    const total = subtotal + deliveryFee;
+    const total = subtotal;
 
     lineItems.push(
-        { label: 'Subtotal', value: formatCurrency(subtotal) },
-        { label: 'Delivery Fee', value: formatCurrency(deliveryFee) }
+        { label: 'Subtotal', value: formatCurrency(subtotal) }
     );
 
     if (window.KreezbyPaymentSummary) {
@@ -724,7 +716,7 @@ function payWithGcash() {
 
 function checkoutTotalAmount() {
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    return subtotal + (subtotal > 0 ? DELIVERY_FEE : 0);
+    return subtotal;
 }
 
 function selectedPaymongoWallet() {
@@ -1075,8 +1067,7 @@ function placeOrder() {
     orderNumber = nextCustomerOrderNumber();
 
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    const deliveryFee = subtotal > 0 ? DELIVERY_FEE : 0;
-    const totalAmount = subtotal + deliveryFee;
+    const totalAmount = subtotal;
 
     let session = {};
     try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
@@ -1092,7 +1083,6 @@ function placeOrder() {
         orderNumber: orderNumber,
         items: cartData,
         subtotal: subtotal,
-        deliveryFee: deliveryFee,
         total: formatCurrency(totalAmount),
         paymentMethod: payingWithPaymongo ? 'paymongo' : 'cash_on_delivery',
         gcashReference: '',

@@ -112,8 +112,7 @@
                 'demo-2': { name: 'Strawberry Crinkles', cost: 165, qty: 1 }
             },
             subtotal: 495,
-            deliveryFee: 50,
-            total: '₱545.00',
+            total: '₱495.00',
             paymentMethod: 'cash_on_delivery',
             shippingInfo: {
                 fullName: 'Customer Demo',
@@ -161,12 +160,11 @@
                 return sum + (item.cost * item.qty);
             }, 0);
         }
-        var deliveryFee = order.deliveryFee != null ? order.deliveryFee : 0;
         var total = order.total;
         if (!total) {
-            total = formatMoney(subtotal + deliveryFee);
+            total = formatMoney(subtotal);
         }
-        return { subtotal: subtotal, deliveryFee: deliveryFee, total: total };
+        return { subtotal: subtotal, total: total };
     }
 
     function itemCount(order) {
@@ -543,7 +541,6 @@
             '<h3 class="order-detail-section-title">💳 Payment Summary</h3>' +
             '<div class="order-detail-summary">' +
             '<div class="order-detail-summary-row"><span>Subtotal</span><span>' + formatMoney(totals.subtotal) + '</span></div>' +
-            '<div class="order-detail-summary-row"><span>Delivery Fee</span><span>' + formatMoney(totals.deliveryFee) + '</span></div>' +
             '<div class="order-detail-summary-row order-detail-summary-total"><span>Order Total</span><span>' + totals.total + '</span></div>' +
             '<div class="order-detail-summary-row"><span>Payment Method</span><span>' + paymentLabel + '</span></div>' +
             (order.paymongo && order.paymongo.paymentIntentId ? '<div class="order-detail-summary-row"><span>QR Ph payment</span><span>' + order.paymongo.paymentIntentId + '</span></div>' : '') +
