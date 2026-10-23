@@ -57,7 +57,7 @@
         R + ' .kpset__wide{grid-column:1 / -1}',
         R + ' label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#6d4c41;min-width:0}',
         R + ' label[hidden]{display:none}',
-        R + ' input[type=text],' + R + ' input[type=email],' + R + ' input[type=tel]{border:1px solid #e4d9d0;border-radius:10px;padding:0 12px;height:38px;font:inherit;font-size:13px;font-weight:600;color:#2b241f;background:#fdfbf9;width:100%;box-sizing:border-box}',
+        R + ' input[type=text],' + R + ' input[type=email],' + R + ' input[type=tel],' + R + ' input[type=password]{border:1px solid #e4d9d0;border-radius:10px;padding:0 12px;height:38px;font:inherit;font-size:13px;font-weight:600;color:#2b241f;background:#fdfbf9;width:100%;box-sizing:border-box}',
         R + ' input::placeholder{color:#b8aea7;font-weight:500}',
         R + ' input:hover:not(:disabled){border-color:#d3c1b4}',
         R + ' input:focus{outline:0;border-color:#ffca28;background:#fff;box-shadow:0 0 0 3px rgba(255,202,40,.28)}',
@@ -73,6 +73,12 @@
         R + ' button.kpset__save:hover{background:#fbc02d}',
         R + ' button.kpset__ghost{border:0;background:transparent;color:#8a5a00;font-size:12px;font-weight:700;cursor:pointer;padding:0;font-family:inherit}',
         R + ' button.kpset__ghost:hover{text-decoration:underline}',
+        R + ' .kpset__pw-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}',
+        R + ' .kpset__pw-status{margin:0;font-size:12px;font-weight:700;color:#2e7d32;min-width:0}',
+        R + ' .kpset__pw-status.is-error{color:#c62828}',
+        R + ' button.kpset__pw-btn{border:1px solid #e4d9d0;border-radius:10px;background:#fff;color:#5d4037;padding:0 14px;height:36px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}',
+        R + ' button.kpset__pw-btn:hover{background:#fbf6f2}',
+        R + ' button.kpset__pw-btn:disabled{opacity:.6;cursor:default}',
         '@media (max-width:420px){' + R + ' .kpset__fields,' + R + ' .kpset__account{grid-template-columns:1fr}}'
     ].join('\n');
 
@@ -112,6 +118,15 @@
                             '<label>Role<input id="profile-role" type="text" disabled></label>' +
                             '<label id="profile-department-wrap" hidden>Department<input id="profile-department" type="text" disabled></label>' +
                         '</div>' +
+                    '</div>' +
+                    '<div class="kpset__section"><h3>Change password</h3>' +
+                        '<div class="kpset__fields">' +
+                            '<label class="kpset__wide">Current password<input id="kpset-pw-current" type="password" autocomplete="current-password"></label>' +
+                            '<label>New password<input id="kpset-pw-new" type="password" autocomplete="new-password" placeholder="At least 6 characters"></label>' +
+                            '<label>Confirm new password<input id="kpset-pw-confirm" type="password" autocomplete="new-password"></label>' +
+                        '</div>' +
+                        '<div class="kpset__pw-row"><p class="kpset__pw-status" id="kpset-pw-status" role="status"></p>' +
+                            '<button type="button" class="kpset__pw-btn" id="kpset-pw-save">Update password</button></div>' +
                     '</div>' +
                     '<p class="kpset__note" id="profile-account-note" hidden></p>' +
                     alerts +
@@ -155,6 +170,7 @@
         document.body.appendChild(root);
 
         root.addEventListener('click', function (event) {
+            if (event.target.closest('#kpset-pw-save')) changePassword();
             if (event.target === root || event.target.closest('[data-kpset-close]')) close();
             if (event.target.closest('#profile-photo-btn, [data-kpset-photo]')) {
                 var input = document.getElementById('profile-avatar-input');
@@ -162,6 +178,50 @@
             }
         });
         return root;
+    }
+
+    // Change the signed-in account's password on the server (checked against the current one).
+    function changePassword() {
+        var cur = document.getElementById('kpset-pw-current');
+        var nxt = document.getElementById('kpset-pw-new');
+        var conf = document.getElementById('kpset-pw-confirm');
+        var status = document.getElementById('kpset-pw-status');
+        var btn = document.getElementById('kpset-pw-save');
+        function note(msg, isError) {
+            if (!status) return;
+            status.textContent = msg;
+            status.classList.toggle('is-error', !!isError);
+        }
+        var current = cur ? cur.value : '';
+        var next = nxt ? nxt.value : '';
+        if (!current) return note('Enter your current password.', true);
+        if (next.length < 6) return note('The new password must be at least 6 characters.', true);
+        if (/\s/.test(next)) return note('The new password cannot contain spaces.', true);
+        if (next !== (conf ? conf.value : '')) return note('The new passwords do not match.', true);
+        if (next === current) return note('Use a password different from the current one.', true);
+        var token = '';
+        try { token = (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { token = ''; }
+        if (!token) return note('Please log out and log in again, then change your password.', true);
+        if (btn) { btn.disabled = true; btn.textContent = 'Updating…'; }
+        note('');
+        fetch('/api/change-password', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': token },
+            body: JSON.stringify({ currentPassword: current, newPassword: next })
+        }).then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (body) {
+                if (!res.ok || !body || !body.ok) throw new Error((body && body.error) || 'Could not change the password.');
+                if (cur) cur.value = '';
+                if (nxt) nxt.value = '';
+                if (conf) conf.value = '';
+                note('Password updated. Use the new one next time you log in.');
+            });
+        }).catch(function (err) {
+            note((err && err.message) || 'Could not change the password.', true);
+        }).then(function () {
+            if (btn) { btn.disabled = false; btn.textContent = 'Update password'; }
+        });
     }
 
     function open() {

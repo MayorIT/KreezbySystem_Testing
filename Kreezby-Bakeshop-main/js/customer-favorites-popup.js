@@ -456,6 +456,28 @@
         var current = String(form.current.value || '').trim();
         var next = String(form.next.value || '').trim();
         var confirmValue = String(form.confirm.value || '').trim();
+        var sess = readJson('kreezby_session', {}) || {};
+        if (sess.token) {
+            // Signed in through the server: the server checks the current password and saves the new one.
+            if (!current) return note('Please enter your current password.', true);
+            if (next.length < 6) return note('New password must be at least 6 characters.', true);
+            if (next !== confirmValue) return note('New password and confirm password do not match.', true);
+            if (next === current) return note('New password must be different from current password.', true);
+            note('Updating…', false);
+            fetch('/api/change-password', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': sess.token },
+                body: JSON.stringify({ currentPassword: current, newPassword: next })
+            }).then(function (res) {
+                return res.json().catch(function () { return {}; }).then(function (body) {
+                    if (!res.ok || !body || !body.ok) throw new Error((body && body.error) || 'Could not change the password.');
+                    form.reset();
+                    note('Password updated successfully.', false);
+                });
+            }).catch(function (err) { note((err && err.message) || 'Could not change the password.', true); });
+            return;
+        }
         var expected = storedPassword();
         if (!current) return note('Please enter your current password.', true);
         if (current !== expected) return note('Current password is incorrect.', true);

@@ -740,6 +740,72 @@ app.post("/api/route-sheets/delete", async (req, res) => {
   }
 });
 
+// Any signed-in account changes its own password. The current password is checked the same way
+// the login checks it; the new one is saved on the account and in the app's shared account list.
+app.post("/api/change-password", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token || !ACCOUNT_COLLECTIONS[token.bucket]) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again, then change your password." });
+    return;
+  }
+  const current = String((req.body && req.body.currentPassword) || "");
+  const next = String((req.body && req.body.newPassword) || "");
+  if (!current) return res.status(400).json({ ok: false, error: "Enter your current password." });
+  if (next.length < 6 || next.length > 64) return res.status(400).json({ ok: false, error: "The new password must be 6 to 64 characters." });
+  if (/\s/.test(next)) return res.status(400).json({ ok: false, error: "The new password cannot contain spaces." });
+  if (next === current) return res.status(400).json({ ok: false, error: "The new password must be different from the current one." });
+  try {
+    const db = client.db(DB_NAME);
+    const accounts = db.collection(ACCOUNT_COLLECTIONS[token.bucket]);
+    const doc = await accounts.findOne({ _id: token.id });
+    if (!doc) return res.status(404).json({ ok: false, error: "Account not found." });
+    const squash = (v) => String(v == null ? "" : v).trim().toLowerCase().replace(/[\s._-]+/g, "");
+    const shared = await collection().find({ _id: { $in: ["kreezbyAuthCredentials", "kreezby_maintenance_users"] } }).toArray();
+    const parse = (id) => {
+      const row = shared.find((d) => d._id === id);
+      try { return row && typeof row.value === "string" ? JSON.parse(row.value) : null; } catch (e) { return null; }
+    };
+    const creds = parse("kreezbyAuthCredentials") || {};
+    const users = parse("kreezby_maintenance_users") || {};
+    const sameAccount = (row) => row && [row.id, row.user_id, row.username, row.email].some((v) => v != null && String(v) !== "" &&
+      [doc._id, doc.id, doc.user_id, doc.username, doc.email].some((w) => w != null && loginKey(w) === loginKey(v)));
+    const list = Array.isArray(users[token.bucket]) ? users[token.bucket] : [];
+    const appRow = list.find(sameAccount);
+    const keys = [doc.username, doc.name, doc.email, doc.id, doc._id, doc.contact].map(squash).filter(Boolean);
+    const credPasswords = keys.map((k) => creds[k] && creds[k].password).filter(Boolean);
+    let valid = [doc.temporaryPassword, doc.password, appRow && appRow.temporaryPassword, appRow && appRow.password]
+      .concat(credPasswords).some((p) => p && String(p) === current);
+    const anyStored = doc.temporaryPassword || doc.password || doc.password_hash || (appRow && (appRow.temporaryPassword || appRow.password)) || credPasswords.length;
+    if (!valid && !anyStored && current === "kreezby123") valid = true;
+    if (!valid && doc.password_hash) {
+      try { valid = await require("bcryptjs").compare(current, String(doc.password_hash)); } catch (e) { valid = false; }
+    }
+    if (!valid) return res.status(403).json({ ok: false, error: "Your current password is incorrect." });
+
+    const now = new Date();
+    await accounts.updateOne({ _id: doc._id }, { $set: { temporaryPassword: next, passwordChangedAt: now, updatedAt: now }, $unset: { password: "", password_hash: "" } });
+    // Keep the app's shared copies in step, so no old password keeps working anywhere.
+    if (appRow) {
+      appRow.temporaryPassword = next;
+      delete appRow.password;
+      await persistUsersState(users);
+    }
+    let credsChanged = false;
+    keys.forEach((k) => {
+      if (creds[k]) { creds[k] = Object.assign({}, creds[k], { password: next, updatedAt: now.toISOString() }); credsChanged = true; }
+    });
+    if (credsChanged) {
+      const stored = JSON.stringify(creds);
+      cache.kreezbyAuthCredentials = stored;
+      await collection().updateOne({ _id: "kreezbyAuthCredentials" }, { $set: { value: stored, updatedAt: now } }, { upsert: true });
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.get("/api/retailer-records", async (req, res) => {
   if (!databaseReady(res)) return;
   const token = retailerRecords.readToken(req);
