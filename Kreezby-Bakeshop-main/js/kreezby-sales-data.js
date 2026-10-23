@@ -376,6 +376,27 @@
     });
   }
 
+  function deleteReport(id) {
+    var token = sessionToken();
+    if (!token) return Promise.reject(new Error('Please log out and log in again, then delete the sheet.'));
+    return fetch('/api/route-sheets/delete', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': token },
+      body: JSON.stringify({ id: id })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (res.status === 401) throw new Error('Please log out and log in again, then delete the sheet.');
+        if ((!res.ok || !body || !body.ok) && res.status !== 404) {
+          throw new Error((body && body.error) || ('Could not delete the route sheet (' + res.status + ').'));
+        }
+        var overrides = loadOverrides().filter(function (r) { return r.id !== id; });
+        saveOverridesToStorage(overrides);
+        return reloadFromServer();
+      });
+    });
+  }
+
   function reloadFromServer() {
     resetLoadState();
     window.__kreezbySalesListRequest = null;
@@ -702,6 +723,7 @@
     formatDateLabel: formatDateLabel,
     computeReportFinancials: computeReportFinancials,
     saveReport: saveReport,
+    deleteReport: deleteReport,
     getReportById: getReportById,
     getSalesForReport: getSalesForReport,
     isTestData: function () {

@@ -708,6 +708,38 @@ app.post("/api/route-sheets", async (req, res) => {
 });
 
 // A retailer's own delivery & collection rows. Admins and staff may pass ?account=<id>.
+// Admin / staff delete a route sheet. The deleted sheet is kept in deleted_route_sheets (so it can
+// be restored by hand), and every shop's retailer_sales record is rebuilt without it.
+app.post("/api/route-sheets/delete", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = staffToken(req, res);
+  if (!token) return;
+  const id = String((req.body && req.body.id) || "").trim();
+  if (!/^[A-Za-z0-9_.-]{3,80}$/.test(id) || id === "_meta") {
+    res.status(400).json({ ok: false, error: "Invalid sheet id." });
+    return;
+  }
+  try {
+    const db = client.db(DB_NAME);
+    const col = salesListCollection();
+    const doc = await col.findOne({ _id: id });
+    if (!doc) {
+      res.status(404).json({ ok: false, error: "That route sheet is already gone." });
+      return;
+    }
+    await db.collection("deleted_route_sheets").replaceOne(
+      { _id: id },
+      { ...doc, deletedAt: new Date(), deletedBy: token.id },
+      { upsert: true },
+    );
+    await col.deleteOne({ _id: id });
+    try { await retailerRecords.syncRetailerSales(db); } catch (syncError) { console.error("retailer_sales: " + syncError.message); }
+    res.json({ ok: true, id });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.get("/api/retailer-records", async (req, res) => {
   if (!databaseReady(res)) return;
   const token = retailerRecords.readToken(req);

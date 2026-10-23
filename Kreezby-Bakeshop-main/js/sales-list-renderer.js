@@ -240,6 +240,7 @@
         '<span class="sheet-meta"><strong>AREA:</strong> ' + esc(report.areaLabel) + '</span>' +
         '<span class="sheet-meta"><strong>DATE:</strong> ' + esc(report.reportDate) + '</span>' +
         '<button type="button" class="btn-call-to-action sheet-edit-btn" data-edit-report="' + esc(report.id) + '" style="margin-left:auto;font-size:11px;">Edit sheet</button>' +
+        '<button type="button" class="btn-call-to-action sheet-delete-btn" data-delete-report="' + esc(report.id) + '" style="font-size:11px;background:#fff;color:#b91c1c;border:1px solid #fca5a5;">Delete sheet</button>' +
         '</div>' +
         '<div class="manual-sheet-scroll">' +
         '<table class="manual-sheet-table">' +
@@ -279,6 +280,28 @@
         });
       });
     }
+
+    container.querySelectorAll('.sheet-delete-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var rid = btn.getAttribute('data-delete-report');
+        var a = salesApi();
+        if (!rid || !a || !a.deleteReport) return;
+        var report = (a.getDailyReports() || []).find(function (r) { return r.id === rid; }) || {};
+        var label = (report.areaLabel || report.source || 'this area') + ' on ' + (report.reportDate || 'this date');
+        if (!window.confirm('Delete the route sheet for ' + label + '?\n\nIt is removed from the database, and the shops on it will no longer see this delivery.')) return;
+        btn.disabled = true;
+        btn.textContent = 'Deleting…';
+        a.deleteReport(rid).then(function () {
+          if (window.refreshRouteFilterOptions) window.refreshRouteFilterOptions(null);
+          salesToast('Route sheet deleted.');
+        }).catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Delete sheet';
+          salesToast((err && err.message) || 'Could not delete the route sheet.');
+        });
+      });
+    });
 
     container.querySelectorAll('.sheet-edit-btn').forEach(function (btn) {
       btn.addEventListener('click', function (ev) {
@@ -750,6 +773,13 @@
           areaEl.value = report.source;
           refreshDateOptions();
           dateEl.value = report.reportDate;
+        } else if (monthEl && dateEl && areaEl) {
+          // A sheet was removed: rebuild the lists and keep the month / area / date if still there.
+          var keepMonth = monthEl.value;
+          fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
+          if (keepMonth && filterMeta.months.some(function (m) { return m.value === keepMonth; })) monthEl.value = keepMonth;
+          refreshAreaOptions();
+          refreshDateOptions();
         }
         rerender();
       };
