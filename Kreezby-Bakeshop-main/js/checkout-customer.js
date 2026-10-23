@@ -142,7 +142,7 @@ function generateReceiptNumber() {
 function buildReceipt(order) {
     const shipping = order.shippingInfo || {};
     const lineItems = Object.values(order.items || {}).map((item) => ({
-        name: item.name,
+        name: item.name + ' · ' + POUCH_LABEL,
         qty: Number(item.qty) || 0,
         price: Number(item.cost) || 0,
         lineTotal: (Number(item.qty) || 0) * (Number(item.cost) || 0)
@@ -162,7 +162,9 @@ function buildReceipt(order) {
         gcashWebpay: order.gcashWebpay || null,
         paymongoPaymentIntentId: order.paymongo && order.paymongo.paymentIntentId ? order.paymongo.paymentIntentId : '',
         subtotal: Number(order.subtotal) || 0,
-        total: Number(order.subtotal) || 0,
+        deliveryFee: Number(order.deliveryFee) || 0,
+        deliveryLabel: order.deliveryRegion ? ('J&T delivery (' + order.deliveryRegion + ')') : 'J&T delivery',
+        total: (Number(order.subtotal) || 0) + (Number(order.deliveryFee) || 0),
         items: lineItems,
         shippingNotes: shipping.notes || '',
         status: order.status || 'Processing'
@@ -235,6 +237,7 @@ function openReceiptWindow(receipt, heading) {
         <tbody>${rows}</tbody>
         <tfoot>
             <tr><td colspan="3" class="num">Subtotal</td><td class="num">${formatCurrency(subtotal)}</td></tr>
+            ${receipt.deliveryFee ? `<tr><td colspan="3" class="num">${escapeHtml(receipt.deliveryLabel || 'Delivery fee')}</td><td class="num">${formatCurrency(receipt.deliveryFee)}</td></tr>` : ''}
             <tr><td colspan="3" class="num">Discount</td><td class="num">${formatCurrency(discount)}</td></tr>
             <tr><td colspan="3" class="num grand">Grand Total</td><td class="num grand">${formatCurrency(netTotal)}</td></tr>
         </tfoot>
@@ -331,6 +334,73 @@ ${buildCopy('CUSTOMER COPY')}
 
 // Current prices win over a price saved in an older cart.
 const CURRENT_PRICES = { 'flavor-choc': 165 };
+
+// ---- J&T delivery fee (estimated rates from Batangas) ---------------------------------
+// One pouch = 10 pcs, 250 g net. The parcel weight is the number of pouches x 250 g.
+const POUCH_LABEL = 'Pouch (10 Pcs)';
+const POUCH_WEIGHT_KG = 0.25;
+const JT_RATES = [
+    // [up to kg, Within Luzon, Visayas, Mindanao]
+    [0.5, 85, 100, 105],
+    [1, 155, 180, 195],
+    [3, 180, 200, 220],
+    [4, 270, 300, 330],
+    [5, 360, 400, 440],
+    [6, 455, 500, 550]
+];
+const JT_REGION_COLUMN = { luzon: 1, visayas: 2, mindanao: 3 };
+const JT_REGION_LABEL = { luzon: 'Within Luzon', visayas: 'Visayas', mindanao: 'Mindanao' };
+// Provinces and main cities, matched as whole words in the delivery address.
+const VISAYAS_PLACES = ['visayas', 'cebu', 'mandaue', 'lapu-lapu', 'lapu lapu', 'talisay', 'bohol', 'tagbilaran', 'iloilo',
+    'guimaras', 'capiz', 'roxas city', 'aklan', 'kalibo', 'boracay', 'antique', 'negros', 'bacolod', 'dumaguete', 'siquijor',
+    'leyte', 'tacloban', 'ormoc', 'samar', 'catbalogan', 'calbayog', 'borongan', 'biliran', 'naval', 'bais', 'silay', 'kabankalan'];
+const MINDANAO_PLACES = ['mindanao', 'davao', 'tagum', 'digos', 'mati', 'zamboanga', 'pagadian', 'dipolog', 'dapitan', 'isabela city',
+    'cagayan de oro', 'misamis', 'iligan', 'ozamiz', 'oroquieta', 'bukidnon', 'malaybalay', 'valencia city', 'camiguin', 'lanao',
+    'marawi', 'maguindanao', 'cotabato', 'kidapawan', 'koronadal', 'south cotabato', 'general santos', 'gensan', 'sarangani',
+    'sultan kudarat', 'tacurong', 'surigao', 'agusan', 'butuan', 'bayugan', 'bislig', 'tandag', 'dinagat', 'basilan', 'sulu',
+    'jolo', 'tawi-tawi', 'tawi tawi', 'bangsamoro', 'barmm', 'soccsksargen', 'caraga', 'compostela'];
+
+function hasPlace(text, places) {
+    return places.some(function (place) {
+        const escaped = place.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp('(^|[^a-z])' + escaped + '([^a-z]|$)').test(text);
+    });
+}
+
+function deliveryRegionFor(address) {
+    const text = String(address || '').toLowerCase();
+    if (!text.trim()) return '';
+    if (hasPlace(text, MINDANAO_PLACES)) return 'mindanao';
+    if (hasPlace(text, VISAYAS_PLACES)) return 'visayas';
+    return 'luzon';
+}
+
+function cartPouchCount() {
+    return Object.values(cartData).reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+}
+
+function deliveryQuote() {
+    const addressEl = document.getElementById('address');
+    const region = deliveryRegionFor(addressEl ? addressEl.value : '');
+    const pouches = cartPouchCount();
+    const weightKg = Math.round(pouches * POUCH_WEIGHT_KG * 100) / 100;
+    if (!region || !pouches) return { region: region, weightKg: weightKg, fee: 0, ready: false };
+    const col = JT_REGION_COLUMN[region];
+    let fee = 0;
+    const row = JT_RATES.find(function (r) { return weightKg <= r[0]; });
+    if (row) fee = row[col];
+    else {
+        // Heavier than 6 kg: add the 5-6 kg step for every extra kg started.
+        const last = JT_RATES[JT_RATES.length - 1];
+        const prev = JT_RATES[JT_RATES.length - 2];
+        fee = last[col] + Math.ceil(weightKg - last[0]) * (last[col] - prev[col]);
+    }
+    return { region: region, weightKg: weightKg, fee: fee, ready: true };
+}
+
+function formatWeight(kg) {
+    return kg < 1 ? Math.round(kg * 1000) + ' g' : (Math.round(kg * 100) / 100) + ' kg';
+}
 
 function normalizeCartData(rawCart) {
     if (!rawCart || typeof rawCart !== 'object') return {};
@@ -477,7 +547,7 @@ function saveCustomerPurchaseOrder(order) {
         const item = order.items[key] || {};
         const qty = Number(item.qty) || 0;
         const cost = Number(item.cost) || 0;
-        return { qty: qty, unit: qty === 1 ? 'Pouch' : 'Pouches', name: item.name || 'Crinkles', note: '', cost: cost, total: qty * cost };
+        return { qty: qty, unit: POUCH_LABEL, name: item.name || 'Crinkles', note: '', cost: cost, total: qty * cost };
     });
     const now = new Date();
     const pad = function (n) { return String(n).padStart(2, '0'); };
@@ -578,6 +648,17 @@ function initCheckout() {
     renderOrderSummary();
     syncPaymentPanels();
     updateActionButtons();
+    // The delivery fee follows the address: re-price as the customer types it.
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+        let addressTimer = 0;
+        addressInput.addEventListener('input', function () {
+            clearTimeout(addressTimer);
+            addressTimer = setTimeout(renderOrderSummary, 250);
+        });
+        addressInput.addEventListener('change', renderOrderSummary);
+    }
+
     // Items changed or removed from the Cart popup: refresh the order summary here too.
     document.addEventListener('kreezby:cart-change', function () {
         cartData = normalizeCartData(parseStoredJson('kreezbyCart', {}));
@@ -663,16 +744,20 @@ function renderOrderSummary() {
         const lineTotal = item.cost * item.qty;
         subtotal += lineTotal;
         return {
-            label: `${item.name} (x${item.qty})`,
+            label: `${item.name} · ${POUCH_LABEL} × ${item.qty}`,
             value: formatCurrency(lineTotal),
             valueClassName: 'payment-summary__value--muted'
         };
     });
 
-    const total = subtotal;
+    const quote = deliveryQuote();
+    const total = subtotal + quote.fee;
 
     lineItems.push(
-        { label: 'Subtotal', value: formatCurrency(subtotal) }
+        { label: 'Subtotal', value: formatCurrency(subtotal) },
+        quote.ready
+            ? { label: `J&T delivery (${JT_REGION_LABEL[quote.region]} · ${formatWeight(quote.weightKg)})`, value: formatCurrency(quote.fee) }
+            : { label: 'J&T delivery fee', value: 'Enter your address', valueClassName: 'payment-summary__value--muted' }
     );
 
     if (window.KreezbyPaymentSummary) {
@@ -725,7 +810,7 @@ function payWithGcash() {
 
 function checkoutTotalAmount() {
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    return subtotal;
+    return subtotal + deliveryQuote().fee;
 }
 
 function selectedPaymongoWallet() {
@@ -1224,7 +1309,8 @@ function placeOrder(pendingQr) {
     orderNumber = nextCustomerOrderNumber();
 
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    const totalAmount = subtotal;
+    const quote = deliveryQuote();
+    const totalAmount = subtotal + quote.fee;
 
     let session = {};
     try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
@@ -1240,6 +1326,11 @@ function placeOrder(pendingQr) {
         orderNumber: orderNumber,
         items: cartData,
         subtotal: subtotal,
+        deliveryFee: quote.fee,
+        deliveryRegion: quote.region ? JT_REGION_LABEL[quote.region] : '',
+        parcelWeightKg: quote.weightKg,
+        courier: 'J&T Express',
+        totalAmount: totalAmount,
         total: formatCurrency(totalAmount),
         paymentMethod: payingWithPaymongo ? 'paymongo' : 'cash_on_delivery',
         gcashReference: '',

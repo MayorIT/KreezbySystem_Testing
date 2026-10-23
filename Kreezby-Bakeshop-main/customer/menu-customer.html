@@ -99,8 +99,8 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
     <div class="pricing-banner" role="note">
         <span class="pricing-banner__label">Simple pricing</span>
         <div class="pricing-chips">
-            <span class="pricing-chip">₱165 standard pouches</span>
-            <span class="pricing-chip pricing-chip--specialty">₱200 Choco Butternut pouches</span>
+            <span class="pricing-chip">₱165 per Pouch (10 Pcs)</span>
+            <span class="pricing-chip pricing-chip--specialty">₱200 Choco Butternut · Pouch (10 Pcs)</span>
         </div>
     </div>
 
@@ -110,7 +110,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             <section class="catalog-section" aria-labelledby="catalog-heading">
             <div class="section-heading">
                 <h2 class="menu-section-title" id="catalog-heading">Explore Our Fresh Crinkles</h2>
-                <p class="section-heading__hint">Finished flavors are counted in pouches.</p>
+                <p class="section-heading__hint">Every flavor comes in a Pouch (10 Pcs).</p>
             </div>
             
             <div id="shop-menu-container"></div>
@@ -559,18 +559,18 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
         // System Data Matrix Catalog Initialization Structures 
         const productFlavorsCatalog = [
-            { id: "flavor-choc", name: "Chocolate Crinkles", variant: "Pouches", cost: 165, img: "flavors/crinkle-chocolate.jpg" },
-            { id: "flavor-almond", name: "Choco-Almond Crinkles", variant: "Pouches", cost: 165, img: "flavors/choco-almond-crinkles.jpg" },
-            { id: "flavor-cashew", name: "Choco-Cashew Crinkles", variant: "Pouches", cost: 165, img: "flavors/choco-cashew-crinkles.jpg" },
-            { id: "flavor-straw", name: "Strawberry Crinkles", variant: "Pouches", cost: 165, img: "flavors/strawberry-crinkles.jpg" },
-            { id: "flavor-velvet", name: "Red Velvet Crinkles", variant: "Pouches", cost: 165, img: "flavors/red-velvet-crinkles.jpg" },
-            { id: "flavor-lemon", name: "Lemon Crinkles", variant: "Pouches", cost: 165, img: "flavors/lemon-crinkles.jpg" },
-            { id: "flavor-melon", name: "Melon Crinkles", variant: "Pouches", cost: 165, img: "flavors/melon-crinkles.jpg" },
-            { id: "flavor-pandan", name: "Pandan Crinkles", variant: "Pouches", cost: 165, img: "flavors/pandan-crinkles.jpg" },
-            { id: "flavor-ube", name: "Ube Crinkles", variant: "Pouches", cost: 165, img: "flavors/ube-crinkles.jpg" },
-            { id: "flavor-assorted", name: "Assorted Crinkles", variant: "Pouch (250g)", cost: 165, img: "flavors/assorted-crinkles.jpg" },
-            { id: "flavor-mango", name: "Mango Crinkles", variant: "Pouches", cost: 165, img: "flavors/mango-crinkles.jpg" },
-            { id: "flavor-butternut", name: "Choco Butternut Crinkles", variant: "Pouches", cost: 200, img: "flavors/crinkle-choco-butternut.jpg" }
+            { id: "flavor-choc", name: "Chocolate Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/crinkle-chocolate.jpg" },
+            { id: "flavor-almond", name: "Choco-Almond Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/choco-almond-crinkles.jpg" },
+            { id: "flavor-cashew", name: "Choco-Cashew Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/choco-cashew-crinkles.jpg" },
+            { id: "flavor-straw", name: "Strawberry Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/strawberry-crinkles.jpg" },
+            { id: "flavor-velvet", name: "Red Velvet Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/red-velvet-crinkles.jpg" },
+            { id: "flavor-lemon", name: "Lemon Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/lemon-crinkles.jpg" },
+            { id: "flavor-melon", name: "Melon Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/melon-crinkles.jpg" },
+            { id: "flavor-pandan", name: "Pandan Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/pandan-crinkles.jpg" },
+            { id: "flavor-ube", name: "Ube Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/ube-crinkles.jpg" },
+            { id: "flavor-assorted", name: "Assorted Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/assorted-crinkles.jpg" },
+            { id: "flavor-mango", name: "Mango Crinkles", variant: "Pouch (10 Pcs)", cost: 165, img: "flavors/mango-crinkles.jpg" },
+            { id: "flavor-butternut", name: "Choco Butternut Crinkles", variant: "Pouch (10 Pcs)", cost: 200, img: "flavors/crinkle-choco-butternut.jpg" }
         ];
 
         const FAVORITES_STORAGE_KEY = 'kreezbyCustomerFavoritesV1';
@@ -952,6 +952,9 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
         function loadPersistedCart() {
             const stored = safelyReadJson('kreezbyCart', {});
             if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+                Object.keys(stored).forEach(function (k) {
+                    if (stored[k] && /^pouch(es)?( \(250g\))?$/i.test(String(stored[k].variant || ''))) stored[k].variant = 'Pouch (10 Pcs)';
+                });
                 shoppingCartStateMap = stored;
             }
         }

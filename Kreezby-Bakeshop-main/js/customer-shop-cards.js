@@ -69,7 +69,7 @@
         return {
             key: 'pouch-favorites',
             title: 'Crinkles',
-            description: 'Soft crinkles packed in pouches.'
+            description: 'Soft crinkles, 10 pcs per pouch.'
         };
     }
 
