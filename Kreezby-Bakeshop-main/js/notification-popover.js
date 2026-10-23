@@ -39,6 +39,16 @@
     }
 
     function ensureCss() {
+        // The stylesheet arrives a moment after the bell is built. Until it does, keep the
+        // closed panel hidden so the notification list never spills out under the bell.
+        if (!document.getElementById('kreezby-notification-popover-critical')) {
+            var critical = document.createElement('style');
+            critical.id = 'kreezby-notification-popover-critical';
+            critical.textContent =
+                '.notification-popover-root{position:relative;display:inline-flex}' +
+                '.notification-popover-panel:not(.is-open){opacity:0;visibility:hidden;pointer-events:none;position:absolute}';
+            document.head.appendChild(critical);
+        }
         if (document.getElementById('kreezby-notification-popover-style')) return;
         var link = document.createElement('link');
         link.id = 'kreezby-notification-popover-style';

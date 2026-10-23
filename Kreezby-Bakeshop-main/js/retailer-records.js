@@ -15,6 +15,10 @@
     ['accountReceivable', 'Account Receivable'], ['cons', 'Cons'], ['cod', 'COD'], ['staff', 'Staff'],
     ['check', 'Check'], ['f', 'F'], ['po', 'P.O'], ['replaced', 'R']
   ];
+  // A retailer sees only its own delivery: no route/area of the van and no staff column.
+  var RETAILER_COLUMNS = [
+    ['cons', 'Cons'], ['cod', 'COD'], ['check', 'Check'], ['f', 'F'], ['po', 'P.O'], ['replaced', 'R']
+  ];
 
   function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
@@ -90,12 +94,14 @@
     }
     var total = rows.reduce(function (sum, r) { return sum + (Number(r.collected) || 0); }, 0);
     var html = '<div class="kz-rr-stats">' +
-      '<div class="kz-rr-stat">Visits<strong>' + rows.length + '</strong></div>' +
-      '<div class="kz-rr-stat">Last visit<strong>' + dateLabel(rows[0].reportDate) + '</strong></div>' +
+      '<div class="kz-rr-stat">' + (opts.retailer ? 'Deliveries' : 'Visits') + '<strong>' + rows.length + '</strong></div>' +
+      '<div class="kz-rr-stat">' + (opts.retailer ? 'Last delivery' : 'Last visit') + '<strong>' + dateLabel(rows[0].reportDate) + '</strong></div>' +
       '<div class="kz-rr-stat">Total collected<strong>' + money(total) + '</strong></div>' +
       '</div>';
-    html += '<div class="kz-rr-wrap"><table class="kz-rr-table"><thead><tr><th>Date</th><th>Route</th>';
-    COLUMNS.forEach(function (c) { html += '<th>' + c[1] + '</th>'; });
+    var cols = opts.retailer ? RETAILER_COLUMNS : COLUMNS;
+    if (opts.retailer) cols = cols.filter(function (c) { return rows.some(function (r) { return r[c[0]] != null && r[c[0]] !== ''; }); });
+    html += '<div class="kz-rr-wrap"><table class="kz-rr-table"><thead><tr><th>Delivery date</th>' + (opts.retailer ? '' : '<th>Route</th>');
+    cols.forEach(function (c) { html += '<th>' + c[1] + '</th>'; });
     html += '<th class="num">Collected</th></tr></thead><tbody>';
     var month = '';
     rows.forEach(function (r) {
@@ -104,11 +110,11 @@
         month = m;
         var d = new Date(m + '-01T12:00:00');
         var label = isNaN(d.getTime()) ? m : d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long' });
-        html += '<tr class="kz-rr-month"><td colspan="' + (COLUMNS.length + 3) + '">' + esc(label) + '</td></tr>';
+        html += '<tr class="kz-rr-month"><td colspan="' + (cols.length + (opts.retailer ? 2 : 3)) + '">' + esc(label) + '</td></tr>';
       }
-      html += '<tr><td>' + dateLabel(r.reportDate) + '</td>' +
-        '<td>' + esc(r.areaLabel || r.source || '') + (opts.showName ? '<span class="kz-rr-note">as written: ' + esc(r.retailerName) + '</span>' : '') + '</td>';
-      COLUMNS.forEach(function (c) { html += '<td>' + cell(r[c[0]]) + '</td>'; });
+      html += '<tr><td>' + dateLabel(r.reportDate) + '</td>' + (opts.retailer ? '' :
+        '<td>' + esc(r.areaLabel || r.source || '') + (opts.showName ? '<span class="kz-rr-note">as written: ' + esc(r.retailerName) + '</span>' : '') + '</td>');
+      cols.forEach(function (c) { html += '<td>' + cell(r[c[0]]) + '</td>'; });
       html += '<td class="num">' + (r.collected ? money(r.collected) : '—') +
         (r.notes ? '<span class="kz-rr-note">' + esc(r.notes) + '</span>' : '') + '</td></tr>';
     });
@@ -137,7 +143,7 @@
     var stack = document.querySelector('#saleslist-retailer-page .sales-ledger-stack');
     if (!stack || stack.querySelector('.kz-rr-card')) return;
     injectStyle();
-    var el = card('Delivery & collection records', 'Your deliveries and collections from Kreezby route sheets.');
+    var el = card('Kreezby deliveries', 'Each date Kreezby delivered to your store, and what was collected.');
     stack.insertBefore(el, stack.firstChild);
     var body = el.querySelector('.kz-rr-body');
     var sub = el.querySelector('.kz-rr-sub');
@@ -146,8 +152,8 @@
         body.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your records.')) + '</p>';
         return;
       }
-      if (sub && data.account) sub.textContent = data.account.name + ' · deliveries and collections from Kreezby route sheets.';
-      renderRows(body, data, { empty: 'No deliveries recorded for your store yet.', showName: false });
+      if (sub && data.account) sub.textContent = data.account.name + ' · each date Kreezby delivered to your store, and what was collected.';
+      renderRows(body, data, { empty: 'No deliveries recorded for your store yet.', showName: false, retailer: true });
     });
   }
 
@@ -198,7 +204,9 @@
 
   function init() {
     if (document.getElementById('saleslist-retailer-page')) initRetailerView();
-    if (document.getElementById('bauan-route-sheets-wrap')) initAdminView();
+    // Head admin, admin and staff use the full route sheets below; this card is for retailers only.
+    var old = document.querySelector('#bauan-route-sheets-wrap ~ .kz-rr-card, .kz-rr-card');
+    if (old && !document.getElementById('saleslist-retailer-page')) old.remove();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

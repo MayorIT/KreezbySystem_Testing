@@ -592,7 +592,9 @@ app.get("/api/health", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
     await client.db(DB_NAME).command({ ping: 1 });
-    res.json({ ok: true, database: DB_NAME, records: Object.keys(cache).length });
+    let cluster = "";
+    try { cluster = new URL(String(process.env.MONGODB_URI || "").replace(/^mongodb(\+srv)?:/, "http:")).hostname; } catch (e) { cluster = ""; }
+    res.json({ ok: true, database: DB_NAME, cluster, records: Object.keys(cache).length });
   } catch (error) {
     res.status(503).json({ ok: false, error: error.message });
   }
@@ -691,6 +693,8 @@ app.post("/api/route-sheets", async (req, res) => {
     });
     if (!existing) doc.createdAt = new Date();
     await col.updateOne({ _id: doc.id }, { $set: doc }, { upsert: true });
+    // Refresh each shop's own record in retailer_sales.
+    try { await retailerRecords.syncRetailerSales(db); } catch (syncError) { console.error("retailer_sales: " + syncError.message); }
     const saved = await col.findOne({ _id: doc.id });
     await retailerRecords.tagSheets(db, [saved]);
     const report = { ...saved, id: doc.id };
@@ -1861,12 +1865,16 @@ app.get("/", (req, res) => {
   res.redirect("/auth/start.html");
 });
 
-app.use(express.static(SITE_ROOT, {
+const staticOptions = {
   setHeaders(res, filePath) {
     // Always revalidate code files so edits show up without a hard refresh.
     if (/\.(html|js|css)$/i.test(filePath)) res.setHeader("Cache-Control", "no-cache");
   },
-}));
+};
+app.use(express.static(SITE_ROOT, staticOptions));
+// Vercel (vercel.json rewrites, old links, the root index.html) may ask for the same files
+// under /Kreezby-Bakeshop-main/... — serve them there too instead of "Cannot GET".
+app.use("/Kreezby-Bakeshop-main", express.static(SITE_ROOT, staticOptions));
 
 function listenOn(host) {
   const server = app.listen(PORT, host);

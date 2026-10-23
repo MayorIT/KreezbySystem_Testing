@@ -36,7 +36,17 @@ async function loadNameMap(db) {
   } catch (error) {
     /* the file map is enough */
   }
-  return { names, overrides };
+  // Shops are sometimes delivered on another area's route (e.g. Girasoles on the Lucena and the
+  // Rosario route). A name that points to exactly one account in any area is linked there too.
+  const anyArea = {};
+  Object.keys(names).forEach((key) => {
+    const name = key.slice(key.indexOf("|") + 1);
+    if (!anyArea[name]) anyArea[name] = new Set();
+    anyArea[name].add(names[key]);
+  });
+  const byName = {};
+  Object.keys(anyArea).forEach((name) => { if (anyArea[name].size === 1) byName[name] = Array.from(anyArea[name])[0]; });
+  return { names, overrides, byName };
 }
 
 function accountForEntry(map, sheet, entry) {
@@ -45,7 +55,8 @@ function accountForEntry(map, sheet, entry) {
   const name = cleanName(entry.retailerName);
   if (!name) return null;
   const sheetId = String(sheet.id || sheet._id || "");
-  return map.overrides[sheetId + "|" + name] || map.names[String(sheet.source || "") + "|" + name] || null;
+  return map.overrides[sheetId + "|" + name] || map.names[String(sheet.source || "") + "|" + name] ||
+    (map.byName && map.byName[name]) || null;
 }
 
 function secret() {
@@ -81,30 +92,90 @@ function readToken(req) {
 
 const FIELDS = ["accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "collected", "notes"];
 
-/** One retailer's rows across every real route sheet (test data left out), newest first. */
-async function recordsForAccount(db, accountId) {
+/**
+ * retailer_sales: one document per retailer shop (its own "folder" in MongoDB), e.g.
+ *   { _id: "ret-girasoles", name: "Girasoles", area: "Lucena", deliveryCount, totalCollected,
+ *     lastDelivery, deliveries: [{ date, sheetId, route, nameOnSheet, cons, cod, ..., collected }] }
+ * Rebuilt from sales_route_sheets whenever the route sheets change.
+ */
+const SALES_COL = "retailer_sales";
+
+async function sheetsStamp(db) {
+  const col = db.collection("sales_route_sheets");
+  const filter = { _id: { $ne: "_meta" }, isTestData: { $ne: true } };
+  const count = await col.countDocuments(filter);
+  const latest = await col.find(filter, { projection: { updatedAt: 1 } }).sort({ updatedAt: -1 }).limit(1).toArray();
+  const accounts = await db.collection("retailer_accounts").countDocuments({});
+  const mapped = await db.collection("retailer_name_map").countDocuments({}).catch(() => 0);
+  const at = latest[0] && latest[0].updatedAt ? new Date(latest[0].updatedAt).getTime() : 0;
+  return [count, at, accounts, mapped, 2].join(":");
+}
+
+async function syncRetailerSales(db) {
   const map = await loadNameMap(db);
+  const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1 } }).toArray();
   const sheets = await db.collection("sales_route_sheets")
     .find({ _id: { $ne: "_meta" }, isTestData: { $ne: true } })
     .sort({ reportDate: -1, _id: 1 })
     .toArray();
-  const rows = [];
+  const byAccount = {};
+  accounts.forEach((acc) => { byAccount[String(acc._id)] = []; });
   sheets.forEach((sheet) => {
-    (sheet.entries || []).forEach((entry, index) => {
-      if (accountForEntry(map, sheet, entry) !== accountId) return;
+    (sheet.entries || []).forEach((entry) => {
+      const id = accountForEntry(map, sheet, entry);
+      if (!id || !byAccount[id]) return;
       const row = {
-        id: String(sheet._id) + "-" + (index + 1),
-        reportId: String(sheet._id),
-        reportDate: sheet.reportDate,
-        source: sheet.source,
-        areaLabel: sheet.areaLabel,
-        retailerName: entry.retailerName,
+        date: sheet.reportDate,
+        sheetId: String(sheet._id),
+        route: sheet.areaLabel || sheet.source || "",
+        nameOnSheet: entry.retailerName,
       };
       FIELDS.forEach((field) => { if (entry[field] !== undefined) row[field] = entry[field]; });
-      rows.push(row);
+      byAccount[id].push(row);
     });
   });
-  return rows;
+  const now = new Date();
+  const ops = accounts.map((acc) => {
+    const id = String(acc._id);
+    const deliveries = byAccount[id];
+    return {
+      replaceOne: {
+        filter: { _id: id },
+        replacement: {
+          name: acc.name || id,
+          area: acc.area || "",
+          deliveryCount: deliveries.length,
+          totalCollected: deliveries.reduce((sum, d) => sum + (Number(d.collected) || 0), 0),
+          lastDelivery: deliveries.length ? deliveries[0].date : null,
+          deliveries,
+          updatedAt: now,
+        },
+        upsert: true,
+      },
+    };
+  });
+  const col = db.collection(SALES_COL);
+  if (ops.length) await col.bulkWrite(ops, { ordered: false });
+  const keep = accounts.map((acc) => String(acc._id)).concat(["_meta"]);
+  await col.deleteMany({ _id: { $nin: keep } });
+  await col.updateOne({ _id: "_meta" }, { $set: { stamp: await sheetsStamp(db), builtAt: now } }, { upsert: true });
+}
+
+/** Rebuild retailer_sales if the route sheets changed since it was last built. */
+async function ensureRetailerSales(db) {
+  const meta = await db.collection(SALES_COL).findOne({ _id: "_meta" });
+  if (!meta || meta.stamp !== await sheetsStamp(db)) await syncRetailerSales(db);
+}
+
+/** One retailer's deliveries (from its retailer_sales document), newest first. */
+async function recordsForAccount(db, accountId) {
+  await ensureRetailerSales(db);
+  const doc = await db.collection(SALES_COL).findOne({ _id: accountId });
+  return ((doc && doc.deliveries) || []).map((d, i) => {
+    const row = { id: d.sheetId + "-" + (i + 1), reportDate: d.date };
+    FIELDS.forEach((field) => { if (d[field] !== undefined) row[field] = d[field]; });
+    return row;
+  });
 }
 
 /** Adds accountId / accountName to every row of the given sheets (for the admin view). */
@@ -189,4 +260,4 @@ function buildRouteSheet(body, accounts) {
   };
 }
 
-module.exports = { buildRouteSheet, cleanName, accountForEntry, loadNameMap, issueToken, readToken, recordsForAccount, tagSheets };
+module.exports = { syncRetailerSales, ensureRetailerSales, buildRouteSheet, cleanName, accountForEntry, loadNameMap, issueToken, readToken, recordsForAccount, tagSheets };
