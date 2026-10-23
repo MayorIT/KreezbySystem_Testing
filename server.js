@@ -800,24 +800,45 @@ app.post("/api/login", async (req, res) => {
       return;
     }
     const db = client.db(DB_NAME);
+    // Same matching as the browser login: "marcela_admin", "marcela-admin" and "Marcela Admin" are one
+    // account, and the shortcut names the login page accepts (e.g. "headadmin") point to their account.
+    const squash = (v) => String(v == null ? "" : v).trim().toLowerCase().replace(/[\s._-]+/g, "");
+    const LOGIN_SHORTCUTS = { headadmin: "admin-owner", marcelaadmin: "admin-owner", brentadmin: "admin-ops", ailoreadmin: "admin-marketing" };
+    const squashed = squash(identity);
+    const shortcutId = LOGIN_SHORTCUTS[squashed] || "";
+    // Passwords changed in the app are kept in the shared state; the login page checks them too.
+    const sharedDocs = await collection().find({ _id: { $in: ["kreezbyAuthCredentials", "kreezby_maintenance_users"] } }).toArray();
+    const sharedValue = (id) => {
+      const row = sharedDocs.find((d) => d._id === id);
+      try { return row && typeof row.value === "string" ? JSON.parse(row.value) : null; } catch (e) { return null; }
+    };
+    const savedCreds = sharedValue("kreezbyAuthCredentials") || {};
+    const appUsers = sharedValue("kreezby_maintenance_users") || {};
     // Staff and admins first so an internal account is never taken for a customer.
     const order = ["admins", "staff", "retailers", "customers"];
     for (const bucket of order) {
       const docs = await db.collection(ACCOUNT_COLLECTIONS[bucket]).find({}).toArray();
-      const doc = docs.find((row) =>
-        [row.email, row.username, row.user_id, row.id, row._id, row.name, row.contact]
-          .some((field) => field != null && loginKey(field) === identity));
+      const fields = (row) => [row.email, row.username, row.user_id, row.id, row._id, row.name, row.contact];
+      const doc = docs.find((row) => fields(row).some((field) => field != null && loginKey(field) === identity)) ||
+        docs.find((row) => shortcutId && (String(row._id) === shortcutId || String(row.id) === shortcutId)) ||
+        docs.find((row) => fields(row).some((field) => field != null && squash(field) && squash(field) === squashed));
       if (!doc) continue;
       if (doc.active === false) {
         res.status(403).json({ ok: false, error: "This account is deactivated." });
         return;
       }
       let valid = false;
-      for (const field of [doc.temporaryPassword, doc.password]) {
+      const appRow = (Array.isArray(appUsers[bucket]) ? appUsers[bucket] : []).find((row) =>
+        row && [row.id, row.user_id, row.username, row.email].some((v) => v != null && String(v) !== "" &&
+          [doc._id, doc.id, doc.user_id, doc.username, doc.email].some((w) => w != null && loginKey(w) === loginKey(v))));
+      const credPasswords = [identity, doc.username, doc.name, doc.email, doc.id].map(squash).filter(Boolean)
+        .map((k) => savedCreds[k] && savedCreds[k].password).filter(Boolean);
+      for (const field of [doc.temporaryPassword, doc.password, appRow && appRow.temporaryPassword, appRow && appRow.password].concat(credPasswords)) {
         if (field && String(field) === password) valid = true;
       }
       // Accounts with no stored password use the shared starter password, as the browser login does.
-      if (!valid && !doc.temporaryPassword && !doc.password && !doc.password_hash && password === "kreezby123") {
+      const anyStored = doc.temporaryPassword || doc.password || doc.password_hash || (appRow && (appRow.temporaryPassword || appRow.password)) || credPasswords.length;
+      if (!valid && !anyStored && password === "kreezby123") {
         valid = true;
       }
       if (!valid && doc.password_hash) {

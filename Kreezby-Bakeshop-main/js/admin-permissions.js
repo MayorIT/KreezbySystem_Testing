@@ -570,9 +570,15 @@
 
         var selectedId = 'ailore';
 
+        // The head admin (owner) always has every module, so they are not in this list.
+        function isHeadListed(id) {
+            var account = getAdminAccounts()[id];
+            return isOwnerAccountId(id) || isOwnerAccount(account);
+        }
+
         function activeAccounts() {
             return Object.keys(getAdminAccounts()).filter(function (id) {
-                return getAdminAccounts()[id].status !== 'archived';
+                return getAdminAccounts()[id].status !== 'archived' && !isHeadListed(id);
             });
         }
 
@@ -596,7 +602,7 @@
                 listEl.appendChild(button);
             });
             if (archivedEl) {
-                var archived = Object.keys(accounts).filter(function (id) { return accounts[id].status === 'archived'; });
+                var archived = Object.keys(accounts).filter(function (id) { return accounts[id].status === 'archived' && !isHeadListed(id); });
                 archivedEl.innerHTML = '';
                 if (!archived.length) {
                     archivedEl.innerHTML = '<p class="archived-empty">No archived admins.</p>';
