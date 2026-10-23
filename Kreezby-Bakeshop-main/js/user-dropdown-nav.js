@@ -1085,7 +1085,8 @@
             var sessionName = '';
             try {
                 var info = portalAccount();
-                sessionName = info.user ? (info.userName || info.user.name || info.user.username || '') : '';
+                // Name of whoever is signed in (from the login), even if their row is not in this browser's list yet.
+                sessionName = info.userName || (info.user ? (info.user.name || info.user.username || '') : '');
                 sessionName = savedProfileName() || sessionName;
             } catch (e) { /* keep the role label */ }
             paintPill(trigger, sessionName || 'Account', pillRole(portalAccount()));

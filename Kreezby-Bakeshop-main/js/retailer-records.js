@@ -213,46 +213,64 @@
     var dateSel = box.querySelector('#kz-rr-date');
     var wrap = box.querySelector('.kz-rr-sheet-wrap');
 
-    request('').then(function (data) {
-      if (!data.ok) {
-        sub.textContent = '';
-        wrap.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your deliveries.')) + '</p>';
-        return;
-      }
-      var account = data.account || { name: 'Your store', area: '' };
-      var byDate = {};
-      (data.sales || []).forEach(function (r) {
-        if (!r.reportDate) return;
-        (byDate[r.reportDate] = byDate[r.reportDate] || []).push(r);
-      });
-      var dates = Object.keys(byDate).sort().reverse();
-      if (!dates.length) {
-        sub.textContent = account.name;
-        monthSel.innerHTML = '<option>No data</option>';
-        dateSel.innerHTML = '<option>No deliveries yet</option>';
-        wrap.innerHTML = '<p class="kz-rr-empty">No deliveries recorded for your store yet.</p>';
-        return;
-      }
-      var total = (data.sales || []).reduce(function (sum, r) { return sum + (Number(r.collected) || 0); }, 0);
-      sub.textContent = account.name + ' · ' + dates.length + ' delivery date' + (dates.length === 1 ? '' : 's') +
-        ' · ' + money(total) + ' collected in all';
-      var months = [];
-      dates.forEach(function (d) { var m = d.slice(0, 7); if (months.indexOf(m) < 0) months.push(m); });
-      monthSel.innerHTML = months.map(function (m) { return '<option value="' + esc(m) + '">' + esc(monthName(m)) + '</option>'; }).join('');
+    var state = { byDate: {}, dates: [], account: { name: 'Your store', area: '' }, sig: '' };
 
-      function fillDates() {
-        var list = dates.filter(function (d) { return d.slice(0, 7) === monthSel.value; });
-        dateSel.innerHTML = list.map(function (d) { return '<option value="' + esc(d) + '">' + dateLabel(d) + '</option>'; }).join('');
-        show();
-      }
-      function show() {
-        var rows = byDate[dateSel.value] || [];
-        wrap.innerHTML = rows.length ? sheetHtml(rows, account) : '<p class="kz-rr-empty">No delivery on this date.</p>';
-      }
-      monthSel.addEventListener('change', fillDates);
-      dateSel.addEventListener('change', show);
-      fillDates();
-    });
+    function fillDates(keepDate) {
+      var list = state.dates.filter(function (d) { return d.slice(0, 7) === monthSel.value; });
+      dateSel.innerHTML = list.map(function (d) { return '<option value="' + esc(d) + '">' + dateLabel(d) + '</option>'; }).join('');
+      if (keepDate && list.indexOf(keepDate) >= 0) dateSel.value = keepDate;
+      show();
+    }
+    function show() {
+      var rows = state.byDate[dateSel.value] || [];
+      wrap.innerHTML = rows.length ? sheetHtml(rows, state.account) : '<p class="kz-rr-empty">No delivery on this date.</p>';
+    }
+    monthSel.addEventListener('change', function () { fillDates(); });
+    dateSel.addEventListener('change', show);
+
+    // Load (and later re-load) this store's rows. Edits an admin makes to a route sheet show up
+    // here on the next check, keeping the month and date the retailer is looking at.
+    function load() {
+      return request('').then(function (data) {
+        if (!data.ok) {
+          if (state.sig) return; // keep showing the last good copy
+          sub.textContent = '';
+          wrap.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your deliveries.')) + '</p>';
+          return;
+        }
+        var sig = JSON.stringify([data.account, data.sales]);
+        if (sig === state.sig) return;
+        state.sig = sig;
+        state.account = data.account || { name: 'Your store', area: '' };
+        state.byDate = {};
+        (data.sales || []).forEach(function (r) {
+          if (!r.reportDate) return;
+          (state.byDate[r.reportDate] = state.byDate[r.reportDate] || []).push(r);
+        });
+        state.dates = Object.keys(state.byDate).sort().reverse();
+        if (!state.dates.length) {
+          sub.textContent = state.account.name;
+          monthSel.innerHTML = '<option>No data</option>';
+          dateSel.innerHTML = '<option>No deliveries yet</option>';
+          wrap.innerHTML = '<p class="kz-rr-empty">No deliveries recorded for your store yet.</p>';
+          return;
+        }
+        var total = (data.sales || []).reduce(function (sum, r) { return sum + (Number(r.collected) || 0); }, 0);
+        sub.textContent = state.account.name + ' · ' + state.dates.length + ' delivery date' + (state.dates.length === 1 ? '' : 's') +
+          ' · ' + money(total) + ' collected in all';
+        var keepMonth = monthSel.value;
+        var keepDate = dateSel.value;
+        var months = [];
+        state.dates.forEach(function (d) { var m = d.slice(0, 7); if (months.indexOf(m) < 0) months.push(m); });
+        monthSel.innerHTML = months.map(function (m) { return '<option value="' + esc(m) + '">' + esc(monthName(m)) + '</option>'; }).join('');
+        if (keepMonth && months.indexOf(keepMonth) >= 0) monthSel.value = keepMonth;
+        fillDates(keepDate);
+      });
+    }
+
+    load();
+    setInterval(function () { if (!document.hidden && document.body.contains(box)) load(); }, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && document.body.contains(box)) load(); });
   }
 
   // Admin / staff: choose a retailer account.
