@@ -4,6 +4,7 @@ const express = require("express");
 const { MongoClient } = require("mongodb");
 const QRCode = require("qrcode");
 require("dotenv").config();
+const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const SERVERLESS = !!process.env.VERCEL;
@@ -313,7 +314,13 @@ async function refreshCache() {
   cache = next;
 }
 
-app.use(express.json({ limit: "12mb" }));
+app.use(express.json({
+  limit: "12mb",
+  // Keep the exact bytes of PayMongo webhooks: their signature is checked against the raw body.
+  verify(req, res, buf) {
+    if (String(req.originalUrl || "").startsWith("/api/paymongo/webhook")) req.rawBody = buf.toString("utf8");
+  },
+}));
 
 // Vercel runs this file as a serverless function: connect on demand instead of the
 // always-on maintainMongo() loop, and keep the shared-state cache fresh per request.
@@ -1183,9 +1190,15 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
       return;
     }
 
-    // Test mode (sk_test_ key): the QR Ph payment-intent flow. The QR opens PayMongo's test
-    // page in any phone camera, where "Authorize" completes the payment.
-    if (/^sk_test_/.test(paymongoSecret())) {
+    // QR Ph payment-intent flow (test and live):
+    //   1. create a Payment Intent with "qrph" allowed, 2. create a qrph Payment Method,
+    //   3. attach it; the response's next_action.code.image_url is the QR Ph image.
+    // Live mode shows that real QR Ph image, which GCash, Maya and bank apps can scan.
+    // Test mode shows a QR of PayMongo's test page instead (open it with the phone camera
+    // and choose "Authorize"), because test QR Ph codes cannot be paid in real apps.
+    // PayMongo sends payment.paid to the webhook once the payment goes through.
+    const isTestKey = /^sk_test_/.test(paymongoSecret());
+    {
       const intent = await paymongoRequest("POST", "/v1/payment_intents", {
         data: {
           attributes: {
@@ -1211,21 +1224,27 @@ app.post("/api/paymongo/e-wallet", async (req, res) => {
         data: { attributes: { payment_method: method.data.id, return_url: String(body.returnUrl) } },
       });
       const intentAttributes = attachedIntent.data.attributes || {};
-      const intentTestUrl = paymongoTestUrl(intentAttributes.next_action);
-      const intentQr = (intentTestUrl ? await scannableQr(intentTestUrl) : "") || paymongoQrDataUri(intentAttributes.next_action);
-      if (!intentQr) {
+      const realQr = paymongoQrDataUri(intentAttributes.next_action);
+      const intentTestUrl = isTestKey ? paymongoTestUrl(intentAttributes.next_action) : "";
+      const intentQr = isTestKey
+        ? ((intentTestUrl ? await scannableQr(intentTestUrl) : "") || realQr)
+        : realQr;
+      if (intentQr) {
+        res.json({
+          ok: true,
+          paymentIntentId: attachedIntent.data.id,
+          status: intentAttributes.status || "",
+          qrImage: intentQr,
+          testUrl: intentTestUrl,
+          wallet,
+        });
+        return;
+      }
+      if (isTestKey) {
         res.status(502).json({ ok: false, error: "PayMongo did not return a QR Ph code." });
         return;
       }
-      res.json({
-        ok: true,
-        paymentIntentId: attachedIntent.data.id,
-        status: intentAttributes.status || "",
-        qrImage: intentQr,
-        testUrl: intentTestUrl,
-        wallet,
-      });
-      return;
+      // Live mode with no QR image returned: fall back to PayMongo's hosted checkout below.
     }
 
     // Live mode: hosted PayMongo Checkout: a normal https page that opens from any phone camera,
@@ -1317,6 +1336,40 @@ app.get("/api/paymongo/payment-intents/:id", async (req, res) => {
       error: error.message || "PayMongo could not be checked.",
     });
   }
+});
+
+// PayMongo webhook: https://<site>/api/paymongo/webhook
+// Needs PAYMONGO_WEBHOOK_SECRET (the whsk_... secret of the webhook in the PayMongo dashboard).
+app.post("/api/paymongo/webhook", (req, res) => {
+  const secret = String(process.env.PAYMONGO_WEBHOOK_SECRET || "").trim();
+  if (!secret) {
+    console.error("PayMongo webhook: PAYMONGO_WEBHOOK_SECRET is not set");
+    res.status(500).json({ ok: false, error: "Webhook not configured" });
+    return;
+  }
+  const rawBody = typeof req.rawBody === "string" ? req.rawBody : "";
+  const parts = {};
+  String(req.get("paymongo-signature") || "").split(",").forEach((piece) => {
+    const i = piece.indexOf("=");
+    if (i > 0) parts[piece.slice(0, i).trim()] = piece.slice(i + 1).trim();
+  });
+  const attrs = (req.body && req.body.data && req.body.data.attributes) || {};
+  const given = attrs.livemode === true ? parts.li : parts.te;
+  const expected = crypto.createHmac("sha256", secret).update(String(parts.t || "") + "." + rawBody).digest("hex");
+  const age = Math.abs(Math.floor(Date.now() / 1000) - Number(parts.t));
+  const valid = rawBody && parts.t && given && given.length === expected.length && Number.isFinite(age) && age <= 300
+    && crypto.timingSafeEqual(Buffer.from(given, "utf8"), Buffer.from(expected, "utf8"));
+  if (!valid) {
+    res.status(401).json({ ok: false, error: "Invalid signature" });
+    return;
+  }
+  const resource = attrs.data || {};
+  const resourceAttrs = resource.attributes || {};
+  // payment.paid / checkout_session.payment.paid confirm the QR Ph payment. The checkout page
+  // also polls /api/paymongo/payment-intents/:id and places the order once it reads "succeeded".
+  console.log("PayMongo webhook:", attrs.type, resource.id || "", resourceAttrs.payment_intent_id || "",
+    resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : "");
+  res.json({ ok: true });
 });
 
 app.get("/", (req, res) => {
