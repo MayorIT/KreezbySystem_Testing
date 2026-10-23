@@ -29,6 +29,9 @@
 
     document.title = document.title.replace(/\bRetailer\b/g, name);
     document.querySelectorAll('.user-dropdown-pill, .panel-brand').forEach(function (node) {
+      // The account button (name + "Retailer" underneath) is drawn by user-dropdown-nav.js;
+      // overwriting it here made it flicker between the two versions.
+      if (node.id === 'user-dropdown-trigger' || node.classList.contains('kz-pill')) return;
       node.textContent = name;
     });
     document.querySelectorAll('[aria-label="Retailer navigation"]').forEach(function (node) {
