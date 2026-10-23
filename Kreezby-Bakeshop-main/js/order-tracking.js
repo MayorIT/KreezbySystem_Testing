@@ -93,7 +93,7 @@
                 return sum + ((Number(item.cost) || 0) * (Number(item.qty) || 0));
             }, 0);
         }
-        var deliveryFee = order.deliveryFee != null ? Number(order.deliveryFee) : (subtotal > 0 ? 50 : 0);
+        var deliveryFee = order.deliveryFee != null ? Number(order.deliveryFee) : 0;
         return {
             subtotal: Number(subtotal) || 0,
             deliveryFee: Number(deliveryFee) || 0,

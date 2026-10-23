@@ -161,7 +161,7 @@
                 return sum + (item.cost * item.qty);
             }, 0);
         }
-        var deliveryFee = order.deliveryFee != null ? order.deliveryFee : (subtotal > 0 ? 50 : 0);
+        var deliveryFee = order.deliveryFee != null ? order.deliveryFee : 0;
         var total = order.total;
         if (!total) {
             total = formatMoney(subtotal + deliveryFee);

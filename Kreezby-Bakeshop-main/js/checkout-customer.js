@@ -1,3 +1,6 @@
+// TESTING: delivery fee set to 0. Change back to 50 when done testing.
+const DELIVERY_FEE = 0;
+
 let selectedPaymentMethod = 'paymongo';
 let cartData = {};
 let isPaymentVerified = false;
@@ -663,7 +666,7 @@ function renderOrderSummary() {
         };
     });
 
-    const deliveryFee = subtotal > 0 ? 50.00 : 0;
+    const deliveryFee = subtotal > 0 ? DELIVERY_FEE : 0;
     const total = subtotal + deliveryFee;
 
     lineItems.push(
@@ -721,7 +724,7 @@ function payWithGcash() {
 
 function checkoutTotalAmount() {
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    return subtotal + (subtotal > 0 ? 50 : 0);
+    return subtotal + (subtotal > 0 ? DELIVERY_FEE : 0);
 }
 
 function selectedPaymongoWallet() {
@@ -1072,7 +1075,7 @@ function placeOrder() {
     orderNumber = nextCustomerOrderNumber();
 
     const subtotal = Object.values(cartData).reduce((sum, item) => sum + item.cost * item.qty, 0);
-    const deliveryFee = subtotal > 0 ? 50 : 0;
+    const deliveryFee = subtotal > 0 ? DELIVERY_FEE : 0;
     const totalAmount = subtotal + deliveryFee;
 
     let session = {};
