@@ -852,6 +852,11 @@
     }
 
     function mountLedger() {
+        // The Products/Stocks page shows stocks only; the raw material movement log is not shown.
+        var old = document.getElementById('kreezby-fr-ledger');
+        if (old) old.remove();
+        return;
+        // eslint-disable-next-line no-unreachable
         var table = document.getElementById('stocks-table-body');
         if (!table) return;
         if (document.getElementById('kreezby-fr-ledger')) { renderLedger(); return; }
@@ -1436,6 +1441,6 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('kreezby:page-load', apply);
-    document.addEventListener('kreezby:stocks-sync', function () { renderLedger(); });
+    document.addEventListener('kreezby:stocks-sync', function () { mountLedger(); });
     document.addEventListener('content:replaced', ensureForecastStyles);
 })();
