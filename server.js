@@ -38,7 +38,7 @@ function isSharedKey(key) {
 
 function isEphemeralKey(key) {
   // Bookkeeping that should be saved but must not make every open page re-download the state.
-  return /^(kreezbyPresence_|kreezbyTeamChat_|kreezbyBrowserAlert|kreezbyBadgeSeen_|kreezbyNotificationCursor$|kreezbyAlertLastQty$|kreezby_login_history$)/.test(String(key || ""));
+  return /^(kreezbyPresence_|kreezbyBrowserAlert|kreezbyBadgeSeen_|kreezbyNotificationCursor$|kreezbyAlertLastQty$|kreezby_login_history$)/.test(String(key || ""));
 }
 
 const app = express();
@@ -1175,6 +1175,16 @@ app.post("/api/state", async (req, res) => {
     for (const [key, value] of Object.entries(items)) {
       if (!isSharedKey(key)) continue;
       if (!isEphemeralKey(key)) meaningful = true;
+      else if (key.indexOf("kreezbyPresence_") === 0 && value != null) {
+        // Someone signing in, going offline, or coming back: tell every page now (not every heartbeat).
+        try {
+          const next = JSON.parse(String(value));
+          const prev = cache[key] ? JSON.parse(cache[key]) : null;
+          const wasOnline = prev && !prev.offline && Date.now() - Number(prev.lastSeen || 0) < 150000;
+          const isOnline = next && !next.offline;
+          if (Boolean(wasOnline) !== Boolean(isOnline)) meaningful = true;
+        } catch (e) { /* not JSON: ignore */ }
+      }
       if (value == null) {
         ops.push({ deleteOne: { filter: { _id: key } } });
         delete cache[key];

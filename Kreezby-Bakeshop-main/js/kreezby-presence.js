@@ -17,12 +17,14 @@
     var HEARTBEAT_MS = 30000;
     // Background tabs may only run timers once a minute, so allow some slack.
     var ONLINE_WINDOW_MS = 150000;
-    var INBOX_ROLES = { staff: 1, admin: 1, headadmin: 1, head_admin: 1 };
+    var INBOX_ROLES = { staff: 1, admin: 1, headadmin: 1, head_admin: 1, retailer: 1 };
     var PORTAL_TYPES = {
         'Staff': 'Staff',
         'Administrator': 'Admin',
         'Head Administrator': 'Head Admin',
-        'IT Support': 'Admin'
+        'IT Support': 'Admin',
+        // Retailers can message (and be messaged by) any head admin, admin or staff.
+        'Retailer': 'Retailer'
     };
 
     function readJson(key, fallback) {
@@ -73,7 +75,9 @@
         var ident = String(session.identity || session.userName || session.username || '').trim().toLowerCase();
         if (!ident) return null;
         var blob = users();
-        var buckets = [['admins', blob.admins || []], ['staff', blob.staff || []]];
+        var buckets = session.accountType === 'Retailer'
+            ? [['retailers', blob.retailers || []]]
+            : [['admins', blob.admins || []], ['staff', blob.staff || []]];
         for (var b = 0; b < buckets.length; b++) {
             var rows = buckets[b][1];
             for (var i = 0; i < rows.length; i++) {
@@ -83,7 +87,7 @@
                     return {
                         id: slug(row.id || row.username || row.name),
                         name: row.name || row.username || session.userName,
-                        role: buckets[b][0] === 'staff' ? 'Staff' : roleLabel(row, 'admins')
+                        role: buckets[b][0] === 'staff' ? 'Staff' : (buckets[b][0] === 'retailers' ? 'Retailer' : roleLabel(row, 'admins'))
                     };
                 }
             }
@@ -92,15 +96,30 @@
     }
 
     function onPortalPage() {
-        return /\/(staff|staff_names|admin|admin_names|head_admin)\//i.test(location.pathname || '');
+        return /\/(staff|staff_names|admin|admin_names|head_admin|retailer)\//i.test(location.pathname || '');
     }
 
     var me = null;
+
+    // "Appear offline" choice, kept on this browser only (not a shared kreezby* key).
+    var MODE_KEY = 'kzPresenceMode';
+    function appearOffline() {
+        try { return localStorage.getItem(MODE_KEY) === 'offline'; } catch (e) { return false; }
+    }
+    function setAppearOffline(on) {
+        try {
+            if (on) localStorage.setItem(MODE_KEY, 'offline');
+            else localStorage.removeItem(MODE_KEY);
+        } catch (e) { /* ignore */ }
+        beat(false);
+        mountAll();
+    }
 
     function beat(offline) {
         if (!onPortalPage()) return;
         me = currentAccount();
         if (!me) return;
+        offline = !!offline || appearOffline() || (typeof navigator !== 'undefined' && navigator.onLine === false);
         try {
             localStorage.setItem(PREFIX + me.id, JSON.stringify({
                 id: me.id,
@@ -169,6 +188,8 @@
             if (!key || key.indexOf(PREFIX) !== 0) continue;
             var p2 = readJson(key, null);
             if (!p2 || !p2.id || seen[p2.id] || p2.id === myId) continue;
+            // The strip lists the Kreezby team only; retailers show up in Chats when they message.
+            if (p2.role === 'Retailer') continue;
             seen[p2.id] = 1;
             list.push({ id: p2.id, name: p2.name || p2.id, role: p2.role || 'Staff', p: p2, online: isOnline(p2) });
         }
@@ -186,6 +207,14 @@
             '<div class="inbox-presence-head">' +
                 '<span class="inbox-presence-title">Active</span>' +
                 '<span class="inbox-presence-count">' + onlineCount + ' online</span>' +
+            '</div>' +
+            '<div class="inbox-presence-me-row">' +
+                '<button type="button" class="inbox-presence-me' + (appearOffline() ? ' is-hidden' : '') + '" data-presence-toggle' +
+                    ' title="' + (appearOffline() ? 'Others see you as offline. Tap to show as online.' : 'Others see you as online. Tap to appear offline.') + '">' +
+                    '<span class="inbox-presence-me-dot" aria-hidden="true"></span>' +
+                    (appearOffline() ? 'You appear offline' : 'You are online') +
+                    '<span class="inbox-presence-me-switch">' + (appearOffline() ? 'Go online' : 'Appear offline') + '</span>' +
+                '</button>' +
             '</div>';
         if (!list.length) {
             html += '<p class="inbox-presence-empty">No staff or admin accounts yet.</p>';
@@ -228,6 +257,10 @@
                 strip.setAttribute('aria-label', 'Online staff and admins');
                 search.parentNode.insertBefore(strip, search);
                 strip.addEventListener('click', function (event) {
+                    if (event.target.closest('[data-presence-toggle]')) {
+                        setAppearOffline(!appearOffline());
+                        return;
+                    }
                     var btn = event.target.closest('.inbox-presence-person');
                     if (!btn) return;
                     var api = root.kreezbyInboxApi;
@@ -245,6 +278,18 @@
     }
 
     function ensureStyles() {
+        if (!document.getElementById('kreezby-presence-me-style')) {
+            var meStyle = document.createElement('style');
+            meStyle.id = 'kreezby-presence-me-style';
+            meStyle.textContent =
+                '.inbox-presence-me-row{margin:2px 0 8px}' +
+                '.inbox-presence-me{display:inline-flex;align-items:center;gap:7px;border:1px solid #d1fae5;background:#ecfdf5;color:#065f46;border-radius:999px;padding:4px 6px 4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}' +
+                '.inbox-presence-me-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.25)}' +
+                '.inbox-presence-me-switch{margin-left:4px;padding:2px 8px;border-radius:999px;background:#fff;color:#374151;font-weight:600;border:1px solid #e5e7eb}' +
+                '.inbox-presence-me.is-hidden{border-color:#e5e7eb;background:#f3f4f6;color:#4b5563}' +
+                '.inbox-presence-me.is-hidden .inbox-presence-me-dot{background:#9ca3af;box-shadow:none}';
+            (document.head || document.documentElement).appendChild(meStyle);
+        }
         if (document.getElementById('kreezby-presence-style')) return;
         var src = '';
         var scripts = document.getElementsByTagName('script');
@@ -276,6 +321,9 @@
         document.addEventListener('visibilitychange', function () {
             if (!document.hidden) { beat(false); mountAll(); }
         });
+        // Wi-Fi / data dropped or came back: update straight away.
+        window.addEventListener('online', function () { beat(false); mountAll(); });
+        window.addEventListener('offline', function () { mountAll(); });
         document.addEventListener('kreezby:remote-state', queueMount);
         document.addEventListener('turbo:frame-load', queueMount);
         window.addEventListener('storage', function (e) {

@@ -401,14 +401,14 @@
 
   // Staff/admin online status (heartbeat + "Active" strip in the inbox).
   (function loadPresence() {
-    if (!/\/(staff|staff_names|admin|admin_names|head_admin)\//i.test(location.pathname || "")) return;
+    if (!/\/(staff|staff_names|admin|admin_names|head_admin|retailer)\//i.test(location.pathname || "")) return;
     if (document.getElementById("kreezby-presence-script")) return;
     var me = document.currentScript && document.currentScript.getAttribute("src") || "";
     var at = me.indexOf("js/kreezby-db-sync.js");
     var base = at !== -1 ? me.slice(0, at) : "../";
     var s = document.createElement("script");
     s.id = "kreezby-presence-script";
-    s.src = base + "js/kreezby-presence.js?v=20261022a";
+    s.src = base + "js/kreezby-presence.js?v=20261024ret";
     s.defer = true;
     (document.head || document.documentElement).appendChild(s);
   })();

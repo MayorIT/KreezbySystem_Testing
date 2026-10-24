@@ -64,22 +64,10 @@
                 ]
             }
         },
+        // Retailers start with an empty inbox: they pick someone from the Kreezby team strip.
         retailer: {
-            contacts: [
-                { id: 'brent', name: 'Brent Ramos (Admin)', preview: 'Next delivery schedule will be on May 27 po', time: '1h', initials: 'B', online: true, unread: true },
-                { id: 'maricel', name: 'Maricel Ramos', preview: 'Next delivery will be...', time: '1h', initials: 'M', unread: false },
-                { id: 'staff1', name: 'Staff 1', preview: 'Next delivery will be...', time: '1h', initials: 'S', unread: false },
-                { id: 'kobe', name: 'Kobe Bryan', preview: 'Sales running by the...', time: '1h', initials: 'K', online: true, archived: true }
-            ],
-            messages: {
-                brent: [
-                    { type: 'incoming', text: 'Hello po, what can we do for you?' },
-                    { type: 'outgoing', text: 'Kami po sana magtatanong regarding sa automated stock replenishment.' },
-                    { type: 'incoming', text: 'Ilan po ang o-orderin?' },
-                    { type: 'outgoing', text: 'Bale 150 pouches of Chocolate Boxes po.' },
-                    { type: 'incoming', text: 'Next delivery schedule will be on May 27 po' }
-                ]
-            }
+            contacts: [],
+            messages: {}
         },
         customer: {
             contacts: [
@@ -166,6 +154,7 @@
                 '<div class="inbox-chat-main-panel" id="inbox-main-panel">' +
                     '<div class="inbox-chat-header">' +
                         '<div class="inbox-chat-header-profile">' +
+                            '<button type="button" class="inbox-icon-btn inbox-mobile-back" id="inbox-mobile-back" title="Back to chats" aria-label="Back to chats">' + SVG.arrowLeft + '</button>' +
                             '<div class="inbox-avatar" id="inbox-header-avatar">K</div>' +
                             '<div>' +
                                 '<h2 class="header-active-client-title" id="inbox-active-name">Select a chat</h2>' +
@@ -555,6 +544,57 @@
         var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
 
         var messenger = mount.classList.contains('inbox-messenger');
+
+        // Phones: like Messenger, the chat list and the open conversation take turns on screen.
+        // Tapping a chat shows only that conversation; the back arrow (or the phone's back
+        // button) returns to the list.
+        function phoneLayout() {
+            return window.matchMedia ? window.matchMedia('(max-width: 860px)').matches : window.innerWidth <= 860;
+        }
+        function openThreadView() {
+            if (!phoneLayout() || mount.classList.contains('is-thread-open')) return;
+            mount.classList.add('is-thread-open');
+            try { history.pushState({ kzInboxThread: 1 }, ''); } catch (e) { /* ignore */ }
+            window.scrollTo(0, 0);
+            var box = mount.querySelector('#chat-messages-container');
+            if (box) window.setTimeout(function () { box.scrollTop = box.scrollHeight; }, 30);
+        }
+        function closeThreadView(fromHistory) {
+            if (!mount.classList.contains('is-thread-open')) return;
+            mount.classList.remove('is-thread-open');
+            if (!fromHistory) {
+                try { if (history.state && history.state.kzInboxThread) history.back(); } catch (e) { /* ignore */ }
+            }
+        }
+        window.addEventListener('popstate', function () { closeThreadView(true); });
+        mount.addEventListener('click', function (event) {
+            if (event.target.closest && event.target.closest('#inbox-mobile-back')) {
+                event.preventDefault();
+                closeThreadView(false);
+            }
+        });
+        if (!document.getElementById('kz-inbox-phone-style')) {
+            var phoneStyle = document.createElement('style');
+            phoneStyle.id = 'kz-inbox-phone-style';
+            phoneStyle.textContent =
+                '.inbox-mobile-back{display:none!important}' +
+                '@media (max-width:860px){' +
+                    '[data-inbox-role] .inbox-resize-handle{display:none!important}' +
+                    '[data-inbox-role]:not(.is-thread-open) .inbox-chat-main-panel{display:none!important}' +
+                    '[data-inbox-role]:not(.is-thread-open) .inbox-chat-list-panel{display:flex!important;flex-direction:column;width:100%!important;max-width:none!important;flex:1 1 auto!important;height:auto!important;min-height:calc(100vh - 140px);min-height:calc(100dvh - 140px);border-right:0!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-chat-list-panel{display:none!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-chat-main-panel{display:flex!important;flex-direction:column!important;width:100%!important;max-width:none!important;flex:1 1 auto!important;height:calc(100vh - 120px)!important;height:calc(100dvh - 120px)!important;min-height:0!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-messages-viewport{flex:1 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;overflow-y:auto!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-composer-bar{flex:0 0 auto!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important}' +
+                    '[data-inbox-role] .inbox-attach-preview[hidden],[data-inbox-role] .inbox-attach-note[hidden]{display:none!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-composer-bar .inbox-icon-btn{flex:0 0 auto!important;width:38px!important;height:38px!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-composer-bar .composition-input-element{flex:1 1 0!important;min-width:0!important;width:auto!important}' +
+                    '[data-inbox-role].is-thread-open .inbox-attach-preview,[data-inbox-role].is-thread-open .inbox-attach-note{flex-basis:100%;order:-1}' +
+                    '[data-inbox-role] .inbox-resizable-group{display:flex!important;flex-direction:column!important;height:auto!important}' +
+                    '[data-inbox-role] .inbox-mobile-back{display:inline-flex!important;flex:0 0 auto;margin-right:4px}' +
+                '}';
+            document.head.appendChild(phoneStyle);
+        }
         var helpDesk = role === 'admin' || role === 'staff';
         var isHeadAdmin = /\/head_admin\//i.test(String(location.pathname || '').replace(/\\/g, '/'));
         var helpSignature = '';
@@ -679,7 +719,7 @@
                         ? 'No chats match your search.'
                         : (listFilter === 'resolved'
                             ? 'No resolved customer chats.'
-                            : (listFilter === 'archive' ? 'No archived chats.' : 'No conversations in this filter.'));
+                            : (listFilter === 'archive' ? 'No archived chats.' : (role === 'retailer' && listFilter === 'all' && !searchQuery ? 'No chats yet. Tap someone from the Kreezby team above to send a message.' : 'No conversations in this filter.')));
                 }
             }
             bindContactClicks();
@@ -1339,7 +1379,10 @@
             mount.querySelectorAll('.inbox-contact-select').forEach(function (item) {
                 item.onclick = function () {
                     var row = item.closest('.inbox-contact-item');
-                    if (row) selectContact(row.getAttribute('data-thread-id'));
+                    if (row) {
+                        selectContact(row.getAttribute('data-thread-id'));
+                        openThreadView();
+                    }
                 };
             });
             mount.querySelectorAll('.inbox-thread-archive').forEach(function (btn) {
@@ -1488,7 +1531,7 @@
         }
 
         /* ---------- Team chat (staff <-> admin), stored by kreezby-presence.js ---------- */
-        var teamEnabled = role === 'staff' || role === 'admin';
+        var teamEnabled = role === 'staff' || role === 'admin' || role === 'retailer';
         var teamSignature = '';
 
         function teamApi() {
@@ -1615,6 +1658,7 @@
             }
             syncTeamChats(true);
             selectContact(contact.id);
+            openThreadView();
             if (input && !input.disabled) {
                 window.setTimeout(function () { try { input.focus(); } catch (e) { /* ignore */ } }, 200);
             }

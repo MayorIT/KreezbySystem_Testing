@@ -254,23 +254,24 @@ aside.sidebar-panel {
 body.sidebar-collapsed .kreezby-sidebar-nav-label { transition: none !important; }
 
 /* Phones: the welcome card fills the screen under the header (no empty space below it).
-   Plain selectors and vh first, so in-app browsers (Messenger, Facebook) apply it too. */
+   Plain selectors and vh first, so in-app browsers (Messenger, Facebook) apply it too.
+   The doubled id outranks the welcome stylesheet's phone rules (min-height 0, 220px photo). */
 @media (max-width: 860px) {
-    #admin-dashboard-root {
+    html body:not(.kz-none) #admin-dashboard-root#admin-dashboard-root {
         display: flex !important;
         flex-direction: column !important;
         min-height: calc(100vh - 112px) !important;
         min-height: calc(100dvh - 112px) !important;
     }
-    #admin-dashboard-root .admin-home,
-    #admin-dashboard-root .admin-home-stage {
+    html body:not(.kz-none) #admin-dashboard-root#admin-dashboard-root .admin-home,
+    html body:not(.kz-none) #admin-dashboard-root#admin-dashboard-root .admin-home-stage {
         display: flex !important;
         flex-direction: column !important;
         flex: 1 1 auto !important;
         height: auto !important;
         max-height: none !important;
     }
-    #admin-dashboard-root .admin-home-photo {
+    html body:not(.kz-none) #admin-dashboard-root#admin-dashboard-root .admin-home-photo {
         flex: 1 1 auto !important;
         display: flex !important;
         align-items: center !important;
@@ -281,7 +282,7 @@ body.sidebar-collapsed .kreezby-sidebar-nav-label { transition: none !important;
         margin: 0 !important;
         overflow: hidden !important;
     }
-    #admin-dashboard-root .admin-home-photo img {
+    html body:not(.kz-none) #admin-dashboard-root#admin-dashboard-root .admin-home-photo img {
         width: 100% !important;
         height: auto !important;
         max-height: none !important;
