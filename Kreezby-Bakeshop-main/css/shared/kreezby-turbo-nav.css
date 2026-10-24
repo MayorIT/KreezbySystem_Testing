@@ -253,36 +253,40 @@ aside.sidebar-panel {
 }
 body.sidebar-collapsed .kreezby-sidebar-nav-label { transition: none !important; }
 
-/* Phones: the welcome card fills the screen under the header (no empty space below it). */
+/* Phones: the welcome card fills the screen under the header (no empty space below it).
+   Plain selectors and vh first, so in-app browsers (Messenger, Facebook) apply it too. */
 @media (max-width: 860px) {
-    html body:has(#admin-dashboard-root) #admin-dashboard-root {
+    #admin-dashboard-root {
         display: flex !important;
         flex-direction: column !important;
-        min-height: calc(100dvh - var(--kreezby-admin-header-height, 56px) - 52px) !important;
+        min-height: calc(100vh - 112px) !important;
+        min-height: calc(100dvh - 112px) !important;
     }
-    html body:has(#admin-dashboard-root) #admin-dashboard-root .admin-home,
-    html body:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-stage {
+    #admin-dashboard-root .admin-home,
+    #admin-dashboard-root .admin-home-stage {
         display: flex !important;
         flex-direction: column !important;
         flex: 1 1 auto !important;
-    }
-    html body:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-photo {
-        flex: 1 1 auto !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        min-height: 280px !important;
-        margin: 0 !important;
-    }
-    html body:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-photo img {
-        width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-height: none !important;
-        object-fit: contain;
-        /* the photo has wide cream margins: zoom in so the pouches use the space */
-        transform: scale(1.3);
     }
-    html body:has(#admin-dashboard-root) #admin-dashboard-root .admin-home-photo {
+    #admin-dashboard-root .admin-home-photo {
+        flex: 1 1 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 55vh !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
         overflow: hidden !important;
+    }
+    #admin-dashboard-root .admin-home-photo img {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        object-fit: contain !important;
+        /* the photo has wide cream margins: zoom in a little so the pouches use the space */
+        transform: scale(1.2);
     }
 }
