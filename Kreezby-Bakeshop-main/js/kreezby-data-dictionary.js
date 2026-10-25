@@ -56,12 +56,15 @@
         'Pandan Crinkles',
         'Ube Crinkles',
         'Mango Crinkles',
-        'Choco Butternut Crinkles'
+        'Choco Butternut Crinkles',
+        'Assorted Crinkles'
     ];
 
     function productId(name) {
         var text = String(name || '').toLowerCase();
         if (!text) return '';
+        if (text.indexOf('oatmeal') >= 0) return 'CKE-OAT-P';
+        if (text.indexOf('assorted') >= 0) return 'CRK-AST-P';
         if (text.indexOf('almond') >= 0) return 'CRK-ALM-P';
         if (text.indexOf('cashew') >= 0) return 'CRK-CSH-P';
         if (text.indexOf('butternut') >= 0) return 'CRK-BUT-J';

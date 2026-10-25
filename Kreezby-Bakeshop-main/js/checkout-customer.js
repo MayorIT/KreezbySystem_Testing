@@ -907,6 +907,22 @@ function restoreShippingFields(draft) {
     if (email && draft.email) email.value = draft.email;
 }
 
+// Stop payment when the cart asks for more pouches than the shop has on hand.
+function cartWithinStock() {
+    const stock = window.KreezbyCustomerStock;
+    if (!stock || typeof stock.shortages !== 'function') return true;
+    const short = stock.shortages(cartData);
+    if (!short.length) return true;
+    showCheckoutDialog('Some items in your cart are more than what we have in stock. Please lower the quantity in your cart, then try again.', {
+        type: 'warning',
+        title: 'Not Enough Stock',
+        details: short.map(function (row) {
+            return { label: row.name, value: row.available > 0 ? 'Only ' + row.available + ' left (you have ' + row.wanted + ')' : 'Out of stock' };
+        })
+    });
+    return false;
+}
+
 function validCheckoutContact(fields) {
     if (!fields.fullName || !fields.phone || !fields.address) {
         showCheckoutDialog('Please fill in all shipping information.', { type: 'warning', title: 'Missing Information' });
@@ -1025,6 +1041,7 @@ async function startPaymongo(walletOverride) {
         showCheckoutDialog('Your cart is empty. Add items before paying with QR Ph.', { type: 'warning', title: 'Cart Empty' });
         return;
     }
+    if (!cartWithinStock()) return;
     const fields = shippingFields();
     if (!validCheckoutContact(fields)) return;
     const amount = checkoutTotalAmount();
