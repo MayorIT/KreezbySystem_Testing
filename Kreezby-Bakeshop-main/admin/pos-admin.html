@@ -58,7 +58,19 @@
                 };
                 document.body.appendChild(dict);
             }
+            function bootDelivery() {
+                if (!document.getElementById('pos-master')) return;
+                if (window.KreezbyDeliveryPos) { window.KreezbyDeliveryPos.boot(); return; }
+                if (document.getElementById('kreezby-delivery-pos-script')) return;
+                var d = document.createElement('script');
+                d.id = 'kreezby-delivery-pos-script';
+                d.src = '../js/delivery-pos.js?v=20261025area';
+                document.body.appendChild(d);
+            }
             bootPos();
+            bootDelivery();
+            document.addEventListener('turbo:frame-load', bootDelivery);
+            document.addEventListener('kreezby:page-load', bootDelivery);
             document.addEventListener('turbo:frame-load', bootPos);
             document.addEventListener('kreezby:page-load', bootPos);
         })();

@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
-    <title>Kreezby Bakeshop - Back Order Management (Admin)</title>
+    <title>Kreezby Bakeshop - Order Error (Admin)</title>
     <link rel="stylesheet" href="../css/pages/admin/bo-admin.css">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
@@ -43,45 +43,27 @@
             <div id="bo-master-dashboard-split-view">
                 <div class="panel-data-card po-tabbed-card bo-tabbed-card">
                     <div class="bo-order-tabs po-order-tabs" role="tablist">
-                        <button type="button" class="bo-order-tab po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Back Orders</button>
-                        <button type="button" class="bo-order-tab po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Back Orders</button>
+                        <button type="button" class="bo-order-tab po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Order Errors</button>
+                        <button type="button" class="bo-order-tab po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Returns</button>
                         <button type="button" class="bo-order-tab po-order-tab" data-tab="orders" role="tab" aria-selected="false">Customer Orders</button>
                     </div>
 
                     <div id="bo-tab-retailer" class="bo-tab-panel po-tab-panel active" role="tabpanel">
                         <div class="po-list-toolbar">
                             <div class="po-list-toolbar-title">
-                                <h3>Retailer Back Orders</h3>
-                                <span class="po-list-count" id="bo-retailer-count"></span>
-                            </div>
-                            <div class="po-list-toolbar-tools">
-                                <label class="po-page-size">Show
-                                    <select id="bo-retailer-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
-                                </label>
-                                <div class="search-field-wrap">
-                                    <input type="text" id="bo-retailer-search" placeholder="PO code, date, retailer, status...">
-                                </div>
+                                <h3>Retailer Order Errors</h3>
+                                <span class="po-list-count">Pull Out (P.O) &amp; Replace (R) from the route sheets</span>
                             </div>
                         </div>
                         <div class="card-body-padded po-list-body">
-                            <div class="po-table-scroll-wrap">
-                                <table class="data-display-table" id="bo-retailer-orders-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="po-col-num">#</th><th class="po-col-date">Date Created</th><th class="po-col-code">PO Code</th><th class="po-col-entity">Retailer</th><th class="po-col-items">Items</th><th class="po-col-status">Status</th><th class="po-col-action">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="bo-retailer-tbody"></tbody>
-                                </table>
-                            </div>
-                            <div class="datatable-footer-line" id="bo-retailer-footer"></div>
+                            <div data-order-error="admin"></div>
                         </div>
                     </div>
 
                     <div id="bo-tab-customer" class="bo-tab-panel po-tab-panel" role="tabpanel">
                         <div class="po-list-toolbar">
                             <div class="po-list-toolbar-title">
-                                <h3>Customer Back Orders</h3>
+                                <h3>Customer Returns</h3>
                                 <span class="po-list-count" id="bo-customer-count"></span>
                             </div>
                             <div class="po-list-toolbar-tools">
@@ -144,7 +126,7 @@
                 <div class="panel-data-card po-details-card">
                     <div class="po-details-topbar">
                         <div>
-                            <p class="po-details-kicker">Back order</p>
+                            <p class="po-details-kicker">Return</p>
                             <h3 id="bo-details-title">Details</h3>
                         </div>
                         <button class="po-details-back" id="bo-details-back-btn" type="button">Back to list</button>
@@ -210,5 +192,6 @@
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/admin-sidebar.js?v=20261022menu4"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
+    <script src="../js/order-error-summary.js?v=20261025oe"></script>
 </body>
 </html>

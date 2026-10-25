@@ -10,7 +10,7 @@
         <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreezby Bakeshop - Back Order Management (Admin)</title>
+    <title>Kreezby Bakeshop - Order Error (Admin)</title>
     <link rel="stylesheet" href="../css/pages/staff/bo-staff.css">
     <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
 
@@ -49,39 +49,26 @@
             <div id="bo-master-dashboard-split-view">
                 <div class="panel-data-card po-tabbed-card">
                     <div class="po-order-tabs" role="tablist" data-panel-prefix="bo">
-                        <button type="button" class="po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Back Orders</button>
-                        <button type="button" class="po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Back Orders</button>
+                        <button type="button" class="po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Order Errors</button>
+                        <button type="button" class="po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Returns</button>
                         <button type="button" class="po-order-tab" data-tab="orders" role="tab" aria-selected="false">Customer Orders</button>
                     </div>
 
                     <div id="bo-tab-retailer" class="po-tab-panel active" role="tabpanel">
-                        <div class="panel-card-title-bar">
-                            <h3>Retailer Back Orders</h3>
+                        <div class="po-list-toolbar">
+                            <div class="po-list-toolbar-title">
+                                <h3>Retailer Order Errors</h3>
+                                <span class="po-list-count">Pull Out (P.O) &amp; Replace (R) from the route sheets</span>
+                            </div>
                         </div>
-                        <div class="card-body-padded">
-                            <div class="datatable-filters-line">
-                                <div>Show <select id="bo-retailer-page-size"><option value="10">10</option><option value="25">25</option></select> entries</div>
-                                <div class="search-field-wrap">
-                                    <input type="text" id="bo-retailer-search" placeholder="PO code, date, retailer, status...">
-                                </div>
-                            </div>
-                            <div class="po-table-scroll-wrap">
-                                <table class="data-display-table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th><th>Date Created</th><th>P.O. Code</th><th>Retailer</th><th>Items</th><th>Status</th><th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="bo-retailer-tbody"></tbody>
-                                </table>
-                            </div>
-                            <div class="datatable-footer-line" id="bo-retailer-footer"></div>
+                        <div class="card-body-padded po-list-body">
+                            <div data-order-error="admin"></div>
                         </div>
                     </div>
 
                     <div id="bo-tab-customer" class="po-tab-panel" role="tabpanel">
                         <div class="panel-card-title-bar">
-                            <h3>Customer Back Orders</h3>
+                            <h3>Customer Returns</h3>
                         </div>
                         <div class="card-body-padded">
                             <div class="datatable-filters-line">
@@ -140,7 +127,7 @@
             <div id="bo-details-inspection-panel-view" style="display: none;">
                 <div class="panel-data-card">
                     <div class="panel-card-title-bar">
-                        <h3>Back Order Details</h3>
+                        <h3>Return Details</h3>
                     </div>
                     <div class="card-body-padded">
                         
@@ -148,7 +135,7 @@
                             
                             <div class="details-header-meta-block">
                                 <div>
-                                    <div class="meta-data-line"><strong>Back Order No:</strong> BO-0004</div>
+                                    <div class="meta-data-line"><strong>Return No:</strong> BO-0004</div>
                                     <div class="meta-data-line"><strong>From P.O. Code:</strong> PO-0002</div>
                                     <div class="meta-data-line"><strong>Date Created:</strong> May 20, 2024 10:30 AM</div>
                                 </div>
@@ -158,12 +145,12 @@
                                     <div class="meta-data-line"><strong>Status:</strong> <span class="status-pill-badge pending">PENDING</span></div>
                                 </div>
                                 <div style="border-left: 1px dashed #ccc; padding-left: 20px;">
-                                    <div class="meta-data-line"><strong>Remarks:</strong> Partial delivery received. Some items are back ordered.</div>
+                                    <div class="meta-data-line"><strong>Remarks:</strong> Partial delivery received. Some items are returned.</div>
                                 </div>
                             </div>
 
                             <div style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #1a237e; text-transform: uppercase;">
-                                Back Ordered Items Audit breakdown
+                                Returned Items Audit breakdown
                             </div>
 
                             <table class="data-display-table">
@@ -173,9 +160,9 @@
                                         <th>Unit</th>
                                         <th style="text-align: center;">Ordered Qty</th>
                                         <th style="text-align: center;">Received Qty</th>
-                                        <th style="text-align: center; color: #ffb74d;">Back Ordered Qty</th>
+                                        <th style="text-align: center; color: #ffb74d;">Returned Qty</th>
                                         <th style="text-align: right;">Unit Cost</th>
-                                        <th style="text-align: right;">Total (Back Order)</th>
+                                        <th style="text-align: right;">Total (Return)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -200,7 +187,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr style="font-weight: bold; background-color: #f5f5f5; font-size: 15px;">
-                                        <td colspan="6" style="text-align: right;">Total (Back Order Value Balance):</td>
+                                        <td colspan="6" style="text-align: right;">Total (Return Value):</td>
                                         <td style="text-align: right; color:#b71c1c;">₱5,025.00</td>
                                     </tr>
                                 </tfoot>
@@ -247,5 +234,6 @@
         <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
         <script src="../js/staff-sidebar.js?v=20261022menu4"></script>
 <script src="../js/sidebar-toggle.js?v=20261005one"></script>
+    <script src="../js/order-error-summary.js?v=20261025oe"></script>
 </body>
 </html>

@@ -44,7 +44,7 @@
 
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
-        { key: 'bo', label: 'Back Order', href: 'bo-staff.html', icon: 'layers' },
+        { key: 'bo', label: 'Order Error', href: 'bo-staff.html', icon: 'layers' },
         { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'pos', label: 'Point of Sale', href: 'pos-staff.html', icon: 'cart' },

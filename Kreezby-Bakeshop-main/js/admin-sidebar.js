@@ -56,7 +56,7 @@
 
         { key: 'saleslist', label: 'Sales', href: 'saleslist-admin.html', icon: 'chart' },
 
-        { key: 'bo', label: 'Orders', href: 'bo-admin.html', icon: 'clipboard' },
+        { key: 'bo', label: 'Order Error', href: 'bo-admin.html', icon: 'clipboard' },
 
         { key: 'ordertracking', label: 'Order Tracking', href: 'order-tracking-admin.html', icon: 'truck' },
 

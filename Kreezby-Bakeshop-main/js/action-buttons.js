@@ -208,7 +208,7 @@
         ];
       case 'backorder':
         return [
-          { key: 'view', label: 'View Back Order' },
+          { key: 'view', label: 'View Return' },
           { key: 'print', label: 'Print Report' }
         ];
       case 'return':
@@ -521,7 +521,7 @@
       return;
     }
     if (action === 'restock') {
-      toast('Opening back orders so you can restock "' + name + '".', 'success');
+      toast('Opening order errors so you can restock "' + name + '".', 'success');
       location.href = portalModuleFile('bo');
       return;
     }
@@ -617,7 +617,7 @@
       export: '"' + label + '" exported successfully.',
       duplicate: '"' + label + '" duplicated successfully.',
       receive: '"' + label + '" marked as received successfully.',
-      fulfill: 'Back order "' + label + '" fulfillment saved successfully.',
+      fulfill: 'Return "' + label + '" saved successfully.',
       approve: 'Return "' + label + '" approved successfully.',
       cancel: 'Order "' + label + '" cancelled successfully.',
       void: 'Sale "' + label + '" voided successfully.',

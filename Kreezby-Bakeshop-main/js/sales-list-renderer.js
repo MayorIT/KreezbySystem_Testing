@@ -31,7 +31,7 @@
       '<colgroup>' +
       '<col class="sl-col-num"><col class="sl-col-loc"><col class="sl-col-ar">' +
       '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty">' +
-      '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-money">' +
+      '<col class="sl-col-money">' +
       '</colgroup>' +
       '<thead>' +
       '<tr class="manual-sheet-group-row">' +
@@ -39,12 +39,10 @@
       '<th rowspan="2">Locations</th>' +
       '<th rowspan="2">Account<br>Receivable</th>' +
       '<th colspan="4">Date</th>' +
-      '<th colspan="3">Pulled Out &amp; Replaced</th>' +
       '<th rowspan="2">Collected</th>' +
       '</tr>' +
       '<tr class="manual-sheet-subhead">' +
       '<th>Cons</th><th>COD</th><th>Staff</th><th>Check</th>' +
-      '<th>F</th><th>P.O</th><th>R</th>' +
       '</tr>' +
       '</thead>'
     );
@@ -57,9 +55,6 @@
       '<td>' + cell(entry.cod) + '</td>' +
       '<td>' + cell(entry.staff) + '</td>' +
       '<td>' + cell(entry.check) + '</td>' +
-      '<td>' + cell(entry.f) + '</td>' +
-      '<td>' + cell(entry.po) + '</td>' +
-      '<td>' + cell(entry.replaced) + '</td>' +
       '<td class="money-cell">' + (entry.collected ? moneyCell(entry.collected, api) : '—') + '</td>'
     );
   }
@@ -72,9 +67,6 @@
       '<td>' + cell(entry.cod) + '</td>' +
       '<td>' + cell(entry.staff) + '</td>' +
       '<td>' + cell(entry.check) + '</td>' +
-      '<td>' + cell(entry.f) + '</td>' +
-      '<td>' + cell(entry.po) + '</td>' +
-      '<td>' + cell(entry.replaced) + '</td>' +
       '<td class="money-cell">' + (entry.collected ? moneyCell(entry.collected, api) : '—') + '</td>'
     );
   }
@@ -230,7 +222,7 @@
       });
 
       if (!rows) {
-        rows = '<tr><td colspan="11" style="text-align:center;color:#888;">No line items</td></tr>';
+        rows = '<tr><td colspan="8" style="text-align:center;color:#888;">No line items</td></tr>';
       }
 
       html +=
@@ -252,9 +244,6 @@
         '<td>' + cell(totals.cod || null) + '</td>' +
         '<td>' + cell(totals.staff || null) + '</td>' +
         '<td>' + cell(totals.check || null) + '</td>' +
-        '<td>' + cell(totals.f || null) + '</td>' +
-        '<td>' + cell(totals.po || null) + '</td>' +
-        '<td>' + cell(totals.replaced || null) + '</td>' +
         '<td class="money-cell">' + (totals.collected ? moneyCell(totals.collected, api) : '—') + '</td>' +
         '</tr></tfoot>' +
         '</table></div>' +
@@ -349,7 +338,7 @@
     var api = salesApi();
     if (!sales.length) {
       tbody.innerHTML =
-        '<tr><td colspan="14" class="retailer-empty-row">No entries in this period.</td></tr>';
+        '<tr><td colspan="11" class="retailer-empty-row">No entries in this period.</td></tr>';
       return startIdx;
     }
     tbody.innerHTML = sales.map(function (row, i) {
@@ -464,10 +453,10 @@
         '<tr class="manual-sheet-group-row">' +
         '<th rowspan="2">#</th><th rowspan="2">Date</th><th rowspan="2">Log ref</th><th rowspan="2">Route</th>' +
         '<th rowspan="2">Visit summary</th><th rowspan="2">A/R</th>' +
-        '<th colspan="4">Delivery / collection</th><th colspan="3">Pulled out &amp; replaced</th>' +
+        '<th colspan="4">Delivery / collection</th>' +
         '<th rowspan="2">Collected</th></tr>' +
         '<tr class="manual-sheet-subhead">' +
-        '<th>Cons</th><th>COD</th><th>Staff</th><th>Check</th><th>F</th><th>P.O</th><th>R</th>' +
+        '<th>Cons</th><th>COD</th><th>Staff</th><th>Check</th>' +
         '</tr></thead>' +
         '<tbody id="' + sectionId + '-tbody"></tbody></table></div></section>'
       );
@@ -563,7 +552,7 @@
     var api = salesApi();
     if (!sales.length) {
       tbody.innerHTML =
-        '<tr><td colspan="11" style="text-align:center;color:#666;padding:24px;">No imported sales for this period.</td></tr>';
+        '<tr><td colspan="8" style="text-align:center;color:#666;padding:24px;">No imported sales for this period.</td></tr>';
       return;
     }
     tbody.innerHTML = sales.map(function (row, idx) {
@@ -872,9 +861,6 @@
         '<td>' + cell(totals.cod || null) + '</td>' +
         '<td>' + cell(totals.staff || null) + '</td>' +
         '<td>' + cell(totals.check || null) + '</td>' +
-        '<td>' + cell(totals.f || null) + '</td>' +
-        '<td>' + cell(totals.po || null) + '</td>' +
-        '<td>' + cell(totals.replaced || null) + '</td>' +
         '<td class="money-cell">' + (totals.collected ? moneyCell(totals.collected, api) : '—') + '</td>' +
         '</tr></tfoot></table></div></div>' +
         sheetSummaryHtml(report, api) +

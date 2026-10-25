@@ -1,0 +1,51 @@
+/* Retailer dashboard — extras on top of admin-ops-dashboard.css (same look as admin) */
+
+.ops-kpi-icon.deliveries { background: #43a047; }
+.ops-kpi-icon.owed { background: #1e88e5; }
+.ops-kpi-icon.open { background: #f5a623; }
+
+.ops-kpi:has(.deliveries)::before { background: #43a047; }
+.ops-kpi:has(.owed)::before { background: #1e88e5; }
+.ops-kpi:has(.open)::before { background: #f5a623; }
+
+.rdash-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.rdash-view-all {
+    font-size: 13px;
+    font-weight: 700;
+    color: #c45c4a;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.rdash-view-all:hover { text-decoration: underline; }
+
+.ops-table td.rdash-num,
+.ops-table th.rdash-num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.rdash-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pill, #8a817c);
+    background: color-mix(in srgb, var(--pill, #8a817c) 14%, #fff);
+}
+
+.ops-table tr.rdash-total td {
+    font-weight: 800;
+    background: #faf6f3;
+}
+
+@media (max-width: 1100px) {
+    .rdash-pair { grid-template-columns: 1fr; }
+}

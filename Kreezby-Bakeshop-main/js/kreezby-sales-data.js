@@ -723,6 +723,7 @@
     formatDateLabel: formatDateLabel,
     computeReportFinancials: computeReportFinancials,
     saveReport: saveReport,
+    reloadFromServer: reloadFromServer,
     deleteReport: deleteReport,
     getReportById: getReportById,
     getSalesForReport: getSalesForReport,

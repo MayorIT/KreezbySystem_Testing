@@ -122,15 +122,59 @@
     if (document.querySelector('.turbo-frame-error')) window.location.reload();
   });
 
+  var INBOX_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
+
+  function ensureInboxPillStyle() {
+    if (document.getElementById('kreezby-retailer-inbox-pill-style')) return;
+    var style = document.createElement('style');
+    style.id = 'kreezby-retailer-inbox-pill-style';
+    // Same look as the yellow menu (☰) button beside it.
+    style.textContent =
+      '.retailer-inbox-pill{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;' +
+      'border-radius:999px;background:#ffca28;color:#1f1f1f;text-decoration:none;flex-shrink:0}' +
+      '.retailer-inbox-pill:hover{background:#fbc02d}' +
+      '.retailer-inbox-pill svg{width:18px;height:18px;stroke:#1f1f1f;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
+      '.retailer-inbox-pill.is-active{background:#fbc02d;box-shadow:0 0 0 3px rgba(255,255,255,.55)}';
+    document.head.appendChild(style);
+  }
+
+  // Retailer Inbox lives in the top nav as a button right beside the notification bell.
   function wireRetailerInboxNav() {
     var path = (location.pathname || '').toLowerCase();
     if (path.indexOf('/retailer/') === -1) return;
 
-    document.querySelectorAll('.top-nav-links-right a.top-nav-item').forEach(function (link) {
+    var right = document.querySelector('.top-navbar-node .top-nav-links-right');
+    if (!right) return;
+
+    // Old text "Inbox" links in the header are replaced by the button.
+    right.querySelectorAll('a.top-nav-item').forEach(function (link) {
       var label = (link.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
       var href = (link.getAttribute('href') || '').toLowerCase();
       if (label === 'inbox' || href.indexOf('inbox') !== -1) link.remove();
     });
+
+    ensureInboxPillStyle();
+    var pill = right.querySelector('.retailer-inbox-pill');
+    if (!pill) {
+      pill = document.createElement('a');
+      pill.className = 'retailer-inbox-pill';
+      pill.setAttribute('href', 'inbox-portal.html');
+      pill.setAttribute('data-turbo', 'false');
+      pill.setAttribute('data-turbo-frame', '_top');
+      pill.setAttribute('aria-label', 'Inbox');
+      pill.setAttribute('title', 'Inbox');
+      pill.innerHTML = INBOX_ICON;
+    }
+    pill.classList.toggle('is-active', /^inbox-portal\.html$/i.test(currentFile()));
+
+    // Keep it immediately left of the bell (the bell may already be upgraded to the popover).
+    var bell = right.querySelector('.notification-popover-root, .notification-pill');
+    var anchor = bell || right.querySelector('.user-dropdown');
+    if (anchor) {
+      if (pill.nextElementSibling !== anchor || pill.parentNode !== right) right.insertBefore(pill, anchor);
+    } else if (pill.parentNode !== right) {
+      right.appendChild(pill);
+    }
   }
 
   function syncRetailerMenu() {
@@ -145,22 +189,13 @@
           else a.remove();
         }
       });
-      var hasInbox = false;
+      // Inbox is a top-nav button now, so it is not listed in the sidebar.
       list.querySelectorAll('a[href]').forEach(function (a) {
-        if (/inbox/i.test(a.getAttribute('href') || '')) hasInbox = true;
+        if (!/inbox/i.test(a.getAttribute('href') || '')) return;
+        var li = a.closest('li');
+        if (li) li.remove();
+        else a.remove();
       });
-      if (!hasInbox) {
-        var item = document.createElement('li');
-        item.className = 'tree-node';
-        if (/^inbox-portal\.html$/i.test(currentFile())) item.classList.add('active');
-        var link = document.createElement('a');
-        link.setAttribute('href', 'inbox-portal.html');
-        link.setAttribute('data-turbo', 'false');
-        link.setAttribute('data-turbo-frame', '_top');
-        link.textContent = 'Inbox';
-        item.appendChild(link);
-        list.appendChild(item);
-      }
     });
   }
 

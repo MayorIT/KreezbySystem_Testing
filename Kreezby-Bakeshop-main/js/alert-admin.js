@@ -130,7 +130,7 @@
         var buttons = actions.map(function (key) {
             var label = key === 'restock' ? 'Create Restock P.O.'
                 : key === 'modify' ? 'Adjust Threshold'
-                : key === 'view' ? (/ret-/i.test(source) ? 'Inspect Return Slip' : 'View Back Order')
+                : key === 'view' ? (/ret-/i.test(source) ? 'Inspect Return Slip' : 'View Order Error')
                 : 'Dismiss Alert';
             var extra = key === 'dismiss' ? ' dismiss-action' : '';
             return '<button type="button" class="action-popup-item' + extra + '" data-alert-action="' + key + '">' + label + '</button>';

@@ -445,9 +445,9 @@
         window.__kreezbySalesWarm = true;
         var root = moduleRelativeRoot();
         loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260929areas', 'kreezby-sales-fake-admin-script-d', function () {
-            loadScript(root + 'js/kreezby-sales-data.js?v=20261015salesdb3', 'kreezby-sales-data-script-d', function () {
+            loadScript(root + 'js/kreezby-sales-data.js?v=20261025exp', 'kreezby-sales-data-script-d', function () {
                 loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                    loadScript(root + 'js/sales-list-renderer.js?v=20261018sheet', 'kreezby-sales-list-renderer-script-act', function () {
+                    loadScript(root + 'js/sales-list-renderer.js?v=20261025nopr', 'kreezby-sales-list-renderer-script-act', function () {
                         if (window.KreezbySales && typeof window.KreezbySales.load === 'function') {
                             window.KreezbySales.load();
                         }
@@ -505,7 +505,7 @@
             start();
             return;
         }
-        loadScript(root + 'js/aiforecast-pills.js?v=20261015micenter', 'kreezby-aiforecast-pills-script-nofc', start);
+        loadScript(root + 'js/aiforecast-pills.js?v=20261025ri', 'kreezby-aiforecast-pills-script-nofc', start);
     }
 
     function activateSalesList(frame) {
@@ -550,7 +550,7 @@
 
         function loadRenderer() {
             loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                loadScript(root + 'js/sales-list-renderer.js?v=20261018sheet', 'kreezby-sales-list-renderer-script-act', afterDataReady);
+                loadScript(root + 'js/sales-list-renderer.js?v=20261025nopr', 'kreezby-sales-list-renderer-script-act', afterDataReady);
             });
         }
 
@@ -560,7 +560,7 @@
         }
 
         function loadAdminStaffData() {
-            loadScript(root + 'js/kreezby-sales-data.js?v=20261015salesdb3', 'kreezby-sales-data-script-d', loadRenderer);
+            loadScript(root + 'js/kreezby-sales-data.js?v=20261025exp', 'kreezby-sales-data-script-d', loadRenderer);
         }
 
         if (isAdmin || wantsRouteSheet) {

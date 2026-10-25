@@ -17,7 +17,7 @@
   ];
   // A retailer sees only its own delivery: no route/area of the van and no staff column.
   var RETAILER_COLUMNS = [
-    ['cons', 'Cons'], ['cod', 'COD'], ['check', 'Check'], ['f', 'F'], ['po', 'P.O'], ['replaced', 'R']
+    ['cons', 'Cons'], ['cod', 'COD'], ['check', 'Check']
   ];
 
   function esc(v) {
@@ -152,16 +152,17 @@
     return '<colgroup>' +
       '<col class="sl-col-num"><col class="sl-col-loc"><col class="sl-col-ar">' +
       '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty">' +
-      '<col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-qty"><col class="sl-col-money">' +
+      '<col class="sl-col-money">' +
       '</colgroup><thead>' +
       '<tr class="manual-sheet-group-row"><th rowspan="2">#</th><th rowspan="2">Locations</th>' +
       '<th rowspan="2">Account<br>Receivable</th><th colspan="4">Date</th>' +
-      '<th colspan="3">Pulled Out &amp; Replaced</th><th rowspan="2">Collected</th></tr>' +
+      '<th rowspan="2">Collected</th></tr>' +
       '<tr class="manual-sheet-subhead"><th>Cons</th><th>COD</th><th>Staff</th><th>Check</th>' +
-      '<th>F</th><th>P.O</th><th>R</th></tr></thead>';
+      '</tr></thead>';
   }
 
-  var SHEET_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced'];
+  // F, P.O and R are not on the retailer's sheet: pull-outs and replacements are on its Order Error page.
+  var SHEET_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check'];
 
   function sheetHtml(rows, account) {
     var totals = {};
@@ -172,7 +173,7 @@
       var html = '<tr><td>' + (i + 1) + '</td><td class="loc-cell">' + esc(account.name) + '</td>';
       SHEET_FIELDS.forEach(function (f) { html += '<td>' + cell(r[f]) + '</td>'; });
       html += '<td class="money-cell">' + (r.collected ? '<span class="money-cell">' + money(r.collected) + '</span>' : '—') + '</td></tr>';
-      if (r.notes) html += '<tr class="kz-rr-sheet-note"><td></td><td colspan="10">Note: ' + esc(r.notes) + '</td></tr>';
+      if (r.notes) html += '<tr class="kz-rr-sheet-note"><td></td><td colspan="7">Note: ' + esc(r.notes) + '</td></tr>';
       return html;
     }).join('');
     var foot = '<tr><td colspan="3" style="text-align:right;">TOTALS</td>';

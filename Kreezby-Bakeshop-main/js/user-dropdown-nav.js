@@ -379,7 +379,7 @@
 
         var s = document.createElement('script');
         s.id = 'kreezby-portal-icon-sidebar-script';
-        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261013nopo';
+        s.src = jsBase() + 'portal-icon-sidebar.js?v=20261025oe';
         s.async = false;
         document.head.appendChild(s);
     }

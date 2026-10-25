@@ -29,7 +29,7 @@
 
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
-        bo: { label: 'Back Order', page: 'bo-staff.html' },
+        bo: { label: 'Order Error', page: 'bo-staff.html' },
         stocks: { label: 'Stocks', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
         pos: { label: 'Point of Sale', page: 'pos-staff.html' },

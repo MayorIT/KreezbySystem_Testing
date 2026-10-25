@@ -64,8 +64,10 @@
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
     <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261020menu">
     <link rel="stylesheet" href="../css/shared/kreezby-docked-sidebar.css?v=20261021dock">
+    <link rel="stylesheet" href="../css/shared/admin-ops-dashboard.css?v=20261021polish">
+    <link rel="stylesheet" href="../css/shared/retailer-ops-dashboard.css?v=20261025oe">
 </head>
-<body class="kreezby-admin-home kreezby-retailer-home">
+<body class="kreezby-admin-home kreezby-retailer-home kreezby-ops-dashboard">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');if(window.innerWidth>900){document.body.classList.add('kreezby-docked');if(localStorage.getItem('kreezbyDockedSidebar')!=='0')document.body.classList.add('kreezby-nav-open');}}catch(e){}</script>
 
 
@@ -90,34 +92,91 @@
         <div class="panel-brand">Retailer</div>
                 <ul class="navigation-tree">
             <li class="tree-node active"><a href="retailer-portal.html">Dashboard</a></li>
-            <li class="tree-node"><a href="bo-portal.html">Back Order</a></li>
+            <li class="tree-node"><a href="bo-portal.html">Order Error</a></li>
             <li class="tree-node"><a href="saleslist-portal.html">Sales List</a></li>
-            <li class="tree-node"><a href="inbox-portal.html" data-turbo="false" data-turbo-frame="_top">Inbox</a></li>
         </ul>
     </aside>
 
     <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
-        <div id="admin-dashboard-root">
-            <section class="admin-home" aria-label="Welcome">
-                    <div class="admin-home-stage">
-                        <div class="admin-home-copy">
-                            <p class="admin-home-kicker">The Crinkle Factory</p>
-                            <h2>Welcome, Retailer</h2>
-                            <p class="admin-home-tagline">Making your life sweeter!</p>
-                        </div>
-                        <figure class="admin-home-photo">
-                            <img src="../assets/home/kreezby-welcome.png?v=20261013logo" alt="Kreezby chocolate crinkles, choco oatmeal cookies, and assorted crinkles">
-                        </figure>
+            <div id="admin-dashboard-root" class="ops-dash" data-retailer-dash data-role="Retailer">
+                <div class="ops-title-row">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p class="ops-welcome" data-welcome>Welcome back. Here is the overview of your store.</p>
                     </div>
+                    <div class="ops-range-wrap">
+                        <button type="button" class="ops-range-btn" data-range-btn>
+                            <span aria-hidden="true">📅</span>
+                            <span data-range-label>Select dates</span>
+                        </button>
+                        <div class="ops-range-pop" data-range-pop hidden>
+                            <label>From<input type="date" data-from></label>
+                            <label>To<input type="date" data-to></label>
+                            <button type="button" data-apply-range>Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <section class="ops-kpis" aria-label="Summary">
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon sales" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg></span>
+                        <span class="ops-kpi-label">Total Sales</span>
+                        <strong class="ops-kpi-value" data-kpi="sales">₱0.00</strong>
+                        <span class="ops-trend flat" data-trend="sales">vs last month</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon deliveries" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 13.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>
+                        <span class="ops-kpi-label">Deliveries</span>
+                        <strong class="ops-kpi-value" data-kpi="deliveries">0</strong>
+                        <span class="ops-trend flat" data-trend="deliveries">vs last month</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon owed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
+                        <span class="ops-kpi-label">Pulled Out (P.O)</span>
+                        <strong class="ops-kpi-value" data-kpi="po">0 pcs</strong>
+                        <span class="ops-trend flat" data-trend="po">Replaced (R): 0 pcs</span>
+                    </article>
+                    <article class="ops-card ops-kpi">
+                        <span class="ops-kpi-icon open" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span>
+                        <span class="ops-kpi-label">Next Delivery</span>
+                        <strong class="ops-kpi-value" data-kpi="next">—</strong>
+                        <span class="ops-trend flat" data-trend="next">2 weeks after your last delivery</span>
+                    </article>
                 </section>
-        </div>
-</main>
+                <section class="rdash-pair">
+                    <article class="ops-card">
+                        <div class="ops-card-head">
+                            <h2>Sales List Summary</h2>
+                            <a class="rdash-view-all" href="saleslist-portal.html">View all</a>
+                        </div>
+                        <div class="ops-table-wrap">
+                            <table class="ops-table">
+                                <thead><tr><th>Delivery Date</th><th>Cons</th><th>COD</th><th>Staff</th><th>Check</th><th class="rdash-num">Collected</th></tr></thead>
+                                <tbody data-recent-sales></tbody>
+                            </table>
+                        </div>
+                    </article>
+                    <article class="ops-card">
+                        <div class="ops-card-head">
+                            <h2>Order Error</h2>
+                            <a class="rdash-view-all" href="bo-portal.html">View all</a>
+                        </div>
+                        <div class="ops-table-wrap">
+                            <table class="ops-table">
+                                <thead><tr><th>Delivery Date</th><th class="rdash-num">Pulled Out (P.O)</th><th class="rdash-num">Replaced (R)</th></tr></thead>
+                                <tbody data-order-errors></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+            </div>
+        </main>
         </turbo-frame>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261005rnote"></script>
     <script src="../js/sidebar-toggle.js?v=20261021dock"></script>
-    <script src="../js/retailer-nav.js?v=20261021fix"></script>
+    <script src="../js/retailer-nav.js?v=20261025menu"></script>
+    <script src="../js/retailer-ops-dashboard.js?v=20261025oe"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     </body>
 </html>

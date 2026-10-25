@@ -46,6 +46,7 @@
                     <a class="pill po-order-tab active" href="aiforecast_salesanalysis-admin.html" data-key="sales-analysis" role="tab">Sales Analysis</a>
                     <a class="pill po-order-tab" href="aiforecast_salesanalysis-admin.html?tab=management-insight" data-key="management-insight" role="tab">Management Insight</a>
                     <a class="pill po-order-tab" href="aiforecast_salesanalysis-admin.html?tab=product-recommendation" data-key="product-recommendation" role="tab">Production Recommendation</a>
+                    <a class="pill po-order-tab" href="aiforecast_salesanalysis-admin.html?tab=retailer-insight" data-key="retailer-insight" role="tab">Retailer Insights</a>
                 </div>
                 <div class="insights-panel is-active" data-insights-panel="sales-analysis">
                 <div class="po-list-toolbar">
@@ -203,6 +204,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="insights-panel" data-insights-panel="retailer-insight" hidden>
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>Retailer Insights</h3>
+                            <span class="po-list-count">Which area and shop sells out fast or slow, and why stock was pulled out or expired</span>
+                        </div>
+                    </div>
+                    <div class="card-body-padded po-list-body">
+                        <div data-retailer-insights></div>
+                    </div>
+                </div>
+
             </div>
 
         </main>
@@ -226,11 +239,12 @@
         </script>
 </turbo-frame>
 </div>
-    <script src="../js/aiforecast-pills.js?v=20261015micenter"></script>
+    <script src="../js/aiforecast-pills.js?v=20261025ri"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/admin-sidebar.js?v=20261022menu4"></script>
     <script src="../js/sidebar-toggle.js?v=20261010dash"></script>
     <script src="../js/management-insight.js?v=20261019fn"></script>
     <script src="../js/product-recommendation.js?v=20261019fn"></script>
+    <script src="../js/retailer-insights.js?v=20261025ri"></script>
 </body>
 </html>

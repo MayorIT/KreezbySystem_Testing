@@ -1,5 +1,5 @@
 /**
- * Back Order portal — list view, details, action menus (localStorage).
+ * Order Error / Returns portal — list view, details, action menus (localStorage).
  */
 (function () {
     'use strict';
@@ -523,7 +523,7 @@
         var page = pageSlice(rows, 'customer');
         tbody.innerHTML = page.rows.map(function (o, i) {
             return adminOrderRow(o, page.offset + i + 1);
-        }).join('') || '<tr class="po-empty-row"><td colspan="7">No customer back orders match this search.</td></tr>';
+        }).join('') || '<tr class="po-empty-row"><td colspan="7">No customer returns match this search.</td></tr>';
         renderListFooter(footer, 'customer', page);
     }
 
@@ -549,7 +549,7 @@
                 '<td class="po-num">' + esc(formatMoney(it.cost)) + '</td>' +
                 '<td class="po-num">' + esc(formatMoney(it.total)) + '</td></tr>';
         }).join('');
-        if (!itemsHtml) itemsHtml = '<tr><td colspan="7" class="po-empty-row">No back ordered items.</td></tr>';
+        if (!itemsHtml) itemsHtml = '<tr><td colspan="7" class="po-empty-row">No returned items.</td></tr>';
         var total = boTotal(order);
         var status = statusMeta(order.statusClass);
         var backQty = (order.items || []).reduce(function (sum, it) { return sum + (Number(it.backOrder) || 0); }, 0);
@@ -559,18 +559,18 @@
             '<div class="po-detail-hero-side"><span class="status-pill-badge ' + esc(status.class) + '">' + esc(status.label) + '</span>' +
             '<p class="po-detail-total">₱' + esc(formatMoney(total)) + '</p></div></div>' +
             '<div class="po-detail-facts">' +
-            detailFact('Back order', order.code) +
+            detailFact('Return', order.code) +
             detailFact('PO code', order.poCode) +
             detailFact('Supplier', order.supplier || SUPPLIER_LABEL) +
             detailFact('Expected', order.expectedDelivery) +
-            detailFact('Back ordered qty', String(backQty)) +
+            detailFact('Returned qty', String(backQty)) +
             '</div>' +
             '<div class="po-detail-remarks"><span>Remarks</span><p>' + esc(order.remarks || '—') + '</p></div>' +
-            '<section class="po-detail-section"><h3>Back ordered items</h3>' +
+            '<section class="po-detail-section"><h3>Returned items</h3>' +
             '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr>' +
-            '<th>Item</th><th>Unit</th><th>Ordered</th><th>Received</th><th>Back order</th><th>Unit cost</th><th>Total</th>' +
+            '<th>Item</th><th>Unit</th><th>Ordered</th><th>Received</th><th>Returned</th><th>Unit cost</th><th>Total</th>' +
             '</tr></thead><tbody>' + itemsHtml + '</tbody>' +
-            '<tfoot><tr><td colspan="6">Back order total</td><td class="po-num">₱' + esc(formatMoney(total)) + '</td></tr></tfoot>' +
+            '<tfoot><tr><td colspan="6">Return total</td><td class="po-num">₱' + esc(formatMoney(total)) + '</td></tr></tfoot>' +
             '</table></div></section>';
     }
 
@@ -587,7 +587,7 @@
 
     function openDetails(boCode) {
         var order = BO_ORDERS[boCode];
-        if (!order) { showToast('Back order not found.'); return; }
+        if (!order) { showToast('Return not found.'); return; }
         currentBoCode = boCode;
         closeAllMenus();
         var master = document.getElementById(listBlockId());
@@ -633,8 +633,8 @@
         if (!order) return;
         var root = document.getElementById('bo-print-root');
         if (!root) return;
-        root.innerHTML = '<div class="bo-receipt-sheet"><h1>Kreezby Bakeshop</h1><h2>Back Order Report</h2>' +
-            '<p><strong>Back Order:</strong> ' + order.code + '</p>' +
+        root.innerHTML = '<div class="bo-receipt-sheet"><h1>Kreezby Bakeshop</h1><h2>Return Report</h2>' +
+            '<p><strong>Return:</strong> ' + order.code + '</p>' +
             '<p><strong>P.O. Code:</strong> ' + order.poCode + '</p>' +
             '<p><strong>Status:</strong> ' + order.status + '</p>' +
             '<p><strong>Remarks:</strong> ' + (order.remarks || '') + '</p>' +
@@ -660,7 +660,7 @@
         }).join('');
         content.insertAdjacentHTML('afterbegin',
             '<form id="bo-edit-form" class="bo-edit-card" data-kreezby-native="1">' +
-            '<h4>Edit this back order</h4>' +
+            '<h4>Edit this return</h4>' +
             '<div class="bo-edit-grid">' +
             '<label>Expected delivery<input class="po-detail-input" name="expected" value="' + esc(order.expectedDelivery || '') + '"></label>' +
             '<label>Status<select class="po-detail-input" name="status">' + options + '</select></label>' +
@@ -835,6 +835,19 @@
         theme.href = root + 'css/pages/admin/po-theme.css?v=20261008sls';
     }
 
+    // Retailer tab = Order Errors (P.O / R summary from the route sheets), drawn by order-error-summary.js.
+    function ensureOrderErrorSummary() {
+        if (!document.querySelector('[data-order-error]')) return;
+        if (window.KreezbyOrderErrors) { window.KreezbyOrderErrors.boot(); return; }
+        if (document.getElementById('kreezby-order-error-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-order-error-script';
+        s.src = (document.querySelector('script[src*="bo-admin.js"]') || {}).src
+            ? document.querySelector('script[src*="bo-admin.js"]').src.replace(/bo-admin\.js.*$/, 'order-error-summary.js?v=20261025oe')
+            : '../js/order-error-summary.js?v=20261025oe';
+        document.body.appendChild(s);
+    }
+
     function init() {
         PAGE_MODE = detectPageMode();
         if (!PAGE_MODE) return;
@@ -847,6 +860,7 @@
         bindEvents();
         if (PAGE_MODE === 'retailer') document.documentElement.classList.add('kreezby-module-ready');
         stripRetiredInboundLegendPills();
+        ensureOrderErrorSummary();
         if (!window.__kreezbyBoLiveSync) {
             window.__kreezbyBoLiveSync = true;
             function reloadLive() {

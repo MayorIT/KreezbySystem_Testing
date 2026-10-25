@@ -90,7 +90,7 @@ function readToken(req) {
   }
 }
 
-const FIELDS = ["accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "collected", "notes"];
+const FIELDS = ["accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "expired", "collected", "notes"];
 
 /**
  * retailer_sales: one document per retailer shop (its own "folder" in MongoDB), e.g.
@@ -108,7 +108,7 @@ async function sheetsStamp(db) {
   const accounts = await db.collection("retailer_accounts").countDocuments({});
   const mapped = await db.collection("retailer_name_map").countDocuments({}).catch(() => 0);
   const at = latest[0] && latest[0].updatedAt ? new Date(latest[0].updatedAt).getTime() : 0;
-  return [count, at, accounts, mapped, 2].join(":");
+  return [count, at, accounts, mapped, 3].join(":");
 }
 
 async function syncRetailerSales(db) {
@@ -197,7 +197,7 @@ async function tagSheets(db, sheets) {
 }
 
 const ROUTE_AREAS = new Set(["batangas", "bauan", "citimart", "lipa", "lucena", "manila", "rosario", "stotomas", "tagaytay"]);
-const ROUTE_FIELDS = ["notes", "accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "collected"];
+const ROUTE_FIELDS = ["notes", "accountReceivable", "cons", "cod", "staff", "check", "f", "po", "replaced", "expired", "collected"];
 
 function routeValue(v) {
   if (v === null || v === undefined || v === "") return undefined;

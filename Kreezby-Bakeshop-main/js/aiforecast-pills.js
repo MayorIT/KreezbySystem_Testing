@@ -123,7 +123,7 @@
     function requestedTab() {
         try {
             var tab = new URLSearchParams(location.search).get('tab') || '';
-            if (tab === 'management-insight' || tab === 'product-recommendation') return tab;
+            if (tab === 'management-insight' || tab === 'product-recommendation' || tab === 'retailer-insight') return tab;
         } catch (e) {}
         return 'sales-analysis';
     }
@@ -131,7 +131,7 @@
     function showInsightsTab(key, updateHistory) {
         var master = document.getElementById('sales-analysis-master');
         if (!master || !master.querySelector('.insights-panel')) return false;
-        if (key !== 'management-insight' && key !== 'product-recommendation') key = 'sales-analysis';
+        if (key !== 'management-insight' && key !== 'product-recommendation' && key !== 'retailer-insight') key = 'sales-analysis';
         master.querySelectorAll('.insights-panel').forEach(function (panel) {
             var on = panel.getAttribute('data-insights-panel') === key;
             panel.classList.toggle('is-active', on);
@@ -177,8 +177,20 @@
         theme.href = '../css/pages/admin/po-theme.css?v=20261015micenter';
     }
 
+    // Retailer Insights tab (retailer-insights.js) — loaded here too so it works after in-app navigation.
+    function ensureRetailerInsights() {
+        if (!document.querySelector('[data-retailer-insights]')) return;
+        if (window.KreezbyRetailerInsights) { window.KreezbyRetailerInsights.boot(); return; }
+        if (document.getElementById('kreezby-retailer-insights-script')) return;
+        var s = document.createElement('script');
+        s.id = 'kreezby-retailer-insights-script';
+        s.src = '../js/retailer-insights.js?v=20261025ri';
+        document.body.appendChild(s);
+    }
+
     function bootSalesAnalysis() {
         ensureAnalysisTheme();
+        ensureRetailerInsights();
         if (document.querySelector('#sales-analysis-master .insights-panel')) {
             var tab = requestedTab();
             showInsightsTab(tab, false);
