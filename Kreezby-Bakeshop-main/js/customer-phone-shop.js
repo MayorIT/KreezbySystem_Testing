@@ -13,6 +13,7 @@
         mall: '<svg viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg>',
         help: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
         cart: '<svg viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>',
+        orders: '<svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>',
         me: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>'
     };
     var CAT_ICONS = {
@@ -171,6 +172,7 @@
             tabLink('mall', 'Shop', menuHref(), onShop) +
             tabLink('help', 'Help', helpHref, onHelp) +
             tabButton('cart', 'Cart', onCheckout) +
+            ordersButton() +
             tabLink('me', 'Me', meHref, false);
 
         document.body.appendChild(nav);
@@ -184,6 +186,12 @@
                 } else if (file !== 'checkout-customer.html') {
                     location.href = isGuest() ? '../auth/log_in.html' : 'checkout-customer.html';
                 }
+                return;
+            }
+            var ordersBtn = event.target.closest('[data-shop-orders]');
+            if (ordersBtn) {
+                event.preventDefault();
+                openOrders();
                 return;
             }
             var meBtn = event.target.closest('[data-shop-me]');
@@ -212,6 +220,43 @@
         return '<button type="button" data-shop-cart class="' + (active ? 'is-active' : '') + '">' +
             TAB_ICONS[key] + '<span>' + label + '</span>' +
             '<span class="shop-tabbar__badge" id="shop-cart-badge" hidden>0</span></button>';
+    }
+
+    // Phones hide the top bar (where "Order Notification" lives), so orders get their own tab.
+    function ordersButton() {
+        return '<button type="button" data-shop-orders>' + TAB_ICONS.orders + '<span>Orders</span>' +
+            '<span class="shop-tabbar__badge" id="shop-orders-badge" hidden>0</span></button>';
+    }
+
+    function openOrders() {
+        if (isGuest()) {
+            location.href = '../auth/log_in.html';
+            return;
+        }
+        if (document.getElementById('orders-tracker-modal') && typeof window.openModal === 'function') {
+            window.openModal('orders-tracker-modal');
+            return;
+        }
+        location.href = 'customer.html?open=orders';
+    }
+
+    // Orders still on the way (not yet completed or cancelled).
+    function syncOrdersBadge() {
+        var badge = document.getElementById('shop-orders-badge');
+        if (!badge) return;
+        var count = 0;
+        try {
+            var api = window.KreezbyCustomerOrders;
+            var orders = api && typeof api.loadOrders === 'function' ? api.loadOrders() : [];
+            count = (orders || []).filter(function (order) {
+                var status = String((order && order.status) || 'Processing');
+                return status !== 'Completed' && status !== 'Cancelled';
+            }).length;
+        } catch (e) {
+            count = 0;
+        }
+        badge.hidden = !count;
+        badge.textContent = String(count);
     }
 
     function syncCartBadge() {
@@ -275,6 +320,7 @@
         ensureCategories();
         ensureTabbar();
         syncCartBadge();
+        syncOrdersBadge();
     }
 
     if (document.readyState === 'loading') {
@@ -285,5 +331,7 @@
 
     document.addEventListener('kreezby:page-load', boot);
     window.addEventListener('storage', syncCartBadge);
-    setInterval(syncCartBadge, 1500);
+    document.addEventListener('kreezby:remote-state', syncOrdersBadge);
+    document.addEventListener('kreezby-orders-updated', syncOrdersBadge);
+    setInterval(function () { syncCartBadge(); syncOrdersBadge(); }, 1500);
 })();

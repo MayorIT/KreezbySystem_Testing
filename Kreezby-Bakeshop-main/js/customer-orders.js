@@ -57,19 +57,24 @@
 
     function loadOrders() {
         var orders = dedupeOrderList(loadAllOrders());
-        var name = currentCustomerName().toLowerCase();
         var session = {};
         try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { session = {}; }
-        var cid = String(session.customerId || '').toLowerCase();
-        var email = String(session.email || '').toLowerCase();
-        if (!name && !cid && !email) return [];
+        var profile = {};
+        try { profile = JSON.parse(localStorage.getItem('kreezbyCustomerProfile') || '{}') || {}; } catch (e2) { profile = {}; }
+        var clean = function (v) { return String(v || '').trim().toLowerCase(); };
+        var cid = clean(session.customerId);
+        var email = clean(session.email);
+        // Every name this customer goes by (login name, account name, checkout full name).
+        var names = [session.userName, session.name, session.fullName, profile.fullName, currentCustomerName()]
+            .map(clean).filter(Boolean);
+        if (!names.length && !cid && !email) return [];
         return orders.filter(function (o) {
-            var oid = String(o.customerId || '').toLowerCase();
+            var oid = clean(o.customerId);
             if (cid && oid) return oid === cid;
-            var oemail = String(o.customerEmail || '').toLowerCase();
+            var oemail = clean(o.customerEmail);
             if (email && oemail) return oemail === email;
-            var shipName = (((o.shippingInfo || {}).fullName) || o.accountName || o.poEntity || '').toLowerCase();
-            return !!name && shipName === name;
+            var shipName = clean(((o.shippingInfo || {}).fullName) || o.accountName || o.poEntity);
+            return !!shipName && names.indexOf(shipName) !== -1;
         });
     }
 
@@ -99,39 +104,8 @@
             window.KreezbyPortalSeed.apply();
             return;
         }
-        var orders = loadAllOrders();
-        if (orders && orders.length) return;
-
-        var now = new Date().toISOString();
-        var demoOrder = {
-            orderNumber: 'ORD-2026-0001',
-            poCode: 'PO-TEST-001',
-            poEntity: 'Customer Demo',
-            items: {
-                'demo-1': { name: 'Chocolate Crinkles', cost: 165, qty: 2 },
-                'demo-2': { name: 'Strawberry Crinkles', cost: 165, qty: 1 }
-            },
-            subtotal: 495,
-            total: '₱495.00',
-            paymentMethod: 'cash_on_delivery',
-            shippingInfo: {
-                fullName: 'Customer Demo',
-                phone: '09171234567',
-                address: '123 Sample Street, Batangas City',
-                notes: 'Leave at gate'
-            },
-            status: 'Shipped',
-            trackingNumber: 'JT1234567890123',
-            carrier: 'J&T Express Philippines',
-            staffNotes: 'Dispatched from factory',
-            date: now,
-            statusUpdatedAt: now,
-            shippedAt: now,
-            paymentVerified: true,
-            source: 'demo'
-        };
-
-        localStorage.setItem('kreezbyOrders', JSON.stringify([demoOrder]));
+        // No demo order: on a new phone the real orders arrive from the server a moment
+        // later, and a demo written here would be shared with every device.
     }
 
     function findOrder(orderNumber) {
@@ -838,6 +812,13 @@
     document.addEventListener('turbo:render', function () {
         bootOrdersUi();
         renderOrders(currentFilter || 'all');
+    });
+    document.addEventListener('kreezby:remote-state', function (event) {
+        var keys = (event && event.detail && event.detail.keys) || [];
+        if (keys.indexOf('kreezbyOrders') === -1 && keys.indexOf('kreezbyCustomerReceipts') === -1) return;
+        if (currentDetailOrder) showOrderDetail(currentDetailOrder);
+        else renderOrders(currentFilter || 'all');
+        updateOrdersTriggerState();
     });
     document.addEventListener('kreezby-orders-updated', function () {
         if (currentDetailOrder) showOrderDetail(currentDetailOrder);
