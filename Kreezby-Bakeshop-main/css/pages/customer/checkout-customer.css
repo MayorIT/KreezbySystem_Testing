@@ -1964,3 +1964,93 @@ main.workspace-canvas {
 .paymongo-phone-steps li { margin-bottom: 6px; }
 .paymongo-order-note { margin: 10px 0 0; font-size: 13px; font-weight: 700; color: #2e7d32; }
 .paymongo-order-note:empty { display: none; }
+
+/* ---- Delivery or pick-up ---------------------------------------------------------- */
+.fulfillment-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.fulfillment-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg-white);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fulfillment-option:hover { border-color: var(--hover-yellow); }
+
+.fulfillment-option.is-selected {
+    border-color: var(--primary-yellow);
+    background: #fffbea;
+}
+
+.fulfillment-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fulfillment-option:focus-within { outline: 2px solid var(--primary-yellow); outline-offset: 2px; }
+
+.fulfillment-option__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #f3ece6;
+}
+
+.fulfillment-option.is-selected .fulfillment-option__icon { background: var(--primary-yellow); }
+
+.fulfillment-option__icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: #3f2f14;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.fulfillment-option__body { display: flex; flex-direction: column; gap: 2px; }
+.fulfillment-option__body strong { font-size: 15px; color: var(--text-main); }
+.fulfillment-option__body small { font-size: 12.5px; color: var(--text-muted); }
+
+.pickup-panel[hidden], #address-group[hidden] { display: none !important; }
+
+.pickup-panel select,
+.pickup-panel input[type="date"] {
+    width: 100%;
+}
+
+.pickup-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    font-size: 13.5px;
+    color: #4e3b1f;
+}
+
+.pickup-contact strong { font-size: 14.5px; color: #3f2f14; }
+.pickup-contact a { color: #3f2f14; font-weight: 700; text-decoration: none; }
+.pickup-contact a:hover { text-decoration: underline; }
+
+@media (max-width: 520px) {
+    .fulfillment-options { grid-template-columns: 1fr; }
+}

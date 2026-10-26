@@ -308,7 +308,7 @@
 
     function stepStatusLabel(state, stepKey, order) {
         if (stepKey === 'Processing' && showTransactionVerified(order)) return 'Transaction verified';
-        if (stepKey === 'Completed' && state === 'active') return 'Delivered';
+        if (stepKey === 'Completed' && state === 'active') return isPickupOrder(order) ? 'Picked up' : 'Delivered';
         if (state === 'completed') return 'Complete';
         if (state === 'active') return 'In Progress';
         return 'Pending';
@@ -324,7 +324,34 @@
         return formatDate(base.toISOString());
     }
 
+    var KREEZBY_PHONE = '0921 957 4748';
+    var KREEZBY_EMAIL = 'kreezbyph@gmail.com';
+    var PICKUP_STEPPER_META = {
+        Processing: { title: 'Order Processing', desc: 'Your order is being prepared at Kreezby.' },
+        Shipped: { title: 'Ready for Pick-up', desc: 'Your order is ready at Kreezby.' },
+        Completed: { title: 'Picked Up', desc: 'Order picked up. Enjoy your crinkles!' }
+    };
+
+    function isPickupOrder(order) { return !!order && order.fulfillment === 'pickup'; }
+
+    function pickupText(order) {
+        if (order.pickupLabel) return order.pickupLabel;
+        return [order.pickupDate, order.pickupTime].filter(Boolean).join(' · ') || '—';
+    }
+
+    function renderPickupBlock(order) {
+        return (
+            '<div class="order-detail-tracking-box">' +
+            '<h4>Pick-up at Kreezby</h4>' +
+            '<div class="order-detail-tracking-row"><span>Schedule</span><span>' + escapeHtml(pickupText(order)) + '</span></div>' +
+            '<div class="order-detail-tracking-row"><span>Contact</span><span><a href="tel:09219574748">' + KREEZBY_PHONE + '</a></span></div>' +
+            '<div class="order-detail-tracking-row"><span>Email</span><span><a href="mailto:' + KREEZBY_EMAIL + '">' + KREEZBY_EMAIL + '</a></span></div>' +
+            '</div>'
+        );
+    }
+
     function renderTrackingBlock(order) {
+        if (isPickupOrder(order)) return renderPickupBlock(order);
         if (!order.trackingNumber) return '';
         var carrier = order.carrier || 'J&T Express Philippines';
         var trackUrl = window.KreezbyOrderTracking && window.KreezbyOrderTracking.jntTrackUrl
@@ -347,7 +374,7 @@
 
         var stepsHtml = STATUS_STEPS.map(function (stepKey, i) {
             var state = stepState(i, activeIdx);
-            var meta = STEPPER_META[stepKey] || { title: stepKey, desc: '' };
+            var meta = (isPickupOrder(order) ? PICKUP_STEPPER_META : STEPPER_META)[stepKey] || { title: stepKey, desc: '' };
             var circleContent = state === 'completed' ? '✓' : String(i + 1);
             var time = stepTimestamp(order, i, activeIdx);
 
@@ -503,7 +530,7 @@
         var paymentKey = String(order.paymentMethod || '').toLowerCase();
         var paymentLabel = paymentKey === 'paymongo' ? 'QR Ph'
             : (paymentKey === 'gcash' ? 'GCash'
-            : (paymentKey === 'cash_on_delivery' || paymentKey === 'cod' ? 'Cash on delivery'
+            : (paymentKey === 'cash_on_delivery' || paymentKey === 'cod' ? (isPickupOrder(order) ? 'Cash on pick-up' : 'Cash on delivery')
                 : (paymentKey === 'check' ? 'Check' : (paymentKey === 'cash' ? 'Cash' : (order.paymentMethod || '—')))));
 
         var itemsHtml = Object.entries(order.items || {}).map(function (entry) {
@@ -534,11 +561,11 @@
             '</div>' +
 
             '<section class="order-detail-section">' +
-            '<h3 class="order-detail-section-title">📍 Delivery Address</h3>' +
+            '<h3 class="order-detail-section-title">' + (isPickupOrder(order) ? '🏪 Pick-up Details' : '📍 Delivery Address') + '</h3>' +
             '<div class="order-detail-address">' +
             '<div class="order-detail-address-name">' + (shipping.fullName || '—') + '</div>' +
             '<div class="order-detail-address-phone">' + (shipping.phone || '—') + '</div>' +
-            '<div class="order-detail-address-text">' + (shipping.address || '—') + '</div>' +
+            '<div class="order-detail-address-text">' + (isPickupOrder(order) ? 'Pick up at Kreezby Bakeshop · ' + escapeHtml(pickupText(order)) : (shipping.address || '—')) + '</div>' +
             (shipping.notes ? '<div class="order-detail-address-notes">Note: ' + shipping.notes + '</div>' : '') +
             '</div>' +
             '</section>' +
@@ -601,11 +628,11 @@
                 ? 'Transaction verified. Your order is being prepared at Kreezby.'
                 : 'Your order is being prepared at Kreezby.';
         }
-        if (status === 'Shipped') return 'Your order is on the way!';
+        if (status === 'Shipped') return isPickupOrder(order) ? 'Your order is ready for pick-up at Kreezby.' : 'Your order is on the way!';
         if (status === 'Completed') {
             return order.customerReview
                 ? 'Thanks for your review. It is now in What Our Customers Say.'
-                : 'Order delivered. Tell us how the crinkles tasted.';
+                : (isPickupOrder(order) ? 'Order picked up. Tell us how the crinkles tasted.' : 'Order delivered. Tell us how the crinkles tasted.');
         }
         return 'Order status: ' + (status || '');
     }

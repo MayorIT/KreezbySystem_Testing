@@ -155,7 +155,7 @@ function buildReceipt(order) {
         customerName: shipping.fullName || 'Customer',
         customerPhone: shipping.phone || '',
         customerAddress: shipping.address || '',
-        paymentMethod: paymentMethodLabel(order.paymentMethod),
+        paymentMethod: order.fulfillment === 'pickup' && order.paymentMethod === 'cash_on_delivery' ? 'Cash on pick-up' : paymentMethodLabel(order.paymentMethod),
         gcashReference: order.gcashReference || '',
         gcashPaidTo: order.gcashPaidTo || GCASH_SHOP_NUMBER,
         paymentStatus: order.paymentStatus === 'paid' ? 'Paid' : (order.paymentStatus === 'awaiting_payment' ? 'Awaiting payment' : (order.paymentVerified ? 'Verified' : 'Awaiting verification')),
@@ -164,6 +164,8 @@ function buildReceipt(order) {
         subtotal: Number(order.subtotal) || 0,
         deliveryFee: Number(order.deliveryFee) || 0,
         deliveryLabel: order.deliveryRegion ? ('J&T delivery (' + order.deliveryRegion + ')') : 'J&T delivery',
+        fulfillment: order.fulfillment || 'delivery',
+        pickupLabel: order.pickupLabel || '',
         total: (Number(order.subtotal) || 0) + (Number(order.deliveryFee) || 0),
         items: lineItems,
         shippingNotes: shipping.notes || '',
@@ -230,7 +232,9 @@ function openReceiptWindow(receipt, heading) {
         <div><span>Status:</span> <strong>${escapeHtml(receipt.paymentStatus || 'Awaiting verification')}</strong></div>
         <div><span>Customer Name:</span> <strong>${escapeHtml(receipt.customerName)}</strong></div>
         <div><span>Phone:</span> <strong>${escapeHtml(receipt.customerPhone || '-')}</strong></div>
-        <div><span>Address:</span> <strong>${escapeHtml(receipt.customerAddress || '-')}</strong></div>
+        ${receipt.fulfillment === 'pickup'
+            ? '<div><span>Pick-up:</span> <strong>' + escapeHtml(receipt.pickupLabel || '-') + '</strong></div><div><span>Kreezby:</span> <strong>' + escapeHtml(KREEZBY_CONTACT_NUMBER + ' · ' + KREEZBY_CONTACT_EMAIL) + '</strong></div>'
+            : '<div><span>Address:</span> <strong>' + escapeHtml(receipt.customerAddress || '-') + '</strong></div>'}
     </div>
     <table>
         <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
@@ -379,11 +383,144 @@ function cartPouchCount() {
     return Object.values(cartData).reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
 }
 
+// ---- Pick-up at Kreezby (no delivery fee) ---------------------------------------------
+const KREEZBY_CONTACT_NUMBER = '0921 957 4748';
+const KREEZBY_CONTACT_EMAIL = 'kreezbyph@gmail.com';
+const PICKUP_FIRST_HOUR = 9;    // first pick-up slot 9:00 AM
+const PICKUP_LAST_HOUR = 17;    // last pick-up slot 5:00 PM
+const PICKUP_LEAD_MINUTES = 60; // today's slots start at least 1 hour from now
+const PICKUP_DAYS_AHEAD = 30;
+
+function isPickup() {
+    const checked = document.querySelector('input[name="fulfillment"]:checked');
+    return !!(checked && checked.value === 'pickup');
+}
+
+function localDay(date) {
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+
+function slotLabel(hour) {
+    const h12 = hour % 12 === 0 ? 12 : hour % 12;
+    return h12 + ':00 ' + (hour < 12 ? 'AM' : 'PM');
+}
+
+// Hours still open on that day (today: only slots at least an hour away).
+function pickupSlotsFor(day) {
+    const slots = [];
+    if (!day) return slots;
+    const now = new Date();
+    const isToday = day === localDay(now);
+    const earliest = new Date(now.getTime() + PICKUP_LEAD_MINUTES * 60000);
+    for (let hour = PICKUP_FIRST_HOUR; hour <= PICKUP_LAST_HOUR; hour++) {
+        if (isToday) {
+            const slot = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0);
+            if (slot < earliest) continue;
+        }
+        slots.push({ value: String(hour).padStart(2, '0') + ':00', label: slotLabel(hour) });
+    }
+    return slots;
+}
+
+function fillPickupTimes(keepValue) {
+    const dateEl = document.getElementById('pickup-date');
+    const timeEl = document.getElementById('pickup-time');
+    if (!dateEl || !timeEl) return;
+    const slots = pickupSlotsFor(dateEl.value);
+    if (!dateEl.value) {
+        timeEl.innerHTML = '<option value="">Choose a date first</option>';
+    } else if (!slots.length) {
+        timeEl.innerHTML = '<option value="">No more pick-up times this day</option>';
+    } else {
+        timeEl.innerHTML = '<option value="">Choose a time</option>' + slots.map(function (slot) {
+            return '<option value="' + slot.value + '">' + slot.label + '</option>';
+        }).join('');
+        const want = keepValue || timeEl.dataset.keep || '';
+        if (want && slots.some(function (slot) { return slot.value === want; })) timeEl.value = want;
+    }
+    timeEl.dataset.keep = '';
+}
+
+function setupPickupDate() {
+    const dateEl = document.getElementById('pickup-date');
+    if (!dateEl) return;
+    const today = new Date();
+    const last = new Date(today.getFullYear(), today.getMonth(), today.getDate() + PICKUP_DAYS_AHEAD);
+    dateEl.min = localDay(today);
+    dateEl.max = localDay(last);
+    if (!dateEl.value) {
+        // Default to today when there is still a slot left, else tomorrow.
+        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        dateEl.value = pickupSlotsFor(localDay(today)).length ? localDay(today) : localDay(tomorrow);
+    }
+    fillPickupTimes();
+}
+
+function pickupLabel(day, time) {
+    if (!day || !time) return '';
+    const parts = day.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const hour = Number(time.split(':')[0]);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + slotLabel(hour);
+}
+
+function codLabel() {
+    return isPickup() ? 'Cash on pick-up' : 'Cash on delivery';
+}
+
+// Show the pick-up fields or the delivery address, and word cash payment to match.
+function applyFulfillmentUi() {
+    const pickup = isPickup();
+    document.querySelectorAll('.fulfillment-option').forEach(function (option) {
+        const input = option.querySelector('input');
+        option.classList.toggle('is-selected', !!(input && input.checked));
+    });
+    const pickupPanel = document.getElementById('pickup-panel');
+    const addressGroup = document.getElementById('address-group');
+    const title = document.getElementById('contact-section-title');
+    const notesLabel = document.getElementById('notes-label');
+    const notes = document.getElementById('notes');
+    if (pickupPanel) pickupPanel.hidden = !pickup;
+    if (addressGroup) addressGroup.hidden = pickup;
+    if (title) title.textContent = pickup ? 'Pick-up Information' : 'Shipping Information';
+    if (notesLabel) notesLabel.textContent = pickup ? 'Notes (Optional)' : 'Delivery Notes (Optional)';
+    if (notes) notes.placeholder = pickup ? 'Anything we should know for your pick-up' : 'Any special instructions for delivery';
+
+    const codItem = document.querySelector('[data-payment-id="cash_on_delivery"]');
+    if (codItem) {
+        const label = codItem.querySelector('.payment-method-selector__label');
+        const desc = codItem.querySelector('.payment-method-selector__desc');
+        if (label) label.textContent = codLabel();
+        if (desc) desc.textContent = pickup ? 'Pay when you pick up the order' : 'Pay when the order arrives';
+    }
+    const codPanel = document.getElementById('cod-section');
+    if (codPanel) {
+        const heading = codPanel.querySelector('.qr-title');
+        const lead = codPanel.querySelector('.gcash-pay-lead');
+        const steps = codPanel.querySelector('.qr-instructions');
+        if (heading) heading.textContent = codLabel();
+        if (lead) lead.textContent = pickup
+            ? 'Pay the order total in cash when you pick up your order at Kreezby.'
+            : 'Pay the order total in cash when the parcel arrives. Kreezby verifies the payment after the cash is collected.';
+        if (steps) steps.innerHTML = pickup
+            ? '1. Place the order with cash on pick-up selected<br>2. Prepare the exact amount: <strong id="cod-amount">₱0.00</strong><br>3. Pay at Kreezby when you pick up your order'
+            : '1. Place the order with cash on delivery selected<br>2. Prepare the exact amount: <strong id="cod-amount">₱0.00</strong><br>3. Hand the cash to the courier or the shop on delivery<br>4. The payment is marked verified after the cash is collected';
+    }
+    syncPaymentSummaryName();
+}
+
+function syncPaymentSummaryName() {
+    const nameEl = document.querySelector('#payment-summary [data-ps-payment-name]');
+    if (nameEl && selectedPaymentMethod === 'cash_on_delivery') nameEl.textContent = codLabel();
+}
+
 function deliveryQuote() {
     const addressEl = document.getElementById('address');
     const region = deliveryRegionFor(addressEl ? addressEl.value : '');
     const pouches = cartPouchCount();
     const weightKg = Math.round(pouches * POUCH_WEIGHT_KG * 100) / 100;
+    // Pick-up: no courier, so no delivery fee at all.
+    if (isPickup()) return { region: '', weightKg: weightKg, fee: 0, ready: true, pickup: true };
     if (!region || !pouches) return { region: region, weightKg: weightKg, fee: 0, ready: false };
     const col = JT_REGION_COLUMN[region];
     let fee = 0;
@@ -566,9 +703,14 @@ function saveCustomerPurchaseOrder(order) {
             ? ('QR Ph paid. Payment intent ' + ((order.paymongo && order.paymongo.paymentIntentId) || '') + '.')
             : (order.paymentMethod === 'gcash'
                 ? ('GCash webpay paid. Reference ' + ((order.gcashWebpay && order.gcashWebpay.webpayReferenceNumber) || order.gcashReference) + '.')
-                : 'Cash on delivery is waiting for verification.'),
+                : (order.fulfillment === 'pickup'
+                    ? ('Pick-up at Kreezby on ' + (order.pickupLabel || '') + '. Cash on pick-up.')
+                    : 'Cash on delivery is waiting for verification.')),
         trackingNumber: '',
-        courier: 'J&T Express Philippines',
+        courier: order.fulfillment === 'pickup' ? 'Pick-up at Kreezby' : 'J&T Express Philippines',
+        fulfillment: order.fulfillment || 'delivery',
+        pickupDate: order.pickupDate || '',
+        pickupTime: order.pickupTime || '',
         paymentMethod: order.paymentMethod || 'paymongo',
         gcashReference: order.gcashReference || '',
         gcashPaidTo: order.gcashPaidTo || '',
@@ -658,6 +800,31 @@ function initCheckout() {
         });
         addressInput.addEventListener('change', renderOrderSummary);
     }
+
+    // Delivery or pick-up: pick-up removes the delivery fee and asks for a date and time.
+    setupPickupDate();
+    document.querySelectorAll('input[name="fulfillment"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            // A QR Ph code was already made for the old total: keep that choice until it is paid.
+            const draft = readPaymongoDraft();
+            if (draft && draft.paymentIntentId && !draft.placed && draft.fulfillment && draft.fulfillment !== radio.value) {
+                const back = document.querySelector('input[name="fulfillment"][value="' + draft.fulfillment + '"]');
+                if (back) back.checked = true;
+                applyFulfillmentUi();
+                showCheckoutDialog('A QR code was already created for this order total. Finish that payment first, or start a new checkout.', { type: 'warning', title: 'QR Code Already Created' });
+                return;
+            }
+            applyFulfillmentUi();
+            if (isPickup()) fillPickupTimes((document.getElementById('pickup-time') || {}).value);
+            renderOrderSummary();
+        });
+    });
+    const pickupDateEl = document.getElementById('pickup-date');
+    const pickupTimeEl = document.getElementById('pickup-time');
+    if (pickupDateEl) pickupDateEl.addEventListener('change', function () { fillPickupTimes(); renderOrderSummary(); });
+    if (pickupTimeEl) pickupTimeEl.addEventListener('change', renderOrderSummary);
+    applyFulfillmentUi();
+    renderOrderSummary();
 
     // Items changed or removed from the Cart popup: refresh the order summary here too.
     document.addEventListener('kreezby:cart-change', function () {
@@ -753,12 +920,22 @@ function renderOrderSummary() {
     const quote = deliveryQuote();
     const total = subtotal + quote.fee;
 
-    lineItems.push(
-        { label: 'Subtotal', value: formatCurrency(subtotal) },
-        quote.ready
-            ? { label: `J&T delivery (${JT_REGION_LABEL[quote.region]} · ${formatWeight(quote.weightKg)})`, value: formatCurrency(quote.fee) }
-            : { label: 'J&T delivery fee', value: 'Enter your address', valueClassName: 'payment-summary__value--muted' }
-    );
+    if (quote.pickup) {
+        // Pick-up: no delivery fee line, the total is only what was bought.
+        const when = pickupLabel((document.getElementById('pickup-date') || {}).value, (document.getElementById('pickup-time') || {}).value);
+        lineItems.push({
+            label: 'Pick-up at Kreezby',
+            value: escapeHtml(when || 'Choose a date and time'),
+            valueClassName: 'payment-summary__value--muted'
+        });
+    } else {
+        lineItems.push(
+            { label: 'Subtotal', value: formatCurrency(subtotal) },
+            quote.ready
+                ? { label: `J&T delivery (${JT_REGION_LABEL[quote.region]} · ${formatWeight(quote.weightKg)})`, value: formatCurrency(quote.fee) }
+                : { label: 'J&T delivery fee', value: 'Enter your address', valueClassName: 'payment-summary__value--muted' }
+        );
+    }
 
     if (window.KreezbyPaymentSummary) {
         KreezbyPaymentSummary.render(summaryRoot, {
@@ -772,6 +949,7 @@ function renderOrderSummary() {
     if (amountLabel) amountLabel.textContent = formatCurrency(total);
     const codAmount = document.getElementById('cod-amount');
     if (codAmount) codAmount.textContent = formatCurrency(total);
+    syncPaymentSummaryName();
     if (!(isPaymentVerified && isGcashCheckout())) clearVerificationMessage();
     updateActionButtons();
 }
@@ -793,8 +971,11 @@ function selectPayment(method, options) {
         resetVerification();
         if (selectedPaymentMethod === 'cash_on_delivery') {
             isPaymentVerified = true;
-            setVerificationMessage('pending', 'Cash is collected on delivery. Kreezby verifies that payment after the cash is received.');
+            setVerificationMessage('pending', isPickup()
+                ? 'Pay in cash when you pick up your order at Kreezby.'
+                : 'Cash is collected on delivery. Kreezby verifies that payment after the cash is received.');
         }
+        syncPaymentSummaryName();
     }
 
     syncPaymentPanels();
@@ -884,10 +1065,19 @@ function writePaymongoDraft(draft) {
 }
 
 function shippingFields() {
+    const pickup = isPickup();
+    const pickupDate = ((document.getElementById('pickup-date') || {}).value || '').trim();
+    const pickupTime = ((document.getElementById('pickup-time') || {}).value || '').trim();
+    const typedAddress = (document.getElementById('address').value || '').trim();
     return {
+        fulfillment: pickup ? 'pickup' : 'delivery',
+        pickupDate: pickup ? pickupDate : '',
+        pickupTime: pickup ? pickupTime : '',
         fullName: (document.getElementById('full-name').value || '').trim(),
         phone: (document.getElementById('phone').value || '').trim(),
-        address: (document.getElementById('address').value || '').trim(),
+        // Pick-up orders carry the pick-up schedule where the address would go.
+        address: pickup ? ('Pick up at Kreezby — ' + pickupLabel(pickupDate, pickupTime)) : typedAddress,
+        typedAddress: typedAddress,
         notes: (document.getElementById('notes').value || '').trim(),
         email: (document.getElementById('paymongo-email').value || '').trim()
     };
@@ -902,7 +1092,18 @@ function restoreShippingFields(draft) {
     const email = document.getElementById('paymongo-email');
     if (fullName && draft.fullName) fullName.value = draft.fullName;
     if (phone && draft.phone) phone.value = draft.phone;
-    if (address && draft.address) address.value = draft.address;
+    if (draft.fulfillment === 'pickup') {
+        const radio = document.querySelector('input[name="fulfillment"][value="pickup"]');
+        if (radio) radio.checked = true;
+        const dateEl = document.getElementById('pickup-date');
+        const timeEl = document.getElementById('pickup-time');
+        if (dateEl && draft.pickupDate) dateEl.value = draft.pickupDate;
+        if (timeEl && draft.pickupTime) timeEl.dataset.keep = draft.pickupTime;
+        fillPickupTimes(draft.pickupTime);
+        applyFulfillmentUi();
+    }
+    const savedAddress = draft.typedAddress != null ? draft.typedAddress : (draft.fulfillment === 'pickup' ? '' : draft.address);
+    if (address && savedAddress) address.value = savedAddress;
     if (notes && draft.notes) notes.value = draft.notes;
     if (email && draft.email) email.value = draft.email;
 }
@@ -924,7 +1125,23 @@ function cartWithinStock() {
 }
 
 function validCheckoutContact(fields) {
-    if (!fields.fullName || !fields.phone || !fields.address) {
+    if (fields.fulfillment === 'pickup') {
+        if (!fields.fullName || !fields.phone) {
+            showCheckoutDialog('Please fill in your name and phone number.', { type: 'warning', title: 'Missing Information' });
+            return false;
+        }
+        if (!fields.pickupDate || !fields.pickupTime) {
+            showCheckoutDialog('Choose the date and time you will pick up your order.', { type: 'warning', title: 'Pick-up Time Needed' });
+            return false;
+        }
+        const stillOpen = pickupSlotsFor(fields.pickupDate).some(function (slot) { return slot.value === fields.pickupTime; });
+        if (!stillOpen || fields.pickupDate < localDay(new Date())) {
+            showCheckoutDialog('That pick-up time has already passed. Please choose another date or time.', { type: 'warning', title: 'Pick-up Time Passed' });
+            fillPickupTimes();
+            renderOrderSummary();
+            return false;
+        }
+    } else if (!fields.fullName || !fields.phone || !fields.address) {
         showCheckoutDialog('Please fill in all shipping information.', { type: 'warning', title: 'Missing Information' });
         return false;
     }
@@ -1346,7 +1563,12 @@ function placeOrder(pendingQr) {
         deliveryFee: quote.fee,
         deliveryRegion: quote.region ? JT_REGION_LABEL[quote.region] : '',
         parcelWeightKg: quote.weightKg,
-        courier: 'J&T Express',
+        fulfillment: fields.fulfillment,
+        pickupDate: fields.pickupDate,
+        pickupTime: fields.pickupTime,
+        pickupLabel: fields.fulfillment === 'pickup' ? pickupLabel(fields.pickupDate, fields.pickupTime) : '',
+        courier: fields.fulfillment === 'pickup' ? 'Pick-up' : 'J&T Express',
+        carrier: fields.fulfillment === 'pickup' ? 'Pick-up at Kreezby' : undefined,
         totalAmount: totalAmount,
         total: formatCurrency(totalAmount),
         paymentMethod: payingWithPaymongo ? 'paymongo' : 'cash_on_delivery',
@@ -1378,7 +1600,8 @@ function placeOrder(pendingQr) {
     order.poCode = order.orderNumber;
     saveCustomerPurchaseOrder(order);
 
-    syncProfileShippingInfo(fields.fullName, fields.phone, fields.address);
+    // A pick-up schedule is not a home address, so only real addresses go to the profile.
+    syncProfileShippingInfo(fields.fullName, fields.phone, fields.fulfillment === 'pickup' ? fields.typedAddress : fields.address);
 
     const orders = parseStoredJson('kreezbyOrders', []);
     orders.push(order);
@@ -1400,6 +1623,8 @@ function placeOrder(pendingQr) {
                 ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + ' is awaiting payment.')
                 : payingWithPaymongo
                 ? ('New QR Ph order ' + orderNumber + ' from ' + fields.fullName + '. Payment intent ' + paymongoPayment.paymentIntentId + ' succeeded.')
+                : fields.fulfillment === 'pickup'
+                ? ('New pick-up order ' + orderNumber + ' from ' + fields.fullName + ' (' + order.pickupLabel + '), paying cash on pick-up.')
                 : ('New cash on delivery order ' + orderNumber + ' from ' + fields.fullName + ' is waiting for payment verification.'),
             timestamp: new Date().toISOString(),
             read: false,
@@ -1433,14 +1658,18 @@ function placeOrder(pendingQr) {
     showCheckoutDialog(
         payingWithPaymongo
             ? 'Your payment went through. Keep this receipt for the order.'
-            : 'Cash on delivery is waiting for Kreezby to verify after the cash is collected.',
+            : (fields.fulfillment === 'pickup'
+                ? 'Your order will be ready at Kreezby. Pay in cash when you pick it up.'
+                : 'Cash on delivery is waiting for Kreezby to verify after the cash is collected.'),
         {
             type: 'success',
             title: 'Order Confirmed',
             buttonText: 'Go To Shop',
             details: [
                 { label: 'Order number', value: orderNumber },
-                { label: 'Payment', value: payingWithPaymongo ? 'QR Ph' : 'Cash on delivery' },
+                { label: 'Payment', value: payingWithPaymongo ? 'QR Ph' : codLabel() },
+                fields.fulfillment === 'pickup' ? { label: 'Pick-up', value: order.pickupLabel } : null,
+                fields.fulfillment === 'pickup' ? { label: 'Kreezby contact', value: KREEZBY_CONTACT_NUMBER + ' · ' + KREEZBY_CONTACT_EMAIL } : null,
                 payingWithPaymongo ? { label: 'Payment intent', value: paymongoPayment.paymentIntentId, mono: true } : null,
                 { label: 'Receipt', value: order.receiptNumber },
                 { label: 'Total', value: order.total, emphasis: true }

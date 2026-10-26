@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreezby Bakeshop - Checkout</title>
-    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261023qrsave">
+    <link rel="stylesheet" href="../css/pages/customer/checkout-customer.css?v=20261026pickup">
     <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20261020icon2">
     <link rel="stylesheet" href="../css/shared/customer-phone-shop.css?v=20261020nav">
     <link rel="stylesheet" href="../css/shared/payment-method-selector.css">
@@ -87,8 +87,34 @@
 
     <div class="checkout-container">
         <div class="checkout-main">
+            <div class="checkout-section checkout-section--fulfillment">
+                <h2 class="section-title">How do you want to get your order?</h2>
+                <div class="fulfillment-options" role="radiogroup" aria-label="Delivery or pick-up">
+                    <label class="fulfillment-option is-selected">
+                        <input type="radio" name="fulfillment" value="delivery" checked>
+                        <span class="fulfillment-option__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 13.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                        </span>
+                        <span class="fulfillment-option__body">
+                            <strong>Delivery</strong>
+                            <small>J&amp;T delivery fee applies</small>
+                        </span>
+                    </label>
+                    <label class="fulfillment-option">
+                        <input type="radio" name="fulfillment" value="pickup">
+                        <span class="fulfillment-option__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 8.5V20h14V8.5"/><path d="M9 20v-6h6v6"/></svg>
+                        </span>
+                        <span class="fulfillment-option__body">
+                            <strong>Pick up</strong>
+                            <small>No delivery fee</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
             <div class="checkout-section">
-                <h2 class="section-title">Shipping Information</h2>
+                <h2 class="section-title" id="contact-section-title">Shipping Information</h2>
                 <div class="shipping-grid">
                     <div class="form-group">
                         <label for="full-name">Full Name</label>
@@ -99,12 +125,32 @@
                         <input type="tel" id="phone" placeholder="09XX XXX XXXX" required>
                     </div>
                 </div>
-                <div class="form-group">
+
+                <div class="pickup-panel" id="pickup-panel" hidden>
+                    <div class="shipping-grid">
+                        <div class="form-group">
+                            <label for="pickup-date">Pick-up Date</label>
+                            <input type="date" id="pickup-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="pickup-time">Pick-up Time</label>
+                            <select id="pickup-time"><option value="">Choose a date first</option></select>
+                        </div>
+                    </div>
+                    <div class="pickup-contact">
+                        <strong>Pick up at Kreezby Bakeshop</strong>
+                        <span>We'll have your order ready at the time you choose. For directions or changes, contact Kreezby:</span>
+                        <span class="pickup-contact__line">📞 <a href="tel:09219574748">0921 957 4748</a></span>
+                        <span class="pickup-contact__line">✉️ <a href="mailto:kreezbyph@gmail.com">kreezbyph@gmail.com</a></span>
+                    </div>
+                </div>
+
+                <div class="form-group" id="address-group">
                     <label for="address">Delivery Address</label>
                     <textarea id="address" rows="3" placeholder="Enter your complete delivery address" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="notes">Delivery Notes (Optional)</label>
+                    <label for="notes" id="notes-label">Delivery Notes (Optional)</label>
                     <textarea id="notes" rows="2" placeholder="Any special instructions for delivery"></textarea>
                 </div>
             </div>
@@ -221,13 +267,13 @@
 
     <script src="../js/payment-summary.js?v=20261010logos"></script>
     <script src="../js/payment-method-selector.js"></script>
-    <script src="../js/checkout-customer.js?v=20261025avail"></script>
+    <script src="../js/checkout-customer.js?v=20261026pickup"></script>
     <script src="../js/customer-stock.js?v=20261025asst"></script>
-    <script src="../js/customer-orders.js?v=20261022fix"></script>
+    <script src="../js/customer-orders.js?v=20261026pickup"></script>
     <script src="../js/customer-site-header.js?v=20260928hdr"></script>
     <script src="../js/expanding-tabs.js?v=20260925sm"></script>
     <script src="../js/customer-favorites-popup.js?v=20261023p165"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/customer-phone-shop.js?v=20261019fn"></script>
 </body>
-</html>
+</html>

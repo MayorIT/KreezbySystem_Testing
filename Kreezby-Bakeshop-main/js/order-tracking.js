@@ -9,6 +9,14 @@
     var OWNER_RECEIPTS_KEY = 'kreezbyOwnerReceipts';
     var CUSTOMER_RECEIPTS_KEY = 'kreezbyCustomerReceipts';
     var CARRIER = 'J&T Express Philippines';
+    var PICKUP_CARRIER = 'Pick-up at Kreezby';
+
+    function isPickupOrder(order) { return !!order && order.fulfillment === 'pickup'; }
+    function carrierOf(order) { return isPickupOrder(order) ? PICKUP_CARRIER : (order.carrier || CARRIER); }
+    function pickupText(order) {
+        if (order.pickupLabel) return order.pickupLabel;
+        return [order.pickupDate, order.pickupTime].filter(Boolean).join(' · ') || '—';
+    }
     var JNT_TRACK_BASE = 'https://www.jtexpress.ph/track-and-trace?billCodes=';
     var STATUSES = ['Processing', 'Shipped', 'Completed'];
 
@@ -462,7 +470,9 @@
         }
 
         tableBody.innerHTML = slice.map(function (order, index) {
-            var tracking = order.trackingNumber
+            var tracking = isPickupOrder(order)
+                ? 'Pick-up · ' + escapeHtml(pickupText(order))
+                : order.trackingNumber
                 ? escapeHtml(order.trackingNumber)
                 : '<span class="ot-track-empty">Not set</span>';
             var who = escapeHtml(customerName(order));
@@ -504,7 +514,9 @@
 
         tableBody.innerHTML = orders.map(function (order) {
             var selected = order.orderNumber === selectedId ? ' is-selected' : '';
-            var tracking = order.trackingNumber
+            var tracking = isPickupOrder(order)
+                ? 'Pick-up · ' + escapeHtml(pickupText(order))
+                : order.trackingNumber
                 ? escapeHtml(order.trackingNumber)
                 : '<span style="color:#9ca3af">Not set</span>';
             return (
@@ -518,7 +530,7 @@
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
                     escapeHtml(order.status || 'Processing') + '</span></td>' +
                 '<td>' + tracking + '</td>' +
-                '<td>' + escapeHtml(order.carrier || CARRIER) + '</td>' +
+                '<td>' + escapeHtml(carrierOf(order)) + '</td>' +
                 '</tr>'
             );
         }).join('');
@@ -538,7 +550,8 @@
         }
 
         var ship = order.shippingInfo || {};
-        var trackUrl = jntTrackUrl(order.trackingNumber);
+        var pickup = isPickupOrder(order);
+        var trackUrl = pickup ? '' : jntTrackUrl(order.trackingNumber);
         var receipt = findOwnerReceipt(order) || buildReceiptFromOrder(order);
 
         if (isPoShell(root)) {
@@ -556,10 +569,15 @@
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
                 : '') +
-            '<div class="order-tracking-form-group">' +
-                '<label>Delivery address</label>' +
-                '<textarea readonly rows="2">' + escapeHtml(ship.address || '—') + '</textarea>' +
-            '</div>' +
+            (pickup
+                ? '<div class="order-tracking-form-group">' +
+                    '<label>Pick-up schedule</label>' +
+                    '<input type="text" readonly value="' + escapeHtml(pickupText(order)) + '">' +
+                  '</div>'
+                : '<div class="order-tracking-form-group">' +
+                    '<label>Delivery address</label>' +
+                    '<textarea readonly rows="2">' + escapeHtml(ship.address || '—') + '</textarea>' +
+                  '</div>') +
             '<div class="order-tracking-form-group">' +
                 '<label>Phone</label>' +
                 '<input type="text" readonly value="' + escapeHtml(ship.phone || '—') + '">' +
@@ -574,13 +592,14 @@
                 '</select>' +
             '</div>' +
             '<div class="order-tracking-form-group">' +
-                '<label for="ot-carrier">Courier</label>' +
-                '<input type="text" id="ot-carrier" readonly value="' + escapeHtml(order.carrier || CARRIER) + '">' +
+                '<label for="ot-carrier">' + (pickup ? 'Fulfillment' : 'Courier') + '</label>' +
+                '<input type="text" id="ot-carrier" readonly value="' + escapeHtml(carrierOf(order)) + '">' +
             '</div>' +
+            (pickup ? '' :
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-tracking">J&amp;T Express tracking ID</label>' +
                 '<input type="text" id="ot-tracking" placeholder="e.g. JT1234567890123" value="' + escapeHtml(order.trackingNumber || '') + '">' +
-            '</div>' +
+            '</div>') +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-notes">Internal notes (optional)</label>' +
                 '<textarea id="ot-notes" rows="2" placeholder="Packaging or dispatch notes">' + escapeHtml(order.staffNotes || '') + '</textarea>' +
@@ -653,14 +672,15 @@
         var tracking = trackingEl ? trackingEl.value.trim() : '';
         var notes = notesEl ? notesEl.value.trim() : '';
 
-        if ((nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
+        var pickup = isPickupOrder(order);
+        if (!pickup && (nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
             showToast(root, 'Enter a J&T tracking ID before marking the order ' + nextStatus + '.');
             return;
         }
 
         order.status = nextStatus;
-        order.trackingNumber = tracking;
-        order.carrier = CARRIER;
+        order.trackingNumber = pickup ? '' : tracking;
+        order.carrier = pickup ? PICKUP_CARRIER : CARRIER;
         order.staffNotes = notes;
         order.statusUpdatedAt = new Date().toISOString();
 
