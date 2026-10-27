@@ -134,6 +134,18 @@
         }).filter(Boolean);
     }
 
+    // Test orders placed earlier under this name are left out of every dashboard figure.
+    var EXCLUDED_NAMES = ['mark anthony cruz'];
+
+    function isExcludedOrder(order) {
+        var ship = order.shippingInfo || {};
+        var names = [ship.fullName, order.accountName, order.customerName, order.poEntity, order.entity, order.name, order.userName]
+            .map(function (v) { return String(v || '').toLowerCase().replace(/\s+/g, ' ').trim(); });
+        return names.some(function (n) {
+            return n && EXCLUDED_NAMES.some(function (x) { return n === x || n.indexOf(x) >= 0; });
+        });
+    }
+
     function isAwaitingPayment(order) {
         var ps = String(order.paymentStatus || '').toLowerCase();
         var st = String(order.status || '').toLowerCase();
@@ -149,6 +161,7 @@
             if (order.orderNumber) seen[String(order.orderNumber)] = true;
             if (order.poCode) seen[String(order.poCode)] = true;
             if (order.receiptNumber) seen[String(order.receiptNumber)] = true;
+            if (isExcludedOrder(order)) return;
             if (isAwaitingPayment(order)) return; // not an order until it is paid
             fn({
                 status: order.status,
@@ -162,6 +175,7 @@
             var order = pos[code];
             if (!order) return;
             if (seen[code] || (order.shopOrderNumber && seen[String(order.shopOrderNumber)]) || (order.code && seen[String(order.code)])) return;
+            if (isExcludedOrder(order)) return;
             var items = lineItems(order.items);
             var total = items.reduce(function (sum, item) { return sum + item.qty * item.cost; }, 0);
             fn({ status: order.status, date: parseDay(order.dateCreated || order.date), items: items, total: total });
