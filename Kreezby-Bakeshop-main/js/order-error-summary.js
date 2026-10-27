@@ -115,7 +115,8 @@
     /* Month, From/To dates and free-text search, shared by both views. */
     function readFilters(host) {
         function val(sel) { var el = host.querySelector(sel); return el ? String(el.value || '') : ''; }
-        return { month: val('[data-oe-month]'), from: val('[data-oe-from]'), to: val('[data-oe-to]'), q: val('[data-oe-search]').toLowerCase().trim() };
+        return { month: val('[data-oe-month]'), from: val('[data-oe-from]'), to: val('[data-oe-to]'), q: val('[data-oe-search]').toLowerCase().trim(),
+            retailer: val('[data-oe-retailer]'), area: val('[data-oe-area]'), state: val('[data-oe-state]') };
     }
 
     function filterRows(rows, f) {
@@ -123,6 +124,11 @@
             if (f.month && row.date.slice(0, 7) !== f.month) return false;
             if (f.from && row.date < f.from) return false;
             if (f.to && row.date > f.to) return false;
+            if (f.retailer && row.retailer !== f.retailer) return false;
+            if (f.area && row.area !== f.area) return false;
+            if (f.state === 'open' && !(row.po > row.r)) return false;
+            if (f.state === 'done' && !(row.po > 0 && row.r >= row.po)) return false;
+            if (f.state === 'replaced' && !row.r) return false;
             if (!f.q) return true;
             return [row.retailer, row.nameOnSheet, row.area, row.date, dateLabel(row.date), row.notes].join(' ').toLowerCase().indexOf(f.q) >= 0;
         });
@@ -132,6 +138,9 @@
         var parts = [];
         if (f.month) parts.push('in ' + monthLabel(f.month));
         if (f.from || f.to) parts.push('between ' + (f.from || 'the start') + ' and ' + (f.to || 'today'));
+        if (f.retailer) parts.push('for ' + f.retailer);
+        if (f.area) parts.push('on route ' + f.area);
+        if (f.state) parts.push('(' + { open: 'not yet replaced', done: 'fully replaced', replaced: 'with replacements' }[f.state] + ')');
         if (f.q) parts.push('matching "' + f.q + '"');
         return 'No pull-outs or replacements recorded' + (who ? ' for ' + who : '') + (parts.length ? ' ' + parts.join(' ') : '') + '.';
     }
@@ -228,7 +237,11 @@
                 '<label>Month<select data-oe-month><option value="">All months</option></select></label>' +
                 '<label>From<input type="date" data-oe-from></label>' +
                 '<label>To<input type="date" data-oe-to></label>' +
+                (mode === 'admin' ? '<label>Retailer<select data-oe-retailer><option value="">All retailers</option></select></label>' : '') +
+                '<label>Route / area<select data-oe-area><option value="">All routes</option></select></label>' +
+                '<label>Show<select data-oe-state><option value="">Everything</option><option value="open">Not yet replaced</option><option value="done">Fully replaced</option><option value="replaced">With replacements</option></select></label>' +
                 '<label class="kz-oe-grow">Search<input type="search" data-oe-search placeholder="' + (mode === 'admin' ? 'Retailer, route, date, notes…' : 'Date, area, notes…') + '"></label>' +
+                '<button type="button" data-oe-clear style="padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer">Clear filters</button>' +
             '</div>' +
             '<div data-oe-body><p class="kz-oe-empty">Loading pull-outs and replacements…</p></div>';
         var state = { rows: [] };
@@ -242,6 +255,14 @@
         });
         host.querySelector('[data-oe-from]').addEventListener('change', render);
         host.querySelector('[data-oe-to]').addEventListener('change', render);
+        ['[data-oe-retailer]', '[data-oe-area]', '[data-oe-state]'].forEach(function (sel) {
+            var el = host.querySelector(sel);
+            if (el) el.addEventListener('change', render);
+        });
+        host.querySelector('[data-oe-clear]').addEventListener('click', function () {
+            host.querySelectorAll('.kz-oe-tools select, .kz-oe-tools input').forEach(function (el) { el.value = ''; });
+            render();
+        });
 
         var req = mode === 'admin' ? getJson('/api/sales-list') : getJson('/api/retailer-records');
         req.then(function (data) {
@@ -254,6 +275,17 @@
             monthSel.innerHTML = '<option value="">All months</option>' + list.map(function (m) {
                 return '<option value="' + esc(m) + '">' + esc(monthLabel(m)) + '</option>';
             }).join('');
+            function fill(sel, key, all) {
+                var el = host.querySelector(sel);
+                if (!el) return;
+                var seen = {};
+                state.rows.forEach(function (row) { if (row[key]) seen[row[key]] = true; });
+                el.innerHTML = '<option value="">' + all + '</option>' + Object.keys(seen).sort().map(function (v) {
+                    return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
+                }).join('');
+            }
+            fill('[data-oe-retailer]', 'retailer', 'All retailers');
+            fill('[data-oe-area]', 'area', 'All routes');
             render();
         });
     }

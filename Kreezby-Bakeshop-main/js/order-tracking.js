@@ -435,8 +435,35 @@
         });
     }
 
-    function filteredOrders(statusFilter, query) {
+    // Extra filters (payment, tracking, dates) live in the toolbar next to Status.
+    function extraFilters(root) {
+        function val(id) { return ((root && root.querySelector(id)) || {}).value || ''; }
+        return { pay: val('#ot-pay-filter') || 'all', track: val('#ot-track-filter') || 'all', from: val('#ot-from'), to: val('#ot-to') };
+    }
+
+    function orderDay(o) {
+        var d = new Date(o.date || o.createdAt || '');
+        if (isNaN(d.getTime())) return '';
+        var m = String(d.getMonth() + 1); var day = String(d.getDate());
+        return d.getFullYear() + '-' + (m.length < 2 ? '0' + m : m) + '-' + (day.length < 2 ? '0' + day : day);
+    }
+
+    function filteredOrders(statusFilter, query, extra) {
         var orders = loadOrders().slice().reverse();
+        if (extra) {
+            orders = orders.filter(function (o) {
+                if (extra.pay !== 'all' && paymentInfo(o).key !== extra.pay) return false;
+                if (extra.track === 'with' && !o.trackingNumber) return false;
+                if (extra.track === 'without' && o.trackingNumber) return false;
+                if (extra.from || extra.to) {
+                    var day = orderDay(o);
+                    if (!day) return false;
+                    if (extra.from && day < extra.from) return false;
+                    if (extra.to && day > extra.to) return false;
+                }
+                return true;
+            });
+        }
         var q = (query || '').trim().toLowerCase();
 
         if (statusFilter && statusFilter !== 'all') {
@@ -483,7 +510,7 @@
         if (!tableBody) return;
         var statusFilter = (root.querySelector('#ot-status-filter') || {}).value || 'all';
         var query = (root.querySelector('#ot-search') || {}).value || '';
-        var orders = filteredOrders(statusFilter, query);
+        var orders = filteredOrders(statusFilter, query, extraFilters(root));
         var size = parseInt((root.querySelector('#ot-page-size') || {}).value, 10) || 25;
         var pages = Math.max(1, Math.ceil(orders.length / size));
         var page = Math.min(Math.max(root._otPage || 1, 1), pages);
@@ -530,7 +557,7 @@
 
         var statusFilter = (root.querySelector('#ot-status-filter') || {}).value || 'all';
         var query = (root.querySelector('#ot-search') || {}).value || '';
-        var orders = filteredOrders(statusFilter, query);
+        var orders = filteredOrders(statusFilter, query, extraFilters(root));
 
         if (!orders.length) {
             tableBody.innerHTML =
@@ -618,14 +645,15 @@
                 '<input type="text" id="ot-tracking" placeholder="e.g. JT1234567890123" value="' + escapeHtml(order.trackingNumber || '') + '">' +
             '</div>') +
             '<div class="order-tracking-form-actions">' +
-                '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save tracking</button>' +
+                (pickup ? '' : '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save tracking</button>') +
                 (trackUrl
                     ? '<a class="order-tracking-btn order-tracking-btn-link" href="' + trackUrl + '" target="_blank" rel="noopener noreferrer">Track on J&amp;T</a>'
                     : '') +
                 '<button type="button" class="order-tracking-btn" id="ot-close-btn">Close</button>' +
             '</div>';
 
-        panel.querySelector('#ot-save-btn').addEventListener('click', function () {
+        var saveBtn = panel.querySelector('#ot-save-btn');
+        if (saveBtn) saveBtn.addEventListener('click', function () {
             saveOrderUpdates(root, orderNumber);
         });
         var closeBtn = panel.querySelector('#ot-close-btn');
@@ -1059,15 +1087,60 @@
             }
         }
 
+        injectExtraFilters(root);
         var filter = root.querySelector('#ot-status-filter');
         var search = root.querySelector('#ot-search');
         var pageSize = root.querySelector('#ot-page-size');
         if (filter) filter.addEventListener('change', function () { root._otPage = 1; refresh(); });
         if (search) search.addEventListener('input', function () { root._otPage = 1; refresh(); });
         if (pageSize) pageSize.addEventListener('change', function () { root._otPage = 1; refresh(); });
+        ['#ot-pay-filter', '#ot-track-filter', '#ot-from', '#ot-to'].forEach(function (id) {
+            var el = root.querySelector(id);
+            if (el) el.addEventListener('change', function () { root._otPage = 1; refresh(); });
+        });
+        var clearBtn = root.querySelector('#ot-clear-filters');
+        if (clearBtn) clearBtn.addEventListener('click', function () {
+            if (filter) filter.value = 'all';
+            if (search) search.value = '';
+            ['#ot-pay-filter', '#ot-track-filter'].forEach(function (id) { var el = root.querySelector(id); if (el) el.value = 'all'; });
+            ['#ot-from', '#ot-to'].forEach(function (id) { var el = root.querySelector(id); if (el) el.value = ''; });
+            root._otPage = 1;
+            refresh();
+        });
 
         refresh();
         pullDatabaseOrders();
+    }
+
+    function injectExtraFilters(root) {
+        var tools = root.querySelector('.po-list-toolbar-tools');
+        if (!tools || root.querySelector('#ot-pay-filter')) return;
+        var status = root.querySelector('#ot-status-filter');
+        if (status) {
+            ['Awaiting payment', 'Cancelled'].forEach(function (name) {
+                var has = Array.prototype.some.call(status.options, function (o) { return o.value === name; });
+                if (!has) status.appendChild(new Option(name, name));
+            });
+        }
+        var wrap = document.createElement('div');
+        wrap.className = 'ot-extra-filters';
+        wrap.innerHTML =
+            '<label class="po-page-size">Payment <select id="ot-pay-filter">' +
+                '<option value="all">All</option><option value="paid">Paid</option><option value="awaiting">Awaiting payment</option>' +
+                '<option value="cod">Pay on delivery</option><option value="pending">Unpaid</option>' +
+                '<option value="expired">Payment expired</option><option value="failed">Payment failed</option></select></label>' +
+            '<label class="po-page-size">Tracking <select id="ot-track-filter">' +
+                '<option value="all">All</option><option value="with">With tracking no.</option><option value="without">Needs tracking no.</option></select></label>' +
+            '<label class="po-page-size">From <input type="date" id="ot-from"></label>' +
+            '<label class="po-page-size">To <input type="date" id="ot-to"></label>' +
+            '<button type="button" id="ot-clear-filters" class="po-pager-btn">Clear filters</button>';
+        tools.insertBefore(wrap, tools.firstChild);
+        if (!document.getElementById('ot-extra-style')) {
+            var st = document.createElement('style');
+            st.id = 'ot-extra-style';
+            st.textContent = '.ot-extra-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ot-extra-filters input[type=date]{padding:6px 8px;border:1px solid #d0d5dd;border-radius:8px;font:inherit}.po-list-toolbar-tools{flex-wrap:wrap}';
+            document.head.appendChild(st);
+        }
     }
 
     function init() {

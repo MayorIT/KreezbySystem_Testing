@@ -163,7 +163,7 @@ function buildReceipt(order) {
         paymongoPaymentIntentId: order.paymongo && order.paymongo.paymentIntentId ? order.paymongo.paymentIntentId : '',
         subtotal: Number(order.subtotal) || 0,
         deliveryFee: Number(order.deliveryFee) || 0,
-        deliveryLabel: order.deliveryRegion ? ('J&T delivery (' + order.deliveryRegion + ')') : 'J&T delivery',
+        deliveryLabel: order.fulfillment === 'pickup' ? 'Pick-up at Kreezby' : order.deliveryRegion ? ('J&T delivery (' + order.deliveryRegion + ')') : 'J&T delivery',
         fulfillment: order.fulfillment || 'delivery',
         pickupLabel: order.pickupLabel || '',
         total: (Number(order.subtotal) || 0) + (Number(order.deliveryFee) || 0),
@@ -386,9 +386,10 @@ function cartPouchCount() {
 // ---- Pick-up at Kreezby (no delivery fee) ---------------------------------------------
 const KREEZBY_CONTACT_NUMBER = '0921 957 4748';
 const KREEZBY_CONTACT_EMAIL = 'kreezbyph@gmail.com';
-const PICKUP_FIRST_HOUR = 9;    // first pick-up slot 9:00 AM
-const PICKUP_LAST_HOUR = 17;    // last pick-up slot 5:00 PM
-const PICKUP_LEAD_MINUTES = 60; // today's slots start at least 1 hour from now
+const PICKUP_OPEN_MINUTES = 8 * 60 + 30;   // first pick-up window starts 8:30 AM
+const PICKUP_CLOSE_MINUTES = 17 * 60 + 30; // shop closes 5:30 PM (last window ends then)
+const PICKUP_LEAD_MINUTES = 20; // standard preparation is 15-20 minutes, so today's slots start 20 minutes from now
+const PICKUP_SLOT_MINUTES = 15; // pick-up windows are 15 minutes long
 const PICKUP_DAYS_AHEAD = 30;
 
 function isPickup() {
@@ -400,9 +401,24 @@ function localDay(date) {
     return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
 }
 
-function slotLabel(hour) {
+function clockParts(totalMinutes) {
+    const hour = Math.floor(totalMinutes / 60) % 24;
+    const minute = totalMinutes % 60;
     const h12 = hour % 12 === 0 ? 12 : hour % 12;
-    return h12 + ':00 ' + (hour < 12 ? 'AM' : 'PM');
+    return { text: h12 + ':' + String(minute).padStart(2, '0'), meridiem: hour < 12 ? 'AM' : 'PM' };
+}
+
+// "1:00 - 1:15 PM", "11:45 AM - 12:00 PM"
+function slotRangeLabel(startMinutes) {
+    const a = clockParts(startMinutes);
+    const b = clockParts(startMinutes + PICKUP_SLOT_MINUTES);
+    return a.meridiem === b.meridiem
+        ? a.text + ' - ' + b.text + ' ' + b.meridiem
+        : a.text + ' ' + a.meridiem + ' - ' + b.text + ' ' + b.meridiem;
+}
+
+function slotLabel(hour) {
+    return slotRangeLabel(hour * 60);
 }
 
 // Hours still open on that day (today: only slots at least an hour away).
@@ -412,12 +428,15 @@ function pickupSlotsFor(day) {
     const now = new Date();
     const isToday = day === localDay(now);
     const earliest = new Date(now.getTime() + PICKUP_LEAD_MINUTES * 60000);
-    for (let hour = PICKUP_FIRST_HOUR; hour <= PICKUP_LAST_HOUR; hour++) {
+    for (let start = PICKUP_OPEN_MINUTES; start + PICKUP_SLOT_MINUTES <= PICKUP_CLOSE_MINUTES; start += PICKUP_SLOT_MINUTES) {
         if (isToday) {
-            const slot = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0);
+            const slot = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Math.floor(start / 60), start % 60, 0);
             if (slot < earliest) continue;
         }
-        slots.push({ value: String(hour).padStart(2, '0') + ':00', label: slotLabel(hour) });
+        slots.push({
+            value: String(Math.floor(start / 60)).padStart(2, '0') + ':' + String(start % 60).padStart(2, '0'),
+            label: slotRangeLabel(start)
+        });
     }
     return slots;
 }
@@ -460,8 +479,9 @@ function pickupLabel(day, time) {
     if (!day || !time) return '';
     const parts = day.split('-');
     const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    const hour = Number(time.split(':')[0]);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + slotLabel(hour);
+    const tp = time.split(':');
+    const startMinutes = Number(tp[0]) * 60 + (Number(tp[1]) || 0);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + slotRangeLabel(startMinutes);
 }
 
 function codLabel() {
@@ -744,6 +764,11 @@ function prefillShippingFromProfile() {
     }
     if (addressInput && profile.defaultAddress && !addressInput.value.trim()) {
         addressInput.value = String(profile.defaultAddress);
+    }
+    const emailInput = document.getElementById('paymongo-email');
+    if (emailInput && !emailInput.value.trim()) {
+        const known = accountEmail();
+        if (known) emailInput.value = known;
     }
 }
 
@@ -1079,8 +1104,21 @@ function shippingFields() {
         address: pickup ? ('Pick up at Kreezby — ' + pickupLabel(pickupDate, pickupTime)) : typedAddress,
         typedAddress: typedAddress,
         notes: (document.getElementById('notes').value || '').trim(),
-        email: (document.getElementById('paymongo-email').value || '').trim()
+        email: cleanEmail(document.getElementById('paymongo-email').value) || accountEmail()
     };
+}
+
+// Strips spaces and stray punctuation that browsers/autofill/keyboards add around an email.
+function cleanEmail(value) {
+    return String(value || '').replace(/[\s\u200b\u00a0]+/g, '').replace(/^[<"'(]+|[>"'),;.]+$/g, '').toLowerCase();
+}
+
+function accountEmail() {
+    let session = {};
+    try { session = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (error) { session = {}; }
+    const profile = parseStoredJson(CUSTOMER_PROFILE_KEY, {}) || {};
+    const found = cleanEmail(session.email || profile.email || '');
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(found) ? found : '';
 }
 
 function restoreShippingFields(draft) {
@@ -1154,7 +1192,11 @@ function validCheckoutContact(fields) {
         return false;
     }
     if (isPaymongoCheckout() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-        showCheckoutDialog('Enter an email address so the QR Ph receipt can be sent.', {
+        const emailBox = document.getElementById('paymongo-email');
+        if (emailBox && emailBox.focus) { try { emailBox.focus(); } catch (error) {} }
+        showCheckoutDialog(fields.email
+            ? 'The email "' + fields.email + '" does not look complete. Use the form name@email.com (with the part after the dot, such as .com).'
+            : 'Enter an email address so the QR Ph receipt can be sent.', {
             type: 'warning',
             title: 'Email Needed'
         });
