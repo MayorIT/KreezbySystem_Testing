@@ -44,7 +44,6 @@
                     <div class="bo-order-tabs po-order-tabs" role="tablist">
                         <button type="button" class="bo-order-tab po-order-tab active" data-tab="retailer" role="tab" aria-selected="true">Retailer Order Errors</button>
                         <button type="button" class="bo-order-tab po-order-tab" data-tab="customer" role="tab" aria-selected="false">Customer Returns</button>
-                        <button type="button" class="bo-order-tab po-order-tab" data-tab="orders" role="tab" aria-selected="false">Customer Orders</button>
                     </div>
 
                     <div id="bo-tab-retailer" class="bo-tab-panel po-tab-panel active" role="tabpanel">
@@ -89,35 +88,6 @@
                         </div>
                     </div>
 
-                    <div id="bo-tab-orders" class="bo-tab-panel po-tab-panel" role="tabpanel">
-                        <div class="po-list-toolbar">
-                            <div class="po-list-toolbar-title">
-                                <h3>Customer Orders</h3>
-                                <span class="po-list-count" id="kz-customer-orders-count"></span>
-                            </div>
-                            <div class="po-list-toolbar-tools">
-                                <label class="po-page-size">Show
-                                    <select id="kz-customer-orders-page-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
-                                </label>
-                                <div class="search-field-wrap">
-                                    <input type="text" id="kz-customer-orders-search" placeholder="Order #, customer, payment, status...">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body-padded po-list-body">
-                            <div class="po-table-scroll-wrap">
-                                <table class="data-display-table" id="kz-customer-orders-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="po-col-num">#</th><th class="po-col-date">Date</th><th class="po-col-code">Order #</th><th class="po-col-entity">Customer</th><th class="po-col-items">Items</th><th>Payment Method</th><th>Payment Status</th><th class="kz-co-num">Order Total</th><th class="kz-co-num">Amount Paid</th><th class="po-col-status">Order Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="kz-customer-orders-tbody"></tbody>
-                                </table>
-                            </div>
-                            <div class="datatable-footer-line" id="kz-customer-orders-footer"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -187,7 +157,6 @@
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/tab-panel-transition.js"></script>
     <script src="../js/bo-admin.js?v=20261019fn"></script>
-    <script src="../js/customer-orders-admin.js?v=20261023co"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/admin-sidebar.js?v=20261022menu4"></script>
     <script src="../js/sidebar-toggle.js?v=20260927row"></script>

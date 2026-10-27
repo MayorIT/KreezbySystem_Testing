@@ -1332,7 +1332,7 @@ async function startPaymongo(walletOverride) {
         }));
         // Save the order now as "Awaiting payment" so the customer can leave for GCash.
         const pendingNumber = placePendingQrOrder(data.paymentIntentId, data.qrImage, wallet);
-        if (!paymongoTestUrl) showQrSave(data.qrImage, pendingNumber);
+        showQrSave(data.qrImage, pendingNumber);
         if (pendingNumber) {
             setPaymongoStatus(isPhoneScreen()
                 ? 'Order ' + pendingNumber + ' saved. Download the QR, then upload it in GCash. This page checks every 5 seconds.'
@@ -1352,13 +1352,43 @@ function isPhoneScreen() {
     return (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 }
 
+// Data-URI links often will not download (large images, phones, Safari), so save through a Blob.
+function downloadQrImage(dataUri, fileName) {
+    try {
+        const parts = String(dataUri).split(',');
+        const mime = (parts[0].match(/data:([^;]+)/) || [])[1] || 'image/png';
+        const bin = atob(parts[1] || '');
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+        const blob = new Blob([bytes], { type: mime });
+        if (window.navigator && navigator.msSaveOrOpenBlob) { navigator.msSaveOrOpenBlob(blob, fileName); return; }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+        // iOS Safari ignores "download": show the image so it can be pressed and held to save.
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent || '')) window.open(dataUri, '_blank');
+    } catch (error) {
+        window.open(dataUri, '_blank');
+    }
+}
+
 function showQrSave(qrImage, orderNumber) {
     const box = document.getElementById('paymongo-qr-save');
     const link = document.getElementById('paymongo-qr-download');
     const note = document.getElementById('paymongo-order-note');
     if (!box || !link || !String(qrImage || '').startsWith('data:image/')) return;
+    const fileName = 'kreezby-qr-' + (orderNumber || 'payment') + '.png';
     link.href = qrImage;
-    link.setAttribute('download', 'kreezby-qr-' + (orderNumber || 'payment') + '.png');
+    link.setAttribute('download', fileName);
+    link.onclick = function (event) {
+        event.preventDefault();
+        downloadQrImage(qrImage, fileName);
+    };
     box.hidden = false;
     if (note) note.textContent = orderNumber ? ('Order ' + orderNumber + ' is saved and awaiting payment.') : '';
     if (isPhoneScreen()) {
