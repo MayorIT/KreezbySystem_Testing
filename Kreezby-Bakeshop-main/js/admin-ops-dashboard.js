@@ -123,7 +123,14 @@
             if (!item) return null;
             var qty = Number(item.qty != null ? item.qty : item.quantity) || 0;
             var cost = Number(item.cost != null ? item.cost : (item.price != null ? item.price : item.unitPrice)) || 0;
-            return qty > 0 ? { name: item.name || item.product || item.flavor || 'Product', qty: qty, cost: cost } : null;
+            var name = item.name || item.product || item.flavor || 'Product';
+            if (!(cost > 0)) {
+                // Older orders may not store a price: use the flavor's current price.
+                var api = dict();
+                var pid = api && api.productId ? api.productId(name) : '';
+                cost = priceFor(pid);
+            }
+            return qty > 0 ? { name: name, qty: qty, cost: cost } : null;
         }).filter(Boolean);
     }
 
@@ -169,7 +176,7 @@
 
     function statusBucket(status) {
         var text = String(status || '').toLowerCase();
-        if (text.indexOf('cancel') >= 0 || text.indexOf('return') >= 0 || text === 'rejected') return 'cancelled';
+        if (text.indexOf('cancel') >= 0 || text.indexOf('return') >= 0 || text.indexOf('expired') >= 0 || text.indexOf('fail') >= 0 || text === 'rejected') return 'cancelled';
         if (text.indexOf('complete') >= 0 || text === 'delivered') return 'completed';
         return 'processing';
     }
