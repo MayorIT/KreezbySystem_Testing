@@ -451,6 +451,25 @@
   var known = {};
   var localWriteAt = {};
   var inflight = {};
+  // Stock documents are merged on the server against the copy this browser last saw, so two
+  // people changing stock at once both count. serverCopy holds that last-seen copy.
+  var STOCK_KEYS = { kreezby_data_dictionary_v1: 1, "kreezby-stock-local-v1": 1, kreezby_archived_stock: 1, kreezbyStockItemValues: 1, kreezby_stock_snapshots_v1: 1 };
+  var serverCopy = {};
+  function basesFor(items) {
+    var bases = {};
+    Object.keys(items).forEach(function (key) {
+      if (STOCK_KEYS[key] && items[key] != null && typeof serverCopy[key] === "string" && serverCopy[key].length < 400000) bases[key] = serverCopy[key];
+    });
+    return bases;
+  }
+  var stocksSyncTimer = null;
+  function announceStocks() {
+    if (stocksSyncTimer) return;
+    stocksSyncTimer = setTimeout(function () {
+      stocksSyncTimer = null;
+      try { document.dispatchEvent(new CustomEvent("kreezby:stocks-sync")); } catch (e) { /* optional */ }
+    }, 150);
+  }
 
   // A key this browser changed a moment ago must never be overwritten by an older copy
   // coming back from the server (that made new stock appear and then vanish).
@@ -496,7 +515,7 @@
     var box = readOutbox();
     Object.keys(box).forEach(function (key) { if (!(key in items)) items[key] = box[key].v; });
     if (!Object.keys(items).length) return;
-    var body = JSON.stringify({ items: items });
+    var body = JSON.stringify({ items: items, bases: basesFor(items) });
     try {
       if (body.length < 60000 && window.fetch) {
         fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: body, keepalive: true, credentials: "same-origin" });
@@ -530,11 +549,32 @@
       xhr.timeout = 20000;
       xhr.onload = function () {
         var ok = xhr.status >= 200 && xhr.status < 300;
-        if (ok) outboxDone(items);
+        if (ok) {
+          outboxDone(items);
+          var merged = {};
+          try { merged = JSON.parse(xhr.responseText).merged || {}; } catch (e0) { merged = {}; }
+          Object.keys(items).forEach(function (key) {
+            if (STOCK_KEYS[key] && items[key] != null) serverCopy[key] = typeof merged[key] === "string" ? merged[key] : items[key];
+          });
+          var adopted = [];
+          Object.keys(merged).forEach(function (key) {
+            // Another person's change was combined with ours: show the combined result,
+            // unless this browser has already changed the key again.
+            if (typeof merged[key] !== "string" || pending[key] !== undefined) return;
+            if (nativeGet.call(localStorage, key) !== items[key]) return;
+            applyingRemote = true;
+            try { nativeSet.call(localStorage, key, merged[key]); } finally { applyingRemote = false; }
+            adopted.push(key);
+          });
+          if (adopted.length) {
+            try { document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: adopted } })); } catch (e1) { /* optional */ }
+            announceStocks();
+          }
+        }
         settle(ok);
       };
       xhr.onerror = xhr.ontimeout = function () { settle(false); };
-      xhr.send(JSON.stringify({ items: items }));
+      xhr.send(JSON.stringify({ items: items, bases: basesFor(items) }));
     } catch (e) { settle(false); }
   }
 
@@ -836,9 +876,13 @@
       Object.keys(items).forEach(function (key) {
         if (!isShared(key) || isBusy(key)) return;
         var next = items[key] == null ? null : String(items[key]);
-        if (nativeGet.call(localStorage, key) === next) return;
+        if (nativeGet.call(localStorage, key) === next) {
+          if (STOCK_KEYS[key] && next != null) serverCopy[key] = next;
+          return;
+        }
         if (next == null) nativeRemove.call(localStorage, key);
         else nativeSet.call(localStorage, key, next);
+        if (STOCK_KEYS[key] && next != null) serverCopy[key] = next;
         changedKeys.push(key);
         if (key === "kreezby-po-orders-v1" || key === "kreezby-bo-orders-v1" || key === "kreezby-return-records-v1") {
           try {
@@ -856,6 +900,9 @@
         document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
       } catch (e) { /* listeners are optional */ }
       scheduleLiveRefresh(changedKeys, fromFirstPull);
+      // Stock screens, the customer shop and the dashboards re-read stock the moment it
+      // changes anywhere (another user, POS, a paid online order).
+      if (changedKeys.some(function (k) { return STOCK_KEYS[k] || k === "kreezbyOrders" || k === "kreezby-po-orders-v1"; })) announceStocks();
     }
 
     known = {};

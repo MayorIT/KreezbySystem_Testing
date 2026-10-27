@@ -128,6 +128,109 @@ function keepStoredRecords(key, incoming) {
   return JSON.stringify(next.concat(missing));
 }
 
+// ---- Stock consistency -------------------------------------------------------------------
+// Stock lives in a few shared JSON documents. Two people changing stock at the same moment used
+// to overwrite each other (last write won). These keys are now merged three ways: what the
+// browser started from (base), what it sends, and what the database holds right now. Stock
+// counts are merged as differences (database + this change), so both changes count.
+const STOCK_MERGE_KEYS = {
+  kreezby_data_dictionary_v1: /^(product_stock|material_stock)\.[^.]+$/,
+  "kreezby-stock-local-v1": /^qty\.[^.]+$/,
+  kreezby_archived_stock: null,
+  kreezbyStockItemValues: null,
+  kreezby_stock_snapshots_v1: null,
+};
+
+function sameJson(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function isPlainObject(v) {
+  return v && typeof v === "object" && !Array.isArray(v);
+}
+
+function threeWayMerge(base, inc, cur, path, numericRule) {
+  if (sameJson(inc, base)) return cur;
+  if (sameJson(cur, base)) return inc;
+  if (isPlainObject(inc) && isPlainObject(cur)) {
+    const b = isPlainObject(base) ? base : {};
+    const out = {};
+    const keys = new Set([...Object.keys(b), ...Object.keys(inc), ...Object.keys(cur)]);
+    for (const k of keys) {
+      const inHas = Object.prototype.hasOwnProperty.call(inc, k);
+      const curHas = Object.prototype.hasOwnProperty.call(cur, k);
+      const baseHas = Object.prototype.hasOwnProperty.call(b, k);
+      if (!inHas) {
+        // we removed it: honour that unless someone else changed it meanwhile
+        if (curHas && !(baseHas && sameJson(cur[k], b[k]))) out[k] = cur[k];
+        continue;
+      }
+      if (!curHas) {
+        // they removed it: keep our version only if we changed it
+        if (!baseHas || !sameJson(inc[k], b[k])) out[k] = inc[k];
+        continue;
+      }
+      out[k] = threeWayMerge(baseHas ? b[k] : undefined, inc[k], cur[k], path ? path + "." + k : k, numericRule);
+    }
+    return out;
+  }
+  if (Array.isArray(inc) && Array.isArray(cur)) {
+    const b = Array.isArray(base) ? base : [];
+    const count = (list) => { const m = new Map(); list.forEach((x) => { const j = JSON.stringify(x); m.set(j, (m.get(j) || 0) + 1); }); return m; };
+    const baseCount = count(b);
+    const incCount = count(inc);
+    const removed = new Map();
+    const added = [];
+    baseCount.forEach((n, j) => { const gone = n - (incCount.get(j) || 0); if (gone > 0) removed.set(j, gone); });
+    const addSeen = new Map();
+    inc.forEach((x) => {
+      const j = JSON.stringify(x);
+      const had = baseCount.get(j) || 0;
+      const used = addSeen.get(j) || 0;
+      if (used >= had) added.push(x);
+      addSeen.set(j, used + 1);
+    });
+    const result = [];
+    cur.forEach((x) => {
+      const j = JSON.stringify(x);
+      const gone = removed.get(j) || 0;
+      if (gone > 0) { removed.set(j, gone - 1); return; }
+      result.push(x);
+    });
+    return result.concat(added);
+  }
+  if (numericRule && numericRule.test(path) && typeof inc === "number" && typeof cur === "number" && typeof base === "number") {
+    return Math.max(0, cur + (inc - base));
+  }
+  return inc;
+}
+
+// Reads the current value, merges, and writes only if nobody changed it in between (retries).
+async function saveStockKey(key, incoming, baseText) {
+  const col = collection();
+  let base = null;
+  try { base = JSON.parse(baseText); } catch (e) { base = null; }
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const row = await col.findOne({ _id: key });
+    const curText = row && typeof row.value === "string" ? row.value : null;
+    let finalText = incoming;
+    if (curText != null && curText !== incoming && curText !== baseText && base !== null) {
+      try {
+        const merged = threeWayMerge(base, JSON.parse(incoming), JSON.parse(curText), "", STOCK_MERGE_KEYS[key]);
+        finalText = JSON.stringify(merged);
+      } catch (e) { finalText = incoming; }
+    }
+    const filter = curText == null ? { _id: key } : { _id: key, value: curText };
+    try {
+      const result = await col.updateOne(filter, { $set: { value: finalText, updatedAt: new Date() } }, { upsert: curText == null });
+      if (result.matchedCount || result.upsertedCount) { cache[key] = finalText; return finalText; }
+    } catch (error) {
+      if (!(error && error.code === 11000)) throw error;
+    }
+  }
+  throw new Error("Stock changed too often at once; please retry.");
+}
+
 function dropRetired(key, stored) {
   try {
     if (key === "kreezby_maintenance_users") {
@@ -1161,6 +1264,24 @@ app.post("/api/permissions", async (req, res) => {
   res.json({ ok: true, updatedAt: saved.updatedAt });
 });
 
+// A paid order may be taken out of stock by whichever admin/staff page notices it first. This
+// hands out exactly one claim per order, so two open pages can never deduct it twice.
+app.post("/api/stock/claim-order", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const orderNumber = String((req.body && req.body.orderNumber) || "").trim().slice(0, 80);
+  if (!orderNumber) {
+    res.status(400).json({ ok: false, error: "orderNumber required" });
+    return;
+  }
+  try {
+    await client.db(DB_NAME).collection("stock_deduction_claims").insertOne({ _id: orderNumber, at: new Date() });
+    res.json({ ok: true, claimed: true });
+  } catch (error) {
+    if (error && error.code === 11000) res.json({ ok: true, claimed: false });
+    else res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 app.post("/api/state", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
@@ -1171,9 +1292,16 @@ app.post("/api/state", async (req, res) => {
     }
 
     const ops = [];
+    const bases = req.body && req.body.bases && typeof req.body.bases === "object" ? req.body.bases : {};
+    const stockKeys = [];
     let meaningful = false;
     for (const [key, value] of Object.entries(items)) {
       if (!isSharedKey(key)) continue;
+      if (Object.prototype.hasOwnProperty.call(STOCK_MERGE_KEYS, key) && value != null && typeof bases[key] === "string") {
+        stockKeys.push(key);
+        meaningful = true;
+        continue;
+      }
       if (!isEphemeralKey(key)) meaningful = true;
       else if (key.indexOf("kreezbyPresence_") === 0 && value != null) {
         // Someone signing in, going offline, or coming back: tell every page now (not every heartbeat).
@@ -1203,8 +1331,15 @@ app.post("/api/state", async (req, res) => {
       cache[key] = stored;
     }
 
+    const merged = {};
+    for (const key of stockKeys) {
+      const sent = String(items[key]);
+      const finalText = await saveStockKey(key, sent, bases[key]);
+      items[key] = finalText;
+      if (finalText !== sent) merged[key] = finalText;
+    }
     writePermissionFile(items);
-    if (ops.length) {
+    if (ops.length || stockKeys.length) {
       if (meaningful) {
         stateVersion = Date.now();
         ops.push({
@@ -1224,7 +1359,7 @@ app.post("/api/state", async (req, res) => {
       await syncCustomerOrderDocs(readCachedCustomerOrders());
     }
     await mirrorSaved(items);
-    res.json({ ok: true });
+    res.json({ ok: true, merged });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }

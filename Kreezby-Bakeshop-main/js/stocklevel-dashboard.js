@@ -1581,6 +1581,16 @@
         closeBreakdown();
     });
 
+    // Re-draw the open dashboard when stock changes elsewhere (not while a dialog is open).
+    document.addEventListener('kreezby:stocks-sync', function () {
+        var root = document.getElementById('stocklevel-dashboard-root');
+        if (!root) return;
+        if (document.getElementById('sl-value-overlay') || document.querySelector('.sl-breakdown-overlay, .sl-overlay')) return;
+        var el = document.activeElement;
+        if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) && !el.id.match(/search/i)) return;
+        try { render(root); } catch (e) { /* next change redraws */ }
+    });
+
     document.addEventListener('DOMContentLoaded', onPageReady);
 
     document.addEventListener('content:replaced', onPageReady);

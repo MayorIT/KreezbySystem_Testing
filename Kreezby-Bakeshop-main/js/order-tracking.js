@@ -422,7 +422,6 @@
                 return (
                     (o.orderNumber || '').toLowerCase().indexOf(q) !== -1 ||
                     (o.poCode || '').toLowerCase().indexOf(q) !== -1 ||
-                    (ship.fullName || '').toLowerCase().indexOf(q) !== -1 ||
                     (o.trackingNumber || '').toLowerCase().indexOf(q) !== -1
                 );
             });
@@ -475,10 +474,8 @@
                 : order.trackingNumber
                 ? escapeHtml(order.trackingNumber)
                 : '<span class="ot-track-empty">Not set</span>';
-            var who = escapeHtml(customerName(order));
-            var meta = order.accountType
-                ? '<small>' + escapeHtml(order.accountType) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + '</small>'
-                : (order.poCode ? '<small>' + escapeHtml(order.poCode) + '</small>' : '');
+            var who = 'Confidential';
+            var meta = order.poCode ? '<small>' + escapeHtml(order.poCode) + '</small>' : '';
             return '<tr data-order-id="' + escapeHtml(order.orderNumber) + '"' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
                 '<td class="po-col-num">' + ((page - 1) * size + index + 1) + '</td>' +
                 '<td>' + formatShortDate(order.date) + '</td>' +
@@ -523,9 +520,7 @@
                 '<tr data-order-id="' + escapeHtml(order.orderNumber) + '" class="' + selected.trim() + '">' +
                 '<td>' + escapeHtml(order.orderNumber) + '</td>' +
                 '<td>' + escapeHtml(order.poCode || '—') + '</td>' +
-                '<td>' + escapeHtml(customerName(order)) +
-                    (order.accountType ? '<br><small>' + escapeHtml(order.accountType) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + '</small>' : '') +
-                '</td>' +
+                '<td>Confidential</td>' +
                 '<td>' + formatDate(order.date) + '</td>' +
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
                     escapeHtml(order.status || 'Processing') + '</span></td>' +
@@ -565,7 +560,7 @@
 
         panel.innerHTML =
             (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">Edit ' + escapeHtml(order.orderNumber) + '</h3>') +
-            '<p class="order-tracking-detail-sub">' + escapeHtml(order.accountType || 'Regular Customer') + ' · ' + escapeHtml(order.accountName || customerName(order)) + (order.accountArea ? ' · ' + escapeHtml(order.accountArea) : '') + ' · ' + formatDate(order.date) + '</p>' +
+            '<p class="order-tracking-detail-sub">' + 'Customer details are confidential · ' + formatDate(order.date) + '</p>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
                 : '') +
@@ -574,22 +569,10 @@
                     '<label>Pick-up schedule</label>' +
                     '<input type="text" readonly value="' + escapeHtml(pickupText(order)) + '">' +
                   '</div>'
-                : '<div class="order-tracking-form-group">' +
-                    '<label>Delivery address</label>' +
-                    '<textarea readonly rows="2">' + escapeHtml(ship.address || '—') + '</textarea>' +
-                  '</div>') +
-            '<div class="order-tracking-form-group">' +
-                '<label>Phone</label>' +
-                '<input type="text" readonly value="' + escapeHtml(ship.phone || '—') + '">' +
-            '</div>' +
+                : '') +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-status">Order status</label>' +
-                '<select id="ot-status">' +
-                    STATUSES.map(function (s) {
-                        var sel = order.status === s ? ' selected' : '';
-                        return '<option value="' + s + '"' + sel + '>' + s + '</option>';
-                    }).join('') +
-                '</select>' +
+                '<input type="text" id="ot-status" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.status || 'Processing') + '">' +
             '</div>' +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-carrier">' + (pickup ? 'Fulfillment' : 'Courier') + '</label>' +
@@ -600,17 +583,8 @@
                 '<label for="ot-tracking">J&amp;T Express tracking ID</label>' +
                 '<input type="text" id="ot-tracking" placeholder="e.g. JT1234567890123" value="' + escapeHtml(order.trackingNumber || '') + '">' +
             '</div>') +
-            '<div class="order-tracking-form-group">' +
-                '<label for="ot-notes">Internal notes (optional)</label>' +
-                '<textarea id="ot-notes" rows="2" placeholder="Packaging or dispatch notes">' + escapeHtml(order.staffNotes || '') + '</textarea>' +
-            '</div>' +
-            '<div class="order-tracking-form-group">' +
-                '<label>Receipt</label>' +
-                '<input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(receipt.receiptNumber || 'Not generated') + '">' +
-            '</div>' +
             '<div class="order-tracking-form-actions">' +
                 '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save tracking</button>' +
-                '<button type="button" class="order-tracking-btn" id="ot-receipt-btn">View receipt</button>' +
                 (trackUrl
                     ? '<a class="order-tracking-btn order-tracking-btn-link" href="' + trackUrl + '" target="_blank" rel="noopener noreferrer">Track on J&amp;T</a>'
                     : '') +
@@ -619,11 +593,6 @@
 
         panel.querySelector('#ot-save-btn').addEventListener('click', function () {
             saveOrderUpdates(root, orderNumber);
-        });
-        panel.querySelector('#ot-receipt-btn').addEventListener('click', function () {
-            var freshOrder = loadOrders().find(function (o) { return o.orderNumber === orderNumber; }) || order;
-            var receiptData = findOwnerReceipt(freshOrder) || buildReceiptFromOrder(freshOrder);
-            openReceiptWindow(receiptData);
         });
         var closeBtn = panel.querySelector('#ot-close-btn');
         if (closeBtn) closeBtn.addEventListener('click', function () {
@@ -668,20 +637,16 @@
         var trackingEl = root.querySelector('#ot-tracking');
         var notesEl = root.querySelector('#ot-notes');
 
-        var nextStatus = statusEl ? statusEl.value : order.status;
         var tracking = trackingEl ? trackingEl.value.trim() : '';
-        var notes = notesEl ? notesEl.value.trim() : '';
-
         var pickup = isPickupOrder(order);
-        if (!pickup && (nextStatus === 'Shipped' || nextStatus === 'Completed') && !tracking) {
-            showToast(root, 'Enter a J&T tracking ID before marking the order ' + nextStatus + '.');
-            return;
-        }
+        if (pickup) return;
+        var nextStatus = order.status || 'Processing';
+        if (tracking && nextStatus === 'Processing') nextStatus = 'Shipped';
+        if (!tracking && nextStatus === 'Shipped') nextStatus = 'Processing';
 
         order.status = nextStatus;
-        order.trackingNumber = pickup ? '' : tracking;
-        order.carrier = pickup ? PICKUP_CARRIER : CARRIER;
-        order.staffNotes = notes;
+        order.trackingNumber = tracking;
+        order.carrier = CARRIER;
         order.statusUpdatedAt = new Date().toISOString();
 
         if (nextStatus === 'Shipped' && tracking && !order.shippedAt) {
@@ -710,7 +675,7 @@
         var poOptions = purchaseOrders.length
             ? purchaseOrders.map(function (po) {
                 var tracked = orderForPo(po.code) ? ' · already tracked' : '';
-                return '<option value="' + escapeHtml(po.code) + '">' + escapeHtml(poOptionLabel(po) + tracked) + '</option>';
+                return '<option value="' + escapeHtml(po.code) + '">' + escapeHtml(po.code + tracked) + '</option>';
             }).join('')
             : '<option value="">No customer purchase orders found</option>';
 
@@ -728,7 +693,7 @@
                 '<div class="ot-modal-head">' +
                     '<div>' +
                         '<h3 class="order-tracking-detail-title" id="ot-create-title">Create New Order Tracking</h3>' +
-                        '<p class="order-tracking-create-hint">Choose a customer purchase order. The customer name fills in, then set the status and J&amp;T tracking ID.</p>' +
+                        '<p class="order-tracking-create-hint">Choose a purchase order, then enter the J&amp;T tracking ID. Customer details are confidential and cannot be viewed or changed here.</p>' +
                     '</div>' +
                     '<button type="button" class="ot-modal-close" id="ot-create-close-btn" aria-label="Close">×</button>' +
                 '</div>' +
@@ -740,7 +705,7 @@
                     '</select>' +
                 '</div>' +
                 '<p class="ot-create-note" id="ot-create-po-note"></p>' +
-                '<div class="order-tracking-form-group">' +
+                '<div class="order-tracking-form-group" hidden>' +
                     '<label for="ot-create-customer">Customer name</label>' +
                     '<input type="text" id="ot-create-customer" class="order-tracking-readonly-field" readonly placeholder="Auto-filled from PO">' +
                 '</div>' +
@@ -748,7 +713,7 @@
                     '<label for="ot-create-order-id">Order ID</label>' +
                     '<input type="text" id="ot-create-order-id" class="order-tracking-readonly-field" readonly value="' + escapeHtml(orderNumber) + '">' +
                 '</div>' +
-                '<div class="order-tracking-form-group">' +
+                '<div class="order-tracking-form-group" hidden>' +
                     '<label for="ot-create-status">Order status</label>' +
                     '<select id="ot-create-status">' +
                         STATUSES.map(function (s) {
@@ -763,9 +728,9 @@
                 '</div>' +
                 '<div class="order-tracking-form-group">' +
                     '<label for="ot-create-tracking">J&amp;T Express tracking ID</label>' +
-                    '<input type="text" id="ot-create-tracking" placeholder="Required when status is Shipped or Completed">' +
+                    '<input type="text" id="ot-create-tracking" placeholder="e.g. JT1234567890123">' +
                 '</div>' +
-                '<div class="order-tracking-form-group">' +
+                '<div class="order-tracking-form-group" hidden>' +
                     '<label for="ot-create-notes">Internal notes (optional)</label>' +
                     '<textarea id="ot-create-notes" rows="2" placeholder="Dispatch or packaging notes"></textarea>' +
                 '</div>' +
@@ -834,8 +799,8 @@
         var poCode = (panel.querySelector('#ot-create-po') || {}).value || '';
         var customer = (panel.querySelector('#ot-create-customer') || {}).value || '';
         var orderNumber = (panel.querySelector('#ot-create-order-id') || {}).value || generateOrderNumber();
-        var status = (panel.querySelector('#ot-create-status') || {}).value || 'Processing';
         var tracking = (panel.querySelector('#ot-create-tracking') || {}).value || '';
+        var status = tracking.trim() ? 'Shipped' : 'Processing';
         var notes = (panel.querySelector('#ot-create-notes') || {}).value || '';
 
         if (!poCode) {

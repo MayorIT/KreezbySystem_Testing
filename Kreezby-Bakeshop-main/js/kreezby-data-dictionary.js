@@ -1443,20 +1443,46 @@
         if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || '')) return;
         var orders = readJson('kreezbyOrders', []);
         if (!Array.isArray(orders)) return;
-        var changed = false;
         orders.forEach(function (order) {
             if (!order || order.inventoryDeducted || order.paymentStatus !== 'paid' || order.paymentMethod !== 'paymongo') return;
             if (/cancel|return|reject/i.test(String(order.status || ''))) return;
-            order.inventoryDeducted = true; // claim first so it is never taken twice
-            changed = true;
-            Object.keys(order.items || {}).forEach(function (key) {
-                var item = order.items[key];
-                if (item && item.name && productId(item.name)) recordSale(item.name, Number(item.qty) || 0, String(order.paidAt || order.date || '').slice(0, 10));
+            var number = String(order.orderNumber || '');
+            if (!number || claimsInFlight[number]) return;
+            claimsInFlight[number] = true;
+            // The server gives each order's stock deduction to exactly one page. Pages that lose
+            // the claim only mark the order as handled, so stock is never taken twice.
+            claimOrderDeduction(number, function (won) {
+                delete claimsInFlight[number];
+                if (won === null) return; // server unreachable: try again on the next check
+                var fresh = readJson('kreezbyOrders', []);
+                var target = Array.isArray(fresh) ? fresh.filter(function (row) { return row && row.orderNumber === number; })[0] : null;
+                if (!target) return;
+                if (won) {
+                    Object.keys(target.items || {}).forEach(function (key) {
+                        var item = target.items[key];
+                        if (item && item.name && productId(item.name)) recordSale(item.name, Number(item.qty) || 0, String(target.paidAt || target.date || '').slice(0, 10));
+                    });
+                }
+                target.inventoryDeducted = true;
+                try { localStorage.setItem('kreezbyOrders', JSON.stringify(fresh)); } catch (e) { /* ignore */ }
             });
         });
-        if (changed) {
-            try { localStorage.setItem('kreezbyOrders', JSON.stringify(orders)); } catch (e) { /* ignore */ }
-        }
+    }
+
+    var claimsInFlight = {};
+    function claimOrderDeduction(orderNumber, done) {
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/stock/claim-order', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.timeout = 10000;
+            xhr.onload = function () {
+                if (xhr.status !== 200) { done(null); return; }
+                try { done(!!JSON.parse(xhr.responseText).claimed); } catch (e) { done(null); }
+            };
+            xhr.onerror = xhr.ontimeout = function () { done(null); };
+            xhr.send(JSON.stringify({ orderNumber: orderNumber }));
+        } catch (e) { done(null); }
     }
 
     function boot() {
