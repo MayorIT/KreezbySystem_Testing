@@ -232,10 +232,27 @@ async function saveStockKey(key, incoming, baseText) {
   throw new Error("Stock changed too often at once; please retry.");
 }
 
+// Accounts deleted straight in MongoDB: a browser that still holds them must not bring them back.
+let accountTombstones = {};
+function accountRowKeys(row) {
+  if (!row || typeof row !== "object") return [];
+  return [row.id, row.user_id, row.email, row.username].map((v) => String(v == null ? "" : v).trim().toLowerCase()).filter(Boolean);
+}
+
 function dropRetired(key, stored) {
   try {
     if (key === "kreezby_maintenance_users") {
       const users = JSON.parse(stored);
+      const dead = Object.keys(accountTombstones);
+      if (users && dead.length) {
+        let touched = false;
+        for (const bucket of Object.keys(ACCOUNT_COLLECTIONS)) {
+          if (!Array.isArray(users[bucket])) continue;
+          const kept = users[bucket].filter((row) => !accountRowKeys(row).some((k) => accountTombstones[k]));
+          if (kept.length !== users[bucket].length) { users[bucket] = kept; touched = true; }
+        }
+        if (touched) return dropRetired(key, JSON.stringify(users));
+      }
       if (users && Array.isArray(users.customers)) {
         const kept = users.customers.filter((c) => !c || !RETIRED_CUSTOMER_IDS.has(String(c.id || c.user_id || "")));
         if (kept.length !== users.customers.length) return JSON.stringify(Object.assign({}, users, { customers: kept }));
@@ -628,6 +645,65 @@ async function upsertAccountRecord(bucket, input) {
 // Keys this server wrote a moment ago: a refresh that raced with the write must not bring back the old value.
 const cacheTouched = {};
 
+// An account removed from its MongoDB collection (customer_accounts, staff_accounts, ...) is removed
+// from the shared account list too, so it disappears from every portal.
+const ACCOUNT_SEEN_DOC = "account_ids_seen";
+let lastAccountReconcile = 0;
+async function reconcileDeletedAccounts(force) {
+  if (!mongoReady || !client) return false;
+  const now = Date.now();
+  if (!force && now - lastAccountReconcile < 4000) return false;
+  lastAccountReconcile = now;
+  const db = client.db(DB_NAME);
+  const meta = db.collection("app_state");
+  let seen = {};
+  let deleted = {};
+  try {
+    const seenDoc = await meta.findOne({ _id: ACCOUNT_SEEN_DOC });
+    const parsed = seenDoc && seenDoc.value ? JSON.parse(seenDoc.value) : {};
+    seen = parsed.seen || {};
+    deleted = parsed.deleted || {};
+  } catch (error) { seen = {}; deleted = {}; }
+  const present = {};
+  let totalDocs = 0;
+  for (const [bucket, name] of Object.entries(ACCOUNT_COLLECTIONS)) {
+    const docs = await db.collection(name).find({}, { projection: { _id: 1, id: 1, user_id: 1, email: 1, username: 1 } }).toArray();
+    present[bucket] = docs;
+    totalDocs += docs.length;
+  }
+  if (!totalDocs) return false; // nothing readable: could be an outage, change nothing
+  let users = null;
+  try {
+    const usersDoc = await meta.findOne({ _id: "kreezby_maintenance_users" });
+    users = usersDoc && typeof usersDoc.value === "string" ? JSON.parse(usersDoc.value) : null;
+  } catch (error) { users = null; }
+  const nextSeen = {};
+  let changed = false;
+  for (const bucket of Object.keys(ACCOUNT_COLLECTIONS)) {
+    const docs = present[bucket];
+    nextSeen[bucket] = docs.map((d) => String(d._id));
+    const rows = users && Array.isArray(users[bucket]) ? users[bucket] : null;
+    if (!rows) continue;
+    const presentKeys = new Set();
+    docs.forEach((d) => accountRowKeys(d).concat([String(d._id).toLowerCase()]).forEach((k) => presentKeys.add(k)));
+    const seenSet = new Set((seen[bucket] || []).map((v) => String(v).toLowerCase()));
+    const gone = rows.filter((row) => {
+      const keys = accountRowKeys(row);
+      if (!keys.length || keys.some((k) => presentKeys.has(k))) return false;
+      return row.fromMongo === true || keys.some((k) => seenSet.has(k));
+    });
+    if (!gone.length || gone.length > Math.max(2, rows.length * 0.5)) continue;
+    users[bucket] = rows.filter((row) => gone.indexOf(row) < 0);
+    gone.forEach((row) => accountRowKeys(row).forEach((k) => { deleted[k] = now; }));
+    changed = true;
+  }
+  Object.keys(deleted).forEach((k) => { if (now - deleted[k] > 15 * 60 * 1000) delete deleted[k]; });
+  accountTombstones = deleted;
+  await meta.updateOne({ _id: ACCOUNT_SEEN_DOC }, { $set: { value: JSON.stringify({ seen: nextSeen, deleted }) } }, { upsert: true });
+  if (changed) await persistUsersState(users);
+  return changed;
+}
+
 async function refreshCache() {
   const docs = await collection().find({}).toArray();
   const next = {};
@@ -736,6 +812,11 @@ app.get("/api/state-version", async (req, res) => {
       await collection().updateOne({ _id: "state_meta" }, { $set: { value: String(stateVersion) } }, { upsert: true });
     }
     lastDocCount = docCount;
+    await reconcileDeletedAccounts(false);
+    if (cache.kreezby_maintenance_users) {
+      const metaRow = await collection().findOne({ _id: "state_meta" });
+      if (metaRow && metaRow.value) stateVersion = Number(metaRow.value) || stateVersion;
+    }
   } catch (error) { /* use the last known version */ }
   res.json({ ok: true, version: Number(stateVersion) || 0 });
 });
@@ -986,6 +1067,7 @@ app.get("/api/accounts", async (req, res) => {
   try {
     const db = client.db(DB_NAME);
     const accounts = {};
+    try { await reconcileDeletedAccounts(true); } catch (error) { console.error("Account reconcile failed: " + error.message); }
     for (const [bucket, collectionName] of Object.entries(ACCOUNT_COLLECTIONS)) {
       if (bucket === "wholesalers") continue;
       const docs = await db.collection(collectionName).find({}).toArray();

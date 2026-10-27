@@ -981,14 +981,85 @@
     }
   }
 
+  function localDay(value) {
+    if (!value) return '';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return String(value).slice(0, 10);
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+
+  function paymentBucket(order) {
+    var ps = String(order.paymentStatus || '').toLowerCase();
+    var st = String(order.status || '').toLowerCase();
+    if (st === 'cancelled' || ps === 'cancelled') return 'Cancelled';
+    if (ps === 'expired' || st === 'payment expired') return 'Expired';
+    if (ps === 'paid' || order.paymentVerified) return 'Paid';
+    if (ps === 'awaiting_payment' || st === 'awaiting payment') return 'Awaiting payment';
+    if (String(order.paymentMethod || '') === 'cash_on_delivery') return 'Cash - unpaid';
+    return 'Unpaid';
+  }
+
+  var CUSTOMER_FILTER_IDS = ['sales-customer-status', 'sales-customer-payment', 'sales-customer-fulfil', 'sales-customer-from', 'sales-customer-to'];
+
+  function ensureCustomerFilters() {
+    var toolbar = document.querySelector('.sales-customer-toolbar');
+    if (!toolbar || document.getElementById('sales-customer-filters')) return;
+    var wrap = document.createElement('div');
+    wrap.id = 'sales-customer-filters';
+    wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:10px;width:100%;';
+    function field(label, html) {
+      return '<label style="display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;color:#5d4037;">' + label + html + '</label>';
+    }
+    var ctl = 'style="padding:7px 9px;border:1px solid #d7ccc8;border-radius:8px;font-size:13px;background:#fff;"';
+    wrap.innerHTML =
+      field('Status', '<select id="sales-customer-status" ' + ctl + '><option value="">All</option></select>') +
+      field('Payment', '<select id="sales-customer-payment" ' + ctl + '><option value="">All</option>' +
+        ['Paid', 'Awaiting payment', 'Cash - unpaid', 'Cancelled', 'Expired'].map(function (v) { return '<option>' + v + '</option>'; }).join('') + '</select>') +
+      field('Fulfilment', '<select id="sales-customer-fulfil" ' + ctl + '><option value="">All</option><option value="pickup">Pick-up</option><option value="delivery">Delivery</option></select>') +
+      field('From', '<input type="date" id="sales-customer-from" ' + ctl + '>') +
+      field('To', '<input type="date" id="sales-customer-to" ' + ctl + '>') +
+      '<button type="button" id="sales-customer-clear" class="action-trigger-btn" style="height:34px;">Clear filters</button>' +
+      '<span id="sales-customer-count" style="font-size:12px;color:#8d6e63;margin-left:auto;"></span>';
+    toolbar.appendChild(wrap);
+  }
+
+  function refreshStatusOptions() {
+    var sel = document.getElementById('sales-customer-status');
+    if (!sel) return;
+    var keep = sel.value;
+    var seen = {};
+    customerCache.forEach(function (r) { if (r.statusText) seen[r.statusText] = true; });
+    var names = Object.keys(seen).sort();
+    sel.innerHTML = '<option value="">All</option>' + names.map(function (n) {
+      return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+    }).join('');
+    sel.value = names.indexOf(keep) >= 0 ? keep : '';
+  }
+
   function paintCustomerSales(query) {
     var tbody = document.getElementById('customer-sales-tbody');
     if (!tbody) return;
-    var q = String(query || '').toLowerCase().trim();
-    var rows = customerCache.filter(function (row) { return !q || row.hay.indexOf(q) >= 0; });
+    ensureCustomerFilters();
+    refreshStatusOptions();
+    var q = String(query === undefined ? (document.getElementById('sales-customer-search') || {}).value : query || '').toLowerCase().trim();
+    function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+    var fStatus = val('sales-customer-status'), fPay = val('sales-customer-payment'), fFul = val('sales-customer-fulfil');
+    var fFrom = val('sales-customer-from'), fTo = val('sales-customer-to');
+    var rows = customerCache.filter(function (row) {
+      if (q && row.hay.indexOf(q) < 0) return false;
+      if (fStatus && row.statusText !== fStatus) return false;
+      if (fPay && row.pay !== fPay) return false;
+      if (fFul && row.fulfil !== fFul) return false;
+      if (fFrom && (!row.day || row.day < fFrom)) return false;
+      if (fTo && (!row.day || row.day > fTo)) return false;
+      return true;
+    });
+    var counter = document.getElementById('sales-customer-count');
+    if (counter) counter.textContent = rows.length + ' of ' + customerCache.length + ' orders';
     if (!rows.length) {
       tbody.innerHTML = '<tr class="po-empty-row"><td colspan="7">' +
-        (customerCache.length ? 'No customer sales match this search.' : 'No customer sales yet.') +
+        (customerCache.length ? 'No customer sales match these filters.' : 'No customer sales yet.') +
         '</td></tr>';
       return;
     }
@@ -1052,6 +1123,10 @@
       var key = 'local-' + i;
       return {
         key: key,
+        statusText: status,
+        pay: paymentBucket(order),
+        fulfil: order.fulfillment === 'pickup' ? 'pickup' : 'delivery',
+        day: localDay(order.date),
         invoice: invoice,
         orderNumber: order.orderNumber || '',
         date: dateLabel,
@@ -1088,6 +1163,10 @@
         var key = 'db-' + index;
         customerCache.push({
           key: key,
+          statusText: status,
+          pay: statusKey === 'cancelled' ? 'Cancelled' : '',
+          fulfil: '',
+          day: localDay(row.Order_Date),
           invoice: invoice,
           date: row.Order_Date || '',
           customer: customer,
@@ -1275,6 +1354,18 @@
       document.addEventListener('input', function (event) {
         if (!event.target || event.target.id !== 'sales-customer-search') return;
         paintCustomerSales(event.target.value);
+      });
+      document.addEventListener('change', function (event) {
+        if (!event.target || CUSTOMER_FILTER_IDS.indexOf(event.target.id) < 0) return;
+        paintCustomerSales();
+      });
+      document.addEventListener('click', function (event) {
+        if (!event.target || event.target.id !== 'sales-customer-clear') return;
+        CUSTOMER_FILTER_IDS.concat(['sales-customer-search']).forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        paintCustomerSales();
       });
       document.addEventListener('click', function (event) {
         if (!document.getElementById('customer-sales-tbody')) return;

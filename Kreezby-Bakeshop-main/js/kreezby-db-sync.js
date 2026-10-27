@@ -995,8 +995,20 @@
       current = {};
     }
     var changed = false;
+    var allCount = ["admins", "staff", "retailers", "customers"].reduce(function (n, b) { return n + (Array.isArray(accounts[b]) ? accounts[b].length : 0); }, 0);
     ["admins", "staff", "retailers", "customers"].forEach(function (bucket) {
-      if (!Array.isArray(accounts[bucket]) || !accounts[bucket].length) return;
+      if (!Array.isArray(accounts[bucket])) return;
+      // An account that came from MongoDB and is no longer there was deleted: drop it here too.
+      if (allCount && Array.isArray(current[bucket])) {
+        var live = {};
+        accounts[bucket].forEach(function (row) { var k = accountRowKey(row); if (k) live[k.toLowerCase()] = 1; });
+        var kept = current[bucket].filter(function (row) {
+          var k = accountRowKey(row);
+          return !(row && row.fromMongo === true && k && !live[k.toLowerCase()]);
+        });
+        if (kept.length !== current[bucket].length) { current[bucket] = kept; changed = true; }
+      }
+      if (!accounts[bucket].length) return;
       var merged = mergeAccountLists(current[bucket], accounts[bucket]);
       if (JSON.stringify(current[bucket] || []) !== JSON.stringify(merged)) changed = true;
       current[bucket] = merged;
