@@ -134,16 +134,31 @@
         }).filter(Boolean);
     }
 
-    // Test orders placed earlier under this name are left out of every dashboard figure.
-    var EXCLUDED_NAMES = ['mark anthony cruz'];
+    // Test orders (Mark Anthony Cruz) and the sample orders that ship with the system are never counted.
+    var SEED_CODES = {
+        'ORD-2026-1042': 1, 'ORD-2026-1038': 1, 'ORD-2026-1021': 1, 'ORD-2026-1015': 1, 'ORD-2026-1008': 1, 'ORD-2026-0102': 1, 'ORD-2026-0001': 1,
+        'PO-SIDC-001': 1, 'PO-MCC-001': 1, 'PO-QCM-001': 1, 'PO-STAFF-SIDC': 1, 'PO-STAFF-MCC': 1,
+        'PO-C-MS-001': 1, 'PO-C-MS-002': 1, 'PO-C-MS-003': 1, 'PO-C-KR-001': 1, 'PO-C-BA-001': 1,
+        'recv-flour-001': 1, 'recv-sidc-001': 1, 'recv-qcm-001': 1, 'recv-maria-001': 1,
+        'BO-SIDC-001': 1, 'BO-MCC-001': 1, 'BO-C-MS-001': 1, 'RET-SIDC-001': 1, 'RET-MS-001': 1
+    };
 
-    function isExcludedOrder(order) {
+    function plainText(v) { return String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9@. ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+    function isTestCustomer(order, code) {
         var ship = order.shippingInfo || {};
-        var names = [ship.fullName, order.accountName, order.customerName, order.poEntity, order.entity, order.name, order.userName]
-            .map(function (v) { return String(v || '').toLowerCase().replace(/\s+/g, ' ').trim(); });
-        return names.some(function (n) {
-            return n && EXCLUDED_NAMES.some(function (x) { return n === x || n.indexOf(x) >= 0; });
+        var fields = [ship.fullName, order.accountName, order.customerName, order.poEntity, order.entity, order.name, order.userName,
+            order.customerEmail, order.customerId, order.username, order.email, ship.email, code]
+            .map(plainText).filter(Boolean);
+        return fields.some(function (t) {
+            return (t.indexOf('mark') >= 0 && t.indexOf('cruz') >= 0) || t.indexOf('mark_cruz') >= 0;
         });
+    }
+
+    function isExcludedOrder(order, code) {
+        var keys = [code, order.orderNumber, order.poCode, order.code];
+        if (keys.some(function (k) { return k && SEED_CODES[String(k)]; })) return true;
+        return isTestCustomer(order, code);
     }
 
     function isAwaitingPayment(order) {
@@ -161,7 +176,7 @@
             if (order.orderNumber) seen[String(order.orderNumber)] = true;
             if (order.poCode) seen[String(order.poCode)] = true;
             if (order.receiptNumber) seen[String(order.receiptNumber)] = true;
-            if (isExcludedOrder(order)) return;
+            if (isExcludedOrder(order, order.orderNumber)) return;
             if (isAwaitingPayment(order)) return; // not an order until it is paid
             fn({
                 status: order.status,
@@ -175,7 +190,7 @@
             var order = pos[code];
             if (!order) return;
             if (seen[code] || (order.shopOrderNumber && seen[String(order.shopOrderNumber)]) || (order.code && seen[String(order.code)])) return;
-            if (isExcludedOrder(order)) return;
+            if (isExcludedOrder(order, code)) return;
             var items = lineItems(order.items);
             var total = items.reduce(function (sum, item) { return sum + item.qty * item.cost; }, 0);
             fn({ status: order.status, date: parseDay(order.dateCreated || order.date), items: items, total: total });
@@ -184,6 +199,7 @@
         Object.keys(bos || {}).forEach(function (code) {
             var order = bos[code];
             if (!order) return;
+            if (isExcludedOrder(order, code)) return;
             fn({ status: order.status, date: parseDay(order.dateCreated || order.date || order.expectedDelivery), items: [], total: 0 });
         });
     }
