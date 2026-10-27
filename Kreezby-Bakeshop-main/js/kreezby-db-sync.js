@@ -448,7 +448,18 @@
   var applyingRemote = false;
   var pending = {};
   var timer = null;
-  var known = {};
+  // Keys this browser has seen on the server, remembered between page loads. A key that was on the
+  // server and is gone now was deleted there (for example in MongoDB Atlas): it is removed here
+  // too instead of being uploaded again.
+  var KNOWN_KEY = "kzKnownKeys";
+  var known = (function () {
+    try {
+      var list = JSON.parse(localStorage.getItem("kzKnownKeys") || "[]");
+      var map = {};
+      (Array.isArray(list) ? list : []).forEach(function (k) { if (typeof k === "string") map[k] = 1; });
+      return map;
+    } catch (e) { return {}; }
+  })();
   var localWriteAt = {};
   var inflight = {};
   // Stock documents are merged on the server against the copy this browser last saw, so two
@@ -870,6 +881,7 @@
         Object.keys(known).forEach(function (key) {
           if (isBusy(key)) return;
           if (Object.prototype.hasOwnProperty.call(items, key)) return;
+          if (nativeGet.call(localStorage, key) !== null) changedKeys.push(key);
           nativeRemove.call(localStorage, key);
         });
       }
@@ -909,6 +921,7 @@
     Object.keys(items).forEach(function (key) {
       if (isShared(key)) known[key] = 1;
     });
+    try { nativeSet.call(localStorage, KNOWN_KEY, JSON.stringify(Object.keys(known))); } catch (e) { /* optional */ }
 
     if (!uploadMissing) return;
     for (var i = 0; i < localStorage.length; i++) {

@@ -43,6 +43,7 @@ function isEphemeralKey(key) {
 
 const app = express();
 let stateVersion = 0;
+let lastDocCount = null;
 let cache = {};
 let mongoReady = false;
 
@@ -223,7 +224,7 @@ async function saveStockKey(key, incoming, baseText) {
     const filter = curText == null ? { _id: key } : { _id: key, value: curText };
     try {
       const result = await col.updateOne(filter, { $set: { value: finalText, updatedAt: new Date() } }, { upsert: curText == null });
-      if (result.matchedCount || result.upsertedCount) { cache[key] = finalText; return finalText; }
+      if (result.matchedCount || result.upsertedCount) { cache[key] = finalText; cacheTouched[key] = Date.now(); return finalText; }
     } catch (error) {
       if (!(error && error.code === 11000)) throw error;
     }
@@ -624,11 +625,20 @@ async function upsertAccountRecord(bucket, input) {
   return { status: 200, body: { ok: true, account: publicAccount({ ...stored, _id: doc.id }), bucket } };
 }
 
+// Keys this server wrote a moment ago: a refresh that raced with the write must not bring back the old value.
+const cacheTouched = {};
+
 async function refreshCache() {
   const docs = await collection().find({}).toArray();
   const next = {};
   for (const doc of docs) {
     if (typeof doc.value === "string") next[doc._id] = doc.value;
+  }
+  const now = Date.now();
+  for (const key of Object.keys(cacheTouched)) {
+    if (now - cacheTouched[key] > 5000) { delete cacheTouched[key]; continue; }
+    if (typeof cache[key] === "string") next[key] = cache[key];
+    else delete next[key];
   }
   cache = next;
 }
@@ -646,7 +656,15 @@ app.use(express.json({
 let lazyConnect = null;
 let lastCacheRefresh = 0;
 app.use("/api", async (req, res, next) => {
-  if (!SERVERLESS || !client) return next();
+  if (!client) return next();
+  if (!SERVERLESS) {
+    // Always-on server: re-read MongoDB so a document deleted or edited in Atlas shows up here too.
+    if (mongoReady && /^\/(state(?!-)|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
+      lastCacheRefresh = Date.now();
+      try { await refreshCache(); } catch (error) { /* keep the last copy */ }
+    }
+    return next();
+  }
   try {
     if (!mongoReady) {
       if (!lazyConnect) {
@@ -710,6 +728,14 @@ app.get("/api/state-version", async (req, res) => {
   try {
     const row = await collection().findOne({ _id: "state_meta" });
     if (row && row.value) stateVersion = Number(row.value) || stateVersion;
+    // A document added or deleted straight in MongoDB does not touch state_meta, so notice it by
+    // the document count and raise the version: every open page then reloads the shared data.
+    const docCount = await collection().countDocuments({ _id: { $not: { $regex: "^(kreezbyPresence_|state_meta$)" } } });
+    if (lastDocCount !== null && docCount !== lastDocCount) {
+      stateVersion = Date.now();
+      await collection().updateOne({ _id: "state_meta" }, { $set: { value: String(stateVersion) } }, { upsert: true });
+    }
+    lastDocCount = docCount;
   } catch (error) { /* use the last known version */ }
   res.json({ ok: true, version: Number(stateVersion) || 0 });
 });
@@ -717,10 +743,8 @@ app.get("/api/state-version", async (req, res) => {
 app.get("/api/state", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
-    if (SERVERLESS) {
-      await refreshCache();
-      lastCacheRefresh = Date.now();
-    }
+    await refreshCache();
+    lastCacheRefresh = Date.now();
     res.json({ items: cache });
   } catch (error) {
     res.status(503).json({ ok: false, error: error.message });
@@ -1133,6 +1157,7 @@ app.post("/api/customer-orders", async (req, res) => {
     const now = new Date();
     const ops = Object.entries(items).map(([key, value]) => {
       cache[key] = value;
+    cacheTouched[key] = Date.now();
       return { updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } };
     });
     stateVersion = Date.now();
@@ -1316,6 +1341,7 @@ app.post("/api/state", async (req, res) => {
       if (value == null) {
         ops.push({ deleteOne: { filter: { _id: key } } });
         delete cache[key];
+        cacheTouched[key] = Date.now();
         continue;
       }
       const stored = keepStoredRecords(key, dropRetired(key, String(value)));
@@ -1329,6 +1355,7 @@ app.post("/api/state", async (req, res) => {
         },
       });
       cache[key] = stored;
+      cacheTouched[key] = Date.now();
     }
 
     const merged = {};
@@ -2074,6 +2101,7 @@ async function settleQrOrder(paymentIntentId, outcome, details) {
   }
   const ops = Object.entries(items).map(([key, value]) => {
     cache[key] = value;
+    cacheTouched[key] = Date.now();
     return { updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } };
   });
   stateVersion = Date.now();
