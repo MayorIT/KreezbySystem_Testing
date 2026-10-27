@@ -117,12 +117,36 @@
         return api.salesTransactions() || [];
     }
 
+    function lineItems(raw) {
+        var list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.keys(raw).map(function (k) { return raw[k]; }) : []);
+        return list.map(function (item) {
+            if (!item) return null;
+            var qty = Number(item.qty != null ? item.qty : item.quantity) || 0;
+            var cost = Number(item.cost != null ? item.cost : (item.price != null ? item.price : item.unitPrice)) || 0;
+            return qty > 0 ? { name: item.name || item.product || item.flavor || 'Product', qty: qty, cost: cost } : null;
+        }).filter(Boolean);
+    }
+
+    function isAwaitingPayment(order) {
+        var ps = String(order.paymentStatus || '').toLowerCase();
+        var st = String(order.status || '').toLowerCase();
+        return ps === 'awaiting_payment' || st === 'awaiting payment';
+    }
+
+    // One record per real order: customer orders (online + POS) first, then retailer purchase orders.
+    // Purchase-order entries that mirror a customer order are skipped so nothing is counted twice.
     function eachOrder(fn) {
+        var seen = {};
         readJson('kreezbyOrders', []).forEach(function (order) {
             if (!order) return;
+            if (order.orderNumber) seen[String(order.orderNumber)] = true;
+            if (order.poCode) seen[String(order.poCode)] = true;
+            if (order.receiptNumber) seen[String(order.receiptNumber)] = true;
+            if (isAwaitingPayment(order)) return; // not an order until it is paid
             fn({
                 status: order.status,
                 date: parseDay(order.date),
+                items: lineItems(order.items),
                 total: Number(String(order.subtotal != null ? order.subtotal : order.total).replace(/[^\d.]/g, '')) || 0
             });
         });
@@ -130,19 +154,16 @@
         Object.keys(pos || {}).forEach(function (code) {
             var order = pos[code];
             if (!order) return;
-            var total = 0;
-            (order.items || []).forEach(function (item) {
-                var qty = Number(item.qty != null ? item.qty : item.quantity) || 0;
-                var cost = Number(item.cost != null ? item.cost : item.price) || 0;
-                total += qty * cost;
-            });
-            fn({ status: order.status, date: parseDay(order.dateCreated || order.date), total: total });
+            if (seen[code] || (order.shopOrderNumber && seen[String(order.shopOrderNumber)]) || (order.code && seen[String(order.code)])) return;
+            var items = lineItems(order.items);
+            var total = items.reduce(function (sum, item) { return sum + item.qty * item.cost; }, 0);
+            fn({ status: order.status, date: parseDay(order.dateCreated || order.date), items: items, total: total });
         });
         var bos = readJson('kreezby-bo-orders-v1', {});
         Object.keys(bos || {}).forEach(function (code) {
             var order = bos[code];
             if (!order) return;
-            fn({ status: order.status, date: parseDay(order.dateCreated || order.date || order.expectedDelivery), total: 0 });
+            fn({ status: order.status, date: parseDay(order.dateCreated || order.date || order.expectedDelivery), items: [], total: 0 });
         });
     }
 
@@ -155,11 +176,6 @@
 
     function latestDataDay() {
         var latest = '';
-        salesRows().forEach(function (row) {
-            if (!(Number(row.quantity_sold) > 0)) return; // empty placeholder days are not data
-            var day = parseDay(row.sales_date);
-            if (day && day > latest) latest = day;
-        });
         eachOrder(function (order) {
             if (order.date && order.date > latest) latest = order.date;
         });
@@ -225,38 +241,33 @@
         var prior = previousMonth(state.from);
         var sales = { value: 0, units: 0, byDay: {}, byProduct: {} };
         var priorSales = { value: 0, units: 0, byProduct: {} };
-        salesRows().forEach(function (row) {
-            var day = parseDay(row.sales_date);
-            var qty = Number(row.quantity_sold) || 0;
-            var value = qty * priceFor(row.product_id);
-            var name = 'Product';
-            var api = dict();
-            if (api && api.productById) {
-                var product = api.productById(row.product_id);
-                if (product && product.product_name) name = product.product_name;
-            }
-            var bucket = inRange(day, state.from, state.to) ? sales : (inRange(day, prior.from, prior.to) ? priorSales : null);
-            if (!bucket) return;
-            bucket.value += value;
-            bucket.units += qty;
-            if (bucket === sales) {
-                sales.byDay[day] = (sales.byDay[day] || 0) + value;
-            }
-            var productBucket = bucket.byProduct[row.product_id] || { id: row.product_id, name: name, units: 0, value: 0 };
-            productBucket.units += qty;
-            productBucket.value += value;
-            bucket.byProduct[row.product_id] = productBucket;
-        });
-
         var orders = { total: 0, completed: 0, processing: 0, cancelled: 0 };
         var priorOrders = 0;
         eachOrder(function (order) {
-            if (inRange(order.date, state.from, state.to)) {
+            var bucketName = statusBucket(order.status);
+            var current = inRange(order.date, state.from, state.to);
+            var earlier = !current && inRange(order.date, prior.from, prior.to);
+            if (!current && !earlier) return;
+            if (current) {
                 orders.total += 1;
-                orders[statusBucket(order.status)] += 1;
-            } else if (inRange(order.date, prior.from, prior.to)) {
+                orders[bucketName] += 1;
+            } else {
                 priorOrders += 1;
             }
+            // Cancelled orders sold nothing: products sold and sales come from the same orders counted here.
+            if (bucketName === 'cancelled') return;
+            var target = current ? sales : priorSales;
+            order.items.forEach(function (item) {
+                var value = item.qty * item.cost;
+                target.units += item.qty;
+                target.value += value;
+                if (current) sales.byDay[order.date] = (sales.byDay[order.date] || 0) + value;
+                var key = String(item.name);
+                var entry = target.byProduct[key] || { id: key, name: item.name, units: 0, value: 0 };
+                entry.units += item.qty;
+                entry.value += value;
+                target.byProduct[key] = entry;
+            });
         });
 
         var stocks = stockRows();
