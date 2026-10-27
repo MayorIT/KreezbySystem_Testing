@@ -1390,6 +1390,18 @@ function showQrSave(qrImage, orderNumber) {
         downloadQrImage(qrImage, fileName);
     };
     box.hidden = false;
+    const cancelBtn = document.getElementById('paymongo-cancel-order');
+    if (cancelBtn && orderNumber) {
+        cancelBtn.hidden = false;
+        cancelBtn.onclick = function () {
+            const api = window.KreezbyCustomerOrders;
+            if (!api || typeof api.cancelOrder !== 'function') return;
+            if (!api.cancelOrder(orderNumber)) return;
+            try { if (typeof paymongoPollTimer !== 'undefined' && paymongoPollTimer) clearInterval(paymongoPollTimer); } catch (error) {}
+            try { sessionStorage.removeItem(PAYMONGO_DRAFT_KEY); } catch (error) {}
+            window.location.href = 'customer.html';
+        };
+    }
     if (note) note.textContent = orderNumber ? ('Order ' + orderNumber + ' is saved and awaiting payment.') : '';
     if (isPhoneScreen()) {
         const frame = document.querySelector('.paymongo-qr-frame');
@@ -1415,6 +1427,7 @@ function markQrOrderPaid(orderNumber, payment) {
     const orders = parseStoredJson('kreezbyOrders', []);
     const order = orders.find(function (row) { return row && row.orderNumber === orderNumber; });
     try { sessionStorage.removeItem(PAYMONGO_DRAFT_KEY); } catch (error) {}
+    if (order && order.status === 'Cancelled') return;
     if (!order) {
         showCheckoutDialog('Your payment went through. Order ' + orderNumber + ' will show as paid in My Orders.', { type: 'success', title: 'Payment Received' })
             .then(function () { window.location.href = 'customer.html'; });

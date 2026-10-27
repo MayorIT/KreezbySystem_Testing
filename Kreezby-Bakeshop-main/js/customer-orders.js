@@ -208,6 +208,108 @@
         (document.head || document.documentElement).appendChild(s);
     })();
 
+    function isCancelled(order) {
+        return !!(order && String(order.status || '').toLowerCase() === 'cancelled');
+    }
+
+    // A customer may cancel until the order ships, and only while no online payment has been received.
+    function cancelBlockReason(order) {
+        if (!order) return 'Order not found.';
+        if (isCancelled(order)) return 'This order is already cancelled.';
+        var status = String(order.status || '');
+        if (status === 'Shipped' || status === 'Completed') return 'This order has already been shipped, so it can no longer be cancelled.';
+        if (order.trackingNumber) return 'This order already has a courier tracking number, so it can no longer be cancelled.';
+        var method = String(order.paymentMethod || '').toLowerCase();
+        var online = method === 'paymongo' || method === 'gcash';
+        var paid = String(order.paymentStatus || '').toLowerCase() === 'paid' || webpayPaid(order) || (online && order.paymentVerified);
+        if (paid) return 'This order is already paid. Message us in the Inbox and we will help with a cancellation or refund.';
+        return '';
+    }
+
+    function ensureDictionary(done) {
+        if (window.KreezbyDictionary) { done(); return; }
+        var tag = document.createElement('script');
+        tag.src = '../js/kreezby-data-dictionary.js?v=20261027stock1';
+        tag.onload = done;
+        tag.onerror = done;
+        document.body.appendChild(tag);
+    }
+
+    function cancelOrder(orderNumber) {
+        var all = loadAllOrders();
+        var order = all.find(function (o) { return o && o.orderNumber === orderNumber; });
+        var mine = findOrder(orderNumber);
+        if (!order || !mine) return false;
+        var reason = cancelBlockReason(order);
+        if (reason) { window.alert(reason); return false; }
+        var waiting = order.paymentStatus === 'awaiting_payment';
+        if (!window.confirm('Cancel order ' + orderNumber + '?' + (waiting ? ' The payment QR code will stop working.' : '') + ' This cannot be undone.')) return false;
+        var now = new Date().toISOString();
+        var wasDeducted = !!order.inventoryDeducted;
+        order.status = 'Cancelled';
+        order.cancelledAt = now;
+        order.cancelledBy = 'customer';
+        order.statusUpdatedAt = now;
+        if (order.paymentStatus !== 'paid') order.paymentStatus = 'cancelled';
+        if (order.paymongo) { order.paymongo = Object.assign({}, order.paymongo, { status: 'cancelled' }); delete order.paymongo.qrImage; }
+        order.inventoryDeducted = false;
+        localStorage.setItem('kreezbyOrders', JSON.stringify(all));
+        try {
+            var po = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}');
+            if (po && po[orderNumber]) {
+                po[orderNumber].status = 'Cancelled';
+                po[orderNumber].inventoryDeducted = false;
+                localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(po));
+            }
+        } catch (e) { /* optional */ }
+        try {
+            ['kreezbyCustomerReceipts', 'kreezbyOwnerReceipts'].forEach(function (key) {
+                var list = JSON.parse(localStorage.getItem(key) || '[]');
+                var touched = false;
+                (Array.isArray(list) ? list : []).forEach(function (r) {
+                    if (r && r.orderNumber === orderNumber) { r.paymentStatus = 'Cancelled'; touched = true; }
+                });
+                if (touched) localStorage.setItem(key, JSON.stringify(list));
+            });
+        } catch (e) { /* optional */ }
+        try {
+            var notes = JSON.parse(localStorage.getItem('kreezbyNotifications') || '[]');
+            if (Array.isArray(notes)) {
+                notes.unshift({ id: 'n-cancel-' + orderNumber, title: 'Order cancelled', description: 'Order ' + orderNumber + ' was cancelled by the customer.', timestamp: now, read: false, source: 'order' });
+                localStorage.setItem('kreezbyNotifications', JSON.stringify(notes));
+            }
+        } catch (e) { /* optional */ }
+        // Put the stock back if this order had already taken it.
+        if (wasDeducted) {
+            ensureDictionary(function () {
+                var dict = window.KreezbyDictionary;
+                if (!dict || typeof dict.undoSale !== 'function') return;
+                Object.keys(order.items || {}).forEach(function (key) {
+                    var item = order.items[key];
+                    if (item && item.name) dict.undoSale(item.name, item.qty, String(order.date || '').slice(0, 10));
+                });
+            });
+        }
+        try { sessionStorage.removeItem('kreezbyPaymongoCheckout'); } catch (e) { /* optional */ }
+        document.dispatchEvent(new CustomEvent('kreezby-orders-updated'));
+        if (document.getElementById('orders-detail-view') && currentDetailOrder === orderNumber) showOrderDetail(orderNumber);
+        renderOrders(currentFilter);
+        return true;
+    }
+
+    function renderCancelSection(order) {
+        if (isCancelled(order)) return '';
+        if (cancelBlockReason(order)) {
+            var s = String(order.status || '');
+            if (s === 'Shipped' || s === 'Completed') return '';
+            return '<section class="order-detail-section"><p class="order-cancel-note">' + escapeHtml(cancelBlockReason(order)) + '</p></section>';
+        }
+        var waiting = order.paymentStatus === 'awaiting_payment';
+        return '<section class="order-detail-section order-cancel-box">' +
+            '<button type="button" class="order-cancel-btn" data-cancel-order="' + escapeHtml(order.orderNumber) + '">' + (waiting ? 'Cancel payment and order' : 'Cancel order') + '</button>' +
+            '<p class="order-cancel-note">You can cancel until the order ships.</p></section>';
+    }
+
     function isPaymentFailed(order) {
         return !!(order && (order.paymentStatus === 'failed' || order.paymentFailed));
     }
@@ -255,6 +357,7 @@
     }
 
     function orderListNote(order) {
+        if (isCancelled(order)) return { kind: 'alert', text: 'You cancelled this order.' };
         if (isPaymentFailed(order)) {
             return { kind: 'alert', text: 'GCash payment was not received. Open this order to send it again.' };
         }
@@ -343,6 +446,7 @@
     }
 
     function renderStepper(order) {
+        if (isCancelled(order)) return '';
         var activeIdx = STATUS_STEPS.indexOf(order.status);
         if (activeIdx < 0) activeIdx = 0;
 
@@ -567,6 +671,8 @@
                         '<p>Open GCash (or Maya or your bank app), tap <strong>Pay QR</strong>, then <strong>Upload QR</strong> and pick the saved image. This order turns Paid by itself.</p>' +
                       '</div>'
                     : '')
+            : order.paymentStatus === 'cancelled'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Cancelled</span></span></div>'
             : order.paymentStatus === 'expired'
                 ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Payment expired</span></span></div>'
             : isPaymentFailed(order)
@@ -586,6 +692,7 @@
             '</div>' +
             '</section>' +
 
+            renderCancelSection(order) +
             '<section class="order-detail-section order-detail-info">' +
             '<div class="order-detail-info-row"><span>Order Number</span><span>' + order.orderNumber + '</span></div>' +
             (order.poCode ? '<div class="order-detail-info-row"><span>PO Code</span><span>' + order.poCode + '</span></div>' : '') +
@@ -597,6 +704,7 @@
 
     function statusMessage(order) {
         var status = order && order.status;
+        if (isCancelled(order)) return 'This order was cancelled. No payment is due.';
         if (status === 'Processing') {
             return showTransactionVerified(order)
                 ? 'Transaction verified. Your order is being prepared at Kreezby.'
@@ -728,7 +836,16 @@
         renderOrders(filter);
     }
 
+    function injectCancelStyle() {
+        if (document.getElementById('kz-cancel-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-cancel-style';
+        st.textContent = '.order-cancel-btn{width:100%;padding:12px 16px;border:1px solid #d92d20;background:#fff;color:#b42318;border-radius:10px;font:600 15px inherit;cursor:pointer}.order-cancel-btn:hover{background:#fef3f2}.order-cancel-note{margin:8px 0 0;font-size:13px;color:#6b7280;text-align:center}.order-status-pill--cancelled{background:#fee4e2;color:#b42318}';
+        document.head.appendChild(st);
+    }
+
     function bindOrdersUi() {
+        injectCancelStyle();
         var container = document.getElementById('orders-container');
         if (container && !container.dataset.bound) {
             container.dataset.bound = '1';
@@ -750,6 +867,8 @@
         if (detailView && !detailView.dataset.bound) {
             detailView.dataset.bound = '1';
             detailView.addEventListener('click', function (event) {
+                var cancelBtn = event.target.closest('[data-cancel-order]');
+                if (cancelBtn) { cancelOrder(cancelBtn.getAttribute('data-cancel-order')); return; }
                 var star = event.target.closest('.review-star-btn');
                 if (!star) return;
                 var value = Number(star.getAttribute('data-star')) || 5;
@@ -786,7 +905,8 @@
         showOrderDetail: showOrderDetail,
         showListView: showListView,
         onOrdersModalOpen: onOrdersModalOpen,
-        refreshTrigger: updateOrdersTriggerState
+        refreshTrigger: updateOrdersTriggerState,
+        cancelOrder: cancelOrder
     };
 
     window.filterOrders = filterOrders;

@@ -2023,6 +2023,7 @@ async function settleQrOrder(paymentIntentId, outcome, details) {
   if (!Array.isArray(orders)) return null;
   const order = orders.find((o) => o && o.paymongo && o.paymongo.paymentIntentId === paymentIntentId);
   if (!order || order.paymentStatus === "paid") return order || null;
+  if (order.status === "Cancelled") return order; // customer cancelled: never flip it back to paid
   const now = new Date();
   if (outcome === "paid") {
     order.paymentStatus = "paid";
