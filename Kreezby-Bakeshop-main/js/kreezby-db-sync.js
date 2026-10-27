@@ -1075,8 +1075,8 @@
     };
     xhr.send();
   }
-  setInterval(pollStateVersion, 2000);
-  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 2000);
+  setInterval(pollStateVersion, 3000);
+  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 8000);
 })();
 
 (function () {

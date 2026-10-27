@@ -262,12 +262,12 @@
                     '<p><b>' + a.fastShops + '</b> fast · <b>' + a.slowShops + '</b> slow shops</p></div>';
             }).join('') + '</div>' +
             '<h4 class="ri-h">By shop</h4>' +
-            '<div style="overflow-x:auto"><table class="ri-table"><thead><tr><th>Shop</th><th>Area</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Sold</th><th class="n">Every</th><th>Status</th><th>Why / what to do</th></tr></thead><tbody>' +
+            '<div style="overflow-x:auto"><table class="ri-table"><thead><tr><th>Shop</th><th>Area</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Sold</th><th class="n">Every</th><th>Status</th></tr></thead><tbody>' +
             shops.map(function (g) {
                 return '<tr><td><strong>' + esc(g.shop) + '</strong><br><small style="color:#8a817c">Last: ' + esc(g.last ? dateLabel(g.last) : '—') + '</small></td>' +
                     '<td>' + esc(g.area) + '</td><td class="n">' + pcs(g.ordered) + '</td><td class="n">' + pcs(g.po) + '</td><td class="n">' + pcs(g.expired) +
                     '</td><td class="n">' + (g.ordered ? pct(g.sellRate) : '—') + '</td><td class="n">' + (g.interval ? g.interval + ' days' : '—') +
-                    '</td><td>' + pill(g.status) + '</td><td><ul>' + g.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></td></tr>';
+                    '</td><td>' + pill(g.status) + '</td></tr>';
             }).join('') + '</tbody></table></div>';
     }
 

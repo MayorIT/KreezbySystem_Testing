@@ -80,12 +80,14 @@
             var match = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
             var visible = match && shown < size;
             row.hidden = !visible;
+            if (match) {
+                stock += Number(row.getAttribute('data-stock')) || 0;
+                sales += Number(row.getAttribute('data-sales')) || 0;
+            }
             if (!visible) return;
             shown += 1;
             var num = row.querySelector('.po-col-num');
             if (num) num.textContent = String(shown);
-            stock += Number(row.getAttribute('data-stock')) || 0;
-            sales += Number(row.getAttribute('data-sales')) || 0;
         });
         var count = panel.querySelector('.po-list-count');
         if (count) count.textContent = shown ? String(shown) : '';
@@ -100,10 +102,6 @@
         }
         if (!shown) {
             totals.textContent = 'No flavors match this search.';
-            return;
-        }
-        if (!query && shown === rows.length) {
-            totals.textContent = '1,290 stock · 4,880 sales';
             return;
         }
         totals.textContent = formatCount(stock) + ' stock · ' + formatCount(sales) + ' sales';
@@ -178,6 +176,22 @@
     }
 
     // Retailer Insights tab (retailer-insights.js) — loaded here too so it works after in-app navigation.
+    // Live Sales Analysis (database-driven table) — also loaded here so it works after in-app navigation.
+    function ensureSalesLive() {
+        if (!document.getElementById('sales-analysis-table')) return;
+        if (window.KreezbySalesAnalysis) { window.KreezbySalesAnalysis.refresh(); return; }
+        function add(id, src, done) {
+            if (document.getElementById(id)) { if (done) done(); return; }
+            var t = document.createElement('script');
+            t.id = id; t.src = src;
+            if (done) t.onload = done;
+            document.body.appendChild(t);
+        }
+        function live() { add('kreezby-sales-live-script', '../js/sales-analysis-live.js?v=20261027live'); }
+        if (window.KreezbyDictionary) live();
+        else add('kreezby-dictionary-script-sa', '../js/kreezby-data-dictionary.js?v=20261027stock1', live);
+    }
+
     function ensureRetailerInsights() {
         if (!document.querySelector('[data-retailer-insights]')) return;
         if (window.KreezbyRetailerInsights) { window.KreezbyRetailerInsights.boot(); return; }
@@ -191,6 +205,7 @@
     function bootSalesAnalysis() {
         ensureAnalysisTheme();
         ensureRetailerInsights();
+        ensureSalesLive();
         if (document.querySelector('#sales-analysis-master .insights-panel')) {
             var tab = requestedTab();
             showInsightsTab(tab, false);

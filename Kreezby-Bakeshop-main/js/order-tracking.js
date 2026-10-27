@@ -274,6 +274,35 @@
         if (scroll) scroll.scrollTop = 0;
     }
 
+    /* One plain payment state for an order, from whatever the checkout, PayMongo or staff recorded. */
+    function paymentInfo(order) {
+        var ps = String(order.paymentStatus || '').toLowerCase();
+        var method = String(order.paymentMethod || '').toLowerCase();
+        if (ps === 'paid' || ps === 'verified' || (order.paymentVerified && ps !== 'failed' && ps !== 'expired' && ps !== 'awaiting_payment')) {
+            return { key: 'paid', label: 'Paid' };
+        }
+        if (ps === 'awaiting_payment') return { key: 'awaiting', label: 'Awaiting payment' };
+        if (ps === 'expired') return { key: 'expired', label: 'Payment expired' };
+        if (ps === 'failed' || order.paymentFailed) return { key: 'failed', label: 'Payment failed' };
+        if (method === 'cash_on_delivery' || method === 'cod') return { key: 'cod', label: 'Pay on delivery' };
+        return { key: 'pending', label: 'Unpaid' };
+    }
+
+    (function paymentStyle() {
+        if (document.getElementById('ot-pay-style')) return;
+        var st = document.createElement('style');
+        st.id = 'ot-pay-style';
+        st.textContent = '.ot-pay{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#eee;color:#555}' +
+            '.ot-pay--paid{background:#e6f4ea;color:#1b6e35}.ot-pay--awaiting,.ot-pay--pending{background:#fff4d6;color:#8a6100}' +
+            '.ot-pay--expired,.ot-pay--failed{background:#fde8e8;color:#b3261e}.ot-pay--cod{background:#e8f0fe;color:#1a56b0}';
+        (document.head || document.documentElement).appendChild(st);
+    })();
+
+    function paymentPill(order) {
+        var info = paymentInfo(order);
+        return '<span class="ot-pay ot-pay--' + info.key + '">' + escapeHtml(info.label) + '</span>';
+    }
+
     function poStatusClass(status) {
         if (status === 'Shipped') return 'shipped';
         if (status === 'Completed') return 'received';
@@ -422,7 +451,8 @@
                 return (
                     (o.orderNumber || '').toLowerCase().indexOf(q) !== -1 ||
                     (o.poCode || '').toLowerCase().indexOf(q) !== -1 ||
-                    (o.trackingNumber || '').toLowerCase().indexOf(q) !== -1
+                    (o.trackingNumber || '').toLowerCase().indexOf(q) !== -1 ||
+                    paymentInfo(o).label.toLowerCase().indexOf(q) !== -1
                 );
             });
         }
@@ -481,7 +511,7 @@
                 '<td>' + formatShortDate(order.date) + '</td>' +
                 '<td><a href="#" class="po-code-link" data-ot-open="' + escapeHtml(order.orderNumber) + '">' + escapeHtml(order.orderNumber) + '</a></td>' +
                 '<td class="ot-who"><strong>' + who + '</strong>' + (meta ? '<br>' + meta : '') + '</td>' +
-                '<td class="ot-status"><span class="status-pill-badge ' + poStatusClass(order.status) + '">' + escapeHtml(order.status || 'Processing') + '</span></td>' +
+                '<td class="ot-status"><span class="status-pill-badge ' + poStatusClass(order.status) + '">' + escapeHtml(order.status || 'Processing') + '</span><br>' + paymentPill(order) + '</td>' +
                 '<td>' + tracking + '</td>' +
                 '<td class="ot-action"><button type="button" class="action-trigger-btn" data-ot-open="' + escapeHtml(order.orderNumber) + '">View</button></td>' +
                 '</tr>';
@@ -523,7 +553,7 @@
                 '<td>Confidential</td>' +
                 '<td>' + formatDate(order.date) + '</td>' +
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
-                    escapeHtml(order.status || 'Processing') + '</span></td>' +
+                    escapeHtml(order.status || 'Processing') + '</span><br>' + paymentPill(order) + '</td>' +
                 '<td>' + tracking + '</td>' +
                 '<td>' + escapeHtml(carrierOf(order)) + '</td>' +
                 '</tr>'
@@ -570,6 +600,10 @@
                     '<input type="text" readonly value="' + escapeHtml(pickupText(order)) + '">' +
                   '</div>'
                 : '') +
+            '<div class="order-tracking-form-group">' +
+                '<label>Payment</label>' +
+                '<input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(paymentInfo(order).label + (order.paidAt ? ' · ' + formatDate(order.paidAt) : '')) + '">' +
+            '</div>' +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-status">Order status</label>' +
                 '<input type="text" id="ot-status" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.status || 'Processing') + '">' +
@@ -641,6 +675,12 @@
         var pickup = isPickupOrder(order);
         if (pickup) return;
         var nextStatus = order.status || 'Processing';
+        var payKey = paymentInfo(order).key;
+        var onlineMethod = /paymongo|gcash/i.test(String(order.paymentMethod || ''));
+        if (tracking && onlineMethod && payKey !== 'paid') {
+            showToast(root, 'This order is not paid yet (' + paymentInfo(order).label + '). Add the tracking ID once payment is received.');
+            return;
+        }
         if (tracking && nextStatus === 'Processing') nextStatus = 'Shipped';
         if (!tracking && nextStatus === 'Shipped') nextStatus = 'Processing';
 
@@ -1052,6 +1092,11 @@
     }
 
     document.addEventListener('kreezby:page-load', init);
+    // A payment confirmed on the server (PayMongo) or by another user shows here within seconds.
+    document.addEventListener('kreezby:remote-state', function (e) {
+        var keys = (e && e.detail && e.detail.keys) || [];
+        if (keys.indexOf(STORAGE_KEY) !== -1 || keys.indexOf(PO_STORAGE_KEY) !== -1) init();
+    });
     document.addEventListener('storage', function (e) {
         if (e.key === STORAGE_KEY || e.key === PO_STORAGE_KEY) init();
     });

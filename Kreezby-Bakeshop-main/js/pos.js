@@ -11,14 +11,57 @@
     }
 
     var SALES_KEY = 'kreezby_pos_sales_v1';
-    var PRODUCTS = [
-        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', price: 165, photo: 'chocolate-crinkles.jpg' },
+    // Every flavor Kreezby makes. The POS grid below shows the ones that are active in the database.
+    var ALL_PRODUCTS = [
+        { code: 'CRK-CHO-P', name: 'Chocolate Crinkles', price: 165, photo: 'crinkle-chocolate.jpg' },
         { code: 'CRK-ALM-P', name: 'Choco-Almond Crinkles', price: 165, photo: 'choco-almond-crinkles.jpg' },
+        { code: 'CRK-CSH-P', name: 'Choco-Cashew Crinkles', price: 165, photo: 'choco-cashew-crinkles.jpg' },
+        { code: 'CRK-STR-P', name: 'Strawberry Crinkles', price: 165, photo: 'strawberry-crinkles.jpg' },
+        { code: 'CRK-RV-P', name: 'Red Velvet Crinkles', price: 165, photo: 'red-velvet-crinkles.jpg' },
         { code: 'CRK-LEM-P', name: 'Lemon Crinkles', price: 165, photo: 'lemon-crinkles.jpg' },
-        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', price: 200, photo: 'choco-butternut-crinkles.jpg' },
+        { code: 'CRK-MEL-P', name: 'Melon Crinkles', price: 165, photo: 'melon-crinkles.jpg' },
+        { code: 'CRK-PAN-P', name: 'Pandan Crinkles', price: 165, photo: 'pandan-crinkles.jpg' },
+        { code: 'CRK-UBE-P', name: 'Ube Crinkles', price: 165, photo: 'ube-crinkles.jpg' },
         { code: 'CRK-MNG-J', name: 'Mango Crinkles', price: 165, photo: 'mango-crinkles.jpg' },
-        { code: 'CRK-UBE-P', name: 'Ube Crinkles', price: 165, photo: 'ube-crinkles.jpg' }
+        { code: 'CRK-BUT-J', name: 'Choco Butternut Crinkles', price: 200, photo: 'crinkle-choco-butternut.jpg' },
+        { code: 'CRK-AST-P', name: 'Assorted Crinkles', price: 165, photo: 'assorted-crinkles.jpg' }
     ];
+    var CORE_CODES = ['CRK-CHO-P', 'CRK-ALM-P', 'CRK-LEM-P', 'CRK-BUT-J', 'CRK-MNG-J', 'CRK-UBE-P'];
+    var PRODUCTS = ALL_PRODUCTS.filter(function (item) { return CORE_CODES.indexOf(item.code) >= 0; });
+
+    /* The sale list follows the database: the six core flavors, every flavor registered on the
+       Stock List (products_extra) and any flavor that has pouches in stock. Archived flavors are hidden. */
+    function syncProducts() {
+        var saved = readJson('kreezby_data_dictionary_v1', {}) || {};
+        var stock = saved.product_stock || {};
+        var prices = saved.product_prices || {};
+        var archived = readJson('kreezby_archived_stock', []);
+        if (!Array.isArray(archived)) archived = [];
+        var hidden = {};
+        archived.forEach(function (label) { hidden[plainName(label)] = true; });
+        var wanted = {};
+        CORE_CODES.forEach(function (code) { wanted[code] = true; });
+        (saved.products_extra || []).forEach(function (extra) { if (extra && extra.product_id) wanted[extra.product_id] = true; });
+        Object.keys(stock).forEach(function (code) { if (Number(stock[code]) > 0) wanted[code] = true; });
+        var next = ALL_PRODUCTS.filter(function (item) {
+            return wanted[item.code] && !hidden[plainName(item.name)] && !hidden[plainName(item.name.replace(/\s*crinkles$/i, ''))];
+        });
+        // a flavor registered under an id the POS does not know yet still gets a card
+        (saved.products_extra || []).forEach(function (extra) {
+            if (!extra || !extra.product_id || !extra.product_name) return;
+            if (ALL_PRODUCTS.some(function (item) { return item.code === extra.product_id; })) return;
+            if (hidden[plainName(extra.product_name)]) return;
+            next.push({ code: extra.product_id, name: extra.product_name, price: Number(extra.price) || 165, photo: 'assorted-crinkles.jpg' });
+        });
+        next.forEach(function (item) {
+            var custom = Number(prices[item.code]);
+            if (custom > 0) item.price = custom;
+        });
+        var same = next.length === PRODUCTS.length && next.every(function (item, i) { return PRODUCTS[i] && PRODUCTS[i].code === item.code && PRODUCTS[i].price === item.price; });
+        if (same) return;
+        PRODUCTS.length = 0;
+        next.forEach(function (item) { PRODUCTS.push(item); });
+    }
     var PAYMENTS = ['Cash', 'GCash'];
     var cart = {};
     var applyingStock = false;
@@ -84,8 +127,11 @@
 
     function knownProduct(name) {
         var wanted = plainName(name);
-        for (var i = 0; i < PRODUCTS.length; i++) {
-            if (plainName(PRODUCTS[i].name) === wanted) return PRODUCTS[i];
+        for (var i = 0; i < ALL_PRODUCTS.length; i++) {
+            if (plainName(ALL_PRODUCTS[i].name) === wanted) return ALL_PRODUCTS[i];
+        }
+        for (var j = 0; j < PRODUCTS.length; j++) {
+            if (plainName(PRODUCTS[j].name) === wanted) return PRODUCTS[j];
         }
         return null;
     }
@@ -191,7 +237,7 @@
         (lines || []).forEach(function (line) {
             var product = knownProduct(line.name);
             if (!product && line.code) {
-                product = PRODUCTS.filter(function (item) { return item.code === line.code; })[0] || null;
+                product = ALL_PRODUCTS.concat(PRODUCTS).filter(function (item) { return item.code === line.code; })[0] || null;
             }
             if (!product) return;
             matched = true;
@@ -317,6 +363,7 @@
     function render() {
         var root = document.getElementById('pos-master');
         if (!root || root.dataset.posReady !== '1') return;
+        syncProducts();
         var lines = cartLines();
         var total = cartTotal(lines);
         var productsHtml = PRODUCTS.map(function (product) {

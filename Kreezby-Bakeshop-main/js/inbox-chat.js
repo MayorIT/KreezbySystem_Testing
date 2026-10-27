@@ -20,6 +20,8 @@
         camera: '<svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
         file: '<svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>',
         archive: '<svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>',
+        trash: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+        lock: '<svg viewBox="0 0 24 24"><rect width="16" height="11" x="4" y="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
         check: '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
         mail: '<svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
         arrowLeft: '<svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>',
@@ -200,6 +202,31 @@
         );
     }
 
+    (function deleteStyle() {
+        if (document.getElementById('kz-inbox-delete-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-inbox-delete-style';
+        st.textContent = '.inbox-thread-delete:hover{background:#fdecea!important;color:#c62828!important}' +
+            '.inbox-thread-lock{align-self:center;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;color:#9ca3af;opacity:.7;cursor:help}' +
+            '.inbox-thread-lock svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}';
+        (document.head || document.documentElement).appendChild(st);
+    })();
+
+    /* Conversations about money are kept as transaction records and cannot be deleted. */
+    var PAYMENT_WORDS = /payment|paid\b|unpaid|gcash|paymongo|qr ?ph|receipt|refund|invoice|billing|transaction|check number|₱\s?\d|\bphp\s?\d/i;
+    function isPaymentThread(contact, thread) {
+        if (!contact) return false;
+        if (contact.channel === 'payment' || /^pay/i.test(String(contact.id || ''))) return true;
+        var text = [contact.name, contact.preview, contact.topic, contact.category, contact.helpTopic].join(' ');
+        if (PAYMENT_WORDS.test(text)) return true;
+        var list = (thread || []).concat(contact.messagesData || []);
+        for (var i = 0; i < list.length; i++) {
+            var m = list[i] || {};
+            if (PAYMENT_WORDS.test(String(m.text || '') + ' ' + String(m.topic || ''))) return true;
+        }
+        return false;
+    }
+
     function renderContacts(root, contacts, activeId) {
         var list = root.querySelector('#inbox-contact-list');
         var empty = root.querySelector('#inbox-threads-empty');
@@ -257,7 +284,10 @@
                 '</button>' +
                 '<button type="button" class="inbox-thread-archive" data-archive-id="' + escapeHtml(contact.id) + '" title="' + archiveLabel + '" aria-label="' + archiveLabel + '">' +
                     SVG.archive +
-                '</button>';
+                '</button>' +
+                (contact.__payLock
+                    ? '<span class="inbox-thread-lock" title="Payment conversations are protected and cannot be deleted" aria-label="Protected: payment conversation">' + SVG.lock + '</span>'
+                    : '<button type="button" class="inbox-thread-archive inbox-thread-delete" data-delete-id="' + escapeHtml(contact.id) + '" title="Delete conversation" aria-label="Delete conversation">' + SVG.trash + '</button>');
 
             list.insertBefore(row, empty);
         });
@@ -543,6 +573,20 @@
         var attachNoteTimer = 0;
         var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
 
+        // Deleted conversations are hidden for this account only (the records stay in the database).
+        var deletedKey = 'kreezbyInboxDeleted_' + role + '_' + (function () {
+            try {
+                var sess = JSON.parse(localStorage.getItem('kreezby_session') || 'null') || {};
+                return String(sess.userId || sess.id || sess.email || sess.username || 'me').replace(/[^A-Za-z0-9_-]/g, '');
+            } catch (e) { return 'me'; }
+        })();
+        function readDeleted() {
+            try { var d = JSON.parse(localStorage.getItem(deletedKey) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; }
+        }
+        function writeDeleted(map) {
+            try { localStorage.setItem(deletedKey, JSON.stringify(map)); } catch (e) { /* ignore */ }
+        }
+
         var messenger = mount.classList.contains('inbox-messenger');
 
         // Phones: like Messenger, the chat list and the open conversation take turns on screen.
@@ -633,7 +677,11 @@
         var hiddenSend = mount.querySelector('#inbox-send-btn');
 
         function visibleContacts() {
+            var removed = readDeleted();
             return contacts.filter(function (contact) {
+                var gone = removed[contact.id];
+                // a deleted chat comes back only when someone sends a newer message in it
+                if (gone && !(contact.updatedAt && contact.updatedAt > gone)) return false;
                 if (listFilter === 'resolved') {
                     if (!isHeadAdmin || !contact.helpResolved) return false;
                 } else if (contact.helpResolved) {
@@ -710,6 +758,7 @@
 
         function refreshContactList() {
             var shown = visibleContacts();
+            shown.forEach(function (contact) { contact.__payLock = isPaymentThread(contact, messages[contact.id]); });
             renderContacts(mount, shown, activeId);
             var empty = mount.querySelector('#inbox-threads-empty');
             if (empty) {
@@ -956,6 +1005,25 @@
                 selectContact(shown[0].id, { keepUnread: true });
             } else if (!shown.length) {
                 activeId = null;
+            }
+        }
+
+        function deleteConversation(id) {
+            var contact = getContact(id);
+            if (!contact) return;
+            if (isPaymentThread(contact, messages[contact.id])) return; // protected
+            if (!window.confirm('Delete the conversation with ' + contact.name + '? Payment conversations are never deleted.')) return;
+            var map = readDeleted();
+            map[id] = Date.now();
+            writeDeleted(map);
+            if (contact.helpTicket && window.KreezbyHelpQueue && contact.helpStatus !== 'active') { /* ticket record stays for the team */ }
+            refreshContactList();
+            var shown = visibleContacts();
+            if (shown.length) {
+                if (shown.every(function (item) { return item.id !== activeId; })) selectContact(shown[0].id, { keepUnread: true });
+            } else {
+                activeId = null;
+                if (typeof clearActive === 'function') { try { clearActive(); } catch (e) { /* optional */ } }
             }
         }
 
@@ -1385,7 +1453,14 @@
                     }
                 };
             });
-            mount.querySelectorAll('.inbox-thread-archive').forEach(function (btn) {
+            mount.querySelectorAll('.inbox-thread-delete').forEach(function (btn) {
+                btn.onclick = function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    deleteConversation(btn.getAttribute('data-delete-id'));
+                };
+            });
+            mount.querySelectorAll('.inbox-thread-archive:not(.inbox-thread-delete)').forEach(function (btn) {
                 btn.onclick = function (event) {
                     event.preventDefault();
                     event.stopPropagation();

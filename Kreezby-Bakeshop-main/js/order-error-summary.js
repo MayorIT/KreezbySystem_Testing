@@ -59,11 +59,13 @@
             '.kz-oe-stats{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 14px}' +
             '.kz-oe-stat{flex:1 1 160px;background:#fbf6f2;border:1px solid #efe6df;border-radius:12px;padding:10px 14px;color:#5d4037;font-size:13px}' +
             '.kz-oe-stat strong{display:block;font-size:20px;color:#3e2723;margin-top:2px}' +
-            '.kz-oe-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:0 0 14px}' +
+            '.kz-oe-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:0 0 16px;padding:12px 14px;background:#fff;border:1px solid #efe6df;border-radius:12px}' +
+            '.kz-oe-tools .kz-oe-grow{flex:1 1 220px}.kz-oe-tools .kz-oe-grow input{width:100%;box-sizing:border-box}' +
             '.kz-oe-tools label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#5d4037;text-transform:uppercase;letter-spacing:.03em}' +
-            '.kz-oe-tools select,.kz-oe-tools input{min-width:200px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0}' +
+            '.kz-oe-tools select,.kz-oe-tools input{min-width:150px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0}' +
             '.kz-oe-h{margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3e2723}' +
-            '.kz-oe-wrap{overflow-x:auto}' +
+            '.kz-oe-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}' +
+            'main.workspace-canvas,main.workspace-view-canvas{overflow-y:auto!important;min-height:0}' +
             '.kz-oe-table{width:100%;border-collapse:collapse;font-size:14px}' +
             '.kz-oe-table th,.kz-oe-table td{padding:9px 12px;border-bottom:1px solid #efe6df;text-align:left;vertical-align:top}' +
             '.kz-oe-table th{background:#fbf6f2;color:#5d4037;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}' +
@@ -80,7 +82,7 @@
             return {
                 date: String(r.reportDate || '').slice(0, 10),
                 retailer: (account && account.name) || '',
-                area: (account && account.area) || '',
+                area: r.area || r.areaLabel || (account && account.area) || '',
                 po: num(r.po),
                 r: num(r.replaced),
                 notes: r.notes || ''
@@ -110,6 +112,30 @@
         return rows.filter(function (row) { return row.date; });
     }
 
+    /* Month, From/To dates and free-text search, shared by both views. */
+    function readFilters(host) {
+        function val(sel) { var el = host.querySelector(sel); return el ? String(el.value || '') : ''; }
+        return { month: val('[data-oe-month]'), from: val('[data-oe-from]'), to: val('[data-oe-to]'), q: val('[data-oe-search]').toLowerCase().trim() };
+    }
+
+    function filterRows(rows, f) {
+        return rows.filter(function (row) {
+            if (f.month && row.date.slice(0, 7) !== f.month) return false;
+            if (f.from && row.date < f.from) return false;
+            if (f.to && row.date > f.to) return false;
+            if (!f.q) return true;
+            return [row.retailer, row.nameOnSheet, row.area, row.date, dateLabel(row.date), row.notes].join(' ').toLowerCase().indexOf(f.q) >= 0;
+        });
+    }
+
+    function emptyText(f, who) {
+        var parts = [];
+        if (f.month) parts.push('in ' + monthLabel(f.month));
+        if (f.from || f.to) parts.push('between ' + (f.from || 'the start') + ' and ' + (f.to || 'today'));
+        if (f.q) parts.push('matching "' + f.q + '"');
+        return 'No pull-outs or replacements recorded' + (who ? ' for ' + who : '') + (parts.length ? ' ' + parts.join(' ') : '') + '.';
+    }
+
     function months(rows) {
         var list = [];
         rows.forEach(function (row) {
@@ -137,34 +163,28 @@
     }
 
     function renderRetailer(host, state) {
-        var month = host.querySelector('[data-oe-month]').value;
-        var rows = state.rows.filter(function (row) { return !month || row.date.slice(0, 7) === month; })
-            .sort(function (a, b) { return b.date.localeCompare(a.date); });
+        var f = readFilters(host);
+        var rows = filterRows(state.rows, f).sort(function (a, b) { return b.date.localeCompare(a.date); });
         var body = host.querySelector('[data-oe-body]');
         if (!rows.length) {
-            body.innerHTML = '<p class="kz-oe-empty">No pull-outs or replacements recorded for your store' + (month ? ' in ' + esc(monthLabel(month)) : '') + '.</p>';
+            body.innerHTML = '<p class="kz-oe-empty">' + esc(emptyText(f, 'your store')) + '</p>';
             return;
         }
         var t = totals(rows);
         body.innerHTML = statsHtml(rows, '<div class="kz-oe-stat">Delivery dates<strong>' + rows.length + '</strong></div>') +
-            '<div class="kz-oe-wrap"><table class="kz-oe-table"><thead><tr><th>Delivery Date</th><th class="n">Pulled Out (P.O)</th><th class="n">Replaced (R)</th><th>Notes</th></tr></thead><tbody>' +
+            '<div class="kz-oe-wrap"><table class="kz-oe-table"><thead><tr><th>Delivery Date</th><th>Area</th><th class="n">Pulled Out (P.O)</th><th class="n">Replaced (R)</th><th>Notes</th></tr></thead><tbody>' +
             rows.map(function (row) {
-                return '<tr><td>' + dateLabel(row.date) + '</td><td class="n">' + pcs(row.po) + '</td><td class="n">' + pcs(row.r) + '</td><td>' + esc(row.notes || '—') + '</td></tr>';
+                return '<tr><td>' + dateLabel(row.date) + '</td><td>' + esc(row.area || '—') + '</td><td class="n">' + pcs(row.po) + '</td><td class="n">' + pcs(row.r) + '</td><td>' + esc(row.notes || '—') + '</td></tr>';
             }).join('') +
-            '</tbody><tfoot><tr><td>Total</td><td class="n">' + pcs(t.po) + '</td><td class="n">' + pcs(t.r) + '</td><td></td></tr></tfoot></table></div>';
+            '</tbody><tfoot><tr><td colspan="2">Total</td><td class="n">' + pcs(t.po) + '</td><td class="n">' + pcs(t.r) + '</td><td></td></tr></tfoot></table></div>';
     }
 
     function renderAdmin(host, state) {
-        var month = host.querySelector('[data-oe-month]').value;
-        var q = (host.querySelector('[data-oe-search]').value || '').toLowerCase().trim();
-        var rows = state.rows.filter(function (row) {
-            if (month && row.date.slice(0, 7) !== month) return false;
-            if (!q) return true;
-            return [row.retailer, row.nameOnSheet, row.area, row.date].join(' ').toLowerCase().indexOf(q) >= 0;
-        });
+        var f = readFilters(host);
+        var rows = filterRows(state.rows, f);
         var body = host.querySelector('[data-oe-body]');
         if (!rows.length) {
-            body.innerHTML = '<p class="kz-oe-empty">No pull-outs or replacements on the route sheets' + (month ? ' for ' + esc(monthLabel(month)) : '') + (q ? ' matching "' + esc(q) + '"' : '') + '.</p>';
+            body.innerHTML = '<p class="kz-oe-empty">' + esc(emptyText(f, '')) + '</p>';
             return;
         }
         var byRetailer = {};
@@ -206,15 +226,22 @@
         host.innerHTML =
             '<div class="kz-oe-tools">' +
                 '<label>Month<select data-oe-month><option value="">All months</option></select></label>' +
-                (mode === 'admin' ? '<label>Search<input type="search" data-oe-search placeholder="Retailer, route, date…"></label>' : '') +
+                '<label>From<input type="date" data-oe-from></label>' +
+                '<label>To<input type="date" data-oe-to></label>' +
+                '<label class="kz-oe-grow">Search<input type="search" data-oe-search placeholder="' + (mode === 'admin' ? 'Retailer, route, date, notes…' : 'Date, area, notes…') + '"></label>' +
             '</div>' +
             '<div data-oe-body><p class="kz-oe-empty">Loading pull-outs and replacements…</p></div>';
         var state = { rows: [] };
         var monthSel = host.querySelector('[data-oe-month]');
         var render = function () { (mode === 'admin' ? renderAdmin : renderRetailer)(host, state); };
         monthSel.addEventListener('change', render);
-        var search = host.querySelector('[data-oe-search]');
-        if (search) search.addEventListener('input', render);
+        var searchTimer = null;
+        host.querySelector('[data-oe-search]').addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(render, 120);
+        });
+        host.querySelector('[data-oe-from]').addEventListener('change', render);
+        host.querySelector('[data-oe-to]').addEventListener('change', render);
 
         var req = mode === 'admin' ? getJson('/api/sales-list') : getJson('/api/retailer-records');
         req.then(function (data) {
