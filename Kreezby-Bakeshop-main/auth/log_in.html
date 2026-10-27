@@ -108,7 +108,50 @@
 
                         <div class="auth-field">
                             <label class="auth-label" for="signup-birthday">Birthday</label>
-                            <input class="auth-input" id="signup-birthday" type="date" name="birthday">
+                            <input id="signup-birthday" type="hidden" name="birthday" value="">
+                            <div class="kz-bday" role="group" aria-label="Birthday">
+                                <select class="auth-input" id="bday-month" aria-label="Month"><option value="">Month</option></select>
+                                <select class="auth-input" id="bday-day" aria-label="Day"><option value="">Day</option></select>
+                                <select class="auth-input" id="bday-year" aria-label="Year"><option value="">Year</option></select>
+                            </div>
+                            <small class="kz-bday-hint">Optional. Pick month, day, then year.</small>
+                            <style>
+                                .kz-bday{display:grid;grid-template-columns:1.4fr 0.9fr 1.1fr;gap:8px}
+                                .kz-bday select{width:100%;min-width:0;padding-left:10px;padding-right:6px}
+                                .kz-bday-hint{display:block;margin-top:4px;font-size:12px;color:#6b7280}
+                            </style>
+                            <script>
+                            (function () {
+                                var mo = document.getElementById('bday-month'), dy = document.getElementById('bday-day'), yr = document.getElementById('bday-year'), out = document.getElementById('signup-birthday');
+                                if (!mo || !dy || !yr || !out) return;
+                                var names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                                names.forEach(function (n, i) { mo.appendChild(new Option(n, String(i + 1))); });
+                                var thisYear = new Date().getFullYear();
+                                for (var y = thisYear; y >= thisYear - 100; y--) yr.appendChild(new Option(String(y), String(y)));
+                                function fillDays() {
+                                    var keep = dy.value;
+                                    var y = Number(yr.value) || 2000, m = Number(mo.value) || 1;
+                                    var count = new Date(y, m, 0).getDate();
+                                    dy.innerHTML = '<option value="">Day</option>';
+                                    for (var d = 1; d <= count; d++) dy.appendChild(new Option(String(d), String(d)));
+                                    if (keep && Number(keep) <= count) dy.value = keep;
+                                }
+                                function sync() {
+                                    fillDays();
+                                    if (mo.value && dy.value && yr.value) {
+                                        out.value = yr.value + '-' + ('0' + mo.value).slice(-2) + '-' + ('0' + dy.value).slice(-2);
+                                    } else {
+                                        out.value = '';
+                                    }
+                                }
+                                fillDays();
+                                mo.addEventListener('change', sync);
+                                yr.addEventListener('change', sync);
+                                dy.addEventListener('change', sync);
+                                var form = out.form;
+                                if (form) form.addEventListener('reset', function () { setTimeout(function () { mo.value = dy.value = yr.value = ''; out.value = ''; fillDays(); }, 0); });
+                            })();
+                            </script>
                         </div>
 
                         <div class="auth-field">
