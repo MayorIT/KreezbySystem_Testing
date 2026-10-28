@@ -383,3 +383,18 @@ body.po-admin-page .po-table-scroll-wrap #order-tracking-table tbody tr.is-selec
     background: #fff3c4;
     outline: none;
 }
+
+/* Read-only customer / order fields: gray, not clickable, no typing cursor */
+.order-tracking-form-group input[readonly],
+.order-tracking-form-group textarea[readonly],
+input.order-tracking-readonly-field {
+    background: #e5e7eb !important;
+    color: #6b7280 !important;
+    border-color: #d1d5db !important;
+    cursor: not-allowed !important;
+    caret-color: transparent;
+    box-shadow: none !important;
+    outline: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+}
