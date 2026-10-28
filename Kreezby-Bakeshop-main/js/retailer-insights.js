@@ -302,10 +302,10 @@
         body.innerHTML =
             '<div class="ri-split">' +
               '<div class="ri-split-col"><h4 class="ri-h">By area</h4>' +
-                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered (pcs)</th><th>P.O</th><th>Expired</th><th>Collected</th><th>Fast / Slow</th><th>Status</th></tr></thead><tbody>' +
+                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered (pcs)</th><th>P.O</th><th>Expired</th><th>Collected</th><th>Fast shops</th><th>Slow shops</th></tr></thead><tbody>' +
                 areas.map(function (a) {
                     return '<tr><td><strong>' + esc(a.area) + '</strong></td><td class="c">' + pct(a.sellRate) + '</td><td class="c">' + pn(a.ordered) + '</td><td class="c">' + pn(a.po) +
-                        '</td><td class="c">' + pn(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + ' / ' + a.slowShops + '</td><td class="c">' + pill(a.status) + '</td></tr>';
+                        '</td><td class="c">' + pn(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + '</td><td class="c">' + a.slowShops + '</td></tr>';
                 }).join('') + '</tbody></table></div></div>' +
               '<div class="ri-split-col"><h4 class="ri-h">By shop</h4><div data-ri-shops></div></div>' +
             '</div>';
