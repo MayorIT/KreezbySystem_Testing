@@ -203,6 +203,9 @@
             '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
             '.kz-rt .c{text-align:center;white-space:nowrap}' +
             '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
+            '.ri-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}' +
+            '.ri-split-col{min-width:0}' +
+            '@media(max-width:1250px){.ri-split{grid-template-columns:minmax(0,1fr)}}' +
             '.kz-rt-clear{align-self:flex-end;padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
             '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
             '.kz-rt-view:hover{background:#5d4037;color:#fff}' +
@@ -292,17 +295,15 @@
         shops.sort(function (a, b) { return order[a.status] - order[b.status] || (a.status === 'slow' ? a.sellRate - b.sellRate : b.sellRate - a.sellRate); });
 
         body.innerHTML =
-            '<div class="ri-summary"><strong>✦ AI Insight</strong>' + esc(summaryText(shops, areas)) + '</div>' +
-            '<h4 class="ri-h">By area</h4>' +
-            '<div class="ri-areas">' + areas.map(function (a) {
-                return '<div class="ri-area"><h5>' + esc(a.area) + pill(a.status) + '</h5>' +
-                    '<p>Sold <b>' + pct(a.sellRate) + '</b> of <b>' + pcs(a.ordered) + '</b> ordered</p>' +
-                    '<p>Pulled out <b>' + pcs(a.po) + '</b> · Expired <b>' + pcs(a.expired) + '</b></p>' +
-                    '<p>Collected <b>' + peso(a.collected) + '</b></p>' +
-                    '<p><b>' + a.fastShops + '</b> fast · <b>' + a.slowShops + '</b> slow shops</p></div>';
-            }).join('') + '</div>' +
-            '<h4 class="ri-h">By shop</h4>' +
-            '<div data-ri-shops></div>';
+            '<div class="ri-split">' +
+              '<div class="ri-split-col"><h4 class="ri-h">By area</h4>' +
+                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered</th><th>Pulled out</th><th>Expired</th><th>Collected</th><th>Fast / Slow</th><th>Status</th></tr></thead><tbody>' +
+                areas.map(function (a) {
+                    return '<tr><td><strong>' + esc(a.area) + '</strong></td><td class="c">' + pct(a.sellRate) + '</td><td class="c">' + pcs(a.ordered) + '</td><td class="c">' + pcs(a.po) +
+                        '</td><td class="c">' + pcs(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + ' / ' + a.slowShops + '</td><td class="c">' + pill(a.status) + '</td></tr>';
+                }).join('') + '</tbody></table></div></div>' +
+              '<div class="ri-split-col"><h4 class="ri-h">By shop</h4><div data-ri-shops></div></div>' +
+            '</div>';
         state.shops = shops;
         renderShops(host);
     }
