@@ -11,7 +11,7 @@
     var CYCLE_DAYS = 14;          // normal delivery cycle (2 weeks)
     var FAST_SELL = 0.9;          // ≥ 90% of what was delivered got sold
     var SLOW_SELL = 0.7;          // < 70% sold → slow
-    var state = { rows: [], loaded: false, error: '' };
+    var state = { rows: [], loaded: false, error: '', page: 1, open: {} };
 
     function esc(v) {
         return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
@@ -194,7 +194,22 @@
             '.ri-table .n{text-align:right;white-space:nowrap}' +
             '.ri-table ul{margin:0;padding-left:16px}.ri-table li{margin:0 0 3px}' +
             '.ri-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}' +
-            '.ri-empty{text-align:center;padding:22px;color:#8d6e63}';
+            '.ri-empty{text-align:center;padding:22px;color:#8d6e63}' +
+            '.ri-tools input{min-width:200px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px}' +
+            '.kz-rt-wrap{overflow-x:auto;border:1px solid #e3d9d2;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(62,39,35,.12)}' +
+            '.kz-rt{width:100%;border-collapse:collapse;font-size:14px;color:#3e2723}' +
+            '.kz-rt thead th{background:#5d4037;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:13px 12px;text-align:center;border-bottom:4px solid #f2b52d;border-right:1px solid #d9cfc8;white-space:nowrap}' +
+            '.kz-rt thead th:last-child{border-right:0}' +
+            '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
+            '.kz-rt .c{text-align:center;white-space:nowrap}' +
+            '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
+            '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
+            '.kz-rt-view:hover{background:#5d4037;color:#fff}' +
+            '.kz-rt tr.kz-rt-detail td{background:#fbf6f2;color:#5d4037;font-size:13px;line-height:1.6}' +
+            '.kz-rt-detail ul{margin:4px 0 0;padding-left:18px}' +
+            '.kz-rt-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#6d4c41}' +
+            '.kz-rt-foot button{padding:5px 12px;border:1px solid #d7ccc8;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
+            '.kz-rt-foot button[disabled]{opacity:.45;cursor:default}';
         document.head.appendChild(s);
     }
 
@@ -262,13 +277,46 @@
                     '<p><b>' + a.fastShops + '</b> fast · <b>' + a.slowShops + '</b> slow shops</p></div>';
             }).join('') + '</div>' +
             '<h4 class="ri-h">By shop</h4>' +
-            '<div style="overflow-x:auto"><table class="ri-table"><thead><tr><th>Shop</th><th>Area</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Sold</th><th class="n">Every</th><th>Status</th></tr></thead><tbody>' +
-            shops.map(function (g) {
-                return '<tr><td><strong>' + esc(g.shop) + '</strong><br><small style="color:#8a817c">Last: ' + esc(g.last ? dateLabel(g.last) : '—') + '</small></td>' +
-                    '<td>' + esc(g.area) + '</td><td class="n">' + pcs(g.ordered) + '</td><td class="n">' + pcs(g.po) + '</td><td class="n">' + pcs(g.expired) +
-                    '</td><td class="n">' + (g.ordered ? pct(g.sellRate) : '—') + '</td><td class="n">' + (g.interval ? g.interval + ' days' : '—') +
-                    '</td><td>' + pill(g.status) + '</td></tr>';
-            }).join('') + '</tbody></table></div>';
+            '<div data-ri-shops></div>';
+        state.shops = shops;
+        renderShops(host);
+    }
+
+    function renderShops(host) {
+        var box = host.querySelector('[data-ri-shops]');
+        if (!box) return;
+        var q = String((host.querySelector('[data-ri-search]') || {}).value || '').toLowerCase().trim();
+        var size = parseInt((host.querySelector('[data-ri-size]') || {}).value, 10) || 10;
+        var list = (state.shops || []).filter(function (g) {
+            return !q || [g.shop, g.area, (STATUS[g.status] || {}).label, g.last ? dateLabel(g.last) : ''].join(' ').toLowerCase().indexOf(q) >= 0;
+        });
+        var pages = Math.max(1, Math.ceil(list.length / size));
+        state.page = Math.min(Math.max(state.page || 1, 1), pages);
+        var start = (state.page - 1) * size;
+        var slice = list.slice(start, start + size);
+        var head = '<thead><tr><th>#</th><th>Last Delivery</th><th>Area</th><th>Shop</th><th>Items</th><th>Status</th><th>Action</th></tr></thead>';
+        var tbody;
+        if (!slice.length) {
+            tbody = '<tr><td class="kz-rt-empty" colspan="7">' + (q ? 'No shops match this search.' : 'No shops to show yet.') + '</td></tr>';
+        } else {
+            tbody = slice.map(function (g, i) {
+                var n = start + i + 1;
+                var key = g.area + '|' + g.shop;
+                var open = !!state.open[key];
+                var main = '<tr><td class="c">' + n + '</td><td class="c">' + esc(g.last ? dateLabel(g.last) : '—') + '</td><td>' + esc(g.area) +
+                    '</td><td><strong>' + esc(g.shop) + '</strong></td><td>Ordered ' + pcs(g.ordered) + ' · Pulled out ' + pcs(g.po) + ' · Expired ' + pcs(g.expired) +
+                    '</td><td class="c">' + pill(g.status) + '</td><td class="c"><button type="button" class="kz-rt-view" data-ri-view="' + esc(key) + '">' + (open ? 'Hide' : 'View') + '</button></td></tr>';
+                if (!open) return main;
+                return main + '<tr class="kz-rt-detail"><td colspan="7"><strong>' + esc(g.shop) + '</strong> · ' + esc(g.area) +
+                    '<br>Sold ' + (g.ordered ? pct(g.sellRate) : '—') + ' of what was delivered · delivered ' + (g.interval ? 'about every ' + g.interval + ' days' : 'once so far') +
+                    '<ul>' + g.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></td></tr>';
+            }).join('');
+        }
+        var shown = list.length ? (start + 1) + '–' + (start + slice.length) : '0';
+        box.innerHTML = '<div class="kz-rt-wrap"><table class="kz-rt">' + head + '<tbody>' + tbody + '</tbody></table></div>' +
+            '<div class="kz-rt-foot"><span>Showing ' + shown + ' of ' + list.length + '</span><span>' +
+            '<button type="button" data-ri-page="prev"' + (state.page <= 1 ? ' disabled' : '') + '>Prev</button> Page ' + state.page + ' of ' + pages + ' ' +
+            '<button type="button" data-ri-page="next"' + (state.page >= pages ? ' disabled' : '') + '>Next</button></span></div>';
     }
 
     function mount(host) {
@@ -277,12 +325,32 @@
         injectStyle();
         host.innerHTML =
             '<div class="ri-tools">' +
-                '<label>Period<select data-ri-period><option value="30">Last 30 days</option><option value="60">Last 60 days</option><option value="90" selected>Last 90 days</option><option value="all">All time</option></select></label>' +
+                '<label>Period<select data-ri-period><option value="30">Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option><option value="all" selected>All time</option></select></label>' +
                 '<label>Area<select data-ri-area><option value="">All areas</option></select></label>' +
+                '<label>Entries<select data-ri-size><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>' +
+                '<label>Search<input type="search" data-ri-search placeholder="Shop, area, status…"></label>' +
             '</div>' +
             '<div data-ri-body></div>';
-        host.querySelector('[data-ri-period]').addEventListener('change', function () { render(host); });
-        host.querySelector('[data-ri-area]').addEventListener('change', function () { render(host); });
+        function fresh() { state.page = 1; state.open = {}; render(host); }
+        host.querySelector('[data-ri-period]').addEventListener('change', fresh);
+        host.querySelector('[data-ri-area]').addEventListener('change', fresh);
+        host.querySelector('[data-ri-size]').addEventListener('change', function () { state.page = 1; renderShops(host); });
+        var riTimer = null;
+        host.querySelector('[data-ri-search]').addEventListener('input', function () {
+            clearTimeout(riTimer);
+            riTimer = setTimeout(function () { state.page = 1; renderShops(host); }, 120);
+        });
+        host.addEventListener('click', function (e) {
+            var t = e.target.closest ? e.target.closest('[data-ri-view],[data-ri-page]') : null;
+            if (!t) return;
+            if (t.hasAttribute('data-ri-view')) {
+                var k = t.getAttribute('data-ri-view');
+                state.open[k] = !state.open[k];
+            } else {
+                state.page += t.getAttribute('data-ri-page') === 'next' ? 1 : -1;
+            }
+            renderShops(host);
+        });
         render(host);
         // The route sheets are only fetched once the Retailer Insights tab is actually shown.
         var panel = host.closest('.insights-panel');

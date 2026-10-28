@@ -72,6 +72,21 @@
             '.kz-oe-table .n{text-align:right;white-space:nowrap}' +
             '.kz-oe-table tfoot td{font-weight:800;background:#faf6f3}' +
             '.kz-oe-note{display:block;color:#8d6e63;font-size:12px;margin-top:2px}' +
+            '.kz-rt-wrap{overflow-x:auto;border:1px solid #e3d9d2;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(62,39,35,.12)}' +
+            '.kz-rt{width:100%;border-collapse:collapse;font-size:14px;color:#3e2723}' +
+            '.kz-rt thead th{background:#5d4037;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:13px 12px;text-align:center;border-bottom:4px solid #f2b52d;border-right:1px solid #d9cfc8;white-space:nowrap}' +
+            '.kz-rt thead th:last-child{border-right:0}' +
+            '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
+            '.kz-rt .c{text-align:center;white-space:nowrap}' +
+            '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
+            '.kz-rt-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}' +
+            '.kz-rt-pill.done{background:#e8f5e9;color:#2e7d32}.kz-rt-pill.part{background:#fff3e0;color:#e65100}.kz-rt-pill.open{background:#ffebee;color:#c62828}.kz-rt-pill.only{background:#e3f2fd;color:#1565c0}' +
+            '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
+            '.kz-rt-view:hover{background:#5d4037;color:#fff}' +
+            '.kz-rt tr.kz-rt-detail td{background:#fbf6f2;color:#5d4037;font-size:13px;line-height:1.6}' +
+            '.kz-rt-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#6d4c41}' +
+            '.kz-rt-foot button{padding:5px 12px;border:1px solid #d7ccc8;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
+            '.kz-rt-foot button[disabled]{opacity:.45;cursor:default}' +
             '.kz-oe-empty{text-align:center;padding:22px;color:#8d6e63}';
         document.head.appendChild(s);
     }
@@ -171,60 +186,61 @@
             (extra || '') + '</div>';
     }
 
-    function renderRetailer(host, state) {
-        var f = readFilters(host);
-        var rows = filterRows(state.rows, f).sort(function (a, b) { return b.date.localeCompare(a.date); });
-        var body = host.querySelector('[data-oe-body]');
-        if (!rows.length) {
-            body.innerHTML = '<p class="kz-oe-empty">' + esc(emptyText(f, 'your store')) + '</p>';
-            return;
-        }
-        var t = totals(rows);
-        body.innerHTML = statsHtml(rows, '<div class="kz-oe-stat">Delivery dates<strong>' + rows.length + '</strong></div>') +
-            '<div class="kz-oe-wrap"><table class="kz-oe-table"><thead><tr><th>Delivery Date</th><th>Area</th><th class="n">Pulled Out (P.O)</th><th class="n">Replaced (R)</th><th>Notes</th></tr></thead><tbody>' +
-            rows.map(function (row) {
-                return '<tr><td>' + dateLabel(row.date) + '</td><td>' + esc(row.area || '—') + '</td><td class="n">' + pcs(row.po) + '</td><td class="n">' + pcs(row.r) + '</td><td>' + esc(row.notes || '—') + '</td></tr>';
-            }).join('') +
-            '</tbody><tfoot><tr><td colspan="2">Total</td><td class="n">' + pcs(t.po) + '</td><td class="n">' + pcs(t.r) + '</td><td></td></tr></tfoot></table></div>';
+    function statusOf(row) {
+        if (row.po > 0 && row.r >= row.po) return { cls: 'done', label: 'Fully replaced' };
+        if (row.po > 0 && row.r > 0) return { cls: 'part', label: 'Partly replaced' };
+        if (row.po > 0) return { cls: 'open', label: 'Not yet replaced' };
+        return { cls: 'only', label: 'Replacement only' };
     }
 
-    function renderAdmin(host, state) {
+    function itemsText(row) {
+        var out = [];
+        if (row.po) out.push('P.O ' + pcs(row.po) + ' pcs');
+        if (row.r) out.push('R ' + pcs(row.r) + ' pcs');
+        return out.join(' · ') || '—';
+    }
+
+    function renderRecords(host, state, mode, keepPage) {
         var f = readFilters(host);
-        var rows = filterRows(state.rows, f);
-        var body = host.querySelector('[data-oe-body]');
-        if (!rows.length) {
-            body.innerHTML = '<p class="kz-oe-empty">' + esc(emptyText(f, '')) + '</p>';
-            return;
-        }
-        var byRetailer = {};
-        rows.forEach(function (row) {
-            var key = row.retailer + '|' + row.area;
-            var g = byRetailer[key] || (byRetailer[key] = { retailer: row.retailer, area: row.area, po: 0, r: 0, dates: {}, last: '' });
-            g.po += row.po;
-            g.r += row.r;
-            g.dates[row.date] = true;
-            if (row.date > g.last) g.last = row.date;
+        var rows = filterRows(state.rows, f).sort(function (a, b) {
+            return b.date.localeCompare(a.date) || String(a.retailer).localeCompare(String(b.retailer));
         });
-        var groups = Object.keys(byRetailer).map(function (k) { return byRetailer[k]; })
-            .sort(function (a, b) { return (b.po + b.r) - (a.po + a.r) || a.retailer.localeCompare(b.retailer); });
-        var t = totals(rows);
-        var detail = rows.slice().sort(function (a, b) { return b.date.localeCompare(a.date) || a.retailer.localeCompare(b.retailer); });
-        body.innerHTML = statsHtml(rows, '<div class="kz-oe-stat">Retailers<strong>' + groups.length + '</strong></div>') +
-            '<h4 class="kz-oe-h">By retailer</h4>' +
-            '<div class="kz-oe-wrap"><table class="kz-oe-table"><thead><tr><th>#</th><th>Retailer</th><th>Route</th><th class="n">Pulled Out (P.O)</th><th class="n">Replaced (R)</th><th class="n">Not yet replaced</th><th class="n">Dates</th><th>Last</th></tr></thead><tbody>' +
-            groups.map(function (g, i) {
-                return '<tr><td>' + (i + 1) + '</td><td>' + esc(g.retailer) + '</td><td>' + esc(g.area || '—') + '</td><td class="n">' + pcs(g.po) +
-                    '</td><td class="n">' + pcs(g.r) + '</td><td class="n">' + pcs(Math.max(g.po - g.r, 0)) + '</td><td class="n">' + Object.keys(g.dates).length +
-                    '</td><td>' + dateLabel(g.last) + '</td></tr>';
-            }).join('') +
-            '</tbody><tfoot><tr><td></td><td colspan="2">Total</td><td class="n">' + pcs(t.po) + '</td><td class="n">' + pcs(t.r) + '</td><td class="n">' + pcs(Math.max(t.po - t.r, 0)) + '</td><td colspan="2"></td></tr></tfoot></table></div>' +
-            '<h4 class="kz-oe-h">By delivery date</h4>' +
-            '<div class="kz-oe-wrap"><table class="kz-oe-table"><thead><tr><th>Delivery Date</th><th>Retailer</th><th>Route</th><th class="n">P.O</th><th class="n">R</th><th>Notes</th></tr></thead><tbody>' +
-            detail.map(function (row) {
-                var asWritten = row.nameOnSheet && row.nameOnSheet !== row.retailer ? '<span class="kz-oe-note">as written: ' + esc(row.nameOnSheet) + '</span>' : '';
-                return '<tr><td>' + dateLabel(row.date) + '</td><td>' + esc(row.retailer) + asWritten + '</td><td>' + esc(row.area || '—') + '</td><td class="n">' + pcs(row.po) +
-                    '</td><td class="n">' + pcs(row.r) + '</td><td>' + esc(row.notes || '—') + '</td></tr>';
-            }).join('') + '</tbody></table></div>';
+        var body = host.querySelector('[data-oe-body]');
+        var sizeEl = host.querySelector('[data-oe-size]');
+        var size = parseInt(sizeEl && sizeEl.value, 10) || 10;
+        var pages = Math.max(1, Math.ceil(rows.length / size));
+        if (!keepPage) state.page = 1;
+        state.page = Math.min(Math.max(state.page || 1, 1), pages);
+        var start = (state.page - 1) * size;
+        var slice = rows.slice(start, start + size);
+        var who = mode === 'admin' ? '' : 'your store';
+        var head = '<thead><tr><th>#</th><th>Date</th><th>Route</th><th>Retailer</th><th>Items</th><th>Status</th><th>Action</th></tr></thead>';
+        var tbody;
+        if (!slice.length) {
+            tbody = '<tr><td class="kz-rt-empty" colspan="7">' + esc(emptyText(f, who)) + '</td></tr>';
+        } else {
+            tbody = slice.map(function (row, i) {
+                var n = start + i + 1;
+                var st = statusOf(row);
+                var shop = esc(row.retailer || (mode === 'admin' ? '—' : 'Your store'));
+                var open = state.open[n] ? ' data-open="1"' : '';
+                var main = '<tr data-oe-row="' + n + '"' + open + '><td class="c">' + n + '</td><td class="c">' + dateLabel(row.date) + '</td><td>' + esc(row.area || '—') +
+                    '</td><td><strong>' + shop + '</strong></td><td>' + esc(itemsText(row)) +
+                    '</td><td class="c"><span class="kz-rt-pill ' + st.cls + '">' + st.label + '</span></td>' +
+                    '<td class="c"><button type="button" class="kz-rt-view" data-oe-view="' + n + '">' + (state.open[n] ? 'Hide' : 'View') + '</button></td></tr>';
+                if (!state.open[n]) return main;
+                var asWritten = row.nameOnSheet && row.nameOnSheet !== row.retailer ? '<br>Written on the sheet as: ' + esc(row.nameOnSheet) : '';
+                return main + '<tr class="kz-rt-detail"><td colspan="7"><strong>' + shop + '</strong> · ' + esc(row.area || '—') + ' · ' + dateLabel(row.date) +
+                    '<br>Pulled out (P.O): ' + pcs(row.po) + ' pcs · Replaced (R): ' + pcs(row.r) + ' pcs · Not yet replaced: ' + pcs(Math.max(row.po - row.r, 0)) + ' pcs' +
+                    '<br>Notes: ' + esc(row.notes || '—') + asWritten + '</td></tr>';
+            }).join('');
+        }
+        var shown = rows.length ? (start + 1) + '–' + (start + slice.length) : '0';
+        body.innerHTML = statsHtml(rows, rows.length ? '<div class="kz-oe-stat">' + (mode === 'admin' ? 'Records' : 'Delivery dates') + '<strong>' + rows.length + '</strong></div>' : '') +
+            '<div class="kz-rt-wrap"><table class="kz-rt">' + head + '<tbody>' + tbody + '</tbody></table></div>' +
+            '<div class="kz-rt-foot"><span>Showing ' + shown + ' of ' + rows.length + '</span><span>' +
+            '<button type="button" data-oe-page="prev"' + (state.page <= 1 ? ' disabled' : '') + '>Prev</button> Page ' + state.page + ' of ' + pages + ' ' +
+            '<button type="button" data-oe-page="next"' + (state.page >= pages ? ' disabled' : '') + '>Next</button></span></div>';
     }
 
     function mount(host) {
@@ -239,28 +255,42 @@
                 '<label>To<input type="date" data-oe-to></label>' +
                 (mode === 'admin' ? '<label>Retailer<select data-oe-retailer><option value="">All retailers</option></select></label>' : '') +
                 '<label>Route / area<select data-oe-area><option value="">All routes</option></select></label>' +
+                '<label>Entries<select data-oe-size><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>' +
                 '<label>Show<select data-oe-state><option value="">Everything</option><option value="open">Not yet replaced</option><option value="done">Fully replaced</option><option value="replaced">With replacements</option></select></label>' +
                 '<label class="kz-oe-grow">Search<input type="search" data-oe-search placeholder="' + (mode === 'admin' ? 'Retailer, route, date, notes…' : 'Date, area, notes…') + '"></label>' +
                 '<button type="button" data-oe-clear style="padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer">Clear filters</button>' +
             '</div>' +
             '<div data-oe-body><p class="kz-oe-empty">Loading pull-outs and replacements…</p></div>';
-        var state = { rows: [] };
+        var state = { rows: [], page: 1, open: {} };
         var monthSel = host.querySelector('[data-oe-month]');
-        var render = function () { (mode === 'admin' ? renderAdmin : renderRetailer)(host, state); };
-        monthSel.addEventListener('change', render);
+        var render = function (keepPage) { state.open = {}; renderRecords(host, state, mode, keepPage === true); };
+        host.addEventListener('click', function (e) {
+            var t = e.target.closest ? e.target.closest('[data-oe-view],[data-oe-page]') : null;
+            if (!t) return;
+            if (t.hasAttribute('data-oe-view')) {
+                var n = t.getAttribute('data-oe-view');
+                state.open[n] = !state.open[n];
+                renderRecords(host, state, mode, true);
+            } else {
+                state.page += t.getAttribute('data-oe-page') === 'next' ? 1 : -1;
+                state.open = {};
+                renderRecords(host, state, mode, true);
+            }
+        });
+        monthSel.addEventListener('change', function () { render(); });
         var searchTimer = null;
         host.querySelector('[data-oe-search]').addEventListener('input', function () {
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(render, 120);
+            searchTimer = setTimeout(function () { render(); }, 120);
         });
-        host.querySelector('[data-oe-from]').addEventListener('change', render);
-        host.querySelector('[data-oe-to]').addEventListener('change', render);
-        ['[data-oe-retailer]', '[data-oe-area]', '[data-oe-state]'].forEach(function (sel) {
+        host.querySelector('[data-oe-from]').addEventListener('change', function () { render(); });
+        host.querySelector('[data-oe-to]').addEventListener('change', function () { render(); });
+        ['[data-oe-retailer]', '[data-oe-area]', '[data-oe-state]', '[data-oe-size]'].forEach(function (sel) {
             var el = host.querySelector(sel);
-            if (el) el.addEventListener('change', render);
+            if (el) el.addEventListener('change', function () { render(); });
         });
         host.querySelector('[data-oe-clear]').addEventListener('click', function () {
-            host.querySelectorAll('.kz-oe-tools select, .kz-oe-tools input').forEach(function (el) { el.value = ''; });
+            host.querySelectorAll('.kz-oe-tools select, .kz-oe-tools input').forEach(function (el) { el.value = el.hasAttribute('data-oe-size') ? '10' : ''; });
             render();
         });
 
