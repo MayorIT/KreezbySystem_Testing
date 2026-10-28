@@ -25,6 +25,7 @@
     }
 
     function pcs(n) { return Math.round(n).toLocaleString('en-PH') + ' pcs'; }
+    function pn(n) { return Math.round(n).toLocaleString('en-PH'); }
     function pct(r) { return Math.round(r * 100) + '%'; }
     function peso(n) { return '₱' + Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -203,8 +204,12 @@
             '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
             '.kz-rt .c{text-align:center;white-space:nowrap}' +
             '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
-            '.ri-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}' +
+            '.ri-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}' +
             '.ri-split-col{min-width:0}' +
+            '.ri-split .kz-rt-wrap{height:440px;overflow:auto}' +
+            '.ri-split .kz-rt thead th{position:sticky;top:0;z-index:1;padding:10px 8px;font-size:10.5px}' +
+            '.ri-split .kz-rt td{padding:8px 8px;font-size:13px;line-height:1.3}' +
+            '.ri-split .kz-rt-view{padding:4px 10px}' +
             '@media(max-width:1250px){.ri-split{grid-template-columns:minmax(0,1fr)}}' +
             '.kz-rt-clear{align-self:flex-end;padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
             '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
@@ -297,10 +302,10 @@
         body.innerHTML =
             '<div class="ri-split">' +
               '<div class="ri-split-col"><h4 class="ri-h">By area</h4>' +
-                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered</th><th>Pulled out</th><th>Expired</th><th>Collected</th><th>Fast / Slow</th><th>Status</th></tr></thead><tbody>' +
+                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered (pcs)</th><th>P.O</th><th>Expired</th><th>Collected</th><th>Fast / Slow</th><th>Status</th></tr></thead><tbody>' +
                 areas.map(function (a) {
-                    return '<tr><td><strong>' + esc(a.area) + '</strong></td><td class="c">' + pct(a.sellRate) + '</td><td class="c">' + pcs(a.ordered) + '</td><td class="c">' + pcs(a.po) +
-                        '</td><td class="c">' + pcs(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + ' / ' + a.slowShops + '</td><td class="c">' + pill(a.status) + '</td></tr>';
+                    return '<tr><td><strong>' + esc(a.area) + '</strong></td><td class="c">' + pct(a.sellRate) + '</td><td class="c">' + pn(a.ordered) + '</td><td class="c">' + pn(a.po) +
+                        '</td><td class="c">' + pn(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + ' / ' + a.slowShops + '</td><td class="c">' + pill(a.status) + '</td></tr>';
                 }).join('') + '</tbody></table></div></div>' +
               '<div class="ri-split-col"><h4 class="ri-h">By shop</h4><div data-ri-shops></div></div>' +
             '</div>';
@@ -323,20 +328,20 @@
         state.page = Math.min(Math.max(state.page || 1, 1), pages);
         var start = (state.page - 1) * size;
         var slice = list.slice(start, start + size);
-        var head = '<thead><tr><th>#</th><th>Last Delivery</th><th>Area</th><th>Shop</th><th>Items</th><th>Status</th><th>Action</th></tr></thead>';
+        var head = '<thead><tr><th>#</th><th>Shop</th><th>Area</th><th>Ordered</th><th>Pulled out</th><th>Expired</th><th>Status</th><th>Action</th></tr></thead>';
         var tbody;
         if (!slice.length) {
-            tbody = '<tr><td class="kz-rt-empty" colspan="7">' + (q ? 'No shops match this search.' : 'No shops to show yet.') + '</td></tr>';
+            tbody = '<tr><td class="kz-rt-empty" colspan="8">' + (q ? 'No shops match this search.' : 'No shops to show yet.') + '</td></tr>';
         } else {
             tbody = slice.map(function (g, i) {
                 var n = start + i + 1;
                 var key = g.area + '|' + g.shop;
                 var open = !!state.open[key];
-                var main = '<tr><td class="c">' + n + '</td><td class="c">' + esc(g.last ? dateLabel(g.last) : '—') + '</td><td>' + esc(g.area) +
-                    '</td><td><strong>' + esc(g.shop) + '</strong></td><td>Ordered ' + pcs(g.ordered) + ' · Pulled out ' + pcs(g.po) + ' · Expired ' + pcs(g.expired) +
+                var main = '<tr><td class="c">' + n + '</td><td><strong>' + esc(g.shop) + '</strong></td><td>' + esc(g.area) +
+                    '</td><td class="c">' + pn(g.ordered) + '</td><td class="c">' + pn(g.po) + '</td><td class="c">' + pn(g.expired) +
                     '</td><td class="c">' + pill(g.status) + '</td><td class="c"><button type="button" class="kz-rt-view" data-ri-view="' + esc(key) + '">' + (open ? 'Hide' : 'View') + '</button></td></tr>';
                 if (!open) return main;
-                return main + '<tr class="kz-rt-detail"><td colspan="7"><strong>' + esc(g.shop) + '</strong> · ' + esc(g.area) +
+                return main + '<tr class="kz-rt-detail"><td colspan="8"><strong>' + esc(g.shop) + '</strong> · ' + esc(g.area) + ' · last delivery ' + esc(g.last ? dateLabel(g.last) : '—') +
                     '<br>Sold ' + (g.ordered ? pct(g.sellRate) : '—') + ' of what was delivered · delivered ' + (g.interval ? 'about every ' + g.interval + ' days' : 'once so far') +
                     '<ul>' + g.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></td></tr>';
             }).join('');
