@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Point of Sale (Staff)</title>
     <link rel="stylesheet" href="../css/pages/admin/po-theme.css?v=20261014iconfix">
-    <link rel="stylesheet" id="kreezby-pos-style" href="../css/pages/admin/pos-admin.css?v=20261022posv6">
+    <link rel="stylesheet" id="kreezby-pos-style" href="../css/pages/admin/pos-admin.css?v=20261028posv7">
 </head>
 <body class="po-admin-page" data-kreezby-portal="staff-pos">
 
@@ -41,6 +41,7 @@
         <script>
         (function () {
             function bootPos() {
+                if (document.readyState === 'loading') return; // pos.js below boots itself
                 if (!document.getElementById('pos-master')) return;
                 document.body.classList.add('po-admin-page');
                 if (window.KreezbyPos && window.KreezbyPos.boot) {
@@ -53,7 +54,7 @@
                 dict.onload = function () {
                     var script = document.createElement('script');
                     script.id = 'kreezby-pos-script';
-                    script.src = '../js/pos.js?v=20261022mv2';
+                    script.src = '../js/pos.js?v=20261028mv3';
                     document.body.appendChild(script);
                 };
                 document.body.appendChild(dict);
@@ -67,7 +68,7 @@
     </div>
     <script src="../js/staff-permissions.js?v=20261022menu4"></script>
     <script src="../js/kreezby-data-dictionary.js?v=20261027stock1"></script>
-    <script src="../js/pos.js?v=20261022mv2"></script>
+    <script src="../js/pos.js?v=20261028mv3"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/staff-sidebar.js?v=20261022menu4"></script>
     <script src="../js/sidebar-toggle.js?v=20260927row"></script>

@@ -91,13 +91,22 @@
         document.head.appendChild(s);
     }
 
+    var AREA_NAMES = { batangas: 'Batangas', bauan: 'Bauan', citimart: 'Citimart', lipa: 'Lipa', lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas', tagaytay: 'Tagaytay' };
+    function areaName(v) {
+        var k = String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+        if (AREA_NAMES[k]) return AREA_NAMES[k];
+        var m = String(v || '').split(/\s+[-–]\s+|\s+\d/)[0].trim();
+        var mk = m.toLowerCase().replace(/[^a-z]/g, '');
+        return AREA_NAMES[mk] || m;
+    }
+
     /* Rows with any P.O / R: { date, retailer, area, po, r, notes } */
     function retailerRows(sales, account) {
         return (sales || []).map(function (r) {
             return {
                 date: String(r.reportDate || '').slice(0, 10),
                 retailer: (account && account.name) || '',
-                area: r.area || r.areaLabel || (account && account.area) || '',
+                area: areaName(r.area || (account && account.area) || r.areaLabel),
                 po: num(r.po),
                 r: num(r.replaced),
                 notes: r.notes || ''
@@ -117,7 +126,7 @@
                     date: String(sheet.reportDate || '').slice(0, 10),
                     retailer: e.accountName || e.retailerName || '—',
                     nameOnSheet: e.retailerName || '',
-                    area: sheet.areaLabel || sheet.source || '',
+                    area: areaName(sheet.source || sheet.areaLabel),
                     po: po,
                     r: r,
                     notes: e.notes || ''

@@ -71,7 +71,7 @@
                         if (!name) return;
                         rows.push({
                             date: day,
-                            area: sheet.areaLabel || sheet.source || '—',
+                            area: ({batangas:'Batangas',bauan:'Bauan',citimart:'Citimart',lipa:'Lipa',lucena:'Lucena',manila:'Manila',rosario:'Rosario',stotomas:'Sto. Tomas',tagaytay:'Tagaytay'})[String(sheet.source||'').toLowerCase()] || String(sheet.areaLabel || sheet.source || '—').split(/\s+[-–]\s+|\s+\d/)[0].trim(),
                             shop: name,
                             ordered: num(e.cons) + num(e.cod),
                             po: num(e.po),
@@ -203,6 +203,7 @@
             '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
             '.kz-rt .c{text-align:center;white-space:nowrap}' +
             '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
+            '.kz-rt-clear{align-self:flex-end;padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
             '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
             '.kz-rt-view:hover{background:#5d4037;color:#fff}' +
             '.kz-rt tr.kz-rt-detail td{background:#fbf6f2;color:#5d4037;font-size:13px;line-height:1.6}' +
@@ -222,9 +223,32 @@
             d.setDate(d.getDate() - Number(days));
             from = iso(d);
         }
+        var shopEl = host.querySelector('[data-ri-shop]');
+        var shop = shopEl ? shopEl.value : '';
         return state.rows.filter(function (r) {
-            return (!from || r.date >= from) && (!area || r.area === area);
+            return (!from || r.date >= from) && (!area || r.area === area) && (!shop || String(r.shop).toLowerCase() === shop);
         });
+    }
+
+    /* The Shop dropdown lists every shop of the chosen area, A to Z. */
+    function fillShopOptions(host) {
+        var el = host.querySelector('[data-ri-shop]');
+        if (!el) return;
+        var area = host.querySelector('[data-ri-area]').value;
+        var key = area + '|' + state.rows.length;
+        if (el.getAttribute('data-key') === key) return;
+        el.setAttribute('data-key', key);
+        var seen = {};
+        state.rows.forEach(function (r) {
+            if (area && r.area !== area) return;
+            var k = String(r.shop || '').toLowerCase();
+            if (k && !seen[k]) seen[k] = r.shop;
+        });
+        var prev = el.value;
+        el.innerHTML = '<option value="">All shops</option>' + Object.keys(seen).sort().map(function (k) {
+            return '<option value="' + esc(k) + '">' + esc(seen[k]) + '</option>';
+        }).join('');
+        if (prev && seen[prev]) el.value = prev;
     }
 
     function summaryText(shops, areas) {
@@ -252,6 +276,7 @@
             body.innerHTML = '<p class="ri-empty">' + esc(state.error) + '</p>';
             return;
         }
+        fillShopOptions(host);
         var rows = filtered(host);
         if (!rows.length) {
             body.innerHTML = '<p class="ri-empty">No deliveries in this period.</p>';
@@ -287,7 +312,10 @@
         if (!box) return;
         var q = String((host.querySelector('[data-ri-search]') || {}).value || '').toLowerCase().trim();
         var size = parseInt((host.querySelector('[data-ri-size]') || {}).value, 10) || 10;
+        var stEl = host.querySelector('[data-ri-status]');
+        var st = stEl ? stEl.value : '';
         var list = (state.shops || []).filter(function (g) {
+            if (st && g.status !== st) return false;
             return !q || [g.shop, g.area, (STATUS[g.status] || {}).label, g.last ? dateLabel(g.last) : ''].join(' ').toLowerCase().indexOf(q) >= 0;
         });
         var pages = Math.max(1, Math.ceil(list.length / size));
@@ -327,13 +355,27 @@
             '<div class="ri-tools">' +
                 '<label>Period<select data-ri-period><option value="30">Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option><option value="all" selected>All time</option></select></label>' +
                 '<label>Area<select data-ri-area><option value="">All areas</option></select></label>' +
+                '<label>Shop<select data-ri-shop><option value="">All shops</option></select></label>' +
+                '<label>Show<select data-ri-status><option value="">Every status</option><option value="fast">Runs out fast</option><option value="steady">Steady</option><option value="slow">Slow</option></select></label>' +
                 '<label>Entries<select data-ri-size><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>' +
                 '<label>Search<input type="search" data-ri-search placeholder="Shop, area, status…"></label>' +
+                '<button type="button" data-ri-clear class="kz-rt-clear">Clear filters</button>' +
             '</div>' +
             '<div data-ri-body></div>';
         function fresh() { state.page = 1; state.open = {}; render(host); }
         host.querySelector('[data-ri-period]').addEventListener('change', fresh);
         host.querySelector('[data-ri-area]').addEventListener('change', fresh);
+        host.querySelector('[data-ri-shop]').addEventListener('change', fresh);
+        host.querySelector('[data-ri-status]').addEventListener('change', function () { state.page = 1; renderShops(host); });
+        host.querySelector('[data-ri-clear]').addEventListener('click', function () {
+            host.querySelector('[data-ri-period]').value = 'all';
+            host.querySelector('[data-ri-area]').value = '';
+            host.querySelector('[data-ri-shop]').value = '';
+            host.querySelector('[data-ri-status]').value = '';
+            host.querySelector('[data-ri-size]').value = '10';
+            host.querySelector('[data-ri-search]').value = '';
+            fresh();
+        });
         host.querySelector('[data-ri-size]').addEventListener('change', function () { state.page = 1; renderShops(host); });
         var riTimer = null;
         host.querySelector('[data-ri-search]').addEventListener('input', function () {

@@ -730,6 +730,13 @@
         return { ok: true, skipped: skipped };
     }
 
+    var syncRetries = 0;
+    var syncTimer = 0;
+    function scheduleSync(delay) {
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(syncOnlineInventory, delay == null ? 200 : delay);
+    }
+
     function syncOnlineInventory() {
         if (applyingStock || !document.getElementById('pos-master')) return;
         var pending = onlineOrders().filter(function (order) { return !order.posted; });
@@ -740,9 +747,11 @@
         var dict = window.KreezbyDictionary;
         if (!dict || typeof dict.recordSale !== 'function') {
             render();
-            setStatus('Inventory is not ready yet. Refresh and try again.', 'warn');
+            // The inventory script is still loading (slow on a hosted site): retry quietly.
+            if (syncRetries < 30) { syncRetries += 1; scheduleSync(500); }
             return;
         }
+        syncRetries = 0;
         applyingStock = true;
         var count = 0;
         var skipped = [];
@@ -823,21 +832,18 @@
         var root = document.getElementById('pos-master');
         if (!root) return;
         document.body.classList.add('po-admin-page');
-        var style = document.getElementById('kreezby-pos-style');
-        window.__kzPosCssStamp = window.__kzPosCssStamp || Date.now();
-        var styleHref = '../css/pages/admin/pos-admin.css?v=20261022posv5&t=' + window.__kzPosCssStamp;
-        if (!style) {
-            style = document.createElement('link');
+        if (!document.getElementById('kreezby-pos-style')) {
+            var style = document.createElement('link');
             style.id = 'kreezby-pos-style';
             style.rel = 'stylesheet';
+            style.href = '../css/pages/admin/pos-admin.css?v=20261028posv7';
             document.head.appendChild(style);
         }
-        if (style.getAttribute('href') !== styleHref) style.href = styleHref;
         if (root.dataset.posReady !== '1') {
             root.dataset.posReady = '1';
             root.innerHTML = '<div class="pos-layout"></div>';
         }
-        syncOnlineInventory();
+        scheduleSync(0);
     }
 
     if (!window.__kreezbyPosClick) {
@@ -851,9 +857,12 @@
             if (event.target && event.target.id === 'pos-payment') updateChange();
         });
         document.addEventListener('kreezby:stocks-sync', function () {
-            if (!applyingStock) render();
+            if (!applyingStock) scheduleSync(150);
         });
-        document.addEventListener('kreezby-orders-updated', syncOnlineInventory);
+        document.addEventListener('kreezby:remote-state', function () {
+            if (!applyingStock) scheduleSync(250);
+        });
+        document.addEventListener('kreezby-orders-updated', function () { scheduleSync(150); });
         document.addEventListener('kreezby:page-load', mount);
         document.addEventListener('turbo:frame-load', mount);
     }
