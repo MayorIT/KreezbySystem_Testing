@@ -448,6 +448,11 @@
         return d.getFullYear() + '-' + (m.length < 2 ? '0' + m : m) + '-' + (day.length < 2 ? '0' + day : day);
     }
 
+    function customerName(order) {
+        var ship = (order && order.shippingInfo) || {};
+        return order.accountName || ship.fullName || order.poEntity || '';
+    }
+
     function filteredOrders(statusFilter, query, extra) {
         var orders = loadOrders().slice().reverse();
         if (extra) {
@@ -477,6 +482,7 @@
                 var ship = o.shippingInfo || {};
                 return (
                     (o.orderNumber || '').toLowerCase().indexOf(q) !== -1 ||
+                    customerName(o).toLowerCase().indexOf(q) !== -1 ||
                     (o.poCode || '').toLowerCase().indexOf(q) !== -1 ||
                     (o.trackingNumber || '').toLowerCase().indexOf(q) !== -1 ||
                     paymentInfo(o).label.toLowerCase().indexOf(q) !== -1
@@ -531,8 +537,9 @@
                 : order.trackingNumber
                 ? escapeHtml(order.trackingNumber)
                 : '<span class="ot-track-empty">Not set</span>';
-            var who = 'Confidential';
-            var meta = order.poCode ? '<small>' + escapeHtml(order.poCode) + '</small>' : '';
+            var ship0 = order.shippingInfo || {};
+            var who = escapeHtml(customerName(order) || '—');
+            var meta = [ship0.phone, order.poCode].filter(Boolean).map(function (v) { return '<small>' + escapeHtml(v) + '</small>'; }).join('<br>');
             return '<tr data-order-id="' + escapeHtml(order.orderNumber) + '"' + (order.orderNumber === selectedId ? ' class="is-selected"' : '') + '>' +
                 '<td class="po-col-num">' + ((page - 1) * size + index + 1) + '</td>' +
                 '<td>' + formatShortDate(order.date) + '</td>' +
@@ -577,7 +584,7 @@
                 '<tr data-order-id="' + escapeHtml(order.orderNumber) + '" class="' + selected.trim() + '">' +
                 '<td>' + escapeHtml(order.orderNumber) + '</td>' +
                 '<td>' + escapeHtml(order.poCode || '—') + '</td>' +
-                '<td>Confidential</td>' +
+                '<td>' + escapeHtml(customerName(order) || '—') + '</td>' +
                 '<td>' + formatDate(order.date) + '</td>' +
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
                     escapeHtml(order.status || 'Processing') + '</span><br>' + paymentPill(order) + '</td>' +
@@ -617,7 +624,11 @@
 
         panel.innerHTML =
             (isPoShell(root) ? '' : '<h3 class="order-tracking-detail-title">Edit ' + escapeHtml(order.orderNumber) + '</h3>') +
-            '<p class="order-tracking-detail-sub">' + 'Customer details are confidential · ' + formatDate(order.date) + '</p>' +
+            '<p class="order-tracking-detail-sub">' + 'Customer details are read-only · only the J&amp;T tracking ID can be changed · ' + formatDate(order.date) + '</p>' +
+            '<div class="order-tracking-form-group"><label>Customer name</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(customerName(order) || '—') + '"></div>' +
+            '<div class="order-tracking-form-group"><label>Contact number</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(ship.phone || '—') + '"></div>' +
+            (order.customerEmail ? '<div class="order-tracking-form-group"><label>Email</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.customerEmail) + '"></div>' : '') +
+            '<div class="order-tracking-form-group"><label>' + (pickup ? 'Pick-up location' : 'Delivery address') + '</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(ship.address || order.accountArea || '—') + '"></div>' +
             (order.poCode
                 ? '<div class="order-tracking-form-group"><label>Linked PO Code</label><input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.poCode) + '"></div>'
                 : '') +
@@ -761,7 +772,7 @@
                 '<div class="ot-modal-head">' +
                     '<div>' +
                         '<h3 class="order-tracking-detail-title" id="ot-create-title">Create New Order Tracking</h3>' +
-                        '<p class="order-tracking-create-hint">Choose a purchase order, then enter the J&amp;T tracking ID. Customer details are confidential and cannot be viewed or changed here.</p>' +
+                        '<p class="order-tracking-create-hint">Choose a purchase order, then enter the J&amp;T tracking ID. Customer details are shown for reference only and cannot be changed here.</p>' +
                     '</div>' +
                     '<button type="button" class="ot-modal-close" id="ot-create-close-btn" aria-label="Close">×</button>' +
                 '</div>' +
@@ -773,7 +784,7 @@
                     '</select>' +
                 '</div>' +
                 '<p class="ot-create-note" id="ot-create-po-note"></p>' +
-                '<div class="order-tracking-form-group" hidden>' +
+                '<div class="order-tracking-form-group">' +
                     '<label for="ot-create-customer">Customer name</label>' +
                     '<input type="text" id="ot-create-customer" class="order-tracking-readonly-field" readonly placeholder="Auto-filled from PO">' +
                 '</div>' +
