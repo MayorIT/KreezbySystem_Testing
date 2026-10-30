@@ -446,6 +446,7 @@
                 '<ul class="pos-lines">' + cartHtml + '</ul>' +
                 '<p class="pos-total"><span>Total</span><strong>' + peso(total) + '</strong></p>' +
                 '<p id="pos-change" class="pos-change"></p>' +
+                '<div id="pos-gcash" class="pos-gcash" hidden><button type="button" id="pos-gcash-btn">Show GCash QR for customer</button></div>' +
                 '<p id="pos-status" class="pos-status"></p>' +
                 '<div class="pos-actions"><button type="button" id="pos-clear" class="pos-secondary">' + clearLabel + '</button><button type="button" id="pos-complete">' + completeLabel + '</button></div>' +
             '</section>' +
@@ -460,6 +461,8 @@
         var payment = document.getElementById('pos-payment');
         if (!tender || !note || !payment) return;
         var cash = payment.value === 'Cash';
+        var gbox = document.getElementById('pos-gcash');
+        if (gbox) gbox.hidden = payment.value !== 'GCash';
         tender.parentNode.hidden = !cash;
         if (!cash) {
             note.textContent = '';
@@ -489,6 +492,106 @@
         if (next) cart[code] = next;
         else delete cart[code];
         render();
+    }
+
+    // ---- GCash QR for the customer (PayMongo QR Ph, same as online checkout) ----
+    var gcashPoll = null;
+
+    function closeGcashQr() {
+        if (gcashPoll) { clearInterval(gcashPoll); gcashPoll = null; }
+        var m = document.getElementById('pos-gcash-modal');
+        if (m && m.parentNode) m.parentNode.removeChild(m);
+    }
+
+    function posSessionEmail() {
+        try {
+            var sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+            if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sess.email || '')) return sess.email;
+        } catch (e) { /* ignore */ }
+        return 'walkin@kreezby.com';
+    }
+
+    function openGcashQr() {
+        var total = cartTotal(cartLines());
+        if (!cartLines().length) { setStatus('Add at least one product first.', 'warn'); return; }
+        if (total < 20) { setStatus('GCash QR needs a total of at least ₱20.00.', 'warn'); return; }
+        closeGcashQr();
+        if (!document.getElementById('pos-gcash-style')) {
+            var st = document.createElement('style');
+            st.id = 'pos-gcash-style';
+            st.textContent =
+                '.pos-gcash{margin:6px 0 4px}.pos-gcash button{width:100%;padding:11px;border:0;border-radius:10px;background:#0a6ef0;color:#fff;font:inherit;font-weight:700;cursor:pointer}' +
+                '#pos-gcash-modal{position:fixed;inset:0;z-index:10050;background:rgba(30,20,15,.62);display:flex;align-items:center;justify-content:center;padding:16px}' +
+                '#pos-gcash-modal .gq-card{background:#fff;border-radius:18px;padding:22px 24px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)}' +
+                '#pos-gcash-modal h3{margin:0 0 4px;font-size:20px;color:#0a4db3}' +
+                '#pos-gcash-modal .gq-amt{font-size:30px;font-weight:800;color:#3d2c2a;margin:4px 0 10px}' +
+                '#pos-gcash-modal .gq-img{width:260px;max-width:100%;aspect-ratio:1/1;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;border:1px solid #e0d6ce;border-radius:12px;color:#8d6e63;font-size:14px}' +
+                '#pos-gcash-modal .gq-img img{width:100%;height:100%;object-fit:contain;border-radius:12px}' +
+                '#pos-gcash-modal .gq-msg{min-height:20px;font-size:14px;font-weight:600;color:#5d4037;margin:6px 0 12px}' +
+                '#pos-gcash-modal .gq-msg.ok{color:#2e7d32}#pos-gcash-modal .gq-msg.err{color:#c62828}' +
+                '#pos-gcash-modal .gq-close{padding:10px 22px;border:1px solid #d7ccc8;background:#fff;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;color:#3d2c2a}';
+            document.head.appendChild(st);
+        }
+        var modal = document.createElement('div');
+        modal.id = 'pos-gcash-modal';
+        modal.innerHTML = '<div class="gq-card"><h3>Pay with GCash</h3><div class="gq-amt">' + peso(total) + '</div>' +
+            '<div class="gq-img" data-gq-img>Creating QR code…</div>' +
+            '<p class="gq-msg" data-gq-msg>Scan with GCash or any bank / e-wallet app.</p>' +
+            '<button type="button" class="gq-close" data-gq-close>Close</button></div>';
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function (ev) {
+            if (ev.target === modal || (ev.target.hasAttribute && ev.target.hasAttribute('data-gq-close'))) closeGcashQr();
+        });
+        var img = modal.querySelector('[data-gq-img]');
+        var msg = modal.querySelector('[data-gq-msg]');
+        function say(text, kind) { msg.textContent = text; msg.className = 'gq-msg' + (kind ? ' ' + kind : ''); }
+        var nameNode = document.getElementById('pos-customer');
+        var payerName = (nameNode && nameNode.value.trim()) || 'Walk-in customer';
+        fetch('/api/paymongo/e-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: total,
+                wallet: 'qrph',
+                name: payerName,
+                email: posSessionEmail(),
+                description: 'Kreezby walk-in POS sale',
+                returnUrl: window.location.origin + window.location.pathname,
+                reference: 'walk-in-pos',
+                audience: 'customer'
+            })
+        }).then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (data) { return { res: res, data: data }; });
+        }).then(function (r) {
+            if (!document.getElementById('pos-gcash-modal')) return;
+            if (!r.res.ok || !r.data.ok || !r.data.qrImage) {
+                img.textContent = 'No QR';
+                say(r.data.error || 'The GCash QR could not be created. Try again.', 'err');
+                return;
+            }
+            img.innerHTML = '<img alt="GCash QR code" src="' + r.data.qrImage + '">';
+            var id = r.data.paymentIntentId;
+            if (r.data.testUrl) say('Test mode: open the QR with a phone camera and choose Authorize.', '');
+            gcashPoll = setInterval(function () {
+                if (!document.getElementById('pos-gcash-modal')) { clearInterval(gcashPoll); gcashPoll = null; return; }
+                fetch('/api/paymongo/payment-intents/' + encodeURIComponent(id), { cache: 'no-store' })
+                    .then(function (x) { return x.json(); })
+                    .then(function (info) {
+                        if (!info || !info.ok) return;
+                        if (info.status === 'succeeded') {
+                            clearInterval(gcashPoll); gcashPoll = null;
+                            say('Payment received ✓ — you can now press Complete Sale.', 'ok');
+                            setStatus('GCash payment of ' + peso(total) + ' received. Press Complete Sale.', 'ok');
+                        } else if (info.status === 'failed' || info.status === 'expired' || info.status === 'cancelled') {
+                            clearInterval(gcashPoll); gcashPoll = null;
+                            say('This QR is no longer valid. Close and show a new one.', 'err');
+                        }
+                    }).catch(function () { /* keep waiting */ });
+            }, 4000);
+        }).catch(function () {
+            img.textContent = 'No QR';
+            say('The shop server could not be reached. Check the connection and try again.', 'err');
+        });
     }
 
     function completeSale() {
@@ -584,6 +687,7 @@
         else sales.push(receipt);
         writeSales(sales);
         applyingStock = false;
+        closeGcashQr();
         cart = {};
         editingId = '';
         pendingDelete = '';
@@ -821,6 +925,8 @@
             render();
         } else if (event.target.id === 'pos-complete') {
             completeSale();
+        } else if (event.target.id === 'pos-gcash-btn') {
+            openGcashQr();
         } else if (actionMenuId && !event.target.closest('.pos-action')) {
             actionMenuId = '';
             pendingDelete = '';
