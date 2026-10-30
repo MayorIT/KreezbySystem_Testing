@@ -324,15 +324,34 @@
         return !!(order && order.status === 'Processing' && order.paymentVerified && !isPaymentFailed(order));
     }
 
+    // The nav badge counts orders the customer has not opened yet (new ones, or ones whose status changed).
+    var SEEN_KEY = 'kz_orders_seen_v1';
+    function orderSignature(order) {
+        return [order.status || '', order.paymentStatus || '', isPaymentFailed(order) ? 'failed' : '', isCancelled(order) ? 'cancelled' : ''].join('|');
+    }
+    function readSeen() {
+        try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') || {}; } catch (e) { return {}; }
+    }
+    function markOrderSeen(order) {
+        if (!order || !order.orderNumber) return;
+        var seen = readSeen();
+        var sig = orderSignature(order);
+        if (seen[order.orderNumber] === sig) return;
+        seen[order.orderNumber] = sig;
+        try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* ignore */ }
+    }
+
     function updateOrdersTriggerState() {
         var badge = document.getElementById('orders-trigger-badge');
         var trigger = document.querySelector('.orders-trigger-btn');
         var orders = loadOrders();
         var count = orders.length;
         var failed = orders.filter(isPaymentFailed).length;
+        var seenMap = readSeen();
+        var unseen = orders.filter(function (order) { return seenMap[order.orderNumber] !== orderSignature(order); }).length;
         if (badge) {
-            badge.hidden = count <= 0;
-            badge.textContent = String(failed || count);
+            badge.hidden = unseen <= 0;
+            badge.textContent = String(unseen);
         }
         if (trigger) {
             var label = count > 0
@@ -590,6 +609,8 @@
         currentDetailOrder = orderNumber;
         var order = findOrder(orderNumber);
         if (!order) return;
+        markOrderSeen(order);
+        updateOrdersTriggerState();
 
         var listView = document.getElementById('orders-list-view');
         var detailView = document.getElementById('orders-detail-view');

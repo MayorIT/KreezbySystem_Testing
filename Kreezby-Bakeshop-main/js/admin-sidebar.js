@@ -77,7 +77,7 @@
 
         { key: 'alert', label: 'Alerts', href: 'alert-admin.html', icon: 'bell' },
 
-        { key: 'aiforecast', label: 'AI Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'spark' },
+        { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-admin.html', icon: 'spark' },
 
         { key: 'issuereports', label: 'Reports', href: 'issue-reports-admin.html', icon: 'flag' },
 

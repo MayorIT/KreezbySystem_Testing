@@ -31,7 +31,7 @@
         saleslist: { label: 'Sales', page: 'saleslist-admin.html' },
         pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
-        aiforecast: { label: 'AI Insights', page: 'aiforecast_salesanalysis-admin.html' },
+        aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-admin.html' },
         deliveryschedule: { label: 'Deliveries', page: 'deliveryschedule-admin.html' },
         alert: { label: 'Alerts', page: 'alert-admin.html' },
         stocklevel: { label: 'Inventory', page: 'stocklevel-admin.html' },
