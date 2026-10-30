@@ -23,7 +23,7 @@
         var fresh = {
             accountId: String(session.customerId || session.accountId || ''),
             ownerKey: owner,
-            username: '',
+            username: String(session.username || ''),
             fullName: String(session.userName || ''),
             email: String(session.email || ''),
             contactNumber: phone,
@@ -34,6 +34,5 @@
         };
         localStorage.setItem('kreezbyCustomerProfile', JSON.stringify(fresh));
         try { sessionStorage.removeItem('kreezbyPaymongoCheckout'); } catch (e1) { /* ignore */ }
-        try { localStorage.removeItem('kreezbyCart'); } catch (e2) { /* ignore */ }
     } catch (error) { /* never block the page */ }
 })();

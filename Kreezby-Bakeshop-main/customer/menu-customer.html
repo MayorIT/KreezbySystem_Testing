@@ -193,8 +193,8 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
                             <div class="profile-inputs-pane">
                                 <div class="form-control-group">
                                     <label>Username</label>
-                                    <input type="text" id="profile-username" value="mark_cruz" disabled>
-                                    <small style="color:var(--text-muted); font-size:11px;">Usernames can only be updated once.</small>
+                                    <input type="text" id="profile-username" value="mark_cruz" maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false">
+                                    <small style="color:var(--text-muted); font-size:11px;">3 to 30 letters, numbers, dots or underscores. You log in with this name.</small>
                                 </div>
                                 <div class="form-control-group">
                                     <label>Full Name</label>
@@ -1319,7 +1319,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
                 // The signed-in customer, never the demo account.
                 return {
                     accountId: s.customerId || '',
-                    username: '',
+                    username: s.username || '',
                     fullName: s.userName || '',
                     email: s.email || '',
                     contactNumber: phoneOnly(s.phone),
@@ -1479,6 +1479,43 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             const profile = loadCustomerProfile();
             const previousProfile = Object.assign({}, profile);
             const fullName = document.getElementById('profile-full-name').value.trim();
+            const unameNode = document.getElementById('profile-username');
+            const typedUsername = unameNode ? unameNode.value.trim().toLowerCase() : '';
+            const knownUsername = String(previousProfile.username || '').trim().toLowerCase();
+            if (unameNode && typedUsername && typedUsername !== knownUsername && !unameNode.dataset.checked) {
+                if (!/^[a-z0-9._]{3,30}$/.test(typedUsername)) {
+                    setStatusText('profile-save-status', 'Username must be 3 to 30 letters, numbers, dots or underscores.', true);
+                    return;
+                }
+                let sess = {};
+                try { sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}; } catch (e) { sess = {}; }
+                if (sess.token && window.fetch) {
+                    setStatusText('profile-save-status', 'Checking username…', false);
+                    fetch('/api/update-username', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': sess.token },
+                        body: JSON.stringify({ username: typedUsername })
+                    }).then(function (res) {
+                        return res.json().catch(function () { return {}; }).then(function (body) { return { ok: res.ok && body && body.ok, body: body || {} }; });
+                    }).then(function (result) {
+                        if (!result.ok) {
+                            setStatusText('profile-save-status', result.body.error || 'Could not change the username.', true);
+                            return;
+                        }
+                        try {
+                            const s2 = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+                            if (String(s2.identity || '').trim().toLowerCase() === knownUsername) s2.identity = typedUsername;
+                            s2.username = typedUsername;
+                            localStorage.setItem('kreezby_session', JSON.stringify(s2));
+                        } catch (e2) { /* ignore */ }
+                        unameNode.dataset.checked = '1';
+                        try { saveProfileSettings(); } finally { unameNode.dataset.checked = ''; }
+                    }).catch(function () {
+                        setStatusText('profile-save-status', 'Could not reach the server. Try again.', true);
+                    });
+                    return;
+                }
+            }
             const emailNode = document.getElementById('profile-email');
             const contactNode = document.getElementById('profile-contact-number');
             // Locked fields keep the saved value, even if someone edits the page.
@@ -1507,6 +1544,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             }
 
             profile.fullName = fullName;
+            if (typedUsername && /^[a-z0-9._]{3,30}$/.test(typedUsername)) profile.username = typedUsername;
             profile.email = email;
             profile.contactNumber = contactNumber;
             profile.defaultAddress = defaultAddress;
@@ -1535,6 +1573,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
             const changeParts = [];
             if (fullName !== previousProfile.fullName) changeParts.push('full name');
+            if (typedUsername && typedUsername !== knownUsername) changeParts.push('username');
             if (email !== previousProfile.email) changeParts.push('email address');
             if (contactNumber !== previousProfile.contactNumber) changeParts.push('contact number');
             if (defaultAddress !== previousProfile.defaultAddress) changeParts.push('default shipping address');

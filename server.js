@@ -970,6 +970,56 @@ app.post("/api/update-name", async (req, res) => {
   }
 });
 
+// A signed-in customer changes their own username. It must be unique across every account group.
+app.post("/api/update-username", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token || token.bucket !== "customers") {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again." });
+    return;
+  }
+  const username = String((req.body && req.body.username) || "").trim().toLowerCase();
+  if (!/^[a-z0-9._]{3,30}$/.test(username)) {
+    return res.status(400).json({ ok: false, error: "Username must be 3 to 30 letters, numbers, dots or underscores." });
+  }
+  try {
+    const db = client.db(DB_NAME);
+    const accounts = db.collection(ACCOUNT_COLLECTIONS.customers);
+    const doc = await accounts.findOne({ _id: token.id });
+    if (!doc) return res.status(404).json({ ok: false, error: "Account not found." });
+    const oldUsername = String(doc.username || "");
+    if (loginKey(oldUsername) === username) return res.json({ ok: true, username });
+    const clash = await findAccountClash(db, { username }, String(doc._id));
+    if (clash) return res.status(409).json({ ok: false, error: "That username is already taken." });
+    const now = new Date();
+    await accounts.updateOne({ _id: doc._id }, { $set: { username, updatedAt: now } });
+    // Keep the app's shared copies in step so the new username works at login.
+    try {
+      const shared = await collection().find({ _id: { $in: ["kreezbyAuthCredentials", "kreezby_maintenance_users"] } }).toArray();
+      const parse = (id) => {
+        const row = shared.find((d) => d._id === id);
+        try { return row && typeof row.value === "string" ? JSON.parse(row.value) : null; } catch (e) { return null; }
+      };
+      const users = parse("kreezby_maintenance_users");
+      if (users && Array.isArray(users.customers)) {
+        const row = users.customers.find((r) => r && [r.id, r.user_id].some((v) => v != null && String(v) === String(doc._id) || String(v) === String(doc.id)));
+        if (row) { row.username = username; await persistUsersState(users); }
+      }
+      const creds = parse("kreezbyAuthCredentials");
+      const squash = (v) => String(v == null ? "" : v).trim().toLowerCase().replace(/[\s._-]+/g, "");
+      if (creds && oldUsername && creds[squash(oldUsername)]) {
+        creds[squash(username)] = Object.assign({}, creds[squash(oldUsername)], { updatedAt: now.toISOString() });
+        const stored = JSON.stringify(creds);
+        cache.kreezbyAuthCredentials = stored;
+        await collection().updateOne({ _id: "kreezbyAuthCredentials" }, { $set: { value: stored, updatedAt: now } }, { upsert: true });
+      }
+    } catch (syncError) { /* the account itself is already changed */ }
+    res.json({ ok: true, username });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // Any signed-in account changes its own password. The current password is checked the same way
 // the login checks it; the new one is saved on the account and in the app's shared account list.
 app.post("/api/change-password", async (req, res) => {

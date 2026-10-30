@@ -720,6 +720,7 @@
                 localStorage.setItem('kzCartOwner', sessionData.customerId);
               } catch (cartErr) { /* ignore */ }
               sessionData.email = custAcct.email || '';
+              sessionData.username = custAcct.username || '';
               sessionData.phone = phoneOnly(custAcct.phone) || phoneOnly(custAcct.contact);
               sessionData.address = custAcct.address || '';
               applyCustomerProfile(custAcct, resolved.userName);
