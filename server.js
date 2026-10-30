@@ -948,6 +948,28 @@ app.post("/api/route-sheets/delete", async (req, res) => {
   }
 });
 
+// A signed-in account changes its own display name (the only profile detail customers can edit).
+app.post("/api/update-name", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token || !ACCOUNT_COLLECTIONS[token.bucket]) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again." });
+    return;
+  }
+  const name = String((req.body && req.body.name) || "").replace(/\s+/g, " ").trim();
+  if (name.length < 2 || name.length > 80) return res.status(400).json({ ok: false, error: "Enter a name of 2 to 80 characters." });
+  try {
+    const db = client.db(DB_NAME);
+    const accounts = db.collection(ACCOUNT_COLLECTIONS[token.bucket]);
+    const doc = await accounts.findOne({ _id: token.id });
+    if (!doc) return res.status(404).json({ ok: false, error: "Account not found." });
+    await accounts.updateOne({ _id: doc._id }, { $set: { name, updatedAt: new Date() } });
+    res.json({ ok: true, name });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // Any signed-in account changes its own password. The current password is checked the same way
 // the login checks it; the new one is saved on the account and in the app's shared account list.
 app.post("/api/change-password", async (req, res) => {

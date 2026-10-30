@@ -6,6 +6,7 @@
     <link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png?v=20261018tab">
 
 <script src="../js/kreezby-db-sync.js?v=20261027stock1"></script>
+<script src="../js/customer-session-guard.js?v=20261030own"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-store">
@@ -1513,6 +1514,21 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             ensurePrimaryAddressEntry(profile);
             saveCustomerProfile(profile);
             syncCustomerAuthCredentials(profile);
+            // Keep the signed-in name, and the customer's account, in step with the new name.
+            if (fullName !== previousProfile.fullName) {
+                try {
+                    const sess = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+                    sess.userName = fullName;
+                    localStorage.setItem('kreezby_session', JSON.stringify(sess));
+                    if (sess.token && window.fetch) {
+                        fetch('/api/update-name', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': sess.token },
+                            body: JSON.stringify({ name: fullName })
+                        }).catch(function () { /* the name is still saved on this device */ });
+                    }
+                } catch (nameErr) { /* ignore */ }
+            }
             refreshProfileForm();
             setStatusText('profile-save-status', 'Profile saved. Checkout shipping details are now updated.', false);
             switchProfileEditMode('status');
