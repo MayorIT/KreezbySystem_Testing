@@ -166,7 +166,7 @@
 
     function formHtml() {
         return '<h3>Retailer Delivery</h3>' +
-            '<p class="dpos-sub">Record a delivery to a retailer shop. It is saved to that day\'s route sheet and shows on the Sales List right away.</p>' +
+            '<p class="dpos-sub">For retailer shops only. It is saved to that day\'s route sheet and shows on the <strong>Retailer</strong> sales list right away. Walk-in customers are recorded in the Walk-in POS.</p>' +
             '<div class="dpos-grid">' +
                 '<label class="dpos-field">Delivery date<input type="date" data-f="date"></label>' +
                 '<label class="dpos-field">Area<select data-f="area">' + AREAS.map(function (a) {
@@ -174,11 +174,14 @@
                 }).join('') + '</select></label>' +
                 '<label class="dpos-field">Shop<select data-f="shopPick"><option value="">Loading shops…</option></select></label>' +
             '</div>' +
+            '<div class="dpos-grid" style="grid-template-columns:1fr">' +
+                '<label class="dpos-field">Terms <small>COD: cash is collected on delivery · Consignment: no cash collected yet</small><select data-f="terms"><option value="cod">COD</option><option value="cons">Consignment</option></select></label>' +
+            '</div>' +
             '<div class="dpos-grid four">' +
-                '<label class="dpos-field">Ordered <small>pcs · Cons</small><input type="number" min="0" step="1" inputmode="numeric" data-f="ordered" placeholder="0"></label>' +
+                '<label class="dpos-field">Ordered <small data-terms-hint>pcs · COD</small><input type="number" min="0" step="1" inputmode="numeric" data-f="ordered" placeholder="0"></label>' +
                 '<label class="dpos-field">Pulled out <small>pcs · P.O</small><input type="number" min="0" step="1" inputmode="numeric" data-f="pulled" placeholder="0"></label>' +
                 '<label class="dpos-field">Expired <small>pcs</small><input type="number" min="0" step="1" inputmode="numeric" data-f="expired" placeholder="0"></label>' +
-                '<label class="dpos-field">Collected <small>₱</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>' +
+                '<label class="dpos-field" data-collected-wrap>Collected <small>₱</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>' +
             '</div>' +
             '<div class="dpos-grid" style="grid-template-columns:1fr">' +
                 '<label class="dpos-field">Reason / notes <small>optional — why it was pulled out or expired</small><input type="text" data-f="notes" maxlength="100" placeholder="e.g. damaged pouches, near expiry, slow sales"></label>' +
@@ -189,6 +192,29 @@
                 '<span class="dpos-status" data-status></span>' +
             '</div>' +
             '<div class="dpos-list"><h4 data-list-title>Deliveries on this date</h4><div data-list></div></div>';
+    }
+
+    // COD shops pay cash on delivery (Ordered → COD, Collected counts).
+    // Consignment shops pay later (Ordered → Cons, nothing is collected on the day).
+    function entryTerms(e) {
+        if (num(e.cod) > 0 && !num(e.cons)) return 'cod';
+        if (num(e.cons) > 0) return 'cons';
+        return num(e.collected) > 0 ? 'cod' : 'cons';
+    }
+
+    function orderedOf(e) {
+        var t = entryTerms(e);
+        var v = t === 'cod' ? e.cod : e.cons;
+        return v != null ? v : null;
+    }
+
+    function applyTerms(root) {
+        var cod = field(root, 'terms').value === 'cod';
+        var wrap = root.querySelector('[data-collected-wrap]');
+        wrap.hidden = !cod;
+        wrap.style.display = cod ? '' : 'none';
+        if (!cod) field(root, 'collected').value = '';
+        root.querySelector('[data-terms-hint]').textContent = 'pcs · ' + (cod ? 'COD' : 'Consignment');
     }
 
     function field(root, name) { return root.querySelector('[data-f="' + name + '"]'); }
@@ -260,9 +286,9 @@
             host.innerHTML = '<p class="dpos-empty">No deliveries saved for this date and area yet.</p>';
             return;
         }
-        host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Collected</th><th>Notes</th></tr></thead><tbody>' +
+        host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Collected</th><th>Notes</th></tr></thead><tbody>' +
             entries.map(function (e, i) {
-                return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td class="n">' + (e.cons != null ? esc(e.cons) : '—') +
+                return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + (entryTerms(e) === 'cod' ? 'COD' : 'Consignment') + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
                     '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.expired != null ? esc(e.expired) : '—') +
                     '</td><td class="n">' + (num(e.collected) ? peso(e.collected) : '—') + '</td><td>' + esc(e.notes || '') + '</td></tr>';
             }).join('') + '</tbody></table></div>';
@@ -270,10 +296,12 @@
             tr.addEventListener('click', function () {
                 var e = entries[Number(tr.getAttribute('data-shop'))];
                 fillShops(root, e.accountName || e.retailerName || '');
-                field(root, 'ordered').value = e.cons != null ? e.cons : '';
+                field(root, 'terms').value = entryTerms(e);
+                applyTerms(root);
+                field(root, 'ordered').value = orderedOf(e) != null ? orderedOf(e) : '';
                 field(root, 'pulled').value = e.po != null ? e.po : '';
                 field(root, 'expired').value = e.expired != null ? e.expired : '';
-                field(root, 'collected').value = e.collected != null ? e.collected : '';
+                field(root, 'collected').value = (entryTerms(e) === 'cod' && e.collected != null) ? e.collected : '';
                 field(root, 'notes').value = String(e.notes || '').replace(EXPIRED_NOTE, '').replace(/^;\s*/, '').trim();
                 setStatus(root, 'Editing ' + (e.accountName || e.retailerName) + ' — change the numbers and save.', '');
             });
@@ -300,7 +328,8 @@
         var ordered = field(root, 'ordered').value;
         var pulled = field(root, 'pulled').value;
         var expired = field(root, 'expired').value;
-        var collected = field(root, 'collected').value;
+        var terms = field(root, 'terms').value === 'cod' ? 'cod' : 'cons';
+        var collected = terms === 'cod' ? field(root, 'collected').value : '';
         var reason = field(root, 'notes').value.trim();
         if (!date) return setStatus(root, 'Choose the delivery date.', 'err');
         if (!shop.name) return setStatus(root, 'Pick the shop.', 'err');
@@ -329,10 +358,15 @@
                 if (value === '') delete entry[key];
                 else entry[key] = num(value);
             }
-            put('cons', ordered);
+            put(terms, ordered);
             put('po', pulled);
             put('expired', expired);
-            put('collected', collected);
+            if (terms === 'cod') {
+                put('collected', collected);
+            } else if (!num(entry.cod)) {
+                // Consignment: nothing is collected, so it must not appear in the POS / sales list.
+                delete entry.collected;
+            }
 
             var notes = [];
             if (reason) notes.push(reason);
@@ -437,6 +471,8 @@
         });
 
         field(root, 'area').addEventListener('change', function () { fillShops(root); renderList(root); });
+        field(root, 'terms').addEventListener('change', function () { applyTerms(root); });
+        applyTerms(root);
         field(root, 'date').addEventListener('change', function () { renderList(root); });
         root.querySelector('[data-act="save"]').addEventListener('click', function () { save(root); });
         root.querySelector('[data-act="clear"]').addEventListener('click', function () { clearForm(root); setStatus(root, '', ''); });

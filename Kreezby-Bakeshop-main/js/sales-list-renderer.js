@@ -1000,7 +1000,7 @@
     return 'Unpaid';
   }
 
-  var CUSTOMER_FILTER_IDS = ['sales-customer-status', 'sales-customer-payment', 'sales-customer-fulfil', 'sales-customer-from', 'sales-customer-to'];
+  var CUSTOMER_FILTER_IDS = ['sales-customer-channel', 'sales-customer-status', 'sales-customer-payment', 'sales-customer-fulfil', 'sales-customer-from', 'sales-customer-to'];
 
   function ensureCustomerFilters() {
     var toolbar = document.querySelector('.sales-customer-toolbar');
@@ -1013,6 +1013,8 @@
     }
     var ctl = 'style="padding:7px 9px;border:1px solid #d7ccc8;border-radius:8px;font-size:13px;background:#fff;"';
     wrap.innerHTML =
+      '<p style="flex-basis:100%;margin:0 0 2px;font-size:12.5px;color:#6d4c41;line-height:1.45;"><strong>Walk-in</strong> = customers served at the shop through the Walk-in POS. <strong>Online</strong> = customers who placed their own order through their account. Retailer deliveries are kept separately in the Retailer tab.</p>' +
+      field('Customer type', '<select id="sales-customer-channel" ' + ctl + '><option value="">All customers</option><option value="walkin">Walk-in (POS)</option><option value="online">Online orders</option></select>') +
       field('Status', '<select id="sales-customer-status" ' + ctl + '><option value="">All</option></select>') +
       field('Payment', '<select id="sales-customer-payment" ' + ctl + '><option value="">All</option>' +
         ['Paid', 'Awaiting payment', 'Cash - unpaid', 'Cancelled', 'Expired'].map(function (v) { return '<option>' + v + '</option>'; }).join('') + '</select>') +
@@ -1044,10 +1046,12 @@
     refreshStatusOptions();
     var q = String(query === undefined ? (document.getElementById('sales-customer-search') || {}).value : query || '').toLowerCase().trim();
     function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+    var fChannel = val('sales-customer-channel');
     var fStatus = val('sales-customer-status'), fPay = val('sales-customer-payment'), fFul = val('sales-customer-fulfil');
     var fFrom = val('sales-customer-from'), fTo = val('sales-customer-to');
     var rows = customerCache.filter(function (row) {
       if (q && row.hay.indexOf(q) < 0) return false;
+      if (fChannel && row.channel !== fChannel) return false;
       if (fStatus && row.statusText !== fStatus) return false;
       if (fPay && row.pay !== fPay) return false;
       if (fFul && row.fulfil !== fFul) return false;
@@ -1056,7 +1060,13 @@
       return true;
     });
     var counter = document.getElementById('sales-customer-count');
-    if (counter) counter.textContent = rows.length + ' of ' + customerCache.length + ' orders';
+    var nWalk = customerCache.filter(function (r) { return r.channel === 'walkin'; }).length;
+    var chanSel = document.getElementById('sales-customer-channel');
+    if (chanSel && chanSel.options.length === 3) {
+      chanSel.options[1].textContent = 'Walk-in (POS) · ' + nWalk;
+      chanSel.options[2].textContent = 'Online orders · ' + (customerCache.length - nWalk);
+    }
+    if (counter) counter.textContent = rows.length + ' of ' + customerCache.length + ' sales';
     if (!rows.length) {
       tbody.innerHTML = '<tr class="po-empty-row"><td colspan="7">' +
         (customerCache.length ? 'No customer sales match these filters.' : 'No customer sales yet.') +
@@ -1094,6 +1104,45 @@
     window.switchToDetailedSalesTransactionInspector();
   }
 
+  // Walk-in POS sales (customers served at the shop). Online orders are never taken from here:
+  // they are listed from the online order records, so the two groups are not mixed up.
+  function walkInRows() {
+    var sales = [];
+    try { sales = JSON.parse(localStorage.getItem('kreezby_pos_sales_v1') || '[]'); } catch (e) { sales = []; }
+    if (!Array.isArray(sales)) return [];
+    return sales.filter(function (sale) {
+      return sale && String(sale.channel || 'Walk-in') !== 'Online';
+    }).map(function (sale, i) {
+      var items = (sale.lines || []).map(function (l) { return (l.qty || 1) + '× ' + (l.name || 'Item'); }).join(', ');
+      var customer = sale.customer || 'Walk-in';
+      var total = '₱' + Number(sale.total || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var dateLabel = '';
+      try { dateLabel = new Date(sale.at || sale.date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }); }
+      catch (err) { dateLabel = sale.date || ''; }
+      var account = 'Walk-in customer · ' + (sale.payment || 'Cash') + (sale.cashier ? ' · Cashier: ' + sale.cashier : '');
+      var key = 'pos-' + i;
+      return {
+        key: key,
+        channel: 'walkin',
+        sortAt: String(sale.at || sale.date || ''),
+        statusText: 'Completed',
+        pay: 'Paid',
+        fulfil: '',
+        day: localDay(sale.at || sale.date),
+        invoice: sale.id || '',
+        orderNumber: sale.id || '',
+        date: dateLabel,
+        customer: customer,
+        items: items,
+        status: 'Completed',
+        account: account,
+        total: total,
+        hay: ((sale.id || '') + ' ' + customer + ' ' + items + ' walk-in completed ' + (sale.payment || '')).toLowerCase(),
+        html: customerSaleRow(key, dateLabel, sale.id || '', customer, 'Walk-in customer · ' + (sale.payment || 'Cash'), '', items, total, 'received', 'Completed', 'walkin')
+      };
+    });
+  }
+
   function renderCustomerSales() {
     var tbody = document.getElementById('customer-sales-tbody');
     if (!tbody) return;
@@ -1123,6 +1172,8 @@
       var key = 'local-' + i;
       return {
         key: key,
+        channel: 'online',
+        sortAt: String(order.date || ''),
         statusText: status,
         pay: paymentBucket(order),
         fulfil: order.fulfillment === 'pickup' ? 'pickup' : 'delivery',
@@ -1136,9 +1187,11 @@
         account: (order.accountType || 'Regular Customer') + (order.accountArea ? ' · ' + order.accountArea : ''),
         total: order.total || '',
         hay: (invoice + ' ' + customer + ' ' + names + ' ' + status).toLowerCase(),
-        html: customerSaleRow(key, dateLabel, invoice, customer, order.accountType || 'Regular Customer', order.accountArea, names, order.total || '', statusClass, status)
+        html: customerSaleRow(key, dateLabel, invoice, customer, order.accountType || 'Regular Customer', order.accountArea, names, order.total || '', statusClass, status, 'online')
       };
     });
+    customerCache = walkInRows().concat(customerCache);
+    customerCache.sort(function (a, b) { return String(b.sortAt || '').localeCompare(String(a.sortAt || '')); });
     paintCustomerSales((document.getElementById('sales-customer-search') || {}).value);
     fetch('/api/records/sales_orders?limit=80').then(function (res) {
       return res.ok ? res.json() : null;
@@ -1163,6 +1216,8 @@
         var key = 'db-' + index;
         customerCache.push({
           key: key,
+          channel: 'online',
+          sortAt: String(row.Order_Date || ''),
           statusText: status,
           pay: statusKey === 'cancelled' ? 'Cancelled' : '',
           fulfil: '',
@@ -1175,19 +1230,23 @@
           account: 'Customer',
           total: row.Order_Total || '',
           hay: (invoice + ' ' + customer + ' ' + items + ' ' + status).toLowerCase(),
-          html: customerSaleRow(key, row.Order_Date || '', invoice, customer, 'Customer', '', items, row.Order_Total || '', statusClass, status)
+          html: customerSaleRow(key, row.Order_Date || '', invoice, customer, 'Customer', '', items, row.Order_Total || '', statusClass, status, 'online')
         });
       });
+      customerCache.sort(function (x, y) { return String(y.sortAt || '').localeCompare(String(x.sortAt || '')); });
       paintCustomerSales((document.getElementById('sales-customer-search') || {}).value);
     }).catch(function () { /* keep the shop orders already shown */ });
   }
 
-  function customerSaleRow(key, date, invoice, customer, accountType, area, items, total, statusClass, status) {
+  function customerSaleRow(key, date, invoice, customer, accountType, area, items, total, statusClass, status, channel) {
+    var badge = channel === 'walkin'
+      ? '<span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:700;">Walk-in</span>'
+      : '<span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#e3f2fd;color:#1565c0;font-size:11px;font-weight:700;">Online</span>';
     return '<tr>' +
       '<td>__N__</td>' +
       '<td>' + esc(date) + '</td>' +
       '<td><a href="#" class="po-code-link" data-customer-sale="' + esc(key) + '">' + esc(invoice || '—') + '</a></td>' +
-      '<td><strong>' + esc(customer) + '</strong>' +
+      '<td><strong>' + esc(customer) + '</strong>' + badge +
       '<br><small>' + esc(accountType || 'Customer') + (area ? ' · ' + esc(area) : '') + '</small>' +
       '<br><small>' + esc(items) + '</small></td>' +
       '<td>' + esc(total) + '</td>' +

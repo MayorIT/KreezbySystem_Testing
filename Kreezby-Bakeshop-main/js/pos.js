@@ -429,7 +429,7 @@
             primeEdit = false;
         }
         var saleTitle = editingId ? 'Edit sale' : 'Walk-in Sale';
-        var saleNote = editingId ? '<p class="pos-note">' + esc(editingId) + '</p>' : '';
+        var saleNote = editingId ? '<p class="pos-note">' + esc(editingId) + '</p>' : '<p class="pos-note">For walk-in customers served at the shop. Saved to the <strong>Customer</strong> sales list (Walk-in). Customers who order online are listed separately.</p>';
         var clearLabel = editingId ? 'Cancel' : 'Clear';
         var completeLabel = editingId ? 'Save changes' : 'Complete Sale';
         root.querySelector('.pos-layout').innerHTML =
