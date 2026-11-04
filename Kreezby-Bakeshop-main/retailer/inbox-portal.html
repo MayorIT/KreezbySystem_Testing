@@ -17,10 +17,21 @@
     <link rel="stylesheet" href="../css/pages/admin/inbox-admin.css">
     <link rel="stylesheet" href="../css/shared/inbox-chat-layout.css?v=20261010fill">
 <style id="kz-no-sidebar">aside.sidebar-panel,aside.dark-sidebar-panel,aside.kreezby-icon-sidebar,.hamburger-row{display:none!important}html body,html body.kreezby-docked{padding-left:0!important}.core-viewport-wrapper,.system-dashboard-wrapper{display:flex!important}.workspace-canvas,.workspace-view-canvas,.kreezby-turbo-main{margin-left:0!important;width:auto!important;max-width:none!important}</style>
+<style id="kz-back-home-style">
+.top-navbar-node{display:flex;align-items:center;gap:12px}
+.kz-back-home{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;height:40px;padding:0 14px 0 10px;border-radius:999px;background:#ffca28;color:#3d2c2a;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.kz-back-home:hover{background:#ffd54f}
+.kz-back-home:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.kz-back-home svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:900px){.top-navbar-node>.kz-back-home{order:-1;width:44px;height:44px;padding:0;justify-content:center}.kz-back-home span{display:none}}
+</style>
 </head>
 <body>
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
 <header class="top-navbar-node">
+    <a href="retailer-portal.html" class="kz-back-home" aria-label="Back to dashboard" title="Back to dashboard">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>Dashboard</span>
+    </a>
     <div class="brand-logo-panel"><img class="brand-kreezby-logo" src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
     <div class="top-nav-links-right">
         <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>

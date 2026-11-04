@@ -6,6 +6,44 @@
 (function () {
   "use strict";
 
+  // "Remember me" on the login page.
+  //  - Ticked: this device stays signed in to that account (until the sign-in token expires,
+  //    30 days), and opening the login/start page goes straight to the account's portal.
+  //  - Not ticked: the sign-in ends when the browser is closed (kz_alive is a browser-session cookie).
+  (function rememberMe() {
+    try {
+      var raw = localStorage.getItem("kreezby_session");
+      var s = raw ? JSON.parse(raw) || {} : null;
+      var alive = /(?:^|;\s*)kz_alive=1(?:;|$)/.test(document.cookie || "");
+      if (s) {
+        var expired = s.rememberUntil && Date.now() > Number(s.rememberUntil);
+        if ((s.remember === false && !alive) || (s.remember === true && expired)) {
+          localStorage.removeItem("kreezby_session");
+          s = null;
+          // The sign-in ended (browser closed without "Remember me", or 30 days passed): log in again.
+          var here = String(location.pathname || "").replace(/\\/g, "/");
+          var m = here.match(/^(.*\/)(head_admin|admin|staff|retailer|customer|it_kreezby)\/([^\/]*)$/i);
+          if (m && !/guest/i.test(m[3])) {
+            location.replace(m[1] + "auth/log_in.html");
+            return;
+          }
+        } else if (s.remember === true && !alive) {
+          document.cookie = "kz_alive=1; path=/; SameSite=Lax" + (location.protocol === "https:" ? "; Secure" : "");
+        }
+      }
+      var path = String(location.pathname || "").replace(/\\/g, "/");
+      var authAt = path.toLowerCase().lastIndexOf("/auth/");
+      var onEntry = authAt >= 0 && /\/auth\/(log_in|start)\.html$/i.test(path);
+      if (!s || s.remember !== true || !s.home || !onEntry) return;
+      if (/[?&](tab=signup|stay=1)(&|$)/.test(location.search || "") || location.hash === "#signup") return;
+      // Guard against a loop if a portal sends the user straight back here.
+      var last = Number(sessionStorage.getItem("kz_auto_login_at") || 0);
+      if (last && Date.now() - last < 15000) return;
+      sessionStorage.setItem("kz_auto_login_at", String(Date.now()));
+      location.replace(path.slice(0, authAt + 1) + String(s.home).replace(/^\/+/, ""));
+    } catch (e) { /* storage blocked: normal login */ }
+  })();
+
   if (document.head && !document.querySelector('link[rel="icon"]')) {
     var brandIcon = document.createElement("link");
     brandIcon.rel = "icon";

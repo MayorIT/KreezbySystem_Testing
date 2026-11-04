@@ -24,6 +24,43 @@
     }
   }
 
+  var REMEMBER_LOGIN_KEY = 'kreezby_remember_login';
+  var REMEMBER_DAYS = 30;
+
+  // Until when "Remember me" keeps this device signed in: 30 days, or sooner if the server's token expires.
+  function rememberUntil(token) {
+    var until = Date.now() + REMEMBER_DAYS * 864e5;
+    try {
+      var body = String(token || '').split('.')[0];
+      if (body) {
+        var json = atob(body.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((body.length + 3) % 4));
+        var exp = Number((JSON.parse(json) || {}).exp);
+        if (exp > 0 && exp < until) until = exp;
+      }
+    } catch (e) { /* keep 30 days */ }
+    return until;
+  }
+
+  // Login page: fill in the remembered account and keep the box ticked.
+  function restoreRememberedLogin() {
+    var form = document.querySelector('form.login-form');
+    if (!form) return;
+    var box = form.querySelector('[name="remember"]');
+    var input = form.querySelector('[name="identity"]');
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(REMEMBER_LOGIN_KEY) || 'null'); } catch (e) { saved = null; }
+    if (saved && saved.identity) {
+      if (input && !input.value) input.value = saved.identity;
+      if (box) box.checked = true;
+    }
+    if (box) {
+      box.addEventListener('change', function () {
+        // Unticking forgets this device's saved account.
+        if (!box.checked) { try { localStorage.removeItem(REMEMBER_LOGIN_KEY); } catch (e) { /* ignore */ } }
+      });
+    }
+  }
+
   function isAuthPage() {
     var path = (location.pathname || '').toLowerCase();
     return path.indexOf('/auth/') >= 0 ||
@@ -725,7 +762,19 @@
               sessionData.address = custAcct.address || '';
               applyCustomerProfile(custAcct, resolved.userName);
             }
+            // Remember me: keep this device signed in (see kreezby-db-sync.js), else end with the browser.
+            var rememberBox = form.querySelector('[name="remember"]');
+            var remember = !!(rememberBox && rememberBox.checked);
+            sessionData.remember = remember;
+            sessionData.home = resolved.redirectUrl;
+            if (remember) sessionData.rememberUntil = rememberUntil(sessionData.token);
             localStorage.setItem('kreezby_session', JSON.stringify(sessionData));
+            document.cookie = 'kz_alive=1; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+            try {
+              if (remember) localStorage.setItem(REMEMBER_LOGIN_KEY, JSON.stringify({ identity: identity }));
+              else localStorage.removeItem(REMEMBER_LOGIN_KEY);
+              sessionStorage.removeItem('kz_auto_login_at');
+            } catch (remErr) { /* ignore */ }
             if (resolved.accountType === 'Administrator' || resolved.accountType === 'Head Administrator') {
               var nid = normalizeLoginKey(resolved.identity || resolved.userName);
               var adminId = '';
@@ -944,6 +993,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     ensureToastStyles();
     wireForms();
+    if (isAuthPage()) restoreRememberedLogin();
 
     if (!isAuthPage()) {
       ensureNotificationModal();
