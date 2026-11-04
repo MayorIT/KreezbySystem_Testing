@@ -143,6 +143,9 @@
             '#delivery-pos .dpos-sub{margin:4px 0 18px;color:#8a817c;font-size:13px}' +
             '.dpos-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:14px}' +
             '.dpos-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}' +
+            '.dpos-grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}' +
+            '.dpos-calc{margin:-4px 0 14px;padding:9px 12px;border-radius:10px;background:#fff8e1;color:#5d4037;font-size:13px;font-weight:600}' +
+            '.dpos-calc[hidden]{display:none}' +
             '.dpos-field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#5d4037;text-transform:uppercase;letter-spacing:.03em}' +
             '.dpos-field small{font-weight:600;text-transform:none;letter-spacing:0;color:#9a918b}' +
             '.dpos-field input,.dpos-field select{padding:10px 12px;border:1px solid #d7ccc8;border-radius:10px;font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:#2b241f;background:#fff}' +
@@ -159,8 +162,8 @@
             '.dpos-table .n{text-align:right;white-space:nowrap}' +
             '.dpos-table tr[data-shop]{cursor:pointer}.dpos-table tr[data-shop]:hover td{background:#fffaf0}' +
             '.dpos-empty{color:#8d6e63;padding:14px 0}' +
-            '@media (max-width:900px){.dpos-grid,.dpos-grid.four{grid-template-columns:1fr 1fr}}' +
-            '@media (max-width:560px){.dpos-grid,.dpos-grid.four{grid-template-columns:1fr}}';
+            '@media (max-width:900px){.dpos-grid,.dpos-grid.four,.dpos-grid.five{grid-template-columns:1fr 1fr}}' +
+            '@media (max-width:560px){.dpos-grid,.dpos-grid.four,.dpos-grid.five{grid-template-columns:1fr}}';
         document.head.appendChild(s);
     }
 
@@ -175,14 +178,15 @@
                 '<label class="dpos-field">Shop<select data-f="shopPick"><option value="">Loading shops…</option></select></label>' +
             '</div>' +
             '<div class="dpos-grid" style="grid-template-columns:1fr">' +
-                '<label class="dpos-field">Terms <small>COD: cash is collected on delivery · Consignment: no cash collected yet</small><select data-f="terms"><option value="cod">COD</option><option value="cons">Consignment</option></select></label>' +
+                '<label class="dpos-field">Terms <small>COD: collected on the same delivery · Consignment: collected on the next delivery for the last one · Check: paid by check, no collection shown</small><select data-f="terms"><option value="cod">COD</option><option value="cons">Consignment</option><option value="check">Check</option></select></label>' +
             '</div>' +
             '<div class="dpos-grid four">' +
                 '<label class="dpos-field">Ordered <small data-terms-hint>pcs · COD</small><input type="number" min="0" step="1" inputmode="numeric" data-f="ordered" placeholder="0"></label>' +
                 '<label class="dpos-field">Pulled out <small>pcs · P.O</small><input type="number" min="0" step="1" inputmode="numeric" data-f="pulled" placeholder="0"></label>' +
                 '<label class="dpos-field">Expired <small>pcs</small><input type="number" min="0" step="1" inputmode="numeric" data-f="expired" placeholder="0"></label>' +
-                '<label class="dpos-field" data-collected-wrap>Collected <small>₱</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>' +
+                '<label class="dpos-field" data-collected-wrap>Collected <small>₱ · auto, you can change it</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>' +
             '</div>' +
+            '<p class="dpos-calc" data-collect-calc hidden></p>' +
             '<div class="dpos-grid" style="grid-template-columns:1fr">' +
                 '<label class="dpos-field">Reason / notes <small>optional — why it was pulled out or expired</small><input type="text" data-f="notes" maxlength="100" placeholder="e.g. damaged pouches, near expiry, slow sales"></label>' +
             '</div>' +
@@ -195,26 +199,101 @@
     }
 
     // COD shops pay cash on delivery (Ordered → COD, Collected counts).
-    // Consignment shops pay later (Ordered → Cons, nothing is collected on the day).
+    // Consignment shops pay later: each delivery's Collected pays for the LAST delivery,
+    //   (last delivery − today's pull-out) × price. The first delivery collects nothing.
+    // Check shops pay by check (Ordered → Check, no collection is shown).
+    // COD example: 20 delivered, 4 pulled out → (20 − 4) × 140 = 2,240.
+    // Consignment example: wk1 20 → 0 · wk2 20, 4 pulled out → (20 − 4) × 140 = 2,240 · wk3 20 → 20 × 140 = 2,800.
+    var TERM_LABELS = { cod: 'COD', cons: 'Consignment', check: 'Check' };
+
+    function readTerms(value) {
+        return value === 'cod' || value === 'check' ? value : 'cons';
+    }
+
     function entryTerms(e) {
         if (num(e.cod) > 0 && !num(e.cons)) return 'cod';
         if (num(e.cons) > 0) return 'cons';
+        if (num(e.check) > 0) return 'check';
         return num(e.collected) > 0 ? 'cod' : 'cons';
     }
 
     function orderedOf(e) {
-        var t = entryTerms(e);
-        var v = t === 'cod' ? e.cod : e.cons;
+        var v = e[entryTerms(e)];
         return v != null ? v : null;
     }
 
+    // Every pouch is ₱140 for retailers.
+    var PRICE_PER_PC = 140;
+    var COLLECT_NOTE = /(^|;\s*)Collection for (\d{4}-\d{2}-\d{2}) delivery[^;]*/;
+
+    function deliveredQty(e) {
+        return (num(e.cons) || 0) + (num(e.cod) || 0) + (num(e.check) || 0);
+    }
+
+    // The shop's most recent delivery before this date (any area sheet it appears on).
+    function lastDelivery(root) {
+        var date = field(root, 'date').value;
+        var shop = shopFromInput(root);
+        if (!date || !shop.name) return null;
+        var best = null;
+        sheets.forEach(function (sheet) {
+            if (!sheet.reportDate || sheet.reportDate >= date) return;
+            (sheet.entries || []).forEach(function (e) {
+                if (!sameShop(e, shop)) return;
+                var qty = deliveredQty(e);
+                if (!qty) return;
+                if (!best || sheet.reportDate > best.date) best = { date: sheet.reportDate, qty: qty };
+            });
+        });
+        return best;
+    }
+
+    // Works out Collected from the rule above. Returns { amount, text, forDate }.
+    function computeCollection(root) {
+        var terms = readTerms(field(root, 'terms').value);
+        var price = PRICE_PER_PC;
+        var pulled = num(field(root, 'pulled').value);
+        var priceText = peso(price).replace('.00', '');
+        if (terms === 'cod') {
+            var ordered = num(field(root, 'ordered').value);
+            var codQty = Math.max(0, ordered - pulled);
+            return { amount: codQty * price, forDate: '',
+                text: 'COD collection today: (' + ordered + ' delivered − ' + pulled + ' pulled out) × ' + priceText + ' = ' + peso(codQty * price) };
+        }
+        if (terms === 'cons') {
+            var last = lastDelivery(root);
+            if (!last) return { amount: 0, forDate: '', text: 'First consignment delivery for this shop — nothing to collect yet.' };
+            var qty = Math.max(0, last.qty - pulled);
+            return { amount: qty * price, forDate: last.date,
+                text: 'Collection for the ' + last.date + ' delivery: (' + last.qty + ' delivered − ' + pulled + ' pulled out) × ' + priceText + ' = ' + peso(qty * price) };
+        }
+        return { amount: 0, forDate: '', text: '' };
+    }
+
+    function updateCollection(root) {
+        var terms = readTerms(field(root, 'terms').value);
+        var calc = root.querySelector('[data-collect-calc]');
+        if (terms === 'check') { calc.hidden = true; calc.textContent = ''; return; }
+        var c = computeCollection(root);
+        calc.hidden = !c.text;
+        calc.textContent = c.text;
+        var input = field(root, 'collected');
+        if (input.dataset.manual !== '1') input.value = c.amount ? String(Math.round(c.amount * 100) / 100) : '';
+    }
+
     function applyTerms(root) {
-        var cod = field(root, 'terms').value === 'cod';
-        var wrap = root.querySelector('[data-collected-wrap]');
-        wrap.hidden = !cod;
-        wrap.style.display = cod ? '' : 'none';
-        if (!cod) field(root, 'collected').value = '';
-        root.querySelector('[data-terms-hint]').textContent = 'pcs · ' + (cod ? 'COD' : 'Consignment');
+        var terms = readTerms(field(root, 'terms').value);
+        var collects = terms !== 'check';
+        root.querySelectorAll('[data-collected-wrap]').forEach(function (wrap) {
+            wrap.hidden = !collects;
+            wrap.style.display = collects ? '' : 'none';
+        });
+        if (!collects) {
+            field(root, 'collected').value = '';
+            field(root, 'collected').dataset.manual = '';
+        }
+        root.querySelector('[data-terms-hint]').textContent = 'pcs · ' + TERM_LABELS[terms];
+        updateCollection(root);
     }
 
     function field(root, name) { return root.querySelector('[data-f="' + name + '"]'); }
@@ -288,7 +367,7 @@
         }
         host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Collected</th><th>Notes</th></tr></thead><tbody>' +
             entries.map(function (e, i) {
-                return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + (entryTerms(e) === 'cod' ? 'COD' : 'Consignment') + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
+                return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + TERM_LABELS[entryTerms(e)] + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
                     '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.expired != null ? esc(e.expired) : '—') +
                     '</td><td class="n">' + (num(e.collected) ? peso(e.collected) : '—') + '</td><td>' + esc(e.notes || '') + '</td></tr>';
             }).join('') + '</tbody></table></div>';
@@ -301,8 +380,10 @@
                 field(root, 'ordered').value = orderedOf(e) != null ? orderedOf(e) : '';
                 field(root, 'pulled').value = e.po != null ? e.po : '';
                 field(root, 'expired').value = e.expired != null ? e.expired : '';
-                field(root, 'collected').value = (entryTerms(e) === 'cod' && e.collected != null) ? e.collected : '';
-                field(root, 'notes').value = String(e.notes || '').replace(EXPIRED_NOTE, '').replace(/^;\s*/, '').trim();
+                field(root, 'collected').value = (entryTerms(e) !== 'check' && e.collected != null) ? e.collected : '';
+                field(root, 'collected').dataset.manual = (entryTerms(e) !== 'check' && e.collected != null) ? '1' : '';
+                field(root, 'notes').value = String(e.notes || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
+                updateCollection(root);
                 setStatus(root, 'Editing ' + (e.accountName || e.retailerName) + ' — change the numbers and save.', '');
             });
         });
@@ -312,6 +393,7 @@
         return loadSheets().then(function () {
             fillShops(root, shopFromInput(root).name);
             renderList(root);
+            updateCollection(root);
         }).catch(function (err) {
             root.querySelector('[data-list]').innerHTML = '<p class="dpos-empty">' + esc(err.message) + '</p>';
         });
@@ -319,6 +401,8 @@
 
     function clearForm(root) {
         ['ordered', 'pulled', 'expired', 'collected', 'notes'].forEach(function (n) { field(root, n).value = ''; });
+        field(root, 'collected').dataset.manual = '';
+        updateCollection(root);
     }
 
     function save(root) {
@@ -328,8 +412,9 @@
         var ordered = field(root, 'ordered').value;
         var pulled = field(root, 'pulled').value;
         var expired = field(root, 'expired').value;
-        var terms = field(root, 'terms').value === 'cod' ? 'cod' : 'cons';
-        var collected = terms === 'cod' ? field(root, 'collected').value : '';
+        var terms = readTerms(field(root, 'terms').value);
+        var collected = terms !== 'check' ? field(root, 'collected').value : '';
+        var collection = computeCollection(root);
         var reason = field(root, 'notes').value.trim();
         if (!date) return setStatus(root, 'Choose the delivery date.', 'err');
         if (!shop.name) return setStatus(root, 'Pick the shop.', 'err');
@@ -361,20 +446,22 @@
             put(terms, ordered);
             put('po', pulled);
             put('expired', expired);
-            if (terms === 'cod') {
+            if (terms === 'cod' || terms === 'cons') {
+                // COD: today's delivery. Consignment: pays for the last delivery (see computeCollection).
                 put('collected', collected);
             } else if (!num(entry.cod)) {
-                // Consignment: nothing is collected, so it must not appear in the POS / sales list.
+                // Check: no collection, so it must not appear in the POS / sales list.
                 delete entry.collected;
             }
 
             var notes = [];
             if (reason) notes.push(reason);
             else if (entry.notes) {
-                var kept = String(entry.notes).replace(EXPIRED_NOTE, '').replace(/^;\s*/, '').trim();
+                var kept = String(entry.notes).replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
                 if (kept) notes.push(kept);
             }
             if (num(expired) > 0) notes.push('Expired: ' + num(expired) + ' pcs');
+            if (terms === 'cons' && collection.forDate && num(collected) > 0) notes.push('Collection for ' + collection.forDate + ' delivery');
             if (notes.length) entry.notes = notes.join('; ');
             else delete entry.notes;
 
@@ -459,6 +546,7 @@
                     Promise.all([loadAccounts(), loadSheets().catch(function () { return []; })]).then(function () {
                         fillShops(root);
                         renderList(root);
+                        updateCollection(root);
                     });
                 } else {
                     refresh(root);
@@ -470,10 +558,18 @@
             if (b) show(b.getAttribute('data-mode'));
         });
 
-        field(root, 'area').addEventListener('change', function () { fillShops(root); renderList(root); });
-        field(root, 'terms').addEventListener('change', function () { applyTerms(root); });
+        function resetCollected() { field(root, 'collected').dataset.manual = ''; updateCollection(root); }
+        field(root, 'area').addEventListener('change', function () { fillShops(root); renderList(root); resetCollected(); });
+        field(root, 'terms').addEventListener('change', function () { field(root, 'collected').dataset.manual = ''; applyTerms(root); });
+        field(root, 'shopPick').addEventListener('change', resetCollected);
+        ['ordered', 'pulled'].forEach(function (n) {
+            field(root, n).addEventListener('input', function () { updateCollection(root); });
+        });
+        field(root, 'collected').addEventListener('input', function () {
+            field(root, 'collected').dataset.manual = field(root, 'collected').value === '' ? '' : '1';
+        });
         applyTerms(root);
-        field(root, 'date').addEventListener('change', function () { renderList(root); });
+        field(root, 'date').addEventListener('change', function () { renderList(root); resetCollected(); });
         root.querySelector('[data-act="save"]').addEventListener('click', function () { save(root); });
         root.querySelector('[data-act="clear"]').addEventListener('click', function () { clearForm(root); setStatus(root, '', ''); });
 

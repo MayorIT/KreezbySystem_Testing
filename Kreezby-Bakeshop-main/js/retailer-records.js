@@ -176,9 +176,10 @@
       if (r.notes) html += '<tr class="kz-rr-sheet-note"><td></td><td colspan="7">Note: ' + esc(r.notes) + '</td></tr>';
       return html;
     }).join('');
-    var foot = '<tr><td colspan="3" style="text-align:right;">TOTALS</td>';
-    SHEET_FIELDS.slice(1).forEach(function (f) { foot += '<td>' + cell(totals[f] || null) + '</td>'; });
-    foot += '<td class="money-cell">' + (collected ? '<span class="money-cell">' + money(collected) + '</span>' : '—') + '</td></tr>';
+    // TOTALS row: one grand total of everything delivered (Cons + COD + Staff + Check), no other numbers.
+    var all = SHEET_FIELDS.slice(1).reduce(function (sum, f) { return sum + (totals[f] || 0); }, 0);
+    var foot = '<tr class="sheet-grand-total-row"><td colspan="3" style="text-align:right;">TOTALS</td>' +
+      '<td colspan="5" class="sheet-grand-total" style="text-align:center;font-weight:800;">' + (all ? esc(String(all)) : '—') + '</td></tr>';
     return '<article class="manual-route-sheet-card">' +
       '<div class="manual-sheet-header">' +
         '<span class="sheet-brand">Kreezby Philippines</span>' +

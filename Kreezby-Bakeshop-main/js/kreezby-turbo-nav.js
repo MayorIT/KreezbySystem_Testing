@@ -59,7 +59,7 @@
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261021fix';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261104pc';
         s.defer = true;
         (document.head || document.documentElement).appendChild(s);
     }
@@ -447,7 +447,7 @@
         loadScript(root + 'js/kreezby-sales-fake-admin.js?v=20260929areas', 'kreezby-sales-fake-admin-script-d', function () {
             loadScript(root + 'js/kreezby-sales-data.js?v=20261025exp', 'kreezby-sales-data-script-d', function () {
                 loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                    loadScript(root + 'js/sales-list-renderer.js?v=20261025nopr', 'kreezby-sales-list-renderer-script-act', function () {
+                    loadScript(root + 'js/sales-list-renderer.js?v=20261104total', 'kreezby-sales-list-renderer-script-act', function () {
                         if (window.KreezbySales && typeof window.KreezbySales.load === 'function') {
                             window.KreezbySales.load();
                         }
@@ -550,7 +550,7 @@
 
         function loadRenderer() {
             loadScript(root + 'js/sales-sheet-editor.js?v=20261008sls', 'kreezby-sales-sheet-editor-script', function () {
-                loadScript(root + 'js/sales-list-renderer.js?v=20261025nopr', 'kreezby-sales-list-renderer-script-act', afterDataReady);
+                loadScript(root + 'js/sales-list-renderer.js?v=20261104total', 'kreezby-sales-list-renderer-script-act', afterDataReady);
             });
         }
 

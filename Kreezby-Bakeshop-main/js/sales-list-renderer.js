@@ -98,6 +98,17 @@
     return t;
   }
 
+  // TOTALS row: one grand total of everything delivered (Cons + COD + Staff + Check), no other numbers.
+  function sheetGrandTotal(t) {
+    return (Number(t.cons) || 0) + (Number(t.cod) || 0) + (Number(t.staff) || 0) + (Number(t.check) || 0);
+  }
+
+  function sheetTotalsRow(t) {
+    var all = sheetGrandTotal(t);
+    return '<tr class="sheet-grand-total-row"><td colspan="3" style="text-align:right;">TOTALS</td>' +
+      '<td colspan="5" class="sheet-grand-total" style="text-align:center;font-weight:800;">' + (all ? esc(String(all)) : '—') + '</td></tr>';
+  }
+
   var SHEET_NOTES_KEY = 'kreezbyAdminRouteNotes';
   var HEAD_SHEET_NOTES_KEY = 'kreezbyHeadAdminRouteNotes';
   var STAFF_SHEET_NOTES_KEY = 'kreezbyStaffRouteNotes';
@@ -238,14 +249,7 @@
         '<table class="manual-sheet-table">' +
         manualTableHead() +
         '<tbody>' + rows + '</tbody>' +
-        '<tfoot><tr>' +
-        '<td colspan="3" style="text-align:right;">TOTALS</td>' +
-        '<td>' + cell(totals.cons || null) + '</td>' +
-        '<td>' + cell(totals.cod || null) + '</td>' +
-        '<td>' + cell(totals.staff || null) + '</td>' +
-        '<td>' + cell(totals.check || null) + '</td>' +
-        '<td class="money-cell">' + (totals.collected ? moneyCell(totals.collected, api) : '—') + '</td>' +
-        '</tr></tfoot>' +
+        '<tfoot>' + sheetTotalsRow(totals) + '</tfoot>' +
         '</table></div>' +
         '<div class="manual-sheet-footer">' +
         sheetSummaryHtml(report, api) +
@@ -856,13 +860,7 @@
         '<div><p class="manual-detail-route-title">Daily collection sheet (manual layout)</p>' +
         '<div class="manual-sheet-scroll"><table class="manual-sheet-table">' +
         manualTableHead() + '<tbody>' + rows + '</tbody>' +
-        '<tfoot><tr><td colspan="3" style="text-align:right;">TOTALS</td>' +
-        '<td>' + cell(totals.cons || null) + '</td>' +
-        '<td>' + cell(totals.cod || null) + '</td>' +
-        '<td>' + cell(totals.staff || null) + '</td>' +
-        '<td>' + cell(totals.check || null) + '</td>' +
-        '<td class="money-cell">' + (totals.collected ? moneyCell(totals.collected, api) : '—') + '</td>' +
-        '</tr></tfoot></table></div></div>' +
+        '<tfoot>' + sheetTotalsRow(totals) + '</tfoot></table></div></div>' +
         sheetSummaryHtml(report, api) +
         '</div>';
 

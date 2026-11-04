@@ -227,13 +227,80 @@
         });
     }
 
+    /* Head Admin, Admin and Staff portals get the compact phone cards */
+    function isOpsPortal() {
+        var path = ((window.location && window.location.pathname) || '').replace(/\\/g, '/').toLowerCase();
+        return /\/(head_admin|admin|staff|admin_names|staff_names)\//.test(path);
+    }
+
+    function ensureOpsPhoneCss() {
+        if (!isOpsPortal()) return;
+        document.documentElement.classList.add('kz-ops-phone');
+        if (document.getElementById('kreezby-phone-tables-style')) return;
+        var link = document.createElement('link');
+        link.id = 'kreezby-phone-tables-style';
+        link.rel = 'stylesheet';
+        // media attribute: desktop never applies these rules
+        link.media = '(max-width: 900px)';
+        link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-tables.css?v=20261104';
+        (document.head || document.documentElement).appendChild(link);
+    }
+
+    var OPS_TABLES = 'table.data-display-table, table.matrix-table, table.sl-compact-table, table.pos-table, .staff-table-wrap > table';
+    var SKIP_TABLES = '.sheet-editor-table, .manual-sheet-table, .ksheet-table, .delivery-stop-table, .po-receipt-table, .po-receipt-sum';
+    var PC_CLASSES = ['kz-pc-title', 'kz-pc-wide', 'kz-pc-action', 'kz-pc-num'];
+    var TITLE_RE = /^(item name|product( name)?|name|full name|customer( name)?|retailer( name)?|store|entity|item|flavor|account name|month|subject)$/i;
+    var ID_RE = /^(order( #| no\.?| id)?|item code|code|po( #| code)?|sale|ref(erence)?( #)?|ticket( #)?|timestamp|date)$/i;
+    var WIDE_RE = /message|description|address|note|remark|reason|detail|email|items|concern|issue/i;
+    var ACTION_RE = /^actions?$|^manage$|^options?$|^view$/i;
+
+    function markPhoneCells(table, labels) {
+        var titleIdx = -1;
+        for (var i = 0; i < labels.length; i++) {
+            if (TITLE_RE.test(labels[i])) { titleIdx = i; break; }
+        }
+        if (titleIdx < 0) {
+            for (var j = 0; j < labels.length; j++) {
+                if (labels[j] && labels[j] !== '#' && ID_RE.test(labels[j])) { titleIdx = j; break; }
+            }
+        }
+        Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (row) {
+            if (row.classList.contains('kreezby-phone-span')) return;
+            var cells = row.children;
+            for (var c = 0; c < cells.length; c++) {
+                var cell = cells[c];
+                if (cell.tagName !== 'TD') continue;
+                var label = labels[c] || '';
+                var text = (cell.textContent || '').replace(/\s+/g, ' ').trim();
+                var hasControl = !!cell.querySelector('button, select, a.btn, .action-menu, [class*="action"]');
+                cell.classList.toggle('kz-pc-title', c === titleIdx);
+                cell.classList.toggle('kz-pc-action', c !== titleIdx && (ACTION_RE.test(label) || (!label && hasControl) || (hasControl && text.length <= 24 && /action|manage/i.test(text))));
+                cell.classList.toggle('kz-pc-wide', c !== titleIdx && !cell.classList.contains('kz-pc-action') && (WIDE_RE.test(label) || text.length > 26));
+                if (!label && !hasControl && !text) cell.classList.add('kz-pc-empty');
+                else cell.classList.remove('kz-pc-empty');
+            }
+        });
+    }
+
+    function clearPhoneCells(table) {
+        if (!table.querySelector('.kz-pc-title, .kz-pc-wide, .kz-pc-action, .kz-pc-empty')) return;
+        Array.prototype.forEach.call(table.querySelectorAll('td'), function (cell) {
+            for (var k = 0; k < PC_CLASSES.length; k++) cell.classList.remove(PC_CLASSES[k]);
+            cell.classList.remove('kz-pc-empty');
+        });
+    }
+
     function labelWideTables() {
-        var tables = document.querySelectorAll('table.data-display-table, table.matrix-table');
+        var ops = isOpsPortal();
+        var tables = document.querySelectorAll(ops ? OPS_TABLES : 'table.data-display-table, table.matrix-table');
         Array.prototype.forEach.call(tables, function (table) {
             if (!isPhone()) {
                 table.classList.remove('kreezby-phone-cards');
+                table.classList.remove('kz-pc-table');
+                clearPhoneCells(table);
                 return;
             }
+            if (ops && table.matches(SKIP_TABLES)) return;
             var head = table.querySelector('thead');
             if (!head) return;
             if (head.querySelector('[colspan], [rowspan]')) return;
@@ -243,8 +310,9 @@
             Array.prototype.forEach.call(headRow.children, function (cell) {
                 labels.push((cell.textContent || '').replace(/\s+/g, ' ').trim());
             });
-            if (labels.length < 4) return;
+            if (labels.length < 4 && !(ops && labels.length >= 3)) return;
             table.classList.add('kreezby-phone-cards');
+            if (ops) table.classList.add('kz-pc-table');
             Array.prototype.forEach.call(table.querySelectorAll('tbody tr, tfoot tr'), function (row) {
                 var cells = row.children;
                 if (!cells.length) return;
@@ -261,6 +329,7 @@
                     if (!cells[i].getAttribute('data-label')) cells[i].setAttribute('data-label', labels[i]);
                 }
             });
+            if (ops) markPhoneCells(table, labels);
         });
     }
 
@@ -311,6 +380,7 @@
     function boot() {
         ensureViewport();
         ensureCss();
+        ensureOpsPhoneCss();
         watchWideTables();
         applyMode();
     }
