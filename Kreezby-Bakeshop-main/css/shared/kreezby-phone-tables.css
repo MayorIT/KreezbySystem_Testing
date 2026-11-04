@@ -31,13 +31,19 @@
     html.kz-ops-phone .table-scroll:has(> table.kz-pc-table),
     html.kz-ops-phone .sl-table-wrap:has(> table.kz-pc-table),
     html.kz-ops-phone .pos-table-scroll:has(> table.kz-pc-table),
-    html.kz-ops-phone .staff-table-wrap:has(> table.kz-pc-table) {
+    html.kz-ops-phone .staff-table-wrap:has(> table.kz-pc-table),
+    html.kz-ops-phone .kz-rt-wrap:has(> table.kz-pc-table),
+    html.kz-ops-phone .kz-rr-wrap:has(> table.kz-pc-table),
+    html.kz-ops-phone #delivery-pos div:has(> table.kz-pc-table),
+    html.kz-ops-phone .manual-sheet-scroll:has(> table.kz-pc-table) {
         overflow: visible !important;
         min-width: 0 !important;
         max-width: 100% !important;
         border: 0 !important;
         padding: 0 !important;
         background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
     }
 
     html.kz-ops-phone table.kz-pc-table thead {
@@ -286,6 +292,17 @@
         content: none !important;
     }
 
+    /* Order Error "View" details: a panel under its card, not an empty-state box */
+    html.kz-ops-phone table.kz-pc-table tbody tr.kz-rt-detail.kreezby-phone-span > td {
+        margin-top: -6px !important;
+        border: 1px solid #eadfce !important;
+        border-style: solid !important;
+        background: #fbf6f2 !important;
+        color: #5d4037 !important;
+        text-align: left !important;
+        line-height: 1.6 !important;
+    }
+
     /* ---------- totals footer ---------- */
     html.kz-ops-phone table.kz-pc-table tfoot {
         display: block !important;
@@ -305,11 +322,29 @@
         border: 0 !important;
     }
 
+    html.kz-ops-phone table.kz-pc-table tfoot td::before {
+        content: none !important;
+        display: none !important;
+    }
+
     html.kz-ops-phone table.kz-pc-table tfoot td {
         color: inherit !important;
         background: transparent !important;
         border: 0 !important;
         font-weight: 700;
+    }
+
+    /* route sheet note rows (Note: ...) sit under their card */
+    html.kz-ops-phone table.kz-pc-table tbody tr.kz-rr-sheet-note.kreezby-phone-span > td {
+        margin-top: -6px !important;
+        border-style: solid !important;
+        background: #fbf6f2 !important;
+        text-align: left !important;
+        padding: 10px 14px !important;
+    }
+
+    html.kz-ops-phone table.kz-pc-table tbody tr.kz-rr-sheet-note > td:empty {
+        display: none !important;
     }
 
     /* very narrow phones: one field per line */

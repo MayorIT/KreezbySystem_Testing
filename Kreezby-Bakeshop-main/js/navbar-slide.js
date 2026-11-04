@@ -63,7 +63,7 @@
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261104pc';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261104pc4';
         s.defer = true;
         document.head.appendChild(s);
     }

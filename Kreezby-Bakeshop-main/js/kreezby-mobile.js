@@ -227,10 +227,10 @@
         });
     }
 
-    /* Head Admin, Admin and Staff portals get the compact phone cards */
+    /* Head Admin, Admin, Staff and Retailer portals get the compact phone cards */
     function isOpsPortal() {
         var path = ((window.location && window.location.pathname) || '').replace(/\\/g, '/').toLowerCase();
-        return /\/(head_admin|admin|staff|admin_names|staff_names)\//.test(path);
+        return /\/(head_admin|admin|staff|admin_names|staff_names|retailer)\//.test(path);
     }
 
     function ensureOpsPhoneCss() {
@@ -242,14 +242,15 @@
         link.rel = 'stylesheet';
         // media attribute: desktop never applies these rules
         link.media = '(max-width: 900px)';
-        link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-tables.css?v=20261104';
+        link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-tables.css?v=20261104d';
         (document.head || document.documentElement).appendChild(link);
     }
 
-    var OPS_TABLES = 'table.data-display-table, table.matrix-table, table.sl-compact-table, table.pos-table, .staff-table-wrap > table';
-    var SKIP_TABLES = '.sheet-editor-table, .manual-sheet-table, .ksheet-table, .delivery-stop-table, .po-receipt-table, .po-receipt-sum';
+    // Every table in these portals, except spreadsheet-style sheets and printed receipts.
+    var OPS_TABLES = 'table';
+    var SKIP_TABLES = '.sheet-editor-table, .ksheet-table, .delivery-stop-table, .po-receipt-table, .po-receipt-sum, [data-phone-table="keep"], .flatpickr-calendar table, .ui-datepicker table';
     var PC_CLASSES = ['kz-pc-title', 'kz-pc-wide', 'kz-pc-action', 'kz-pc-num'];
-    var TITLE_RE = /^(item name|product( name)?|name|full name|customer( name)?|retailer( name)?|store|entity|item|flavor|account name|month|subject)$/i;
+    var TITLE_RE = /^(item name|product( name)?|name|full name|customer( name)?|retailer( name)?|store|shop|locations?|entity|item|flavor|account name|month|subject)$/i;
     var ID_RE = /^(order( #| no\.?| id)?|item code|code|po( #| code)?|sale|ref(erence)?( #)?|ticket( #)?|timestamp|date)$/i;
     var WIDE_RE = /message|description|address|note|remark|reason|detail|email|items|concern|issue/i;
     var ACTION_RE = /^actions?$|^manage$|^options?$|^view$/i;
@@ -290,6 +291,38 @@
         });
     }
 
+    // Header text with <br> read as a space ("Account<br>Receivable" → "Account Receivable").
+    function headText(cell) {
+        var d = document.createElement('div');
+        d.innerHTML = String(cell.innerHTML || '').replace(/<br\s*\/?>/gi, ' ');
+        return (d.textContent || '').replace(/\s+/g, ' ').trim();
+    }
+
+    // Column labels from a header that may use rowspan/colspan (e.g. "Date" over Cons/COD/Staff/Check).
+    // Each column gets its lowest header cell's text.
+    function headerLabels(head) {
+        var grid = [];
+        Array.prototype.forEach.call(head.rows, function (row, r) {
+            grid[r] = grid[r] || [];
+            var c = 0;
+            Array.prototype.forEach.call(row.cells, function (cell) {
+                while (grid[r][c] !== undefined) c++;
+                var text = headText(cell);
+                for (var dr = 0; dr < (cell.rowSpan || 1); dr++) {
+                    grid[r + dr] = grid[r + dr] || [];
+                    for (var dc = 0; dc < (cell.colSpan || 1); dc++) {
+                        grid[r + dr][c + dc] = { text: text, wide: (cell.colSpan || 1) > 1 };
+                    }
+                }
+                c += cell.colSpan || 1;
+            });
+        });
+        var last = grid[grid.length - 1] || [];
+        var labels = [];
+        for (var i = 0; i < last.length; i++) labels.push(last[i] ? last[i].text : '');
+        return labels;
+    }
+
     function labelWideTables() {
         var ops = isOpsPortal();
         var tables = document.querySelectorAll(ops ? OPS_TABLES : 'table.data-display-table, table.matrix-table');
@@ -303,13 +336,17 @@
             if (ops && table.matches(SKIP_TABLES)) return;
             var head = table.querySelector('thead');
             if (!head) return;
-            if (head.querySelector('[colspan], [rowspan]')) return;
-            var headRow = head.querySelector('tr:last-child');
-            if (!headRow) return;
             var labels = [];
-            Array.prototype.forEach.call(headRow.children, function (cell) {
-                labels.push((cell.textContent || '').replace(/\s+/g, ' ').trim());
-            });
+            if (head.querySelector('[colspan], [rowspan]')) {
+                if (!ops) return;
+                labels = headerLabels(head);
+            } else {
+                var headRow = head.querySelector('tr:last-child');
+                if (!headRow) return;
+                Array.prototype.forEach.call(headRow.children, function (cell) {
+                    labels.push(ops ? headText(cell) : (cell.textContent || '').replace(/\s+/g, ' ').trim());
+                });
+            }
             if (labels.length < 4 && !(ops && labels.length >= 3)) return;
             table.classList.add('kreezby-phone-cards');
             if (ops) table.classList.add('kz-pc-table');
