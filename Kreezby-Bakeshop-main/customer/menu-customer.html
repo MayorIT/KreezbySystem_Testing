@@ -879,9 +879,9 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
         function adjustCardWidgetQtyState(prodId, modifierValue) {
             const targetLabel = document.getElementById(`qty-val-${prodId}`);
-            let currentVal = parseInt(targetLabel.textContent) || 1;
+            let currentVal = parseInt(targetLabel.textContent, 10) || 0;
             currentVal += modifierValue;
-            if (currentVal < 1) currentVal = 1;
+            if (currentVal < 0) currentVal = 0;
             targetLabel.textContent = currentVal;
         }
 
@@ -969,7 +969,11 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
         function commitItemToCartState(prodId) {
             const itemConfig = productFlavorsCatalog.find(f => f.id === prodId);
-            const inputQtyVal = parseInt(document.getElementById(`qty-val-${prodId}`).textContent) || 1;
+            const inputQtyVal = parseInt(document.getElementById(`qty-val-${prodId}`).textContent, 10) || 0;
+            if (inputQtyVal <= 0) {
+                showCartToast('Tap + to choose how many ' + (itemConfig ? itemConfig.name : 'pouches') + ' to add.');
+                return;
+            }
 
             if (shoppingCartStateMap[prodId]) {
                 shoppingCartStateMap[prodId].qty += inputQtyVal;
@@ -983,8 +987,8 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
                 };
             }
             
-            // Reset quantity to 1 for convenience
-            document.getElementById(`qty-val-${prodId}`).textContent = "1";
+            // Picker goes back to 0; the stock shown already counts what is now in the cart.
+            document.getElementById(`qty-val-${prodId}`).textContent = "0";
             refreshGlobalCartInterfaceState();
             // Do not pop the cart open on every add: a short note and a tap on the Cart button.
             pulseHeaderNav('cart');

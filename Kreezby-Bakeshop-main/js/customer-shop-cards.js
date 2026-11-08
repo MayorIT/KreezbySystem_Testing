@@ -36,7 +36,7 @@
             : '<div class="flavor-card__actions">' +
                 '<div class="counter-widget">' +
                     '<button type="button" class="counter-btn" onclick="adjustCardWidgetQtyState(\'' + prod.id + '\', -1)">-</button>' +
-                    '<span class="counter-value" id="qty-val-' + prod.id + '">1</span>' +
+                    '<span class="counter-value" id="qty-val-' + prod.id + '">0</span>' +
                     '<button type="button" class="counter-btn" onclick="adjustCardWidgetQtyState(\'' + prod.id + '\', 1)">+</button>' +
                 '</div>' +
                 '<button type="button" class="add-cart-btn" onclick="commitItemToCartState(\'' + prod.id + '\')">Add To Cart Bag</button>' +

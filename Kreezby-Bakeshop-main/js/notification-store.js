@@ -265,6 +265,7 @@
         var audiences = itemAudiences(item);
         if (audiences) return audiences;
         var source = String(item && item.source || 'system');
+        if (source === 'price_change') return ['customer'];   // retailers keep their fixed price
         if (PARTNER_SOURCES.indexOf(source) !== -1) return ['customer', 'retailer'];
         if (CUSTOMER_SOURCES.indexOf(source) !== -1 || isCustomerSeed(item) || CUSTOMER_ONLY_TITLES.indexOf(String(item.title || '')) !== -1) return ['customer'];
         return SHOP_AUDIENCES;
@@ -315,6 +316,7 @@
             });
         }
 
+        if (role === 'retailer' && item.source === 'price_change') return false;
         if (!roleMatches(role, targetAudiences(item))) return false;
 
         if (role === 'customer') return customerOwnsNote(item);

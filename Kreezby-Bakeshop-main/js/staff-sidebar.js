@@ -45,13 +45,13 @@
     var FALLBACK_NAV = [
         { key: 'dashboard', label: 'Dashboard', href: 'staff.html', icon: 'home' },
         { key: 'bo', label: 'Order Error', href: 'bo-staff.html', icon: 'layers' },
-        { key: 'stocks', label: 'Stocks', href: 'stocks-staff.html', icon: 'boxes' },
+        { key: 'stocks', label: 'Inventory', href: 'stocks-staff.html', icon: 'boxes' },
         { key: 'saleslist', label: 'Sales List', href: 'saleslist-staff.html', icon: 'sales' },
         { key: 'pos', label: 'Point of Sale', href: 'pos-staff.html', icon: 'cart' },
         { key: 'aiforecast', label: 'Insights', href: 'aiforecast_salesanalysis-staff.html', icon: 'chart' },
         { key: 'deliveryschedule', label: 'Delivery Schedule', href: 'deliveryschedule-staff.html', icon: 'truck' },
         { key: 'alert', label: 'Alert', href: 'alert-staff.html', icon: 'bell' },
-        { key: 'stocklevel', label: 'Stock Level', href: 'stocklevel-staff.html', icon: 'activity' }
+        { key: 'stocklevel', label: 'Stocks', href: 'stocklevel-staff.html', icon: 'activity' }
     ];
 
     var CRITICAL_CSS = [

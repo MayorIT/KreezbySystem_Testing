@@ -45,6 +45,50 @@
         return dict.product_stock || {};
     }
 
+    /** Selling price set by head admin / admin on the Inventory page (0 = not set). */
+    function savedPrice(name) {
+        var id = productId(name);
+        if (!id) return 0;
+        var prices = (readJson(DICT_KEY, {}) || {}).product_prices || {};
+        var price = Number(prices[id]);
+        return price > 0 ? price : 0;
+    }
+
+    function peso(value) {
+        return '₱' + Number(value).toFixed(2);
+    }
+
+    // Shop cards, the product list and cart lines follow the price the shop set.
+    function applyPrices() {
+        var cartChanged = false;
+        try {
+            /* global productFlavorsCatalog */
+            if (typeof productFlavorsCatalog !== 'undefined' && Array.isArray(productFlavorsCatalog)) {
+                productFlavorsCatalog.forEach(function (item) {
+                    var price = savedPrice(item && item.name);
+                    if (price && item.cost !== price) item.cost = price;
+                });
+            }
+        } catch (e) { /* page without the catalog */ }
+        try {
+            if (typeof shoppingCartStateMap !== 'undefined' && shoppingCartStateMap) {
+                Object.keys(shoppingCartStateMap).forEach(function (key) {
+                    var line = shoppingCartStateMap[key];
+                    var price = savedPrice(line && line.name);
+                    if (price && Number(line.cost) !== price) { line.cost = price; cartChanged = true; }
+                });
+            }
+        } catch (e) { /* page without the cart */ }
+        Array.prototype.forEach.call(document.querySelectorAll('.flavor-card'), function (card) {
+            var price = savedPrice(nameForCard(card));
+            var node = card.querySelector('.flavor-card__price');
+            if (price && node && node.textContent !== peso(price)) node.textContent = peso(price);
+        });
+        if (cartChanged && typeof window.refreshGlobalCartInterfaceState === 'function') {
+            try { window.refreshGlobalCartInterfaceState(); } catch (e) { /* ignore */ }
+        }
+    }
+
     // Paid orders whose pouches have not been taken out of stock yet still claim those pouches.
     function reservedMap() {
         var orders = readJson('kreezbyOrders', []);
@@ -110,11 +154,15 @@
 
     function refresh() {
         ensureStyles();
+        applyPrices();
         Array.prototype.forEach.call(document.querySelectorAll('.flavor-card'), function (card) {
             var name = nameForCard(card);
             if (!productId(name)) return;
             var onHand = available(name);
-            var inCart = Math.min(onHand, cartQty(productId(name)));
+            var picker = card.querySelector('.counter-value');
+            var picked = picker ? (parseInt(picker.textContent, 10) || 0) : 0;
+            // Pouches already in the cart plus the ones picked on this card with + / -.
+            var inCart = Math.min(onHand, cartQty(productId(name)) + picked);
             // Shown on this customer's screen only: pouches in their cart are taken off the count.
             // Real stock is only deducted once the order is placed / paid at checkout.
             var qty = Math.max(0, onHand - inCart);
@@ -128,18 +176,25 @@
             }
             line.classList.add('flavor-card__stock');
             line.setAttribute('aria-live', 'polite');
-            line.textContent = allInCart ? 'Available stocks: 0 (all in your cart)' : stockLabel(qty);
+            line.textContent = allInCart ? (picked > 0 ? 'Available stocks: 0' : 'Available stocks: 0 (all in your cart)') : stockLabel(qty);
             line.classList.toggle('is-out', qty <= 0);
             line.classList.toggle('is-low', qty > 0 && qty <= 3);
             card.classList.toggle('is-sold-out', onHand <= 0);
             var badge = card.querySelector('.flavor-card__badge');
             if (badge) badge.textContent = onHand <= 0 ? 'Out of stock' : 'Fresh';
             var addBtn = card.querySelector('.add-cart-btn');
+            var cartFull = allInCart && picked <= 0;
             if (addBtn) {
-                addBtn.disabled = qty <= 0;
-                addBtn.textContent = allInCart ? 'All in Cart' : (qty <= 0 ? 'Out of Stock' : 'Add To Cart Bag');
+                addBtn.disabled = onHand <= 0 || cartFull;
+                addBtn.textContent = cartFull ? 'All in Cart' : (onHand <= 0 ? 'Out of Stock' : 'Add To Cart Bag');
             }
-            Array.prototype.forEach.call(card.querySelectorAll('.counter-btn'), function (btn) { btn.disabled = qty <= 0; });
+            var counterBtns = card.querySelectorAll('.counter-btn');
+            if (counterBtns.length === 2) {
+                counterBtns[0].disabled = picked <= 0;   // -
+                counterBtns[1].disabled = qty <= 0;      // + (nothing left to pick)
+            } else {
+                Array.prototype.forEach.call(counterBtns, function (btn) { btn.disabled = qty <= 0; });
+            }
             var orderNow = card.querySelector('.btn-guest-action');
             if (orderNow) orderNow.textContent = allInCart ? 'All in Cart' : (qty <= 0 ? 'Out of Stock' : 'Order Now');
         });
@@ -188,7 +243,7 @@
             window.adjustCardWidgetQtyState = function (prodId, delta) {
                 var name = catalogName(prodId);
                 var label = document.getElementById('qty-val-' + prodId);
-                var current = label ? parseInt(label.textContent, 10) || 1 : 1;
+                var current = label ? parseInt(label.textContent, 10) || 0 : 0;
                 if (delta > 0 && name && productId(name)) {
                     var room = available(name) - cartQty(prodId);
                     if (current + delta > room) {
@@ -196,7 +251,9 @@
                         return;
                     }
                 }
-                return adjust.apply(this, arguments);
+                var adjusted = adjust.apply(this, arguments);
+                queueRefresh();
+                return adjusted;
             };
         }
         if (typeof add === 'function') {
@@ -204,15 +261,17 @@
                 var name = catalogName(prodId);
                 if (name && productId(name)) {
                     var label = document.getElementById('qty-val-' + prodId);
-                    var wanted = label ? parseInt(label.textContent, 10) || 1 : 1;
+                    var wanted = label ? parseInt(label.textContent, 10) || 0 : 0;
                     var room = available(name) - cartQty(prodId);
-                    if (room <= 0) {
+                    if (wanted > 0 && room <= 0) {
                         notify(cartQty(prodId) > 0 ? 'All available ' + name + ' are already in your cart.' : name + ' is out of stock.');
                         return;
                     }
                     if (wanted > room && label) label.textContent = String(room);
                 }
-                return add.apply(this, arguments);
+                var added = add.apply(this, arguments);
+                queueRefresh();
+                return added;
             };
         }
         if (typeof change === 'function') {
@@ -292,6 +351,7 @@
         productId: productId,
         available: available,
         shortages: shortages,
-        refresh: refresh
+        refresh: refresh,
+        price: savedPrice
     };
 })();

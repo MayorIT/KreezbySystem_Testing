@@ -339,6 +339,20 @@ ${buildCopy('CUSTOMER COPY')}
 // Current prices win over a price saved in an older cart.
 const CURRENT_PRICES = { 'flavor-choc': 165 };
 
+// Price per pouch set by head admin / admin on the Inventory page; 0 when not set.
+function shopPriceFor(name) {
+    const text = String(name || '').toLowerCase();
+    const ids = [['oatmeal', 'CKE-OAT-P'], ['assorted', 'CRK-AST-P'], ['almond', 'CRK-ALM-P'], ['cashew', 'CRK-CSH-P'],
+        ['butternut', 'CRK-BUT-J'], ['strawberry', 'CRK-STR-P'], ['velvet', 'CRK-RV-P'], ['lemon', 'CRK-LEM-P'],
+        ['melon', 'CRK-MEL-P'], ['pandan', 'CRK-PAN-P'], ['mango', 'CRK-MNG-J'], ['ube', 'CRK-UBE-P'], ['chocolate', 'CRK-CHO-P']];
+    const hit = ids.find((pair) => text.indexOf(pair[0]) !== -1);
+    if (!hit) return 0;
+    let prices = {};
+    try { prices = (JSON.parse(localStorage.getItem('kreezby_data_dictionary_v1') || '{}') || {}).product_prices || {}; } catch (e) { prices = {}; }
+    const price = Number(prices[hit[1]]);
+    return price > 0 ? price : 0;
+}
+
 // ---- J&T delivery fee (estimated rates from Batangas) ---------------------------------
 // One pouch = 10 pcs, 250 g net. The parcel weight is the number of pouches x 250 g.
 const POUCH_LABEL = 'Pouch (10 Pcs)';
@@ -566,7 +580,7 @@ function normalizeCartData(rawCart) {
     Object.keys(rawCart).forEach((key) => {
         const item = rawCart[key];
         if (!item) return;
-        const cost = CURRENT_PRICES[key] != null ? CURRENT_PRICES[key] : Number(item.cost);
+        const cost = shopPriceFor(item.name) || (CURRENT_PRICES[key] != null ? CURRENT_PRICES[key] : Number(item.cost));
         const qty = Number(item.qty);
 
         if (!Number.isFinite(cost) || !Number.isFinite(qty) || qty <= 0) return;

@@ -565,7 +565,8 @@
             title: type === 'price_change' ? 'Price update' : 'New flavor',
             description: message,
             source: type,
-            audiences: ['customer', 'retailer'],
+            // Retailers pay a fixed retailer price, so shop price changes are for customers only.
+            audiences: type === 'price_change' ? ['customer'] : ['customer', 'retailer'],
             timestamp: new Date().toISOString(),
             read: false
         };
@@ -907,8 +908,8 @@
             var price = Number(fields.price);
             if (Number.isFinite(price) && price >= 0) {
                 var prices = saved.product_prices || {};
-                var previousPrice = prices[id];
-                if (previousPrice == null || Number(previousPrice) !== price) {
+                var previousPrice = prices[id] == null ? defaultPrice(id) : Number(prices[id]);
+                if (Number(previousPrice) !== price) {
                     prices[id] = price;
                     saved.product_prices = prices;
                     priceNotice = productName + ' price is now ₱' + price.toFixed(2) + '.';
@@ -1136,6 +1137,18 @@
             || path.indexOf('/staff_names/') >= 0;
     }
 
+    // Shop price per pouch: ₱165 for every flavor, ₱200 for Choco Butternut, unless head admin / admin saved another.
+    function defaultPrice(id) {
+        return id === 'CRK-BUT-J' ? 200 : 165;
+    }
+
+    // Selling price of finished products: head admin and admin only (staff cannot change it).
+    function canEditPrice() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return path.indexOf('/admin/') >= 0 || path.indexOf('/admin_names/') >= 0
+            || path.indexOf('/head_admin/') >= 0;
+    }
+
     function stockFieldIcon(kind) {
         var paths = {
             product: '<circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r=".8" fill="currentColor" stroke="none"/><circle cx="13.5" cy="14" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r=".8" fill="currentColor" stroke="none"/>',
@@ -1247,14 +1260,14 @@
             box.innerHTML = '<div class="fr-records__grid">'
                 + '<section class="fr-card" data-fr-panel="product" aria-label="Finished product records">'
                 + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('product') + '</span>Finished products' + hideControl('product') + '</h3>'
-                + '<p class="fr-card__lead">Update batch, dates, and stock. Sales deduct finished goods automatically.</p>'
+                + '<p class="fr-card__lead">Update batch, dates, ' + (canEditPrice() ? 'stock, and selling price' : 'and stock') + '. Sales deduct finished goods automatically.</p>'
                 + '<div class="fr-fields">'
                 + stockField('fr-product', 'Product', 'product', '<select id="fr-product">' + productOptions + '</select>', true)
                 + stockField('fr-batch', 'Batch', 'batch', '<input id="fr-batch" type="text">', true)
                 + stockField('fr-produced', 'Produced', 'made', '<input id="fr-produced" type="date">', true)
                 + stockField('fr-expires', 'Expires', 'expires', '<input id="fr-expires" type="date">', true)
                 + stockField('fr-stock', 'Stock', 'stock', '<input id="fr-stock" type="number" min="0">', true)
-                + stockField('fr-price', 'Price', 'price', '<input id="fr-price" type="number" min="0" step="0.01">', true)
+                + (canEditPrice() ? stockField('fr-price', 'Price (₱ per pouch)', 'price', '<input id="fr-price" type="number" min="1" step="0.01">', true) : '')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Save product</button></div>'
                 + '</div></section>'
                 + '<section class="fr-card fr-card--materials" data-fr-panel="material" aria-label="Raw material records">'
@@ -1280,7 +1293,7 @@
                 + '<label>Produced<br><input id="fr-produced" type="date"></label>'
                 + '<label>Expires<br><input id="fr-expires" type="date"></label>'
                 + '<label>Stock<br><input id="fr-stock" type="number" min="0" style="width:90px;"></label>'
-                + '<label>Price<br><input id="fr-price" type="number" min="0" step="0.01" style="width:90px;"></label>'
+                + (canEditPrice() ? '<label>Price (₱ per pouch)<br><input id="fr-price" type="number" min="1" step="0.01" style="width:90px;"></label>' : '')
                 + '<button type="button" id="fr-save-product">Save product</button>'
                 + '</div></div></section>'
                 + '<section class="fr-panel" data-fr-panel="material">'
@@ -1311,6 +1324,12 @@
                 document.getElementById('fr-produced').value = '';
                 document.getElementById('fr-expires').value = '';
                 document.getElementById('fr-stock').value = '';
+                var pricePick = document.getElementById('fr-price');
+                if (pricePick) {
+                    var pid = productId(name);
+                    var savedPrices = savedState().product_prices || {};
+                    pricePick.value = pid ? (savedPrices[pid] == null ? defaultPrice(pid) : Number(savedPrices[pid])).toFixed(2) : '';
+                }
                 return;
             }
             document.getElementById('fr-batch').value = product.batch_number || '';
@@ -1321,7 +1340,8 @@
             var priceInput = document.getElementById('fr-price');
             if (priceInput) {
                 var prices = savedState().product_prices || {};
-                priceInput.value = prices[product.product_id] == null ? '' : String(prices[product.product_id]);
+                var current = prices[product.product_id] == null ? defaultPrice(product.product_id) : Number(prices[product.product_id]);
+                priceInput.value = current.toFixed(2);
             }
         }
         document.getElementById('fr-product').addEventListener('change', fillProduct);
@@ -1333,7 +1353,7 @@
                 production_date: document.getElementById('fr-produced').value,
                 expiration_date: document.getElementById('fr-expires').value,
                 current_stock: document.getElementById('fr-stock').value,
-                price: priceNode ? priceNode.value : ''
+                price: priceNode && canEditPrice() ? priceNode.value : ''
             });
             document.querySelectorAll('.dict-fields').forEach(function (node) { node.remove(); });
             decorateStocks();
@@ -1369,6 +1389,7 @@
                     title: alert.alert_type === 'new_product' ? 'New product' : 'Price change',
                     description: alert.message,
                     source: alert.alert_type,
+                    audiences: alert.alert_type === 'price_change' ? ['customer'] : ['customer', 'retailer'],
                     read: alert.status !== 'pending'
                 });
             });
@@ -1384,7 +1405,8 @@
                 description: alert.message,
                 timestamp: new Date().toISOString(),
                 read: alert.status !== 'pending',
-                source: alert.alert_type
+                source: alert.alert_type,
+                audiences: alert.alert_type === 'price_change' ? ['customer'] : ['customer', 'retailer']
             });
         });
         try { localStorage.setItem('kreezbyNotifications', JSON.stringify(list)); } catch (e) { /* ignore */ }

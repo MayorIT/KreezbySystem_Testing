@@ -63,14 +63,14 @@
         { key: 'pos', label: 'Point of Sale', href: 'pos-admin.html', icon: 'cart' },
 
 
-        { key: 'stocklevel', label: 'Inventory', href: 'stocklevel-admin.html', icon: 'boxes', children: [
+        { key: 'stocklevel', label: 'Stocks', href: 'stocklevel-admin.html', icon: 'boxes', children: [
             { key: 'stock-value', label: 'Total Value of Stock', href: 'stocklevel-value-admin.html', also: 'stocklevel-admin.html' },
             { key: 'stock-slow', label: 'Slow Moving Stock', href: 'stocklevel-slow-admin.html' },
             { key: 'stock-alerts', label: 'Low Stock Alerts', href: 'stocklevel-alerts-admin.html' },
             { key: 'stock-chart', label: 'Stock Value vs Sales', href: 'stocklevel-chart-admin.html' }
         ] },
 
-        { key: 'stocks', label: 'Stocks', href: 'stocks-admin.html', icon: 'tag' },
+        { key: 'stocks', label: 'Inventory', href: 'stocks-admin.html', icon: 'tag' },
 
         { key: 'deliveryschedule', label: 'Deliveries', href: 'deliveryschedule-admin.html', icon: 'truck' },
 
@@ -310,7 +310,7 @@
                 if (match) childTab = decodeURIComponent(match[1]);
                 try { currentTab = new URLSearchParams(location.search).get('tab') || ''; } catch (e) {}
                 var on = file === filename && childTab === currentTab;
-                // The Inventory page opens on Total Value of Stock, so that sub-item is the active one there.
+                // The Stocks page opens on Total Value of Stock, so that sub-item is the active one there.
                 if (!on && child.also) {
                     var view = '';
                     try { view = new URLSearchParams(location.search).get('view') || ''; } catch (e) {}

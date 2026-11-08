@@ -27,14 +27,14 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'admin.html' },
         bo: { label: 'Order Error', page: 'bo-admin.html' },
-        stocks: { label: 'Stocks', page: 'stocks-admin.html' },
+        stocks: { label: 'Inventory', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales', page: 'saleslist-admin.html' },
         pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-admin.html' },
         deliveryschedule: { label: 'Deliveries', page: 'deliveryschedule-admin.html' },
         alert: { label: 'Alerts', page: 'alert-admin.html' },
-        stocklevel: { label: 'Inventory', page: 'stocklevel-admin.html' },
+        stocklevel: { label: 'Stocks', page: 'stocklevel-admin.html' },
         inbox: { label: 'Inbox', page: 'inbox-admin.html' },
         issuereports: { label: 'Reports', page: 'issue-reports-admin.html' }
     };

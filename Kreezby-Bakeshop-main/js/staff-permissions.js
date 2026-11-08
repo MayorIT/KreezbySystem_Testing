@@ -30,11 +30,11 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'staff.html' },
         bo: { label: 'Order Error', page: 'bo-staff.html' },
-        stocks: { label: 'Stocks', page: 'stocks-staff.html' },
+        stocks: { label: 'Inventory', page: 'stocks-staff.html' },
         saleslist: { label: 'Sales List', page: 'saleslist-staff.html' },
         pos: { label: 'Point of Sale', page: 'pos-staff.html' },
         alert: { label: 'Alert', page: 'alert-staff.html' },
-        stocklevel: { label: 'Stock Level', page: 'stocklevel-staff.html' },
+        stocklevel: { label: 'Stocks', page: 'stocklevel-staff.html' },
         aiforecast: { label: 'Insights', page: 'aiforecast_salesanalysis-staff.html' },
         deliveryschedule: { label: 'Delivery Schedule', page: 'deliveryschedule-staff.html' },
         ordertracking: {

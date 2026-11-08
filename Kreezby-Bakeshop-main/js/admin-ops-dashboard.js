@@ -442,7 +442,65 @@
         }).join('') + '</ul>';
     }
 
+    // Same per-flavor figures as Insights > Management Insight (stock, recommended stock, recent sales).
+    function managementSnapshot() {
+        var dict = window.KreezbyDictionary;
+        if (!dict || typeof dict.insightSnapshot !== 'function') return null;
+        try {
+            var snap = dict.insightSnapshot();
+            return snap && Array.isArray(snap.products) && snap.products.length ? snap.products : null;
+        } catch (e) { return null; }
+    }
+
+    function snapshotInsightText(model, products) {
+        var salesTrend = trend(model.sales.value, model.priorSales.value, 'compared to last month');
+        var change = salesTrend.cls === 'up' && model.priorSales.value
+            ? 'Sales increased by ' + salesTrend.text.replace('↑ ', '').replace(' compared to last month', '') + ' compared to last month'
+            : salesTrend.cls === 'down' && model.priorSales.value
+                ? 'Sales decreased by ' + salesTrend.text.replace('↓ ', '').replace(' compared to last month', '') + ' compared to last month'
+                : model.sales.value
+                    ? 'Sales for this period are ' + money(model.sales.value)
+                    : 'There are no recorded sales in this period yet';
+        var rows = products.map(function (row) {
+            return {
+                name: row.name,
+                stock: Number(row.stock) || 0,
+                recommended: Number(row.recommendedStock) || 0,
+                sales: Number(row.recentSales) || 0
+            };
+        });
+        var sellers = rows.filter(function (r) { return r.sales > 0; })
+            .sort(function (a, b) { return b.sales - a.sales; });
+        var topSales = sellers.length ? sellers[0].sales : 0;
+        var top = sellers.filter(function (r) { return r.sales === topSales; }).slice(0, 2);
+        var below = rows.filter(function (r) { return r.stock < r.recommended; })
+            .sort(function (a, b) { return (b.recommended - b.stock) - (a.recommended - a.stock); });
+        var leaders = top.length > 1
+            ? nameList(top.map(function (r) { return r.name; })) + ' as the top-selling flavors (' + count(topSales) + ' recent sales each)'
+            : top.length === 1
+                ? top[0].name + ' as the top-selling flavor (' + count(topSales) + ' recent sales)'
+                : 'no flavor leading sales yet';
+        var stockNote = below.length
+            ? 'Below the recommended stock: ' + nameList(below.slice(0, 3).map(function (r) {
+                return r.name + ' (' + count(r.stock) + ' of ' + count(r.recommended) + ')';
+            })) + (below.length > 3 ? ', and ' + (below.length - 3) + ' more' : '') + '.'
+            : 'Every flavor is at or above its recommended stock.';
+        // Produce more of the flavors under their recommended stock, best sellers first.
+        var produce = below.slice().sort(function (a, b) { return b.sales - a.sales; }).slice(0, 2);
+        var advice = produce.length
+            ? 'It is recommended to produce more ' + nameList(produce.map(function (r) { return r.name; })) + ' to reach the recommended stock.'
+            : 'No extra production is needed right now.';
+        var variants = [
+            change + ', with ' + leaders + '. ' + stockNote + ' ' + advice,
+            leaders.charAt(0).toUpperCase() + leaders.slice(1) + '. ' + change + '. ' + stockNote + ' ' + advice,
+            stockNote + ' ' + change + ', and ' + leaders + '. ' + advice
+        ];
+        return variants[state.insightVariant % variants.length];
+    }
+
     function insightText(model) {
+        var products = managementSnapshot();
+        if (products) return snapshotInsightText(model, products);
         var top = model.best.slice(0, 2).map(function (row) { return row.name; });
         var low = model.lowNames.slice(0, 3);
         var salesTrend = trend(model.sales.value, model.priorSales.value, 'compared to last month');

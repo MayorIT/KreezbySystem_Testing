@@ -778,9 +778,9 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
         function adjustCardWidgetQtyState(prodId, modifierValue) {
             const targetLabel = document.getElementById(`qty-val-${prodId}`);
-            let currentVal = parseInt(targetLabel.textContent) || 1;
+            let currentVal = parseInt(targetLabel.textContent, 10) || 0;
             currentVal += modifierValue;
-            if (currentVal < 1) currentVal = 1;
+            if (currentVal < 0) currentVal = 0;
             targetLabel.textContent = currentVal;
         }
 
@@ -870,7 +870,11 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             const itemConfig = productFlavorsCatalog.find(f => f.id === prodId);
             if (!itemConfig) return;
             const qtyNode = document.getElementById(`qty-val-${prodId}`);
-            const inputQtyVal = qtyNode ? (parseInt(qtyNode.textContent, 10) || 1) : 1;
+            const inputQtyVal = qtyNode ? (parseInt(qtyNode.textContent, 10) || 0) : 0;
+            if (inputQtyVal <= 0) {
+                showCartToast('Tap + to choose how many ' + itemConfig.name + ' to add.');
+                return;
+            }
 
             if (shoppingCartStateMap[prodId]) {
                 shoppingCartStateMap[prodId].qty += inputQtyVal;
@@ -884,7 +888,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
                 };
             }
 
-            if (qtyNode) qtyNode.textContent = "1";
+            if (qtyNode) qtyNode.textContent = "0";
             refreshGlobalCartInterfaceState();
             // Do not pop the cart open on every add: a short note and a tap on the Cart button.
             pulseHeaderNav('cart');

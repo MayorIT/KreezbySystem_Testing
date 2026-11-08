@@ -73,6 +73,10 @@
     var editCustomer = '';
     var editPayment = 'Cash';
     var editTender = '';
+    // Transaction History filter: 'all', 'day' (one date) or 'month'.
+    var histMode = 'all';
+    var histDay = '';
+    var histMonth = '';
 
     function peso(amount) {
         return '₱' + Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -221,6 +225,56 @@
         var parsed = new Date(text);
         if (isNaN(parsed.getTime())) return '';
         return stampFromDate(parsed);
+    }
+
+    function prettyMonth(key) {
+        var parts = String(key || '').split('-');
+        if (parts.length < 2) return key;
+        var date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+        return date.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
+    }
+
+    /* Day a walk-in sale belongs to (its sale date, else when it was saved). */
+    function saleDay(sale) {
+        return dayKey(sale && sale.date) || dayKey(sale && sale.at);
+    }
+
+    /* "Nov 8, 2026 · 9:42 PM" for the history table. */
+    function saleWhen(sale) {
+        var day = saleDay(sale);
+        var text = day ? prettyDay(day) : '—';
+        var at = sale && sale.at ? new Date(sale.at) : null;
+        if (at && !isNaN(at.getTime())) text += ' · ' + at.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+        return text;
+    }
+
+    function historyHeadHtml(count, total) {
+        ensureHistoryStyles();
+        var picker = histMode === 'day'
+            ? '<input type="date" id="pos-hist-day" value="' + esc(histDay) + '" aria-label="Show sales on this date">'
+            : histMode === 'month'
+            ? '<input type="month" id="pos-hist-month" value="' + esc(histMonth) + '" aria-label="Show sales in this month">'
+            : '';
+        var options = [['all', 'All dates'], ['day', 'By date'], ['month', 'By month']].map(function (opt) {
+            return '<option value="' + opt[0] + '"' + (opt[0] === histMode ? ' selected' : '') + '>' + opt[1] + '</option>';
+        }).join('');
+        return '<div class="pos-history-head"><h3>Transaction History</h3>' +
+            '<div class="pos-history-filter"><select id="pos-hist-mode" aria-label="Filter transactions">' + options + '</select>' + picker + '</div></div>' +
+            '<p class="pos-history-sum">' + count + ' sale' + (count === 1 ? '' : 's') + ' · ' + peso(total) + '</p>';
+    }
+
+    function ensureHistoryStyles() {
+        if (document.getElementById('pos-history-filter-style')) return;
+        var st = document.createElement('style');
+        st.id = 'pos-history-filter-style';
+        st.textContent = ''
+            + '.pos-history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}'
+            + '.pos-history-head h3{margin:0;}'
+            + '.pos-history-filter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}'
+            + '.pos-history-filter select,.pos-history-filter input{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#3e2723;}'
+            + '.pos-history-sum{margin:6px 0 8px;font-size:12px;font-weight:600;color:#6d4c41;}'
+            + '.pos-table td.pos-date{white-space:nowrap;}';
+        (document.head || document.documentElement).appendChild(st);
     }
 
     function prettyDay(key) {
@@ -390,9 +444,19 @@
         var cartHtml = lines.length ? lines.map(function (line) {
             return '<li><span>' + esc(line.name) + ' × ' + line.qty + '</span><strong>' + peso(line.line) + '</strong></li>';
         }).join('') : '<li class="pos-empty">No items yet. Add pouches from the left.</li>';
+        if (!histDay) histDay = todayStamp();
+        if (!histMonth) histMonth = todayStamp().slice(0, 7);
         var history = readSales().filter(function (sale) {
-            return sale && String(sale.channel || 'Walk-in') !== 'Online';
+            if (!sale || String(sale.channel || 'Walk-in') === 'Online') return false;
+            var day = saleDay(sale);
+            if (histMode === 'day') return day === histDay;
+            if (histMode === 'month') return day.slice(0, 7) === histMonth;
+            return true;
         }).slice().reverse();
+        var historyTotal = history.reduce(function (sum, sale) { return sum + (Number(sale.total) || 0); }, 0);
+        var emptyHistory = histMode === 'day' ? 'No transactions on ' + prettyDay(histDay) + '.'
+            : histMode === 'month' ? 'No transactions in ' + prettyMonth(histMonth) + '.'
+            : 'No transactions yet.';
         var historyHtml = history.length ? history.map(function (sale) {
             var summary = (sale.lines || []).map(function (line) {
                 return line.qty + ' ' + line.name;
@@ -402,6 +466,7 @@
             var confirming = sale.id === pendingDelete;
             return '<tr' + (editing ? ' class="is-editing"' : '') + '>' +
                 '<td>' + esc(sale.id) + '</td>' +
+                '<td class="pos-date">' + esc(saleWhen(sale)) + '</td>' +
                 '<td>' + esc((sale.customer || 'Walk-in') + ' · ' + (sale.payment || '')) + '</td>' +
                 '<td>' + esc(summary) + '</td>' +
                 '<td>' + peso(sale.total) + '</td>' +
@@ -418,7 +483,7 @@
                             : '') +
                     '</div>' +
                 '</td></tr>';
-        }).join('') : '<tr><td class="pos-empty" colspan="7">No transactions yet.</td></tr>';
+        }).join('') : '<tr><td class="pos-empty" colspan="8">' + esc(emptyHistory) + '</td></tr>';
         var payment = 'Cash';
         var existingPay = document.getElementById('pos-payment');
         var existingName = document.getElementById('pos-customer');
@@ -454,7 +519,7 @@
                 '<p id="pos-status" class="pos-status"></p>' +
                 '<div class="pos-actions"><button type="button" id="pos-clear" class="pos-secondary">' + clearLabel + '</button><button type="button" id="pos-complete">' + completeLabel + '</button></div>' +
             '</section>' +
-            '<section class="pos-history' + (actionMenuId ? ' is-menu-open' : '') + '"><h3>Transaction History</h3><div class="pos-table-scroll"><table class="pos-table"><thead><tr><th>Sale</th><th>Customer</th><th>Items</th><th>Total</th><th>Amount Given</th><th>Change</th><th></th></tr></thead><tbody>' + historyHtml + '</tbody></table></div></section>' +
+            '<section class="pos-history' + (actionMenuId ? ' is-menu-open' : '') + '">' + historyHeadHtml(history.length, historyTotal) + '<div class="pos-table-scroll"><table class="pos-table"><thead><tr><th>Sale</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Amount Given</th><th>Change</th><th></th></tr></thead><tbody>' + historyHtml + '</tbody></table></div></section>' +
             '</div>';
         updateChange();
     }
@@ -964,7 +1029,16 @@
             if (event.target.id === 'pos-tender' || event.target.id === 'pos-payment') updateChange();
         });
         document.addEventListener('change', function (event) {
-            if (event.target && event.target.id === 'pos-payment') updateChange();
+            if (!event.target) return;
+            if (event.target.id === 'pos-payment') updateChange();
+            if (event.target.id === 'pos-hist-mode') {
+                histMode = ['day', 'month'].indexOf(event.target.value) >= 0 ? event.target.value : 'all';
+                render();
+            } else if (event.target.id === 'pos-hist-day') {
+                if (event.target.value) { histDay = event.target.value; render(); }
+            } else if (event.target.id === 'pos-hist-month') {
+                if (event.target.value) { histMonth = event.target.value; render(); }
+            }
         });
         document.addEventListener('kreezby:stocks-sync', function () {
             if (!applyingStock) scheduleSync(150);
