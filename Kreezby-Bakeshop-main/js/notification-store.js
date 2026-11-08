@@ -102,23 +102,75 @@
         return api.getStaffTasks(id);
     }
 
-    function audienceKey() {
-        var path = window.location.pathname || '';
+    function isCustomerPortal() {
+        return /\/customer\//i.test(window.location.pathname || '');
+    }
+
+    // Which portal is looking at the notifications.
+    function portalRole() {
         if (isRetailerPortal()) return 'retailer';
-        if (isStaffPortal()) {
+        if (isStaffPortal()) return 'staff';
+        if (isHeadAdminPath()) return 'head';
+        if (/\/admin\//i.test(window.location.pathname || '')) return 'admin';
+        if (isCustomerPortal()) return 'customer';
+        return 'portal';
+    }
+
+    function readSession() {
+        var sess = readJson('kreezby_session', {});
+        return sess && typeof sess === 'object' ? sess : {};
+    }
+
+    // Every id the signed-in account goes by, so a note addressed to it can be matched.
+    function currentAccountKeys() {
+        var keys = [];
+        function add(v) {
+            var k = String(v || '').trim().toLowerCase();
+            if (k && keys.indexOf(k) === -1) keys.push(k);
+        }
+        var role = portalRole();
+        if (role === 'staff' || role === 'admin' || role === 'head') {
+            add(currentAccountId());
+            return keys;
+        }
+        if (role === 'customer' || role === 'retailer') {
+            var sess = readSession();
+            add(sess.customerId);
+            add(sess.accountId);
+            add(sess.email);
+            add(sess.identity);
+        }
+        return keys;
+    }
+
+    // Old shared read key, kept so notifications already read stay read.
+    function legacyAudienceKey() {
+        var role = portalRole();
+        if (role === 'retailer') return 'retailer';
+        if (role === 'staff') {
             var api = window.KreezbyStaffPermissions;
             if (api && typeof api.getCurrentStaffId === 'function') return api.getCurrentStaffId();
             return 'staff';
         }
-        if (path.indexOf('/admin/') !== -1 || path.indexOf('/head_admin/') !== -1) return 'admin';
+        if (role === 'admin' || role === 'head') return 'admin';
         return 'portal';
     }
 
+    // Read/unread is tracked per account: one admin reading a note does not mark it read for another.
+    function audienceKey() {
+        var role = portalRole();
+        if (role === 'staff') return legacyAudienceKey();
+        var keys = currentAccountKeys();
+        return keys.length ? role + ':' + keys[0] : legacyAudienceKey();
+    }
+
     function isReadForAudience(item) {
+        var readBy = item.readBy && typeof item.readBy === 'object' ? item.readBy : null;
         var key = audienceKey();
-        if (item.readBy && typeof item.readBy === 'object' && Object.prototype.hasOwnProperty.call(item.readBy, key)) {
-            return !!item.readBy[key];
-        }
+        if (readBy && Object.prototype.hasOwnProperty.call(readBy, key)) return !!readBy[key];
+        var legacy = legacyAudienceKey();
+        if (readBy && Object.prototype.hasOwnProperty.call(readBy, legacy)) return !!readBy[legacy];
+        if (readBy) return false;
         return !!item.read;
     }
 
@@ -193,19 +245,78 @@
         return '';
     }
 
-    function visibleToAudience(item) {
-        if (item && Array.isArray(item.accountIds) && item.accountIds.length) {
-            var current = currentAccountId();
-            return !!(current && item.accountIds.indexOf(current) !== -1);
-        }
+    // Notes about one customer's own activity (their order status, receipts, reviews).
+    var CUSTOMER_SOURCES = ['order-status', 'receipt', 'review', 'information'];
+    var CUSTOMER_SEED_TITLES = ['Portal Session Started', 'Information Feed Enabled'];
+    // Announcements meant for every customer and retailer.
+    var PARTNER_SOURCES = ['new_product', 'price_change'];
+    var SHOP_AUDIENCES = ['admin', 'head', 'staff'];
+
+    function isCustomerSeed(item) {
+        return CUSTOMER_SEED_TITLES.indexOf(String(item && item.title || '')) !== -1;
+    }
+
+    // Who a note is for. Notes saved without a target are worked out from their source,
+    // so customer activity never lands in the shop portals and shop activity never reaches customers.
+    function targetAudiences(item) {
         var audiences = itemAudiences(item);
-        if (isRetailerPortal()) {
-            if (audiences) return audiences.indexOf('retailer') !== -1;
-            var source = item && item.source ? item.source : '';
-            return source === 'new_product' || source === 'price_change';
+        if (audiences) return audiences;
+        var source = String(item && item.source || 'system');
+        if (PARTNER_SOURCES.indexOf(source) !== -1) return ['customer', 'retailer'];
+        if (CUSTOMER_SOURCES.indexOf(source) !== -1 || isCustomerSeed(item)) return ['customer'];
+        return SHOP_AUDIENCES;
+    }
+
+    function roleMatches(role, audiences) {
+        if (role === 'head') return audiences.indexOf('head') !== -1 || audiences.indexOf('admin') !== -1;
+        if (role === 'retailer') return audiences.indexOf('retailer') !== -1 || audiences.indexOf('wholesaler') !== -1;
+        return audiences.indexOf(role) !== -1;
+    }
+
+    function ownOrderNumbers() {
+        var api = window.KreezbyCustomerOrders;
+        if (!api || typeof api.loadOrders !== 'function') return null;
+        var nums = {};
+        try {
+            (api.loadOrders() || []).forEach(function (o) {
+                if (o && o.orderNumber) nums[String(o.orderNumber)] = true;
+            });
+        } catch (e) { return null; }
+        return nums;
+    }
+
+    // Older customer notes carry no owner; show one only if its order belongs to this customer.
+    function customerOwnsNote(item) {
+        if (isCustomerSeed(item)) return true;
+        var source = String(item.source || '');
+        if (PARTNER_SOURCES.indexOf(source) !== -1) return true;
+        var orderNumber = item.orderNumber || '';
+        if (!orderNumber) {
+            var m = /:\s*(\S+)\s*$/.exec(String(item.title || ''));
+            orderNumber = m ? m[1] : '';
         }
-        if (audiences && audiences.length === 1 && (audiences[0] === 'retailer' || audiences[0] === 'wholesaler')) return false;
-        if (!isStaffPortal()) return true;
+        if (!orderNumber) return false;
+        var mine = ownOrderNumbers();
+        return !!(mine && mine[orderNumber]);
+    }
+
+    function visibleToAudience(item) {
+        if (!item) return false;
+        var role = portalRole();
+        if (role === 'portal') return false;
+
+        if (Array.isArray(item.accountIds) && item.accountIds.length) {
+            var keys = currentAccountKeys();
+            return item.accountIds.some(function (id) {
+                return keys.indexOf(String(id || '').trim().toLowerCase()) !== -1;
+            });
+        }
+
+        if (!roleMatches(role, targetAudiences(item))) return false;
+
+        if (role === 'customer') return customerOwnsNote(item);
+        if (role !== 'staff') return true;
+
         var tasks = staffTasks();
         if (!tasks) return true;
         var needed = SOURCE_TASKS[item.source || 'system'];
@@ -266,6 +377,14 @@
 
     function push(item) {
         var entry = normalize(item);
+        if (item && item.orderNumber) entry.orderNumber = String(item.orderNumber);
+        var role = portalRole();
+        var untargeted = !entry.audience && !entry.audiences && !entry.accountIds;
+        if (untargeted && (role === 'customer' || role === 'retailer') && PARTNER_SOURCES.indexOf(entry.source) === -1) {
+            entry.audiences = [role];
+            var keys = currentAccountKeys();
+            if (keys.length) entry.accountIds = keys;
+        }
         entry.read = false;
         var list = readStored();
         list.unshift(entry);

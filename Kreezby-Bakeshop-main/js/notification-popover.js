@@ -69,7 +69,7 @@
         }
         var script = document.createElement('script');
         script.id = 'kreezby-notification-store-script';
-        script.src = moduleRelativeRoot() + 'js/notification-store.js?v=20261020access';
+        script.src = moduleRelativeRoot() + 'js/notification-store.js?v=20261108roles';
         script.onload = callback;
         document.head.appendChild(script);
     }

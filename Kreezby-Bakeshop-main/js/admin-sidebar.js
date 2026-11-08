@@ -231,7 +231,7 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = assetPrefix() + 'js/notification-store.js?v=20261021fix';
+        script.src = assetPrefix() + 'js/notification-store.js?v=20261108roles';
 
         script.defer = true;
 

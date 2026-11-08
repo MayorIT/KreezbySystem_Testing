@@ -932,8 +932,24 @@
             description: description,
             timestamp: new Date().toISOString(),
             read: false,
-            source: 'payment'
+            source: 'payment',
+            // This message is for the customer who paid, not for the shop portals.
+            audiences: ['customer']
         };
+        var ids = [];
+        try {
+            var shopOrders = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]');
+            (Array.isArray(shopOrders) ? shopOrders : []).forEach(function (entry) {
+                if (!entry) return;
+                if (entry.poCode !== order.code && entry.orderNumber !== order.code && entry.orderNumber !== order.shopOrderNumber) return;
+                if (!note.orderNumber && entry.orderNumber) note.orderNumber = entry.orderNumber;
+                [entry.customerId, entry.customerEmail].forEach(function (v) {
+                    var k = String(v || '').trim().toLowerCase();
+                    if (k && ids.indexOf(k) === -1) ids.push(k);
+                });
+            });
+        } catch (e) { /* fall back to matching by order number */ }
+        if (ids.length) note.accountIds = ids;
         if (window.KreezbyNotifications && typeof window.KreezbyNotifications.push === 'function') {
             window.KreezbyNotifications.push(note);
             return;

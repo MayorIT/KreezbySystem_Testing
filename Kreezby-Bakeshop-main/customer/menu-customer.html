@@ -444,7 +444,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
     </div>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
-    <script src="../js/notification-store.js"></script>
+    <script src="../js/notification-store.js?v=20261108roles"></script>
     <script src="../js/customer-orders.js?v=20261030seen"></script>
     <script src="../js/customer-shop-cards.js?v=20261022fix"></script>
     <script src="../js/customer-stock.js?v=20261025asst"></script>
@@ -1921,8 +1921,23 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
             } catch (e) {}
         }
 
+        // Only this customer's orders: other customers' activity must not show here.
+        function ownCustomerOrders() {
+            const api = window.KreezbyCustomerOrders;
+            if (api && typeof api.loadOrders === 'function') {
+                try { return api.loadOrders() || []; } catch (e) { return []; }
+            }
+            return [];
+        }
+
+        function ownOrderNumberSet() {
+            const set = {};
+            ownCustomerOrders().forEach((o) => { if (o && o.orderNumber) set[String(o.orderNumber)] = true; });
+            return set;
+        }
+
         function buildOrderStatusSnapshot() {
-            const orders = safelyReadJson('kreezbyOrders', []);
+            const orders = ownCustomerOrders();
             const snapshot = {};
             orders.forEach((order) => {
                 if (!order || !order.orderNumber) return;
@@ -1932,7 +1947,8 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
         }
 
         function buildReceiptSnapshot() {
-            const receipts = safelyReadJson('kreezbyCustomerReceipts', []);
+            const mine = ownOrderNumberSet();
+            const receipts = safelyReadJson('kreezbyCustomerReceipts', []).filter((r) => r && mine[String(r.orderNumber)]);
             const snapshot = {};
             receipts.forEach((receipt) => {
                 if (!receipt || !receipt.orderNumber) return;
@@ -1945,7 +1961,8 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
         }
 
         function buildReviewSnapshot() {
-            const reviews = safelyReadJson('kreezbyCustomerReviews', []);
+            const mine = ownOrderNumberSet();
+            const reviews = safelyReadJson('kreezbyCustomerReviews', []).filter((r) => r && mine[String(r.orderNumber)]);
             const snapshot = {};
             reviews.forEach((review) => {
                 if (!review || !review.orderNumber) return;
@@ -2093,6 +2110,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
                 if (!previousStatus) {
                     window.KreezbyNotifications.push({
+                        orderNumber: orderNumber,
                         title: 'Order Logged: ' + orderNumber,
                         description: 'Your order has been registered with status "' + latestStatus + '".',
                         source: 'order-status'
@@ -2102,6 +2120,7 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
                 if (latestStatus !== previousStatus) {
                     window.KreezbyNotifications.push({
+                        orderNumber: orderNumber,
                         title: 'Order Status Updated: ' + orderNumber,
                         description: 'Status changed from "' + previousStatus + '" to "' + latestStatus + '".',
                         source: 'order-status'
