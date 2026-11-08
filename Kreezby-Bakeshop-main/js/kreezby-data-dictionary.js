@@ -36,6 +36,12 @@
         { material_id: 'RM-PSB-01', name: 'Potassium Sorbate', current_stock: 0, expiration_date: '2027-08-01', expiry_threshold_days: 7 }
     ];
 
+    // Packaging stock (same codes as the Inventory list).
+    var PACKAGING_MATERIALS = [
+        { material_id: 'PKG-SUP-01', name: 'Stand up pouch', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-01', name: 'Stickers (Per Flavor)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 }
+    ];
+
     var PROCUREMENT = [
         { product_id: 'CRK-CHO-P', product_name: 'Chocolate Crinkles', current_stock: 0, recommended_quantity: 400 },
         { product_id: 'CRK-LEM-P', product_name: 'Lemon Crinkles', current_stock: 0, recommended_quantity: 200 },
@@ -108,7 +114,7 @@
     }
 
     function allMaterials() {
-        return RAW_MATERIALS.concat(savedState().materials_extra || []);
+        return RAW_MATERIALS.concat(PACKAGING_MATERIALS, savedState().materials_extra || []);
     }
 
     function materialStockMap() {
@@ -138,14 +144,20 @@
         return null;
     }
 
-    function ensureMaterial(name) {
+    function isPackaging(row) {
+        return !!row && (row.type === 'packaging-material' || /^PKG-/.test(String(row.material_id || '')));
+    }
+
+    function ensureMaterial(name, kind) {
         var existing = materialByName(name);
         if (existing) return existing;
         var trimmed = String(name || '').trim();
         if (!trimmed) return null;
-        var id = 'RM-' + trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
-        if (!id || id === 'RM-') id = 'RM-' + Date.now();
-        var row = { material_id: id, name: trimmed, current_stock: 0, expiration_date: '', expiry_threshold_days: 7 };
+        var packaging = kind === 'packaging';
+        var prefix = packaging ? 'PKG-' : 'RM-';
+        var id = prefix + trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
+        if (!id || id === prefix) id = prefix + Date.now();
+        var row = { material_id: id, name: trimmed, type: packaging ? 'packaging-material' : 'raw-material', current_stock: 0, expiration_date: '', expiry_threshold_days: packaging ? 0 : 7 };
         var saved = savedState();
         var extra = saved.materials_extra || [];
         extra.push(row);
@@ -693,14 +705,14 @@
     }
 
     // Records a raw material movement in the ledger (date, who, balance before and after).
-    function recordMaterialMovement(materialName, movementType, quantity, note) {
+    function recordMaterialMovement(materialName, movementType, quantity, note, kind) {
         lastMovementError = '';
         var kind = String(movementType || '').toLowerCase();
         if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
         var qty = Math.abs(Number(quantity) || 0);
         if (!qty) { lastMovementError = 'Enter a quantity greater than zero.'; return null; }
-        var material = ensureMaterial(materialName);
-        if (!material) { lastMovementError = 'Type a raw material name.'; return null; }
+        var material = ensureMaterial(materialName, kind);
+        if (!material) { lastMovementError = 'Type a material name.'; return null; }
         var saved = savedState();
         var stock = materialStockMap();
         var current = Number(stock[material.material_id]) || 0;
@@ -812,7 +824,7 @@
         });
         var totals = { 'stock-in': 0, usage: 0, 'stock-out': 0, waste: 0 };
         rows.forEach(function (m) { if (totals[m.type] != null) totals[m.type] += m.quantity; });
-        var options = '<option value="">All raw materials</option>' + allMaterials().map(function (m) {
+        var options = '<option value="">All materials</option>' + allMaterials().map(function (m) {
             return '<option value="' + esc(m.material_id) + '"' + (m.material_id === wantMaterial ? ' selected' : '') + '>' + esc(m.name) + '</option>';
         }).join('');
         var typeOptions = '<option value="">All movements</option>' + Object.keys(MOVEMENT_KINDS).concat(['adjustment']).map(function (k) {
@@ -1193,6 +1205,9 @@
             + '.fr-field input:focus,.fr-field select:focus{outline:none;border-color:#5d4037;box-shadow:0 0 0 3px rgba(93,64,55,.12);}'
             + '.fr-actions{display:flex;align-items:end;min-width:0;}'
             + '.fr-card--materials .fr-fields{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));}'
+            + '.fr-records__grid--single{grid-template-columns:minmax(0,1fr);}'
+            + '.fr-group{display:contents;}'
+            + '.fr-group[hidden]{display:none;}'
             + '.fr-btn{height:36px;width:100%;border:0;border-radius:8px;background:#5d4037;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}'
             + '.fr-btn:hover{background:#3e2723;}'
             + '.fr-hide-btn{margin-left:auto;height:28px;padding:0 10px;border:1px solid #c4b4a4;border-radius:8px;background:#fff;color:#5d4037;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto;}'
@@ -1257,28 +1272,35 @@
         ensureHeadStockFormStyles();
         if (cardLayout) {
             box.className = 'fr-records';
-            box.innerHTML = '<div class="fr-records__grid">'
-                + '<section class="fr-card" data-fr-panel="product" aria-label="Finished product records">'
-                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('product') + '</span>Finished products' + hideControl('product') + '</h3>'
-                + '<p class="fr-card__lead">Update batch, dates, ' + (canEditPrice() ? 'stock, and selling price' : 'and stock') + '. Sales deduct finished goods automatically.</p>'
+            box.innerHTML = '<div class="fr-records__grid fr-records__grid--single">'
+                + '<section class="fr-card" data-fr-panel="stock" aria-label="Add stock">'
+                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('product') + '</span>Add stock' + hideControl('stock') + '</h3>'
+                + '<p class="fr-card__lead" id="fr-lead"></p>'
                 + '<div class="fr-fields">'
-                + stockField('fr-product', 'Product', 'product', '<select id="fr-product">' + productOptions + '</select>', true)
-                + stockField('fr-batch', 'Batch', 'batch', '<input id="fr-batch" type="text">', true)
-                + stockField('fr-produced', 'Produced', 'made', '<input id="fr-produced" type="date">', true)
-                + stockField('fr-expires', 'Expires', 'expires', '<input id="fr-expires" type="date">', true)
-                + stockField('fr-stock', 'Stock', 'stock', '<input id="fr-stock" type="number" min="0">', true)
-                + (canEditPrice() ? stockField('fr-price', 'Price (₱ per pouch)', 'price', '<input id="fr-price" type="number" min="1" step="0.01">', true) : '')
+                + stockField('fr-type', 'Stock type', 'move', '<select id="fr-type">'
+                    + '<option value="product">Finished product</option>'
+                    + '<option value="raw">Raw material</option>'
+                    + '<option value="packaging">Packaging material</option>'
+                    + '</select>')
+                // Finished product
+                + '<div class="fr-group" data-fr-group="product">'
+                + stockField('fr-product', 'Product', 'product', '<select id="fr-product">' + productOptions + '</select>')
+                + stockField('fr-batch', 'Batch', 'batch', '<input id="fr-batch" type="text">')
+                + stockField('fr-produced', 'Produced', 'made', '<input id="fr-produced" type="date">')
+                + stockField('fr-expires', 'Expires', 'expires', '<input id="fr-expires" type="date">')
+                + stockField('fr-stock', 'Stock', 'stock', '<input id="fr-stock" type="number" min="0">')
+                + (canEditPrice() ? stockField('fr-price', 'Price (₱ per pouch)', 'price', '<input id="fr-price" type="number" min="1" step="0.01">') : '')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Save product</button></div>'
-                + '</div></section>'
-                + '<section class="fr-card fr-card--materials" data-fr-panel="material" aria-label="Raw material records">'
-                + '<h3 class="fr-card__title">' + '<span class="fr-card__icon">' + stockFieldIcon('material') + '</span>Raw materials' + hideControl('material') + '</h3>'
-                + '<p class="fr-card__lead">Type any raw material, then record stock-in, stock-out, or usage.</p>'
-                + '<div class="fr-fields">'
-                + stockField('fr-material', 'Raw material', 'material', '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist>')
+                + '</div>'
+                // Raw / packaging material
+                + '<div class="fr-group" data-fr-group="material" hidden>'
+                + '<label class="fr-field"><span class="fr-label">' + stockFieldIcon('material') + '<span id="fr-material-label">Raw material</span></span>'
+                + '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list"></datalist></label>'
                 + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
                 + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Record movement</button></div>'
+                + '</div>'
                 + '</div></section>'
                 + '</div>'
                 + '<p id="fr-stock-note"></p>';
@@ -1363,13 +1385,57 @@
         });
         document.getElementById('fr-save-move').addEventListener('click', function () {
             var name = String(document.getElementById('fr-material').value || '').trim();
-            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value) : null;
+            var typeNode = document.getElementById('fr-type');
+            var kind = typeNode && typeNode.value === 'packaging' ? 'packaging' : 'raw';
+            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value, kind) : null;
             document.getElementById('fr-stock-note').textContent = !name
-                ? 'Type a raw material name.'
+                ? (kind === 'packaging' ? 'Type a packaging material name.' : 'Type a raw material name.')
                 : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : name + ' now has ' + next + ' on hand. Movement saved to the log below.');
             if (next != null && document.getElementById('fr-note')) document.getElementById('fr-note').value = '';
         });
         fillProduct();
+
+        // One "Add stock" card: the Stock type picks which fields show.
+        var typeSelect = document.getElementById('fr-type');
+        if (typeSelect) {
+            var LEADS = {
+                product: 'Update batch, dates, ' + (canEditPrice() ? 'stock, and selling price' : 'and stock') + '. Sales deduct finished goods automatically.',
+                raw: 'Type any raw material, then record stock-in, stock-out, or usage.',
+                packaging: 'Type any packaging material (pouches, stickers), then record stock-in, stock-out, or usage.'
+            };
+            var applyType = function () {
+                var type = typeSelect.value;
+                var isProduct = type === 'product';
+                box.querySelectorAll('[data-fr-group]').forEach(function (group) {
+                    group.hidden = (group.getAttribute('data-fr-group') === 'product') !== isProduct;
+                });
+                var lead = document.getElementById('fr-lead');
+                if (lead) lead.textContent = LEADS[type] || LEADS.product;
+                if (!isProduct) {
+                    var packaging = type === 'packaging';
+                    var label = document.getElementById('fr-material-label');
+                    if (label) label.textContent = packaging ? 'Packaging material' : 'Raw material';
+                    var input = document.getElementById('fr-material');
+                    if (input) input.placeholder = packaging ? 'Type a packaging material' : 'Type a raw material';
+                    var list = document.getElementById('fr-material-list');
+                    if (list) {
+                        list.innerHTML = allMaterials().filter(function (item) {
+                            return packaging ? isPackaging(item) : !isPackaging(item);
+                        }).map(function (item) {
+                            return '<option value="' + esc(item.name) + '">';
+                        }).join('');
+                    }
+                }
+                var note = document.getElementById('fr-stock-note');
+                if (note) note.textContent = '';
+            };
+            typeSelect.addEventListener('change', function () {
+                var input = document.getElementById('fr-material');
+                if (input) input.value = '';
+                applyType();
+            });
+            applyType();
+        }
     }
 
     function seedPartnerAlerts() {

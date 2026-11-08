@@ -116,7 +116,7 @@
             seen[row.material_id] = true;
             items.push({
                 code: row.material_id,
-                type: 'raw-material',
+                type: row.type === 'packaging-material' || /^PKG-/.test(String(row.material_id)) ? 'packaging-material' : 'raw-material',
                 name: row.name,
                 unit: 'Quantity',
                 qty: Number(row.current_stock) || 0,
@@ -136,7 +136,7 @@
             var productQty = dict.productStock(item.name);
             if (productQty != null && productQty !== '') return Number(productQty) || 0;
         }
-        if (dict && item.type === 'raw-material' && typeof dict.materialStock === 'function') {
+        if (dict && (item.type === 'raw-material' || item.type === 'packaging-material') && typeof dict.materialStock === 'function') {
             var materialQty = dict.materialStock(item.name);
             if (materialQty != null && materialQty !== '') return Number(materialQty) || 0;
         }
