@@ -246,8 +246,11 @@
     }
 
     // Notes about one customer's own activity (their order status, receipts, reviews).
-    var CUSTOMER_SOURCES = ['order-status', 'receipt', 'review', 'information'];
+    // (cart, checkout, favorites, profile, addresses) - never shown in head admin, admin or staff.
+    var CUSTOMER_SOURCES = ['order-status', 'receipt', 'review', 'information', 'cart', 'checkout', 'favorites', 'profile', 'address', 'security'];
     var CUSTOMER_SEED_TITLES = ['Portal Session Started', 'Information Feed Enabled'];
+    // Customer account messages saved under the generic "system" source.
+    var CUSTOMER_ONLY_TITLES = ['Security Update Applied', 'Profile Updated', 'Added to Cart', 'Checkout Started'];
     // Announcements meant for every customer and retailer.
     var PARTNER_SOURCES = ['new_product', 'price_change'];
     var SHOP_AUDIENCES = ['admin', 'head', 'staff'];
@@ -263,7 +266,7 @@
         if (audiences) return audiences;
         var source = String(item && item.source || 'system');
         if (PARTNER_SOURCES.indexOf(source) !== -1) return ['customer', 'retailer'];
-        if (CUSTOMER_SOURCES.indexOf(source) !== -1 || isCustomerSeed(item)) return ['customer'];
+        if (CUSTOMER_SOURCES.indexOf(source) !== -1 || isCustomerSeed(item) || CUSTOMER_ONLY_TITLES.indexOf(String(item.title || '')) !== -1) return ['customer'];
         return SHOP_AUDIENCES;
     }
 

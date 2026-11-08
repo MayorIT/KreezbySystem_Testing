@@ -64,14 +64,13 @@
 
 
         { key: 'stocklevel', label: 'Inventory', href: 'stocklevel-admin.html', icon: 'boxes', children: [
-            { key: 'stock-level', label: 'Stock Level', href: 'stocklevel-admin.html' },
-            { key: 'stock-value', label: 'Total Value of Stock', href: 'stocklevel-value-admin.html' },
+            { key: 'stock-value', label: 'Total Value of Stock', href: 'stocklevel-value-admin.html', also: 'stocklevel-admin.html' },
             { key: 'stock-slow', label: 'Slow Moving Stock', href: 'stocklevel-slow-admin.html' },
             { key: 'stock-alerts', label: 'Low Stock Alerts', href: 'stocklevel-alerts-admin.html' },
             { key: 'stock-chart', label: 'Stock Value vs Sales', href: 'stocklevel-chart-admin.html' }
         ] },
 
-        { key: 'stocks', label: 'Products', href: 'stocks-admin.html', icon: 'tag' },
+        { key: 'stocks', label: 'Stocks', href: 'stocks-admin.html', icon: 'tag' },
 
         { key: 'deliveryschedule', label: 'Deliveries', href: 'deliveryschedule-admin.html', icon: 'truck' },
 
@@ -231,7 +230,7 @@
 
         script.id = 'kreezby-notification-store-script';
 
-        script.src = assetPrefix() + 'js/notification-store.js?v=20261108roles';
+        script.src = assetPrefix() + 'js/notification-store.js?v=20261108cart';
 
         script.defer = true;
 
@@ -311,6 +310,13 @@
                 if (match) childTab = decodeURIComponent(match[1]);
                 try { currentTab = new URLSearchParams(location.search).get('tab') || ''; } catch (e) {}
                 var on = file === filename && childTab === currentTab;
+                // The Inventory page opens on Total Value of Stock, so that sub-item is the active one there.
+                if (!on && child.also) {
+                    var view = '';
+                    try { view = new URLSearchParams(location.search).get('view') || ''; } catch (e) {}
+                    var alsoFile = String(child.also).split('/').pop().toLowerCase();
+                    on = alsoFile === filename && (!view || view === 'value');
+                }
                 return '<a href="' + child.href + '"' + frameAttrsFor(child) + (on ? ' aria-current="page" class="is-active"' : '') + '>' + child.label + '</a>';
             }).join('') + '</div>';
             var open = item.key === activeKey;
@@ -432,7 +438,8 @@
                     return {
                         key: child.key,
                         label: child.label,
-                        href: portalHref(child.href)
+                        href: portalHref(child.href),
+                        also: child.also ? portalHref(child.also) : ''
                     };
                 });
             }

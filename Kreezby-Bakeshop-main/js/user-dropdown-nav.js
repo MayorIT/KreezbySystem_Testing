@@ -362,7 +362,7 @@
         if (!window.KreezbyNotifications && !document.getElementById('kreezby-notification-store-script')) {
             var store = document.createElement('script');
             store.id = 'kreezby-notification-store-script';
-            store.src = base + 'notification-store.js?v=20261108roles';
+            store.src = base + 'notification-store.js?v=20261108cart';
             store.onload = loadPopover;
             store.defer = true;
             document.head.appendChild(store);

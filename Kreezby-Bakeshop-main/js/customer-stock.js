@@ -95,8 +95,8 @@
         // The shop pages keep the open cart in a page-level variable; fall back to the saved cart.
         try {
             /* global shoppingCartStateMap */
-            if (typeof shoppingCartStateMap !== 'undefined' && shoppingCartStateMap && shoppingCartStateMap[prodId]) {
-                return Number(shoppingCartStateMap[prodId].qty) || 0;
+            if (typeof shoppingCartStateMap !== 'undefined' && shoppingCartStateMap) {
+                return shoppingCartStateMap[prodId] ? Number(shoppingCartStateMap[prodId].qty) || 0 : 0;
             }
         } catch (e) { /* not on this page */ }
         var saved = readJson(CART_KEY, {}) || {};
@@ -113,7 +113,12 @@
         Array.prototype.forEach.call(document.querySelectorAll('.flavor-card'), function (card) {
             var name = nameForCard(card);
             if (!productId(name)) return;
-            var qty = available(name);
+            var onHand = available(name);
+            var inCart = Math.min(onHand, cartQty(productId(name)));
+            // Shown on this customer's screen only: pouches in their cart are taken off the count.
+            // Real stock is only deducted once the order is placed / paid at checkout.
+            var qty = Math.max(0, onHand - inCart);
+            var allInCart = onHand > 0 && qty <= 0;
             // The stock count takes the place of the "Pouch (10 Pcs)" line under the flavor name.
             var line = card.querySelector('.flavor-card__stock') || card.querySelector('.flavor-card__description');
             if (!line) {
@@ -123,20 +128,20 @@
             }
             line.classList.add('flavor-card__stock');
             line.setAttribute('aria-live', 'polite');
-            line.textContent = stockLabel(qty);
+            line.textContent = allInCart ? 'Available stocks: 0 (all in your cart)' : stockLabel(qty);
             line.classList.toggle('is-out', qty <= 0);
             line.classList.toggle('is-low', qty > 0 && qty <= 3);
-            card.classList.toggle('is-sold-out', qty <= 0);
+            card.classList.toggle('is-sold-out', onHand <= 0);
             var badge = card.querySelector('.flavor-card__badge');
-            if (badge) badge.textContent = qty <= 0 ? 'Out of stock' : 'Fresh';
+            if (badge) badge.textContent = onHand <= 0 ? 'Out of stock' : 'Fresh';
             var addBtn = card.querySelector('.add-cart-btn');
             if (addBtn) {
                 addBtn.disabled = qty <= 0;
-                addBtn.textContent = qty <= 0 ? 'Out of Stock' : 'Add To Cart Bag';
+                addBtn.textContent = allInCart ? 'All in Cart' : (qty <= 0 ? 'Out of Stock' : 'Add To Cart Bag');
             }
             Array.prototype.forEach.call(card.querySelectorAll('.counter-btn'), function (btn) { btn.disabled = qty <= 0; });
             var orderNow = card.querySelector('.btn-guest-action');
-            if (orderNow) orderNow.textContent = qty <= 0 ? 'Out of Stock' : 'Order Now';
+            if (orderNow) orderNow.textContent = allInCart ? 'All in Cart' : (qty <= 0 ? 'Out of Stock' : 'Order Now');
         });
     }
 
@@ -167,8 +172,17 @@
         var add = window.commitItemToCartState;
         var adjust = window.adjustCardWidgetQtyState;
         var change = window.changeCartLineQty;
+        var redraw = window.refreshGlobalCartInterfaceState;
         if (typeof add !== 'function' && typeof adjust !== 'function') return;
         guarded = true;
+
+        if (typeof redraw === 'function') {
+            window.refreshGlobalCartInterfaceState = function () {
+                var result = redraw.apply(this, arguments);
+                queueRefresh();
+                return result;
+            };
+        }
 
         if (typeof adjust === 'function') {
             window.adjustCardWidgetQtyState = function (prodId, delta) {
@@ -266,8 +280,9 @@
         if (!keys || keys.indexOf(DICT_KEY) !== -1 || keys.indexOf('kreezbyOrders') !== -1) queueRefresh();
     });
     window.addEventListener('storage', function (e) {
-        if (!e || e.key === DICT_KEY || e.key === 'kreezbyOrders') queueRefresh();
+        if (!e || e.key === DICT_KEY || e.key === 'kreezbyOrders' || e.key === CART_KEY) queueRefresh();
     });
+    document.addEventListener('kreezby:cart-change', queueRefresh);
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();

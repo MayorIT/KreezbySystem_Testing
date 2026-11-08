@@ -27,7 +27,7 @@
     var TASKS = {
         dashboard: { label: 'Dashboard', page: 'admin.html' },
         bo: { label: 'Order Error', page: 'bo-admin.html' },
-        stocks: { label: 'Products', page: 'stocks-admin.html' },
+        stocks: { label: 'Stocks', page: 'stocks-admin.html' },
         saleslist: { label: 'Sales', page: 'saleslist-admin.html' },
         pos: { label: 'Point of Sale', page: 'pos-admin.html' },
         ordertracking: { label: 'Order Tracking', page: 'order-tracking-admin.html' },

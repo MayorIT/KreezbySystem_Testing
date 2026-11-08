@@ -371,11 +371,15 @@
             var qty = cart[product.code] || 0;
             var expired = expiredName(product.name);
             var soldOut = expired || stock <= 0;
+            // On this screen only: pouches in the current sale come off the count.
+            // Real stock is deducted when the sale is completed and paid.
+            var left = Math.max(0, stock - qty);
+            var stockText = left <= 0 && qty > 0 ? '0 in stock (all in this sale)' : (left + ' in stock');
             return '<article class="pos-product' + (soldOut ? ' is-empty' : '') + '">' +
                 '<div class="pos-photo-frame"><img class="pos-photo" src="' + esc(flavorPhoto(product.photo)) + '" alt="' + esc(product.name) + '"></div>' +
                 '<h4>' + esc(product.name) + '</h4>' +
                 '<p class="pos-price">' + peso(product.price) + '</p>' +
-                '<p class="pos-stock">' + (expired ? 'Expired — cannot be sold' : (stock + ' in stock')) + '</p>' +
+                '<p class="pos-stock">' + (expired ? 'Expired — cannot be sold' : stockText) + '</p>' +
                 '<div class="pos-qty">' +
                     '<button type="button" data-pos-dec="' + esc(product.code) + '" aria-label="Remove one ' + esc(product.name) + '"' + (qty ? '' : ' disabled') + '>−</button>' +
                     '<span>' + qty + '</span>' +
