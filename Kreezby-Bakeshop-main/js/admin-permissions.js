@@ -337,6 +337,26 @@
         return normalizeAdminTasks(tasks);
     }
 
+    // Ticks are only a draft until Save Permissions is pressed.
+    function permissionDraftStyles() {
+        if (document.getElementById('permission-draft-style')) return;
+        var st = document.createElement('style');
+        st.id = 'permission-draft-style';
+        st.textContent = '.btn-save-permissions.has-changes{box-shadow:0 0 0 3px rgba(255,202,40,.6);}'
+            + '.permission-save-status.is-draft{color:#b26a00;font-weight:700;}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+
+    function describeTaskChanges(before, after) {
+        var allowed = after.filter(function (k) { return before.indexOf(k) === -1; });
+        var blocked = before.filter(function (k) { return after.indexOf(k) === -1; });
+        var label = function (k) { return TASKS[k] ? TASKS[k].label : k; };
+        var parts = [];
+        if (allowed.length) parts.push(allowed.map(label).join(', ') + ' allowed');
+        if (blocked.length) parts.push(blocked.map(label).join(', ') + ' blocked');
+        return parts.join('; ');
+    }
+
     function showPermissionStatus(root, message) {
         var bar = root.querySelector('.panel-card-title-bar');
         if (!bar) return;
@@ -348,6 +368,7 @@
             bar.appendChild(status);
         }
         status.textContent = message;
+        status.classList.toggle('is-draft', /^Unsaved changes/.test(String(message || '')));
     }
 
     function getAdminProfile(adminId) {
@@ -595,9 +616,12 @@
                 button.setAttribute('data-admin-id', id);
                 button.innerHTML = account.name + '<br><span class="staff-task-hint">' + account.username + ' · ' + account.role + '</span>';
                 button.onclick = function () {
+                    if (id === selectedId) return;
+                    if (!confirmDiscard()) return;
                     selectedId = id;
                     renderLists();
                     renderPanel();
+                    showPermissionStatus(root, '');
                 };
                 listEl.appendChild(button);
             });
@@ -637,36 +661,62 @@
             var profile = getAdminProfile(selectedId);
             titleEl.textContent = 'Module access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedId);
+            savedTasks = checkedAdminTasks(matrixBody);
+            setDirty(false);
             if (isOwnerAccountId(selectedId)) {
                 showPermissionStatus(root, profile.name + ' keeps every module.');
             }
         }
 
-        function applyCheckedAccess(sourceBox) {
+        var savedTasks = [];
+        var dirty = false;
+        permissionDraftStyles();
+
+        function setDirty(on) {
+            dirty = !!on;
+            saveBtn.classList.toggle('has-changes', dirty);
+        }
+
+        function confirmDiscard() {
+            if (!dirty) return true;
+            return window.confirm('Discard the unsaved permission changes for ' + getAdminProfile(selectedId).name + '?');
+        }
+
+        function applyCheckedAccess() {
             if (!selectedId || isOwnerAccountId(selectedId)) {
                 showPermissionStatus(root, getAdminProfile(selectedId).name + ' keeps every module.');
                 return;
             }
+            var before = savedTasks.slice();
             var tasks = persistAdminAccess(selectedId, checkedAdminTasks(matrixBody));
             matrixBody.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
                 box.checked = tasks.indexOf(box.getAttribute('data-task')) !== -1;
             });
-            var taskKey = sourceBox ? sourceBox.getAttribute('data-task') : '';
-            var task = TASKS[taskKey];
-            var detail = task
-                ? task.label + (sourceBox.checked ? ' is now allowed' : ' is now blocked')
-                : 'access updated';
-            showPermissionStatus(root, getAdminProfile(selectedId).name + ': ' + detail + '.');
+            savedTasks = tasks.slice();
+            setDirty(false);
+            var detail = describeTaskChanges(before, tasks);
+            showPermissionStatus(root, detail
+                ? 'Saved. ' + getAdminProfile(selectedId).name + ': ' + detail + '.'
+                : 'No changes to save for ' + getAdminProfile(selectedId).name + '.');
         }
 
+        // Ticking a module only marks a change; nothing is applied until Save Permissions.
         matrixBody.addEventListener('change', function (event) {
             var box = event.target;
             if (!box || box.type !== 'checkbox' || box.disabled) return;
-            applyCheckedAccess(box);
+            var detail = describeTaskChanges(savedTasks, checkedAdminTasks(matrixBody));
+            setDirty(!!detail);
+            showPermissionStatus(root, detail ? 'Unsaved changes: ' + detail + '. Press Save Permissions to apply.' : '');
+        });
+
+        window.addEventListener('beforeunload', function (event) {
+            if (!dirty) return;
+            event.preventDefault();
+            event.returnValue = '';
         });
 
         saveBtn.onclick = function () {
-            applyCheckedAccess(null);
+            applyCheckedAccess();
         };
 
         if (archiveBtn) {

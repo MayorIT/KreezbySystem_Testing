@@ -891,7 +891,13 @@
         var saved = savedState();
         var inCatalog = PRODUCTS.some(function (product) { return product.product_id === id; });
         var isNewFlavor = false;
-        if (!inCatalog) {
+        // A price-only change (Inventory > Edit) never registers the flavor as new.
+        var priceOnly = !!fields && ['batch_number', 'production_date', 'expiration_date', 'current_stock'].every(function (key) {
+            return fields[key] == null || String(fields[key]) === '';
+        });
+        if (priceOnly) {
+            // nothing to record but the price below
+        } else if (!inCatalog) {
             var extra = saved.products_extra || [];
             var found = null;
             extra.forEach(function (item) {
@@ -1505,6 +1511,14 @@
         lastMovementError: function () { return lastMovementError; },
         materialMovements: materialMovements,
         saveProductFields: saveProductFields,
+        // Current selling price per pouch: the saved price, else ₱165 (₱200 for Choco Butternut).
+        productPrice: function (name) {
+            var id = productId(name);
+            if (!id) return null;
+            var prices = savedState().product_prices || {};
+            return prices[id] == null ? defaultPrice(id) : Number(prices[id]);
+        },
+        canEditPrice: canEditPrice,
         historyFor: historyFor,
         productStock: function (name) {
             var id = productId(name);

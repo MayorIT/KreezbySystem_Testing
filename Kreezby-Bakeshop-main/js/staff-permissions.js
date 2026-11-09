@@ -284,6 +284,26 @@
         return normalizeStaffTasks(tasks);
     }
 
+    // Ticks are only a draft until Save Permissions is pressed.
+    function permissionDraftStyles() {
+        if (document.getElementById('permission-draft-style')) return;
+        var st = document.createElement('style');
+        st.id = 'permission-draft-style';
+        st.textContent = '.btn-save-permissions.has-changes{box-shadow:0 0 0 3px rgba(255,202,40,.6);}'
+            + '.permission-save-status.is-draft{color:#b26a00;font-weight:700;}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+
+    function describeTaskChanges(before, after) {
+        var allowed = after.filter(function (k) { return before.indexOf(k) === -1; });
+        var blocked = before.filter(function (k) { return after.indexOf(k) === -1; });
+        var label = function (k) { return TASKS[k] ? TASKS[k].label : k; };
+        var parts = [];
+        if (allowed.length) parts.push(allowed.map(label).join(', ') + ' allowed');
+        if (blocked.length) parts.push(blocked.map(label).join(', ') + ' blocked');
+        return parts.join('; ');
+    }
+
     function showPermissionStatus(root, message) {
         var bar = root.querySelector('.panel-card-title-bar');
         if (!bar) return;
@@ -295,6 +315,7 @@
             bar.appendChild(status);
         }
         status.textContent = message;
+        status.classList.toggle('is-draft', /^Unsaved changes/.test(String(message || '')));
     }
 
     function getCurrentStaffId() {
@@ -601,14 +622,29 @@
             selectedStaffPermissionsId = activePill.getAttribute('data-staff-id') || selectedStaffPermissionsId;
         }
 
+        var savedTasks = [];
+        var dirty = false;
+        permissionDraftStyles();
+
+        function setDirty(on) {
+            dirty = !!on;
+            saveBtn.classList.toggle('has-changes', dirty);
+        }
+
         function renderPanel() {
             var profile = getStaffProfile(selectedStaffPermissionsId);
             titleEl.textContent = 'Task Access — ' + profile.name;
             renderPermissionsMatrix(matrixBody, selectedStaffPermissionsId);
+            savedTasks = checkedTasks(matrixBody);
+            setDirty(false);
         }
 
         pills.forEach(function (pill) {
             pill.onclick = function () {
+                var nextId = pill.getAttribute('data-staff-id');
+                if (nextId === selectedStaffPermissionsId) return;
+                if (dirty
+                    && !window.confirm('Discard the unsaved permission changes for ' + getStaffProfile(selectedStaffPermissionsId).name + '?')) return;
                 pills.forEach(function (p) { p.classList.remove('active-role'); });
                 pill.classList.add('active-role');
                 selectedStaffPermissionsId = pill.getAttribute('data-staff-id');
@@ -617,33 +653,42 @@
             };
         });
 
-        function applyCheckedAccess(sourceBox) {
-            var tasks = persistStaffAccess(selectedStaffPermissionsId, checkedTasks(matrixBody));
+        function applyCheckedAccess() {
+            var before = savedTasks.slice();
+            var wanted = checkedTasks(matrixBody);
+            var tasks = persistStaffAccess(selectedStaffPermissionsId, wanted);
             var profile = getStaffProfile(selectedStaffPermissionsId);
-            var taskKey = sourceBox ? sourceBox.getAttribute('data-task') : '';
-            var task = TASKS[taskKey];
-            var stillOn = tasks.indexOf(taskKey) !== -1;
-            var detail = 'access updated';
-            if (task && sourceBox && !sourceBox.checked && stillOn) {
-                detail = task.label + ' stays allowed because Retailer Chats needs Inbox';
-            } else if (task && sourceBox) {
-                detail = task.label + (sourceBox.checked ? ' is now allowed' : ' is now blocked');
-            }
             matrixBody.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
                 box.checked = tasks.indexOf(box.getAttribute('data-task')) !== -1;
             });
-            showPermissionStatus(root, profile.name + ': ' + detail + '.');
+            savedTasks = tasks.slice();
+            setDirty(false);
+            var detail = describeTaskChanges(before, tasks);
+            var kept = wanted.indexOf('inbox') === -1 && tasks.indexOf('inbox') !== -1
+                ? ' Inbox stays allowed because Retailer Chats needs it.' : '';
+            showPermissionStatus(root, (detail
+                ? 'Saved. ' + profile.name + ': ' + detail + '.'
+                : 'No changes to save for ' + profile.name + '.') + kept);
             return tasks;
         }
 
+        // Ticking a task only marks a change; nothing is applied until Save Permissions.
         matrixBody.addEventListener('change', function (event) {
             var box = event.target;
             if (!box || box.type !== 'checkbox') return;
-            applyCheckedAccess(box);
+            var detail = describeTaskChanges(savedTasks, checkedTasks(matrixBody));
+            setDirty(!!detail);
+            showPermissionStatus(root, detail ? 'Unsaved changes: ' + detail + '. Press Save Permissions to apply.' : '');
+        });
+
+        window.addEventListener('beforeunload', function (event) {
+            if (!dirty) return;
+            event.preventDefault();
+            event.returnValue = '';
         });
 
         saveBtn.onclick = function () {
-            applyCheckedAccess(null);
+            applyCheckedAccess();
         };
 
         renderPanel();

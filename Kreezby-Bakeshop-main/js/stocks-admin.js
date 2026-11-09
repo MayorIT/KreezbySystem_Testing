@@ -388,31 +388,109 @@
         return item ? lowLimit(item.type) : 0;
     }
 
+    function ensureEditStyles() {
+        if (document.getElementById('stocks-edit-style')) return;
+        var st = document.createElement('style');
+        st.id = 'stocks-edit-style';
+        st.textContent = ''
+            + '#stocks-edit-form.se-form{display:flex!important;flex-direction:column;gap:16px;width:100%!important;max-width:880px!important;align-self:stretch;box-sizing:border-box;margin-top:14px;}'
+            + '.se-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}'
+            + '.se-stat{background:#fffaf3;border:1px solid #eadfce;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;}'
+            + '.se-stat span{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
+            + '.se-stat strong{font-size:18px;color:#3e2723;}'
+            + '.se-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}'
+            + '.se-section{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}'
+            + '.se-section h5{margin:0;font-size:15px;color:#3e2723;}'
+            + '.se-hint{margin:0;font-size:12px;line-height:1.45;color:#7a6558;}'
+            + '.se-field{display:flex;flex-direction:column;gap:6px;margin-top:4px;font-size:12px;font-weight:700;color:#5d4037;}'
+            + '.se-input{display:flex;align-items:center;height:40px;border:1px solid #e4d8c4;border-radius:10px;background:#fff;overflow:hidden;}'
+            + '.se-input:focus-within{border-color:#5d4037;box-shadow:0 0 0 3px rgba(93,64,55,.12);}'
+            + '.se-input b{padding:0 12px;height:100%;display:flex;align-items:center;background:#f6efe6;color:#5d4037;font-size:13px;font-weight:700;}'
+            + '#stocks-edit-form.se-form .se-input input{flex:1 1 auto!important;width:auto!important;min-width:0!important;height:100%!important;border:0!important;border-radius:0!important;outline:none!important;padding:0 12px!important;font:600 14px/1 inherit;color:#1f1f1f;background:transparent!important;margin:0!important;box-shadow:none!important;}'
+            + '.se-actions{display:flex;justify-content:flex-end;gap:10px;}'
+            + '.se-cancel{height:40px;padding:0 18px;border:1px solid #c4b4a4;border-radius:10px;background:#fff;color:#5d4037;font-weight:700;font-size:13px;cursor:pointer;}'
+            + '.se-cancel:hover{background:#f6efe6;}'
+            + '.se-save{height:40px;padding:0 22px;border-radius:10px;}'
+            + '#stocks-details-content{width:100%;}'
+            + '@media (max-width:600px){.se-actions{flex-direction:column-reverse;}.se-actions button{width:100%;}.se-summary{grid-template-columns:repeat(2,minmax(0,1fr));}}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+
     function openEdit(code) {
         var item = findItem(code);
         if (!item) return;
         openCode = code;
         var current = alertAt(code);
         var content = document.getElementById('stocks-details-content');
+        var dict = window.KreezbyDictionary;
+        // Finished products: head admin and admin can change the selling price here.
+        var priceEditable = item.type === 'finished-product' && dict
+            && typeof dict.canEditPrice === 'function' && dict.canEditPrice()
+            && typeof dict.productPrice === 'function' && dict.productPrice(item.name) != null;
+        var price = priceEditable ? Number(dict.productPrice(item.name)) : 0;
         if (content) {
+            ensureEditStyles();
+            var unit = String(item.unit || '').toLowerCase() === 'pouches' ? 'pouches' : 'units';
+            var onHand = liveQty(item);
+            var summary = '<div class="se-summary">'
+                + '<div class="se-stat"><span>On hand</span><strong>' + onHand + ' ' + unit + '</strong></div>'
+                + (priceEditable ? '<div class="se-stat"><span>Selling price</span><strong>₱' + price.toFixed(2) + '</strong></div>' : '')
+                + '<div class="se-stat"><span>Alert at</span><strong>' + current + ' ' + unit + '</strong></div>'
+                + '</div>';
+            var priceSection = priceEditable
+                ? '<section class="se-section">'
+                    + '<h5>Selling price</h5>'
+                    + '<p class="se-hint">Price per pouch for customers and the Walk-in POS. Retailers stay at ₱140.</p>'
+                    + '<label class="se-field"><span>Price per pouch</span>'
+                    + '<div class="se-input se-input--prefix"><b>₱</b><input name="price" type="number" min="1" step="0.01" value="' + price.toFixed(2) + '"></div></label>'
+                    + '</section>'
+                : '';
+            var alertSection = '<section class="se-section">'
+                + '<h5>Stock alert</h5>'
+                + '<p class="se-hint">An alert goes out when ' + esc(item.name) + ' is at or below this number.</p>'
+                + '<label class="se-field"><span>Alert at</span>'
+                + '<div class="se-input se-input--suffix"><input name="threshold" type="number" min="0" step="1" value="' + current + '"><b>' + unit + '</b></div></label>'
+                + '</section>';
             content.innerHTML =
                 '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
-                '<form id="stocks-edit-form">' +
-                '<p>On hand is ' + liveQty(item) + '. An alert goes out when it is at or below this number.</p>' +
-                '<label>Alert at<input name="threshold" type="number" min="0" step="1" value="' + current + '"></label>' +
-                '<button class="btn-call-to-action" type="submit">Save</button>' +
+                '<form id="stocks-edit-form" class="se-form">' +
+                summary +
+                '<div class="se-grid">' + priceSection + alertSection + '</div>' +
+                '<div class="se-actions"><button type="button" class="se-cancel" id="stocks-edit-cancel">Cancel</button>' +
+                '<button class="btn-call-to-action se-save" type="submit">Save changes</button></div>' +
                 '</form>';
+            var cancel = document.getElementById('stocks-edit-cancel');
+            if (cancel) cancel.addEventListener('click', backToList);
             var form = document.getElementById('stocks-edit-form');
             if (form) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
-                    var value = new FormData(form).get('threshold');
+                    var data = new FormData(form);
+                    var value = data.get('threshold');
+                    var priceChanged = false;
+                    if (priceEditable) {
+                        var newPrice = Number(data.get('price'));
+                        if (!(newPrice > 0)) {
+                            showToast('Enter a selling price above ₱0.');
+                            return;
+                        }
+                        if (newPrice !== price) {
+                            dict.saveProductFields(item.name, { price: newPrice.toFixed(2) });
+                            if (Number(dict.productPrice(item.name)) !== Number(newPrice.toFixed(2))) {
+                                showToast('The price for ' + item.name + ' could not be saved.');
+                                return;
+                            }
+                            priceChanged = true;
+                        }
+                    }
                     var alerts = window.KreezbyBrowserAlerts;
                     if (!alerts || typeof alerts.setItemThreshold !== 'function' || !alerts.setItemThreshold(item.code, value)) {
-                        showToast('Enter a quantity of 0 or more.');
+                        showToast(priceChanged ? item.name + ' is now ₱' + Number(data.get('price')).toFixed(2) + '. Enter an alert quantity of 0 or more.' : 'Enter a quantity of 0 or more.');
                         return;
                     }
-                    showToast(item.name + ' alerts at ' + Number(value) + '.');
+                    showToast(priceChanged
+                        ? item.name + ' is now ₱' + Number(data.get('price')).toFixed(2) + ' per pouch and alerts at ' + Number(value) + '.'
+                        : item.name + ' alerts at ' + Number(value) + '.');
                     backToList();
                 });
             }
