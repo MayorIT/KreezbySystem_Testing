@@ -105,7 +105,7 @@
                                 <td>Chocolate Crinkles</td>
                                 <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱120.00</td>
+                                <td style="text-align: right;">₱165.00</td>
                                 <td style="text-align: right; font-weight: 600;">₱0.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
@@ -125,7 +125,7 @@
                                 <td>Choco-Almond Crinkles</td>
                                 <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱125.00</td>
+                                <td style="text-align: right;">₱165.00</td>
                                 <td style="text-align: right; font-weight: 600;">₱0.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
@@ -145,7 +145,7 @@
                                 <td>Lemon Crinkles</td>
                                 <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱120.00</td>
+                                <td style="text-align: right;">₱165.00</td>
                                 <td style="text-align: right; font-weight: 600;">₱0.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
@@ -165,7 +165,7 @@
                                 <td>Choco Butternut Crinkles</td>
                                 <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱150.00</td>
+                                <td style="text-align: right;">₱200.00</td>
                                 <td style="text-align: right; font-weight: 600;">₱0.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
@@ -185,7 +185,7 @@
                                 <td>Mango Crinkles</td>
                                 <td>Pouches</td>
                                 <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱150.00</td>
+                                <td style="text-align: right;">₱165.00</td>
                                 <td style="text-align: right; font-weight: 600;">₱0.00</td>
                                 <td style="text-align: center;">
                                     <div class="action-menu-relative-container">
@@ -431,6 +431,20 @@
                     </table>
                     <script>
                     (function () {
+                        // Finished products show their selling price per pouch: the price head admin / admin saved,
+                        // else ₱165 (₱200 for Choco Butternut). Value = on hand x price.
+                        var saved = {};
+                        try { saved = (JSON.parse(localStorage.getItem('kreezby_data_dictionary_v1') || '{}') || {}).product_prices || {}; } catch (e) { saved = {}; }
+                        var peso = function (n) { return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+                        document.querySelectorAll('#stocks-table-body .stock-row[data-stock-type="finished-product"]').forEach(function (row) {
+                            var cells = row.querySelectorAll('td');
+                            var code = String((cells[1] || {}).textContent || '').trim();
+                            var id = code === 'CRK-BUT-P' ? 'CRK-BUT-J' : (code === 'CRK-MNG-P' ? 'CRK-MNG-J' : code);
+                            var price = Number(saved[id]) > 0 ? Number(saved[id]) : (id === 'CRK-BUT-J' ? 200 : 165);
+                            var qty = parseFloat(String((cells[5] || {}).textContent || '').replace(/[^0-9.]/g, '')) || 0;
+                            if (cells[6]) cells[6].textContent = peso(price);
+                            if (cells[7]) cells[7].textContent = peso(qty * price);
+                        });
                         var rows = document.querySelectorAll('#stocks-table-body .stock-row');
                         var low = 0, value = 0;
                         rows.forEach(function (row) {

@@ -124,8 +124,14 @@
             });
         });
         var costs = localStore().cost || {};
+        var dictApi = window.KreezbyDictionary;
         items.forEach(function (row) {
             if (costs[row.code] != null && costs[row.code] !== '') row.cost = Number(costs[row.code]) || 0;
+            // Finished products show their selling price per pouch (₱165, ₱200 Choco Butternut, or the saved price).
+            if (row.type === 'finished-product' && dictApi && typeof dictApi.productPrice === 'function') {
+                var price = dictApi.productPrice(row.name);
+                if (price != null && Number(price) > 0) row.cost = Number(price);
+            }
         });
         return items;
     }
