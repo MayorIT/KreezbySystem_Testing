@@ -1,6 +1,8 @@
 /**
- * Retailer Delivery POS (head admin + admin).
- * Record one shop's delivery: date, area, shop, ordered, pulled out, expired, collected.
+ * Retailer Delivery POS (head admin, admin and staff).
+ * Record one shop's delivery: date, area, shop, ordered, pulled out, replaced, expired, collected.
+ * Expired and Collected are for head admin and admin only; staff record ordered, pulled out
+ * and replaced, and a staff save keeps whatever expired / collected values were already there.
  * It is saved into that day's route sheet for the area (POST /api/route-sheets), so it shows
  * on the Sales List right away:
  *   Ordered → Cons · Pulled out → P.O · Expired → expired (shown under P.O) · Collected → Collected
@@ -167,7 +169,18 @@
         document.head.appendChild(s);
     }
 
+    function pagePath() {
+        return (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+    }
+
+    // Head admin and admin record Expired and Collected; staff do not see them.
+    function canRecordMoney() {
+        var path = pagePath();
+        return path.indexOf('/admin/') >= 0 || path.indexOf('/head_admin/') >= 0;
+    }
+
     function formHtml() {
+        var full = canRecordMoney();
         return '<h3>Retailer Delivery</h3>' +
             '<p class="dpos-sub">For retailer shops only. It is saved to that day\'s route sheet and shows on the <strong>Retailer</strong> sales list right away. Walk-in customers are recorded in the Walk-in POS.</p>' +
             '<div class="dpos-grid">' +
@@ -180,15 +193,18 @@
             '<div class="dpos-grid" style="grid-template-columns:1fr">' +
                 '<label class="dpos-field">Terms <small>COD: collected on the same delivery · Consignment: collected on the next delivery for the last one · Check: paid by check, no collection shown</small><select data-f="terms"><option value="cod">COD</option><option value="cons">Consignment</option><option value="check">Check</option></select></label>' +
             '</div>' +
-            '<div class="dpos-grid four">' +
+            '<div class="dpos-grid ' + (full ? 'five' : '') + '"' + (full ? '' : ' style="grid-template-columns:repeat(3,1fr)"') + '>' +
                 '<label class="dpos-field">Ordered <small data-terms-hint>pcs · COD</small><input type="number" min="0" step="1" inputmode="numeric" data-f="ordered" placeholder="0"></label>' +
                 '<label class="dpos-field">Pulled out <small>pcs · P.O</small><input type="number" min="0" step="1" inputmode="numeric" data-f="pulled" placeholder="0"></label>' +
-                '<label class="dpos-field">Expired <small>pcs</small><input type="number" min="0" step="1" inputmode="numeric" data-f="expired" placeholder="0"></label>' +
-                '<label class="dpos-field" data-collected-wrap>Collected <small>₱ · auto, you can change it</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>' +
+                '<label class="dpos-field">Replaced <small>pcs · given back for pulled-out</small><input type="number" min="0" step="1" inputmode="numeric" data-f="replaced" placeholder="0"></label>' +
+                (full
+                    ? '<label class="dpos-field">Expired <small>pcs</small><input type="number" min="0" step="1" inputmode="numeric" data-f="expired" placeholder="0"></label>' +
+                      '<label class="dpos-field" data-collected-wrap>Collected <small>₱ · auto, you can change it</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>'
+                    : '') +
             '</div>' +
-            '<p class="dpos-calc" data-collect-calc hidden></p>' +
+            (full ? '<p class="dpos-calc" data-collect-calc hidden></p>' : '') +
             '<div class="dpos-grid" style="grid-template-columns:1fr">' +
-                '<label class="dpos-field">Reason / notes <small>optional — why it was pulled out or expired</small><input type="text" data-f="notes" maxlength="100" placeholder="e.g. damaged pouches, near expiry, slow sales"></label>' +
+                '<label class="dpos-field">Reason / notes <small>optional — why it was pulled out' + (full ? ' or expired' : ' or replaced') + '</small><input type="text" data-f="notes" maxlength="100" placeholder="e.g. damaged pouches, near expiry, slow sales"></label>' +
             '</div>' +
             '<div class="dpos-actions">' +
                 '<button type="button" class="dpos-save" data-act="save">Save delivery</button>' +
@@ -222,8 +238,13 @@
         return v != null ? v : null;
     }
 
-    // Every pouch is ₱140 for retailers.
-    var PRICE_PER_PC = 140;
+    // One retailer price per pouch for every shop: ₱140 unless head admin / admin changed it
+    // (Maintenance > Item List > Edit retailer price). Separate from the customer price.
+    function retailerPrice() {
+        var dict = window.KreezbyDictionary;
+        var price = dict && typeof dict.retailerPrice === 'function' ? Number(dict.retailerPrice()) : 0;
+        return price > 0 ? price : 140;
+    }
     var COLLECT_NOTE = /(^|;\s*)Collection for (\d{4}-\d{2}-\d{2}) delivery[^;]*/;
 
     function deliveredQty(e) {
@@ -251,7 +272,7 @@
     // Works out Collected from the rule above. Returns { amount, text, forDate }.
     function computeCollection(root) {
         var terms = readTerms(field(root, 'terms').value);
-        var price = PRICE_PER_PC;
+        var price = retailerPrice();
         var pulled = num(field(root, 'pulled').value);
         var priceText = peso(price).replace('.00', '');
         if (terms === 'cod') {
@@ -273,6 +294,7 @@
     function updateCollection(root) {
         var terms = readTerms(field(root, 'terms').value);
         var calc = root.querySelector('[data-collect-calc]');
+        if (!calc || !field(root, 'collected')) return;
         if (terms === 'check') { calc.hidden = true; calc.textContent = ''; return; }
         var c = computeCollection(root);
         calc.hidden = !c.text;
@@ -288,7 +310,7 @@
             wrap.hidden = !collects;
             wrap.style.display = collects ? '' : 'none';
         });
-        if (!collects) {
+        if (!collects && field(root, 'collected')) {
             field(root, 'collected').value = '';
             field(root, 'collected').dataset.manual = '';
         }
@@ -365,11 +387,14 @@
             host.innerHTML = '<p class="dpos-empty">No deliveries saved for this date and area yet.</p>';
             return;
         }
-        host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Expired</th><th class="n">Collected</th><th>Notes</th></tr></thead><tbody>' +
+        var full = canRecordMoney();
+        host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
+            (full ? '<th class="n">Expired</th><th class="n">Collected</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
             entries.map(function (e, i) {
                 return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + TERM_LABELS[entryTerms(e)] + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
-                    '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.expired != null ? esc(e.expired) : '—') +
-                    '</td><td class="n">' + (num(e.collected) ? peso(e.collected) : '—') + '</td><td>' + esc(e.notes || '') + '</td></tr>';
+                    '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.replaced != null ? esc(e.replaced) : '—') + '</td>' +
+                    (full ? '<td class="n">' + (e.expired != null ? esc(e.expired) : '—') + '</td><td class="n">' + (num(e.collected) ? peso(e.collected) : '—') + '</td>' : '') +
+                    '<td>' + esc(full ? (e.notes || '') : String(e.notes || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim()) + '</td></tr>';
             }).join('') + '</tbody></table></div>';
         host.querySelectorAll('tr[data-shop]').forEach(function (tr) {
             tr.addEventListener('click', function () {
@@ -379,9 +404,12 @@
                 applyTerms(root);
                 field(root, 'ordered').value = orderedOf(e) != null ? orderedOf(e) : '';
                 field(root, 'pulled').value = e.po != null ? e.po : '';
-                field(root, 'expired').value = e.expired != null ? e.expired : '';
-                field(root, 'collected').value = (entryTerms(e) !== 'check' && e.collected != null) ? e.collected : '';
-                field(root, 'collected').dataset.manual = (entryTerms(e) !== 'check' && e.collected != null) ? '1' : '';
+                field(root, 'replaced').value = e.replaced != null ? e.replaced : '';
+                if (field(root, 'expired')) field(root, 'expired').value = e.expired != null ? e.expired : '';
+                if (field(root, 'collected')) {
+                    field(root, 'collected').value = (entryTerms(e) !== 'check' && e.collected != null) ? e.collected : '';
+                    field(root, 'collected').dataset.manual = (entryTerms(e) !== 'check' && e.collected != null) ? '1' : '';
+                }
                 field(root, 'notes').value = String(e.notes || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
                 updateCollection(root);
                 setStatus(root, 'Editing ' + (e.accountName || e.retailerName) + ' — change the numbers and save.', '');
@@ -400,8 +428,8 @@
     }
 
     function clearForm(root) {
-        ['ordered', 'pulled', 'expired', 'collected', 'notes'].forEach(function (n) { field(root, n).value = ''; });
-        field(root, 'collected').dataset.manual = '';
+        ['ordered', 'pulled', 'replaced', 'expired', 'collected', 'notes'].forEach(function (n) { if (field(root, n)) field(root, n).value = ''; });
+        if (field(root, 'collected')) field(root, 'collected').dataset.manual = '';
         updateCollection(root);
     }
 
@@ -411,17 +439,21 @@
         var shop = shopFromInput(root);
         var ordered = field(root, 'ordered').value;
         var pulled = field(root, 'pulled').value;
-        var expired = field(root, 'expired').value;
+        var replaced = field(root, 'replaced').value;
+        var full = canRecordMoney();
+        var expired = full ? field(root, 'expired').value : '';
         var terms = readTerms(field(root, 'terms').value);
-        var collected = terms !== 'check' ? field(root, 'collected').value : '';
-        var collection = computeCollection(root);
+        var collected = full && terms !== 'check' ? field(root, 'collected').value : '';
+        var collection = full ? computeCollection(root) : { forDate: '' };
         var reason = field(root, 'notes').value.trim();
         if (!date) return setStatus(root, 'Choose the delivery date.', 'err');
         if (!shop.name) return setStatus(root, 'Pick the shop.', 'err');
-        if ([ordered, pulled, expired, collected].every(function (v) { return v === ''; })) {
-            return setStatus(root, 'Enter at least one number (ordered, pulled out, expired or collected).', 'err');
+        if ([ordered, pulled, replaced, expired, collected].every(function (v) { return v === ''; })) {
+            return setStatus(root, full
+                ? 'Enter at least one number (ordered, pulled out, replaced, expired or collected).'
+                : 'Enter at least one number (ordered, pulled out or replaced).', 'err');
         }
-        if ([ordered, pulled, expired, collected].some(function (v) { return v !== '' && num(v) < 0; })) {
+        if ([ordered, pulled, replaced, expired, collected].some(function (v) { return v !== '' && num(v) < 0; })) {
             return setStatus(root, 'Numbers cannot be negative.', 'err');
         }
 
@@ -445,8 +477,12 @@
             }
             put(terms, ordered);
             put('po', pulled);
-            put('expired', expired);
-            if (terms === 'cod' || terms === 'cons') {
+            put('replaced', replaced);
+            // Staff never change Expired or Collected: the saved values stay as they are.
+            if (full) put('expired', expired);
+            if (!full) {
+                // nothing to change for Collected
+            } else if (terms === 'cod' || terms === 'cons') {
                 // COD: today's delivery. Consignment: pays for the last delivery (see computeCollection).
                 put('collected', collected);
             } else if (!num(entry.cod)) {
@@ -460,7 +496,12 @@
                 var kept = String(entry.notes).replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
                 if (kept) notes.push(kept);
             }
-            if (num(expired) > 0) notes.push('Expired: ' + num(expired) + ' pcs');
+            if (full && num(expired) > 0) notes.push('Expired: ' + num(expired) + ' pcs');
+            else if (!full && num(entry.expired) > 0) notes.push('Expired: ' + num(entry.expired) + ' pcs');
+            if (!full && entry.notes) {
+                var keptCollect = String(entry.notes).match(COLLECT_NOTE);
+                if (keptCollect) notes.push(keptCollect[0].replace(/^;\s*/, ''));
+            }
             if (terms === 'cons' && collection.forDate && num(collected) > 0) notes.push('Collection for ' + collection.forDate + ' delivery');
             if (notes.length) entry.notes = notes.join('; ');
             else delete entry.notes;
@@ -495,8 +536,8 @@
     }
 
     function isAllowedPage() {
-        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
-        return path.indexOf('/admin/') >= 0 || path.indexOf('/head_admin/') >= 0;
+        var path = pagePath();
+        return path.indexOf('/admin/') >= 0 || path.indexOf('/head_admin/') >= 0 || path.indexOf('/staff/') >= 0;
     }
 
     function mount() {
@@ -565,9 +606,11 @@
         ['ordered', 'pulled'].forEach(function (n) {
             field(root, n).addEventListener('input', function () { updateCollection(root); });
         });
-        field(root, 'collected').addEventListener('input', function () {
-            field(root, 'collected').dataset.manual = field(root, 'collected').value === '' ? '' : '1';
-        });
+        if (field(root, 'collected')) {
+            field(root, 'collected').addEventListener('input', function () {
+                field(root, 'collected').dataset.manual = field(root, 'collected').value === '' ? '' : '1';
+            });
+        }
         applyTerms(root);
         field(root, 'date').addEventListener('change', function () { renderList(root); resetCollected(); });
         root.querySelector('[data-act="save"]').addEventListener('click', function () { save(root); });

@@ -13,7 +13,13 @@
         + '<button type="button" class="settings-sub-tab active-sub" data-sub="login-history">Login History</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="customers">Customers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="retailers">Retailers</button>'
+        + '<button type="button" class="settings-sub-tab" data-sub="areas">Areas</button>'
         + '</div>'
+        + '<form id="settings-search-form" data-kreezby-native="1" style="display:flex;gap:8px;align-items:center;margin:12px 0;">'
+        + '<input type="search" id="settings-search-input" placeholder="Search names, emails, areas…" style="flex:1;max-width:360px;height:36px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;">'
+        + '<button type="submit" id="settings-search-btn">Search</button>'
+        + '<span id="settings-search-count" style="font-size:12px;color:#7a6558;"></span>'
+        + '</form>'
         + '<div id="settings-sub-content"></div>'
         + '<div id="kreezby-backup-tools" style="margin-top:18px;">'
         + '<h4 class="settings-section-title">Backup and restore</h4>'
@@ -74,6 +80,94 @@
             + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
+    // ---- Areas (Settings > Areas) ---------------------------------------------------------
+    var AREAS_KEY = 'kreezby_areas_v1';
+    var BASE_AREAS = ['Batangas', 'Bauan', 'Citimart', 'Lipa', 'Lucena', 'Manila', 'Rosario', 'Sto. Tomas', 'Tagaytay'];
+
+    function savedAreas() {
+        try {
+            var list = JSON.parse(localStorage.getItem(AREAS_KEY) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function areaKey(name) {
+        return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
+    // Delivery areas, areas already on customer/retailer accounts, and areas added here.
+    function allAreas() {
+        var seen = {};
+        var list = [];
+        function take(name, source) {
+            var label = String(name || '').trim();
+            var key = areaKey(label);
+            if (!key || seen[key]) return;
+            seen[key] = true;
+            list.push({ name: label, source: source });
+        }
+        BASE_AREAS.forEach(function (name) { take(name, 'Delivery area'); });
+        savedAreas().forEach(function (row) { take(row && row.name, 'Added in Settings'); });
+        if (window.KreezbyMaintenanceSettings) {
+            var users = KreezbyMaintenanceSettings.getUsers();
+            (users.customers || []).concat(users.retailers || []).forEach(function (u) { take(u.area, 'From accounts'); });
+        }
+        return list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    }
+
+    function addArea(name) {
+        var label = String(name || '').trim().replace(/\s+/g, ' ');
+        if (!label) return { ok: false, message: 'Type the area name first.' };
+        if (label.length > 60) return { ok: false, message: 'Keep the area name under 60 characters.' };
+        var exists = allAreas().some(function (a) { return areaKey(a.name) === areaKey(label); });
+        if (exists) return { ok: false, message: label + ' is already on the list.' };
+        var list = savedAreas();
+        var session = readSession();
+        list.push({ name: label, addedAt: new Date().toISOString(), addedBy: session.name || session.username || 'Head Admin' });
+        try { localStorage.setItem(AREAS_KEY, JSON.stringify(list)); } catch (e) { return { ok: false, message: 'The area could not be saved.' }; }
+        return { ok: true, message: label + ' was added. It can now be picked when adding a customer or retailer.' };
+    }
+
+    function renderAreas() {
+        var users = window.KreezbyMaintenanceSettings ? KreezbyMaintenanceSettings.getUsers() : {};
+        var rows = allAreas().map(function (area, i) {
+            var key = areaKey(area.name);
+            var customers = (users.customers || []).filter(function (u) { return areaKey(u.area) === key; }).length;
+            var retailers = (users.retailers || []).filter(function (u) { return areaKey(u.area) === key; }).length;
+            return '<tr><td>' + (i + 1) + '</td><td><strong>' + esc(area.name) + '</strong></td><td>' + esc(area.source) + '</td><td>' + customers + '</td><td>' + retailers + '</td></tr>';
+        }).join('');
+        return ''
+            + '<h4 class="settings-section-title">Areas</h4>'
+            + '<p class="settings-section-desc">Areas used for customer and retailer accounts.</p>'
+            + '<form id="settings-add-area" data-kreezby-native="1" style="display:flex;gap:8px;align-items:end;margin:0 0 12px;">'
+            + '<label>Area name<br><input name="area" maxlength="60" required placeholder="e.g. San Juan" style="height:34px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;"></label>'
+            + '<button type="submit">Add Area</button>'
+            + '<span id="settings-area-note" style="font-size:12px;color:#5d4037;"></span>'
+            + '</form>'
+            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
+            + '<th>#</th><th>Area</th><th>Source</th><th>Customers</th><th>Retailers</th>'
+            + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    }
+
+    // Filters the rows of the table on the open Settings tab.
+    function applySettingsSearch() {
+        var input = document.getElementById('settings-search-input');
+        var root = document.getElementById('settings-sub-content');
+        var count = document.getElementById('settings-search-count');
+        if (!input || !root) return;
+        var q = String(input.value || '').toLowerCase().trim();
+        var rows = root.querySelectorAll('table tbody tr');
+        var shown = 0;
+        rows.forEach(function (tr) {
+            var match = !q || (tr.textContent || '').toLowerCase().indexOf(q) >= 0;
+            tr.style.display = match ? '' : 'none';
+            if (match) shown += 1;
+        });
+        if (count) count.textContent = q ? (shown + ' of ' + rows.length + ' shown') : '';
+    }
+
     function renderSettingsSub(subKey) {
         currentSettingsSub = subKey;
         var root = document.getElementById('settings-sub-content');
@@ -86,6 +180,8 @@
         if (subKey === 'login-history') root.innerHTML = renderLoginHistory();
         else if (subKey === 'customers') root.innerHTML = renderCustomers();
         else if (subKey === 'retailers') root.innerHTML = renderRetailers();
+        else if (subKey === 'areas') root.innerHTML = renderAreas();
+        applySettingsSearch();
     }
 
     function initSettingsPanel() {
@@ -98,6 +194,25 @@
                 renderSettingsSub(btn.getAttribute('data-sub'));
             };
         });
+
+        var searchForm = document.getElementById('settings-search-form');
+        var searchInput = document.getElementById('settings-search-input');
+        if (searchForm) searchForm.onsubmit = function (ev) { ev.preventDefault(); applySettingsSearch(); };
+        if (searchInput) searchInput.oninput = applySettingsSearch;
+        var subRoot = document.getElementById('settings-sub-content');
+        if (subRoot) {
+            subRoot.onsubmit = function (ev) {
+                var form = ev.target.closest('#settings-add-area');
+                if (!form) return;
+                ev.preventDefault();
+                var result = addArea(form.elements.area.value);
+                if (result.ok) {
+                    renderSettingsSub('areas');
+                }
+                var note = document.getElementById('settings-area-note');
+                if (note) note.textContent = result.message;
+            };
+        }
 
         renderSettingsSub('login-history');
         var download = document.getElementById('kreezby-backup-download');
@@ -308,6 +423,12 @@
         }
     }
 
+    function areaPicker() {
+        return '<label>Area<br><select name="area"><option value="">— choose —</option>' + allAreas().map(function (a) {
+            return '<option value="' + esc(a.name) + '">' + esc(a.name) + '</option>';
+        }).join('') + '</select></label>';
+    }
+
     function renderDirectory(dir) {
         var spec = DIRECTORY[dir];
         var root = document.getElementById('maintenance-grid-workspace-root');
@@ -337,8 +458,8 @@
                 + (spec.bucket === 'staff' || spec.bucket === 'admins'
                     ? '<label>Username<br><input name="username" required></label><label>Role<br><input name="role" placeholder="Job title"></label>'
                     : (spec.bucket === 'retailers'
-                        ? '<label>Contact<br><input name="contact"></label>'
-                        : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>'))
+                        ? '<label>Contact<br><input name="contact"></label>' + areaPicker()
+                        : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>' + areaPicker()))
                 + '<button type="submit">Add account</button></form>'
             : '';
         root.innerHTML = ''
@@ -349,6 +470,153 @@
             + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
             + '<th>#</th><th>Name</th><th>' + esc(spec.detail) + '</th><th>Account</th><th>Status</th><th>Action</th>'
             + '</tr></thead><tbody>' + (rows || '<tr class="kreezby-phone-span"><td colspan="6">No accounts in this list.</td></tr>') + '</tbody></table>';
+    }
+
+    // ---- Item List (Maintenance > Item List) ------------------------------------------------
+    // Lists every flavor with its selling price. Edit opens the item so head admin / admin can
+    // change the price per pouch; the new price is used on the customer menu and in the POS.
+    var DICT_SRC = '../js/kreezby-data-dictionary.js?v=20261110stock2';
+
+    function withDictionary(done) {
+        if (window.KreezbyDictionary && typeof window.KreezbyDictionary.productCatalog === 'function') {
+            done();
+            return;
+        }
+        var existing = document.getElementById('kreezby-maint-dict-script');
+        if (existing) {
+            existing.addEventListener('load', done);
+            return;
+        }
+        var script = document.createElement('script');
+        script.id = 'kreezby-maint-dict-script';
+        script.src = DICT_SRC;
+        script.onload = done;
+        script.onerror = function () {
+            var root = document.getElementById('maintenance-grid-workspace-root');
+            if (root) root.innerHTML = '<p class="settings-section-desc">The item list could not be loaded. Refresh the page and try again.</p>';
+        };
+        document.body.appendChild(script);
+    }
+
+    function itemRows() {
+        var dict = window.KreezbyDictionary;
+        return dict && dict.productCatalog ? dict.productCatalog() : [];
+    }
+
+    function currentRetailerPrice() {
+        var dict = window.KreezbyDictionary;
+        return dict && typeof dict.retailerPrice === 'function' ? Number(dict.retailerPrice()) : 140;
+    }
+
+    function renderItems(message) {
+        var root = document.getElementById('maintenance-grid-workspace-root');
+        if (!root) return;
+        var retail = currentRetailerPrice();
+        var rows = itemRows().map(function (item, i) {
+            return '<tr data-item-row="' + esc(item.id) + '">'
+                + '<td data-label="#">' + (i + 1) + '</td>'
+                + '<td data-label="SKU"><strong>' + esc(item.id) + '</strong></td>'
+                + '<td data-label="Flavor">' + esc(item.name) + '</td>'
+                + '<td data-label="Packaging">' + esc(item.packaging) + '</td>'
+                + '<td data-label="Customer price">₱' + Number(item.price).toFixed(2) + '</td>'
+                + '<td data-label="Retailer price">₱' + retail.toFixed(2) + '</td>'
+                + '<td data-label="Action"><button type="button" class="maint-status-btn is-on" data-item-edit="' + esc(item.name) + '">Edit</button></td>'
+                + '</tr>';
+        }).join('');
+        root.innerHTML = ''
+            + '<div class="maint-account-detail" id="maint-item-detail"><p>' + esc(message || 'Click Edit on an item to change it.') + '</p></div>'
+            + '<div class="maint-account-detail" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">'
+            + '<p style="margin:0;"><strong>Retailer price:</strong> ₱' + retail.toFixed(2) + ' per pouch, for every retailer and flavor. It is separate from the customer price.</p>'
+            + '<button type="button" class="maint-status-btn is-on" data-retailer-price-edit="1">Edit retailer price</button>'
+            + '</div>'
+            + '<div class="datatable-controls-bar"><div>Item List</div></div>'
+            + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
+            + '<th style="width:50px;">#</th><th>Item SKU Code</th><th>Flavor</th><th>Packaging</th><th>Customer price</th><th>Retailer price</th><th>Action</th>'
+            + '</tr></thead><tbody>' + (rows || '<tr><td colspan="7">No items yet.</td></tr>') + '</tbody></table>';
+    }
+
+    function openItemEdit(name) {
+        var box = document.getElementById('maint-item-detail');
+        var dict = window.KreezbyDictionary;
+        if (!box || !dict) return;
+        var item = itemRows().filter(function (row) { return row.name === name; })[0];
+        if (!item) return;
+        var canPrice = typeof dict.canEditPrice === 'function' && dict.canEditPrice();
+        box.innerHTML = '<form id="maint-item-form" data-kreezby-native="1" data-item-name="' + esc(item.name) + '" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">'
+            + '<label>Item SKU Code<br><input value="' + esc(item.id) + '" readonly></label>'
+            + '<label>Flavor<br><input value="' + esc(item.name) + '" readonly></label>'
+            + '<label>Packaging<br><input value="' + esc(item.packaging) + '" readonly></label>'
+            + (canPrice
+                ? '<label>Customer price per pouch (₱)<br><input name="price" type="number" min="1" step="0.01" required value="' + Number(item.price).toFixed(2) + '"></label>'
+                    + '<button type="submit">Save changes</button>'
+                : '<p>Only head admin and admin can change the price.</p>')
+            + '<button type="button" data-item-cancel="1">Cancel</button>'
+            + '</form>';
+        var input = box.querySelector('input[name="price"]');
+        if (input) input.focus();
+        var row = document.querySelector('[data-item-row="' + item.id + '"]');
+        document.querySelectorAll('[data-item-row]').forEach(function (tr) { tr.style.background = ''; });
+        if (row) row.style.background = '#fff4dc';
+        if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+    }
+
+    function openRetailerPriceEdit() {
+        var box = document.getElementById('maint-item-detail');
+        var dict = window.KreezbyDictionary;
+        if (!box || !dict) return;
+        if (typeof dict.canEditPrice !== 'function' || !dict.canEditPrice()) {
+            box.innerHTML = '<p>Only head admin and admin can change the retailer price.</p>';
+            return;
+        }
+        box.innerHTML = '<form id="maint-retailer-price-form" data-kreezby-native="1" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">'
+            + '<label>Retailer price per pouch (₱)<br><input name="retailerPrice" type="number" min="1" step="0.01" required value="' + currentRetailerPrice().toFixed(2) + '"></label>'
+            + '<button type="submit">Save retailer price</button>'
+            + '<button type="button" data-item-cancel="1">Cancel</button>'
+            + '<p style="flex-basis:100%;margin:0;font-size:12px;">Used for retailer delivery collections. Customer prices do not change.</p>'
+            + '</form>';
+        var input = box.querySelector('input[name="retailerPrice"]');
+        if (input) input.focus();
+        if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+    }
+
+    function saveRetailerPrice(form) {
+        var dict = window.KreezbyDictionary;
+        var before = currentRetailerPrice();
+        var saved = dict.setRetailerPrice(form.elements.retailerPrice.value);
+        if (saved == null) {
+            renderItems((dict.lastStockError && dict.lastStockError()) || 'The retailer price could not be saved.');
+            return;
+        }
+        renderItems(saved === before
+            ? 'No change: the retailer price is still ₱' + before.toFixed(2) + ' per pouch.'
+            : 'Retailer price is now ₱' + saved.toFixed(2) + ' per pouch (was ₱' + before.toFixed(2) + '). Customer prices are unchanged.');
+    }
+
+    function saveItemEdit(form) {
+        var dict = window.KreezbyDictionary;
+        var name = form.getAttribute('data-item-name');
+        var price = Number(form.elements.price && form.elements.price.value);
+        if (!(price > 0)) {
+            form.insertAdjacentHTML('beforeend', '<p>Enter a price above ₱0.</p>');
+            return;
+        }
+        var before = Number(dict.productPrice(name));
+        if (before === Number(price.toFixed(2))) {
+            renderItems('No change: ' + name + ' is still ₱' + before.toFixed(2) + ' per pouch.');
+            return;
+        }
+        dict.saveProductFields(name, { price: price.toFixed(2) });
+        if (Number(dict.productPrice(name)) !== Number(price.toFixed(2))) {
+            renderItems('The price for ' + name + ' could not be saved. Try again.');
+            return;
+        }
+        renderItems(name + ' is now ₱' + price.toFixed(2) + ' per pouch (was ₱' + before.toFixed(2) + ').');
+    }
+
+    function openItems(tabNode) {
+        currentDirectory = '';
+        markSelected('', tabNode);
+        withDictionary(function () { renderItems(); });
     }
 
     function showAccountDetail(bucket, id) {
@@ -419,6 +687,18 @@
         if (root && root.dataset.kreezbyAccountClicks !== '1') {
             root.dataset.kreezbyAccountClicks = '1';
             root.addEventListener('submit', function (ev) {
+                var retailForm = ev.target.closest('#maint-retailer-price-form');
+                if (retailForm) {
+                    ev.preventDefault();
+                    saveRetailerPrice(retailForm);
+                    return;
+                }
+                var itemForm = ev.target.closest('#maint-item-form');
+                if (itemForm) {
+                    ev.preventDefault();
+                    saveItemEdit(itemForm);
+                    return;
+                }
                 var form = ev.target.closest('#maint-create-account');
                 if (!form || !window.KreezbyMaintenanceSettings || !KreezbyMaintenanceSettings.createAccount) return;
                 ev.preventDefault();
@@ -427,7 +707,8 @@
                     username: form.elements.username && form.elements.username.value,
                     role: form.elements.role && form.elements.role.value,
                     email: form.elements.email && form.elements.email.value,
-                    contact: form.elements.contact && form.elements.contact.value
+                    contact: form.elements.contact && form.elements.contact.value,
+                    area: form.elements.area && form.elements.area.value
                 });
                 if (result.ok) {
                     refreshMetrics();
@@ -437,6 +718,23 @@
                 if (box) box.innerHTML = '<p>' + esc(result.message) + '</p>';
             });
             root.addEventListener('click', function (ev) {
+                if (ev.target.closest('[data-retailer-price-edit]')) {
+                    ev.preventDefault();
+                    openRetailerPriceEdit();
+                    return;
+                }
+                var itemEdit = ev.target.closest('[data-item-edit]');
+                if (itemEdit) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    openItemEdit(itemEdit.getAttribute('data-item-edit'));
+                    return;
+                }
+                if (ev.target.closest('[data-item-cancel]')) {
+                    ev.preventDefault();
+                    renderItems();
+                    return;
+                }
                 var toggle = ev.target.closest('[data-account-toggle]');
                 if (toggle) {
                     ev.preventDefault();
@@ -458,8 +756,13 @@
                     return;
                 }
                 if (directoryKey === 'settings') {
+                    currentDirectory = '';
                     markSelected('', tabNode);
                     initSettingsPanel();
+                    return;
+                }
+                if (directoryKey === 'items') {
+                    openItems(tabNode);
                     return;
                 }
                 if (typeof previousTab === 'function') previousTab(tabNode, directoryKey);
@@ -504,7 +807,9 @@
     document.addEventListener('kreezby:accounts-ready', function () {
         if (!document.getElementById('maintenance-grid-workspace-root')) return;
         refreshMetrics();
-        renderDirectory(currentDirectory || 'retailer');
+        // Item List and Settings are not account lists: leave them open.
+        if (!currentDirectory) return;
+        renderDirectory(currentDirectory);
     });
 
     document.addEventListener('turbo:frame-load', function (event) {

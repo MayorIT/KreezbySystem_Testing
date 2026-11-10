@@ -185,8 +185,7 @@
             page: listPage,
             pages: pages,
             start: rows.length ? start + 1 : 0,
-            end: Math.min(start + size, rows.length),
-            asset: rows.filter(function (item) { return item.type !== 'finished-product'; }).reduce(function (sum, item) { return sum + (liveQty(item) * (Number(item.cost) || 0)); }, 0)
+            end: Math.min(start + size, rows.length)
         };
     }
 
@@ -260,12 +259,13 @@
         return '<div class="action-menu-relative-container" data-kreezby-page-menu>' +
             '<button type="button" class="action-trigger-btn" data-menu="' + menuId + '">Action ▾</button>' +
             '<div class="action-popup-menu" id="' + menuId + '">' +
+            // Stocks are add-only: no Adjust Stock or Archive (delete). Edit changes only the
+            // selling price and the alert level, never the quantity.
             '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>' +
             '<div class="action-popup-item" data-action="view" data-stock="' + esc(item.code) + '">View History</div>' +
-            '<div class="action-popup-item" data-action="adjust" data-stock="' + esc(item.code) + '">Adjust Stock</div>' +
             (viewMode === 'archive'
                 ? '<div class="action-popup-item" data-action="retrieve" data-stock="' + esc(item.code) + '">Retrieve</div>'
-                : '<div class="action-popup-item" data-action="archive" data-stock="' + esc(item.code) + '">Archive Item</div>') +
+                : '') +
             '</div></div>';
     }
 
@@ -279,12 +279,35 @@
         }
         if (!footer) return;
         footer.innerHTML =
-            '<span>Showing ' + info.start + '–' + info.end + ' of ' + info.total + ' · Assets ' + peso(info.asset) + '</span>' +
+            '<span>Showing ' + info.start + '–' + info.end + ' of ' + info.total + '</span>' +
             '<div class="po-pager">' +
             '<button type="button" class="po-pager-btn" data-stocks-pager="prev"' + (info.page <= 1 ? ' disabled' : '') + '>Previous</button>' +
             '<span class="po-pager-status">Page ' + info.page + ' of ' + info.pages + '</span>' +
             '<button type="button" class="po-pager-btn" data-stocks-pager="next"' + (info.page >= info.pages ? ' disabled' : '') + '>Next</button>' +
             '</div>';
+    }
+
+    // One table line per batch: the newest batch is "New stock", older batches are "Old stock".
+    // Raw and packaging materials stay on one line with their expiry date.
+    function stockLines(item, qty) {
+        var dict = window.KreezbyDictionary;
+        if (item.type === 'finished-product' && dict && typeof dict.productBatches === 'function') {
+            var split = dict.productBatches(item.name);
+            var lines = [];
+            split.batches.slice().reverse().forEach(function (b) {
+                if (!(b.remaining > 0)) return;
+                lines.push({ tag: b.is_new ? 'New stock' : 'Old stock', batch: b.batch_number, produced: b.production_date, expires: b.expiration_date, qty: b.remaining });
+            });
+            if (split.earlier > 0) lines.push({ tag: lines.length ? 'Old stock' : '', batch: '', produced: '', expires: '', qty: split.earlier });
+            if (lines.length) return lines;
+            return [{ tag: '', batch: '', produced: '', expires: '', qty: qty }];
+        }
+        var expires = '';
+        if (dict && typeof dict.materialByName === 'function') {
+            var material = dict.materialByName(item.name);
+            if (material && material.expiration_date) expires = material.expiration_date;
+        }
+        return [{ tag: '', batch: '', produced: '', expires: expires, qty: qty }];
     }
 
     function render() {
@@ -293,7 +316,7 @@
         var info = pageSlice(visibleItems());
         syncArchiveChrome();
         if (!info.rows.length) {
-            body.innerHTML = '<tr class="po-empty-row"><td colspan="9">' +
+            body.innerHTML = '<tr class="po-empty-row"><td colspan="10">' +
                 (viewMode === 'archive'
                     ? 'No archived items. Use Action, then Archive Item, on the active list.'
                     : 'No stock items match this filter.') +
@@ -302,17 +325,23 @@
             body.innerHTML = info.rows.map(function (item, index) {
                 var qty = liveQty(item);
                 var low = qty <= lowLimit(item.type);
-                return '<tr class="stock-row" data-stock-type="' + esc(item.type) + '" data-stock="' + esc(item.code) + '">' +
-                    '<td class="po-col-num">' + (info.start + index) + '</td>' +
-                    '<td class="po-col-code"><a href="#" class="po-code-link" data-stock="' + esc(item.code) + '">' + esc(item.code) + '</a></td>' +
-                    '<td class="po-col-type"><span class="status-pill-badge stock-type-badge ' + esc(item.type) + '">' + esc(typeLabel(item.type)) + '</span></td>' +
-                    '<td class="po-col-name">' + esc(item.name) + '</td>' +
-                    '<td class="po-col-unit">' + esc(displayUnit(item, qty)) + '</td>' +
-                    '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + qty + '</span></td>' +
-                    '<td class="po-col-cost">' + peso(item.cost) + '</td>' +
-                    '<td class="po-col-value">' + peso(qty * (Number(item.cost) || 0)) + '</td>' +
-                    '<td class="po-col-action">' + buildMenu(item) + '</td>' +
-                    '</tr>';
+                return stockLines(item, qty).map(function (line, lineIndex) {
+                    var first = lineIndex === 0;
+                    var tag = line.tag ? ' <span class="status-pill-badge ' + (line.tag === 'New stock' ? 'received' : 'pending') + '" style="font-size:10px;padding:1px 7px;margin-left:4px;">' + line.tag + '</span>' : '';
+                    var sub = line.batch ? '<div style="font-size:11px;color:#7a6558;margin-top:2px;">Batch ' + esc(line.batch) + '</div>' : '';
+                    return '<tr class="stock-row' + (first ? '' : ' stock-batch-row') + '" data-stock-type="' + esc(item.type) + '" data-stock="' + esc(item.code) + '">' +
+                        '<td class="po-col-num">' + (first ? (info.start + index) : '') + '</td>' +
+                        '<td class="po-col-code">' + (first ? '<a href="#" class="po-code-link" data-stock="' + esc(item.code) + '">' + esc(item.code) + '</a>' : '') + '</td>' +
+                        '<td class="po-col-type">' + (first ? '<span class="status-pill-badge stock-type-badge ' + esc(item.type) + '">' + esc(typeLabel(item.type)) + '</span>' : '') + '</td>' +
+                        '<td class="po-col-name">' + esc(item.name) + tag + sub + '</td>' +
+                        '<td class="po-col-date">' + esc(line.produced || '—') + '</td>' +
+                        '<td class="po-col-date">' + esc(line.expires || '—') + '</td>' +
+                        '<td class="po-col-unit">' + esc(displayUnit(item, line.qty)) + '</td>' +
+                        '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + line.qty + '</span></td>' +
+                        '<td class="po-col-cost">' + peso(item.cost) + '</td>' +
+                        '<td class="po-col-action">' + (first ? buildMenu(item) : '') + '</td>' +
+                        '</tr>';
+                }).join('');
             }).join('');
         }
         renderFooter(info);
@@ -378,7 +407,6 @@
                 '<div><span>Item code</span><strong>' + esc(item.code) + '</strong></div>' +
                 '<div><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>' +
                 '<div><span>In stock</span><strong>' + liveQty(item) + '</strong></div>' +
-                '<div><span>Asset value</span><strong>' + peso(liveQty(item) * (Number(item.cost) || 0)) + '</strong></div>' +
                 '</div>' +
                 '<h3 class="po-detail-subtitle">Movement history</h3>' +
                 '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Date</th><th>Type</th><th>Quantity</th><th>Balance</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>' +
@@ -446,7 +474,7 @@
             var priceSection = priceEditable
                 ? '<section class="se-section">'
                     + '<h5>Selling price</h5>'
-                    + '<p class="se-hint">Price per pouch for customers and the Walk-in POS. Retailers stay at ₱140.</p>'
+                    + '<p class="se-hint">Price per pouch for customers and the Walk-in POS. Retailers pay the separate retailer price (₱' + ((dict && typeof dict.retailerPrice === 'function') ? Number(dict.retailerPrice()) : 140).toFixed(2) + '), set in Maintenance &gt; Item List.</p>'
                     + '<label class="se-field"><span>Price per pouch</span>'
                     + '<div class="se-input se-input--prefix"><b>₱</b><input name="price" type="number" min="1" step="0.01" value="' + price.toFixed(2) + '"></div></label>'
                     + '</section>'
@@ -502,88 +530,6 @@
             }
         }
         showDetails(item.code);
-    }
-
-    function openAdjust(code) {
-        var item = findItem(code);
-        if (!item) return;
-        openCode = code;
-        var content = document.getElementById('stocks-details-content');
-        var raw = item.type === 'raw-material';
-        if (content) {
-            content.innerHTML =
-                '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
-                '<form id="stocks-edit-form">' +
-                (raw
-                    ? '<label>Movement<select name="movement"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select></label>' +
-                      '<label>Quantity<input name="quantity" type="number" min="1" value="1"></label>' +
-                      '<label>Note<input name="note" type="text" placeholder="Supplier, batch or reason (optional)"></label>' +
-                      '<p class="po-note">On hand now: ' + liveQty(item) + '</p>'
-                    : '<label>New quantity<input name="quantity" type="number" min="0" value="' + liveQty(item) + '"></label>') +
-                '<button class="btn-call-to-action" type="submit">Save adjustment</button>' +
-                '</form>';
-            var form = document.getElementById('stocks-edit-form');
-            if (form) {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    saveAdjust(item, form);
-                });
-            }
-        }
-        showDetails(item.code);
-    }
-
-    function pushLocalHistory(code, row) {
-        var data = localStore();
-        data.history[code] = data.history[code] || [];
-        data.history[code].push(row);
-        writeLocal(data);
-    }
-
-    function saveAdjust(item, form) {
-        var data = new FormData(form);
-        var qty = data.get('quantity');
-        var dict = window.KreezbyDictionary;
-        if (item.type === 'raw-material' && dict && typeof dict.recordMaterialMovement === 'function') {
-            var next = dict.recordMaterialMovement(item.name, data.get('movement'), qty, data.get('note'));
-            if (next == null) {
-                showToast((typeof dict.lastMovementError === 'function' && dict.lastMovementError()) || 'Enter a quantity greater than zero.');
-                return;
-            }
-            showToast(item.name + ' now has ' + next + ' on hand.');
-            backToList();
-            return;
-        }
-        if (item.type === 'finished-product' && dict && typeof dict.setProductStock === 'function') {
-            var saved = dict.setProductStock(item.name, qty);
-            if (saved != null) {
-                showToast('Stock for "' + item.name + '" is now ' + saved + '.');
-                backToList();
-                return;
-            }
-        }
-        var nextQty = Math.max(0, Number(qty) || 0);
-        var store = localStore();
-        var previous = liveQty(item);
-        store.qty[item.code] = nextQty;
-        writeLocal(store);
-        pushLocalHistory(item.code, {
-            type: 'adjustment',
-            quantity: nextQty - previous,
-            note: 'Count set to ' + nextQty
-        });
-        showToast('Stock for "' + item.name + '" is now ' + nextQty + '.');
-        backToList();
-    }
-
-    function archiveItem(code) {
-        var item = findItem(code);
-        if (!item) return;
-        var archived = archivedNames();
-        if (archived.indexOf(item.name) < 0) archived.push(item.name);
-        try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archived)); } catch (e) { /* ignore */ }
-        showToast('"' + item.name + '" moved to Archive.');
-        render();
     }
 
     function retrieveItem(code) {
@@ -664,8 +610,7 @@
             closeAllMenus();
             if (action === 'edit') openEdit(code);
             else if (action === 'view') openHistory(code);
-            else if (action === 'adjust') openAdjust(code);
-            else if (action === 'archive') archiveItem(code);
+            else if (action === 'adjust' || action === 'archive') showToast('Stock can only be added (Add stock), not changed or deleted.');
             else if (action === 'retrieve') retrieveItem(code);
             return;
         }

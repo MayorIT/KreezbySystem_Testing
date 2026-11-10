@@ -546,6 +546,8 @@
         data.alert_status = previous.alert_status || {};
         data.partner_alerts = previous.partner_alerts || [];
         data.product_prices = previous.product_prices || {};
+        data.product_batches = previous.product_batches || [];
+        if (previous.retailer_price != null) data.retailer_price = previous.retailer_price;
         writeState(data);
         return data;
     }
@@ -665,28 +667,174 @@
         try { document.dispatchEvent(new CustomEvent('kreezby:stocks-sync')); } catch (e) { /* ignore */ }
     }
 
+    // Stocks are add-only: a count can no longer be typed over or lowered by hand.
+    // New stock goes in through addProductBatch(); sales still deduct automatically.
+    var lastStockError = '';
     function setProductStock(productName, quantity) {
+        lastStockError = 'Stock can only be added (Add stock), not changed or deleted.';
+        return null;
+    }
+
+    function todayIso() {
+        var d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function productBatchRecords(id) {
+        return (savedState().product_batches || []).filter(function (b) {
+            return b && b.product_id === id;
+        }).sort(function (a, b) {
+            return String(a.added_at || '').localeCompare(String(b.added_at || ''));
+        });
+    }
+
+    // Adds a new batch of a finished product. Stock only goes up here: the batch quantity is
+    // added to what is on hand, and the batch keeps its own produced and expiry dates.
+    function addProductBatch(productName, fields) {
+        lastStockError = '';
+        fields = fields || {};
         var id = productId(productName);
-        if (!id) return null;
+        if (!id) { lastStockError = 'Choose a product.'; return null; }
+        var qty = Number(fields.quantity);
+        if (!(qty > 0) || Math.floor(qty) !== qty) { lastStockError = 'Enter how many pouches to add (a whole number above 0).'; return null; }
+        var produced = String(fields.production_date || '').trim();
+        var expires = String(fields.expiration_date || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(produced)) { lastStockError = 'Enter the produced date.'; return null; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(expires)) { lastStockError = 'Enter the expiry date.'; return null; }
+        if (produced > todayIso()) { lastStockError = 'The produced date cannot be in the future.'; return null; }
+        if (expires <= produced) { lastStockError = 'The expiry date must be after the produced date.'; return null; }
+        var batchNumber = String(fields.batch_number || '').trim()
+            || ('BCH-' + produced.replace(/-/g, '') + '-' + (id.split('-')[1] || id));
+        var clash = productBatchRecords(id).some(function (b) {
+            return String(b.batch_number).toLowerCase() === batchNumber.toLowerCase();
+        });
+        if (clash) { lastStockError = 'Batch ' + batchNumber + ' was already added for this product. Use a new batch number.'; return null; }
+
         var saved = savedState();
         var stock = productStockMap();
-        var next = Math.max(0, Number(quantity) || 0);
-        var previous = Number(stock[id]) || 0;
-        stock[id] = next;
+        var before = Number(stock[id]) || 0;
+        var after = before + qty;
+        stock[id] = after;
         saved.product_stock = stock;
+        var batches = saved.product_batches || [];
+        batches.push({
+            batch_id: id + '-' + Date.now(),
+            product_id: id,
+            product_name: productName,
+            batch_number: batchNumber,
+            production_date: produced,
+            expiration_date: expires,
+            quantity: qty,
+            added_at: new Date().toISOString(),
+            added_by: movementActor()
+        });
+        saved.product_batches = batches;
+        // The product record shows the newest batch's details.
+        var edits = saved.product_edits || {};
+        var inCatalog = PRODUCTS.some(function (product) { return product.product_id === id; });
+        if (inCatalog) {
+            edits[id] = Object.assign({}, edits[id] || {}, { batch_number: batchNumber, production_date: produced, expiration_date: expires });
+            saved.product_edits = edits;
+        } else {
+            var extra = saved.products_extra || [];
+            var found = null;
+            extra.forEach(function (item) { if (item.product_id === id) found = item; });
+            if (!found) {
+                found = { product_id: id, product_name: productName, expiry_threshold_days: 3, quantities: [] };
+                extra.push(found);
+            }
+            found.batch_number = batchNumber;
+            found.production_date = produced;
+            found.expiration_date = expires;
+            saved.products_extra = extra;
+        }
         var moves = saved.inventory_transactions_extra || [];
         moves.push({
-            type: 'adjustment',
+            type: 'stock-in',
             reference_id: id,
-            quantity: next - previous,
-            note: 'Finished goods count set to ' + next
+            quantity: qty,
+            before: before,
+            after: after,
+            date: new Date().toISOString(),
+            by: movementActor(),
+            note: 'Batch ' + batchNumber + ' added (produced ' + produced + ', expires ' + expires + ')'
         });
         saved.inventory_transactions_extra = moves;
         writeState(saved);
         snapshot();
         paintStockCells();
         notifyStocks();
-        return next;
+        return after;
+    }
+
+    // Splits what is on hand into batches, newest first kept apart from older stock.
+    // Sales take the oldest stock first, so the pouches still on hand belong to the newest batches.
+    function productBatches(productName) {
+        var id = productId(productName);
+        if (!id) return { batches: [], earlier: 0, onHand: 0 };
+        var onHand = Number(productStockMap()[id]) || 0;
+        var records = productBatchRecords(id);
+        var left = onHand;
+        var out = [];
+        for (var i = records.length - 1; i >= 0; i--) {
+            var rem = Math.min(left, Number(records[i].quantity) || 0);
+            left -= rem;
+            out.unshift(Object.assign({}, records[i], { remaining: rem, is_new: i === records.length - 1 }));
+        }
+        return { batches: out, earlier: left, onHand: onHand };
+    }
+
+    // Retailer price per pouch: one price for every retailer and flavor (₱140 unless head admin /
+    // admin saved another). It is kept apart from the customer price (₱165 / ₱200).
+    var DEFAULT_RETAILER_PRICE = 140;
+    function retailerPrice() {
+        var saved = Number(savedState().retailer_price);
+        return saved > 0 ? saved : DEFAULT_RETAILER_PRICE;
+    }
+
+    function setRetailerPrice(value) {
+        lastStockError = '';
+        if (!canEditPrice()) { lastStockError = 'Only head admin and admin can change the retailer price.'; return null; }
+        var price = Math.round(Number(value) * 100) / 100;
+        if (!(price > 0)) { lastStockError = 'Enter a retailer price above ₱0.'; return null; }
+        var before = retailerPrice();
+        if (price === before) return price;
+        var saved = savedState();
+        saved.retailer_price = price;
+        writeState(saved);
+        // Retailers are told; customers are not (their price is separate).
+        var note = {
+            id: 'partner-retailer-price-' + Date.now(),
+            title: 'Retailer price update',
+            description: 'The retailer price is now ₱' + price.toFixed(2) + ' per pouch.',
+            source: 'retailer_price',
+            audiences: ['retailer'],
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        if (window.KreezbyNotifications && typeof window.KreezbyNotifications.push === 'function') {
+            window.KreezbyNotifications.push(note);
+        } else {
+            var notes = readJson('kreezbyNotifications', []);
+            notes.unshift(note);
+            try { localStorage.setItem('kreezbyNotifications', JSON.stringify(notes)); } catch (e) { /* ignore */ }
+        }
+        notifyStocks();
+        return price;
+    }
+
+    // Every product the shop sells (Maintenance > Item List), with its current selling price.
+    function productCatalog() {
+        var seen = {};
+        var list = [];
+        var prices = savedState().product_prices || {};
+        FLAVOR_CHOICES.concat(mergedProducts().map(function (p) { return p.product_name; })).forEach(function (name) {
+            var id = productId(name);
+            if (!id || seen[id]) return;
+            seen[id] = true;
+            list.push({ id: id, name: name, packaging: 'Pouches', price: prices[id] == null ? defaultPrice(id) : Number(prices[id]) });
+        });
+        return list;
     }
 
     var lastMovementError = '';
@@ -705,13 +853,15 @@
     }
 
     // Records a raw material movement in the ledger (date, who, balance before and after).
-    function recordMaterialMovement(materialName, movementType, quantity, note, kind) {
+    function recordMaterialMovement(materialName, movementType, quantity, note, materialKind) {
         lastMovementError = '';
         var kind = String(movementType || '').toLowerCase();
         if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
+        // Stocks are add-only: only received stock (stock in) can be recorded by hand.
+        if (kind !== 'stock-in') { lastMovementError = 'Stock can only be added (stock in), not taken out or changed.'; return null; }
         var qty = Math.abs(Number(quantity) || 0);
         if (!qty) { lastMovementError = 'Enter a quantity greater than zero.'; return null; }
-        var material = ensureMaterial(materialName, kind);
+        var material = ensureMaterial(materialName, materialKind);
         if (!material) { lastMovementError = 'Type a material name.'; return null; }
         var saved = savedState();
         var stock = materialStockMap();
@@ -935,12 +1085,8 @@
             }
         }
         writeState(saved);
-        if (fields && fields.current_stock != null && fields.current_stock !== '') {
-            setProductStock(productName, fields.current_stock);
-        } else {
-            snapshot();
-            notifyStocks();
-        }
+        snapshot();
+        notifyStocks();
         if (isNewFlavor) pushPartnerNotice('new_product', productName, productName + ' is a newly released flavor.');
         if (priceNotice) pushPartnerNotice('price_change', productName, priceNotice);
         return productById(id);
@@ -985,12 +1131,36 @@
             });
             var material = materialByName(name);
             var html = '';
-            if (product) {
+            var producedCell = row.querySelector('.dict-produced');
+            var expiresCell = row.querySelector('.dict-expires');
+            if (productId(name)) {
+                // New stock and older stock are listed apart, each batch with its own dates.
+                var split = productBatches(name);
+                var lines = [];
+                var made = [];
+                var exp = [];
+                split.batches.slice().reverse().forEach(function (b) {
+                    if (!(b.remaining > 0)) return;
+                    var tag = b.is_new ? 'New stock' : 'Old stock';
+                    lines.push('<strong>' + tag + '</strong> · Batch ' + esc(b.batch_number) + ': ' + b.remaining + ' pcs');
+                    made.push(tag + ': ' + esc(b.production_date));
+                    exp.push(tag + ': ' + esc(b.expiration_date));
+                });
+                if (split.earlier > 0) {
+                    lines.push('<strong>Old stock</strong> · added before batches: ' + split.earlier + ' pcs');
+                    made.push('Old stock: —');
+                    exp.push('Old stock: —');
+                }
+                html = lines.join('<br>');
+                if (producedCell) producedCell.innerHTML = made.length ? made.join('<br>') : '—';
+                if (expiresCell) expiresCell.innerHTML = exp.length ? exp.join('<br>') : '—';
+            } else if (product) {
                 html = 'Batch ' + esc(product.batch_number) +
                     '<br>Produced ' + esc(product.production_date) +
                     '<br>Expires ' + esc(product.expiration_date) +
                     '<br>Expiry alert: ' + esc(product.expiry_threshold_days) + ' days';
             } else if (material) {
+                if (expiresCell) expiresCell.textContent = material.expiration_date || '—';
                 html = 'Expires ' + esc(material.expiration_date) +
                     '<br>Expiry alert: ' + esc(material.expiry_threshold_days) + ' days';
             }
@@ -1291,21 +1461,21 @@
                 // Finished product
                 + '<div class="fr-group" data-fr-group="product">'
                 + stockField('fr-product', 'Product', 'product', '<select id="fr-product">' + productOptions + '</select>')
-                + stockField('fr-batch', 'Batch', 'batch', '<input id="fr-batch" type="text">')
-                + stockField('fr-produced', 'Produced', 'made', '<input id="fr-produced" type="date">')
-                + stockField('fr-expires', 'Expires', 'expires', '<input id="fr-expires" type="date">')
-                + stockField('fr-stock', 'Stock', 'stock', '<input id="fr-stock" type="number" min="0">')
+                + stockField('fr-batch', 'Batch no.', 'batch', '<input id="fr-batch" type="text" placeholder="Auto if left blank">')
+                + stockField('fr-produced', 'Produced date', 'made', '<input id="fr-produced" type="date">')
+                + stockField('fr-expires', 'Expiry date', 'expires', '<input id="fr-expires" type="date">')
+                + stockField('fr-stock', 'Quantity to add', 'stock', '<input id="fr-stock" type="number" min="1" step="1" placeholder="0">')
                 + (canEditPrice() ? stockField('fr-price', 'Price (₱ per pouch)', 'price', '<input id="fr-price" type="number" min="1" step="0.01">') : '')
-                + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Save product</button></div>'
+                + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Add stock</button></div>'
                 + '</div>'
                 // Raw / packaging material
                 + '<div class="fr-group" data-fr-group="material" hidden>'
                 + '<label class="fr-field"><span class="fr-label">' + stockFieldIcon('material') + '<span id="fr-material-label">Raw material</span></span>'
                 + '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list"></datalist></label>'
-                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select>')
+                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
                 + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
-                + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Record movement</button></div>'
+                + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Add stock</button></div>'
                 + '</div>'
                 + '</div></section>'
                 + '</div>'
@@ -1314,26 +1484,26 @@
             box.innerHTML = '<section class="fr-panel" data-fr-panel="product">'
                 + '<div class="fr-panel__bar"><strong>Finished products</strong>' + hideControl('product') + '</div>'
                 + '<div class="fr-panel__body">'
-                + '<p style="margin:0 0 10px;color:#5d4037;">Update batch, dates, and stock. Sales deduct finished goods automatically.</p>'
+                + '<p style="margin:0 0 10px;color:#5d4037;">Add a new batch with its produced and expiry dates. Stock can only be added; sales deduct finished goods automatically.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Product<br><select id="fr-product">' + productOptions + '</select></label>'
-                + '<label>Batch<br><input id="fr-batch" type="text"></label>'
-                + '<label>Produced<br><input id="fr-produced" type="date"></label>'
-                + '<label>Expires<br><input id="fr-expires" type="date"></label>'
-                + '<label>Stock<br><input id="fr-stock" type="number" min="0" style="width:90px;"></label>'
+                + '<label>Batch no.<br><input id="fr-batch" type="text" placeholder="Auto if left blank"></label>'
+                + '<label>Produced date<br><input id="fr-produced" type="date"></label>'
+                + '<label>Expiry date<br><input id="fr-expires" type="date"></label>'
+                + '<label>Quantity to add<br><input id="fr-stock" type="number" min="1" step="1" placeholder="0" style="width:90px;"></label>'
                 + (canEditPrice() ? '<label>Price (₱ per pouch)<br><input id="fr-price" type="number" min="1" step="0.01" style="width:90px;"></label>' : '')
-                + '<button type="button" id="fr-save-product">Save product</button>'
+                + '<button type="button" id="fr-save-product">Add stock</button>'
                 + '</div></div></section>'
                 + '<section class="fr-panel" data-fr-panel="material">'
                 + '<div class="fr-panel__bar"><strong>Raw materials</strong>' + hideControl('material') + '</div>'
                 + '<div class="fr-panel__body">'
-                + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then record stock-in, stock-out, or usage.</p>'
+                + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then add the quantity received.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
-                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="stock-out">Stock out</option><option value="usage">Used in production</option><option value="waste">Spoiled / waste</option></select></label>'
+                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
                 + '<label>Note<br><input id="fr-note" type="text" placeholder="Supplier, batch or reason"></label>'
-                + '<button type="button" id="fr-save-move">Record movement</button>'
+                + '<button type="button" id="fr-save-move">Add stock</button>'
                 + '</div></div></section>'
                 + '<p id="fr-stock-note" style="margin:10px 0 0;"></p>';
         }
@@ -1343,51 +1513,46 @@
 
         function fillProduct() {
             var name = document.getElementById('fr-product').value;
-            var product = null;
-            mergedProducts().forEach(function (item) {
-                if (item.product_name === name) product = item;
-            });
-            if (!product) {
-                document.getElementById('fr-batch').value = '';
-                document.getElementById('fr-produced').value = '';
-                document.getElementById('fr-expires').value = '';
-                document.getElementById('fr-stock').value = '';
-                var pricePick = document.getElementById('fr-price');
-                if (pricePick) {
-                    var pid = productId(name);
-                    var savedPrices = savedState().product_prices || {};
-                    pricePick.value = pid ? (savedPrices[pid] == null ? defaultPrice(pid) : Number(savedPrices[pid])).toFixed(2) : '';
-                }
-                return;
+            var pid = productId(name);
+            // Every save is a new batch: the fields start empty, produced date defaults to today.
+            document.getElementById('fr-batch').value = '';
+            document.getElementById('fr-produced').value = todayIso();
+            document.getElementById('fr-expires').value = '';
+            document.getElementById('fr-stock').value = '';
+            var pricePick = document.getElementById('fr-price');
+            if (pricePick) {
+                var savedPrices = savedState().product_prices || {};
+                pricePick.value = pid ? (savedPrices[pid] == null ? defaultPrice(pid) : Number(savedPrices[pid])).toFixed(2) : '';
             }
-            document.getElementById('fr-batch').value = product.batch_number || '';
-            document.getElementById('fr-produced').value = product.production_date || '';
-            document.getElementById('fr-expires').value = product.expiration_date || '';
-            var stock = productStockMap()[product.product_id];
-            document.getElementById('fr-stock').value = stock == null ? '' : String(stock);
-            var priceInput = document.getElementById('fr-price');
-            if (priceInput) {
-                var prices = savedState().product_prices || {};
-                var current = prices[product.product_id] == null ? defaultPrice(product.product_id) : Number(prices[product.product_id]);
-                priceInput.value = current.toFixed(2);
-            }
+            var note = document.getElementById('fr-stock-note');
+            if (note && pid) note.textContent = name + ' on hand now: ' + (Number(productStockMap()[pid]) || 0) + ' pouches.';
         }
         document.getElementById('fr-product').addEventListener('change', fillProduct);
         document.getElementById('fr-save-product').addEventListener('click', function () {
             var name = document.getElementById('fr-product').value;
-            var priceNode = document.getElementById('fr-price');
-            var savedProduct = saveProductFields(name, {
+            var note = document.getElementById('fr-stock-note');
+            var after = addProductBatch(name, {
                 batch_number: document.getElementById('fr-batch').value,
                 production_date: document.getElementById('fr-produced').value,
                 expiration_date: document.getElementById('fr-expires').value,
-                current_stock: document.getElementById('fr-stock').value,
-                price: priceNode && canEditPrice() ? priceNode.value : ''
+                quantity: document.getElementById('fr-stock').value
             });
+            if (after == null) {
+                note.textContent = lastStockError || 'That stock could not be added.';
+                return;
+            }
+            var added = Number(document.getElementById('fr-stock').value);
+            var priceNode = document.getElementById('fr-price');
+            var priceText = '';
+            if (priceNode && canEditPrice() && priceNode.value !== '') {
+                var before = window.KreezbyDictionary.productPrice(name);
+                saveProductFields(name, { price: priceNode.value });
+                if (Number(before) !== Number(priceNode.value)) priceText = ' Price is now ₱' + Number(priceNode.value).toFixed(2) + '.';
+            }
             document.querySelectorAll('.dict-fields').forEach(function (node) { node.remove(); });
             decorateStocks();
-            document.getElementById('fr-stock-note').textContent = savedProduct
-                ? (name + ' was saved. Stock on the table now matches this record.')
-                : 'That product could not be saved.';
+            fillProduct();
+            note.textContent = added + ' pouches of ' + name + ' added as a new batch. On hand now: ' + after + '.' + priceText;
         });
         document.getElementById('fr-save-move').addEventListener('click', function () {
             var name = String(document.getElementById('fr-material').value || '').trim();
@@ -1405,9 +1570,9 @@
         var typeSelect = document.getElementById('fr-type');
         if (typeSelect) {
             var LEADS = {
-                product: 'Update batch, dates, ' + (canEditPrice() ? 'stock, and selling price' : 'and stock') + '. Sales deduct finished goods automatically.',
-                raw: 'Type any raw material, then record stock-in, stock-out, or usage.',
-                packaging: 'Type any packaging material (pouches, stickers), then record stock-in, stock-out, or usage.'
+                product: 'Add a new batch with its produced and expiry dates' + (canEditPrice() ? ' (you can also set the selling price)' : '') + '. Stock can only be added; sales deduct finished goods automatically.',
+                raw: 'Type any raw material, then add the quantity received. Stock can only be added.',
+                packaging: 'Type any packaging material (pouches, stickers), then add the quantity received. Stock can only be added.'
             };
             var applyType = function () {
                 var type = typeSelect.value;
@@ -1434,6 +1599,7 @@
                 }
                 var note = document.getElementById('fr-stock-note');
                 if (note) note.textContent = '';
+                if (isProduct) fillProduct();
             };
             typeSelect.addEventListener('change', function () {
                 var input = document.getElementById('fr-material');
@@ -1507,6 +1673,10 @@
         saleBlockReason: saleBlockReason,
         lastSaleError: function () { return lastSaleError; },
         setProductStock: setProductStock,
+        addProductBatch: addProductBatch,
+        productBatches: productBatches,
+        productCatalog: productCatalog,
+        lastStockError: function () { return lastStockError; },
         recordMaterialMovement: recordMaterialMovement,
         lastMovementError: function () { return lastMovementError; },
         materialMovements: materialMovements,
@@ -1519,6 +1689,8 @@
             return prices[id] == null ? defaultPrice(id) : Number(prices[id]);
         },
         canEditPrice: canEditPrice,
+        retailerPrice: retailerPrice,
+        setRetailerPrice: setRetailerPrice,
         historyFor: historyFor,
         productStock: function (name) {
             var id = productId(name);

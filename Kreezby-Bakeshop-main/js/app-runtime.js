@@ -399,8 +399,6 @@
     }
 
     addItem('View details', false, function () { handleStockAction('view', name); });
-    addItem('Adjust stock', false, function () { handleStockAction('adjust', name); });
-    addItem('Archive item', true, function () { handleStockAction('archive', name); });
     (wrap || document.body).appendChild(floatingMenuEl);
   }
 
@@ -526,10 +524,6 @@
     return prefix + suffix;
   }
 
-  function archivedStock() {
-    try { return JSON.parse(localStorage.getItem('kreezby_archived_stock') || '[]'); } catch (e) { return []; }
-  }
-
   function showStockHistory(name, rows) {
     var host = document.getElementById('kreezby-fr-stock-tools') || document.querySelector('.workspace-view-canvas, .page-shell') || document.body;
     var panel = document.getElementById('kreezby-stock-history');
@@ -557,39 +551,9 @@
   function handleStockAction(actionType, itemName, row) {
     var name = itemName || 'Item';
     var dict = window.KreezbyDictionary;
-    if (actionType === 'archive') {
-      if (!confirm('Archive "' + name + '" from active tracking?')) return;
-      var archived = archivedStock();
-      if (archived.indexOf(name) < 0) archived.push(name);
-      try { localStorage.setItem('kreezby_archived_stock', JSON.stringify(archived)); } catch (e) { /* ignore */ }
-      var stockRow = row || (window.event && window.event.target && window.event.target.closest && window.event.target.closest('tr'));
-      if (stockRow) stockRow.hidden = true;
-      toast('"' + name + '" is archived and hidden from the active list.', 'success');
-      return;
-    }
-    if (actionType === 'adjust') {
-      if (dict && dict.materialByName && dict.materialByName(name)) {
-        var kind = prompt('Movement for "' + name + '": stock-in, stock-out, or usage', 'stock-in');
-        if (kind === null) return;
-        var moveQty = prompt('Quantity', '1');
-        if (moveQty === null) return;
-        var nextMaterial = dict.recordMaterialMovement(name, kind, moveQty);
-        if (nextMaterial == null) {
-          toast('Use stock-in, stock-out, or usage with a quantity above zero.', 'warn');
-          return;
-        }
-        toast(name + ' now has ' + nextMaterial + ' on hand.', 'success');
-        return;
-      }
-      var current = dict && dict.productStock ? dict.productStock(name) : 100;
-      var qty = prompt('New finished-goods quantity for "' + name + '":', String(current == null ? 0 : current));
-      if (qty === null) return;
-      if (dict && dict.setProductStock) {
-        var next = dict.setProductStock(name, qty);
-        toast('Stock for "' + name + '" is now ' + next + '.', 'success');
-        return;
-      }
-      toast('Stock for "' + name + '" updated to ' + qty + ' successfully.', 'success');
+    // Stocks are add-only: no archiving (deleting) and no typing over the count.
+    if (actionType === 'archive' || actionType === 'adjust') {
+      toast('Stock can only be added (Add stock), not changed or deleted.', 'warn');
       return;
     }
     if (dict && dict.historyFor) {

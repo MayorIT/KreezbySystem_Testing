@@ -1,224 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png?v=20261018tab">
-    <link rel="icon" type="image/png" href="../assets/logo/favicon.png?v=20261018tab">
-    <link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png?v=20261018tab">
+  <head>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../assets/logo/favicon-32.png?v=20261018tab"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="../assets/logo/favicon.png?v=20261018tab"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="../assets/logo/apple-touch-icon.png?v=20261018tab"
+    />
 
-<script src="../js/kreezby-db-sync.js?v=20261027stock1"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css?v=20261010max">
+    <script src="../js/kreezby-db-sync.js?v=20261027stock1"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="../css/shared/kreezby-turbo-nav.css?v=20261010max"
+    />
     <style id="admin-no-motion">
-        @view-transition { navigation: none; }
-        body.kreezby-admin-home,
-        body.kreezby-admin-home *,
-        body.kreezby-admin-home *::before,
-        body.kreezby-admin-home *::after {
-            animation: none !important;
-            animation-delay: 0s !important;
-            animation-duration: 0s !important;
-            transition: none !important;
-            transition-delay: 0s !important;
-            transition-duration: 0s !important;
-            scroll-behavior: auto !important;
-            will-change: auto !important;
-        }
-        body.kreezby-admin-home turbo-frame#kreezby-main-content,
-        body.kreezby-admin-home #kreezby-main-content,
-        body.kreezby-admin-home turbo-frame#kreezby-main-content.is-kreezby-leaving,
-        body.kreezby-admin-home #kreezby-main-content.is-kreezby-leaving,
-        body.kreezby-admin-home aside.dark-sidebar-panel {
-            opacity: 1 !important;
-            view-transition-name: none !important;
-        }
-        body.kreezby-admin-home button:active,
-        body.kreezby-admin-home [role="button"]:active,
-        body.kreezby-admin-home .admin-home-menu-btn:hover,
-        body.kreezby-admin-home .admin-home-menu-btn:active,
-        body.kreezby-admin-home .kreezby-sidebar-nav-item:active {
-            transform: none !important;
-        }
+      @view-transition {
+        navigation: none;
+      }
+      body.kreezby-admin-home,
+      body.kreezby-admin-home *,
+      body.kreezby-admin-home *::before,
+      body.kreezby-admin-home *::after {
+        animation: none !important;
+        animation-delay: 0s !important;
+        animation-duration: 0s !important;
+        transition: none !important;
+        transition-delay: 0s !important;
+        transition-duration: 0s !important;
+        scroll-behavior: auto !important;
+        will-change: auto !important;
+      }
+      body.kreezby-admin-home turbo-frame#kreezby-main-content,
+      body.kreezby-admin-home #kreezby-main-content,
+      body.kreezby-admin-home
+        turbo-frame#kreezby-main-content.is-kreezby-leaving,
+      body.kreezby-admin-home #kreezby-main-content.is-kreezby-leaving,
+      body.kreezby-admin-home aside.dark-sidebar-panel {
+        opacity: 1 !important;
+        view-transition-name: none !important;
+      }
+      body.kreezby-admin-home button:active,
+      body.kreezby-admin-home [role="button"]:active,
+      body.kreezby-admin-home .admin-home-menu-btn:hover,
+      body.kreezby-admin-home .admin-home-menu-btn:active,
+      body.kreezby-admin-home .kreezby-sidebar-nav-item:active {
+        transform: none !important;
+      }
     </style>
     <script>
-        (function () {
-            function onHome() {
-                var file = (location.pathname.split('/').pop() || '').toLowerCase().split('?')[0];
-                return file === 'head_admin.html' || file === '';
-            }
-            function stripViewTransition() {
-                if (!onHome()) return;
-                document.querySelectorAll('meta[name="view-transition"]').forEach(function (el) { el.remove(); });
-            }
-            stripViewTransition();
-            if (window.MutationObserver && document.documentElement) {
-                new MutationObserver(stripViewTransition).observe(document.documentElement, { childList: true, subtree: true });
-            }
-        })();
+      (function () {
+        function onHome() {
+          var file = (location.pathname.split("/").pop() || "")
+            .toLowerCase()
+            .split("?")[0];
+          return file === "head_admin.html" || file === "";
+        }
+        function stripViewTransition() {
+          if (!onHome()) return;
+          document
+            .querySelectorAll('meta[name="view-transition"]')
+            .forEach(function (el) {
+              el.remove();
+            });
+        }
+        stripViewTransition();
+        if (window.MutationObserver && document.documentElement) {
+          new MutationObserver(stripViewTransition).observe(
+            document.documentElement,
+            { childList: true, subtree: true },
+          );
+        }
+      })();
     </script>
     <title>Kreezby Bakeshop - Head Admin Dashboard</title>
-    <link rel="stylesheet" href="../css/pages/admin/admin.css">
-    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
-    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/pages/admin/admin.css" />
+    <link
+      rel="stylesheet"
+      href="../css/shared/admin-icon-sidebar.css?v=20260927active"
+    />
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css" />
 
-    <link rel="stylesheet" href="../css/shared/kreezby-welcome-home.css?v=20261021layout">
-    <link rel="stylesheet" href="../css/shared/admin-ops-dashboard.css?v=20261021polish">
-    <link rel="stylesheet" href="../css/shared/kreezby-docked-sidebar.css?v=20261021dock">
-</head>
-<body class="kreezby-admin-home kreezby-ops-dashboard">
-<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');if(window.innerWidth>900){document.body.classList.add('kreezby-docked');if(localStorage.getItem('kreezbyDockedSidebar')!=='0')document.body.classList.add('kreezby-nav-open');}}catch(e){}</script>
+    <link
+      rel="stylesheet"
+      href="../css/shared/kreezby-welcome-home.css?v=20261021layout"
+    />
+    <link
+      rel="stylesheet"
+      href="../css/shared/admin-ops-dashboard.css?v=20261021polish"
+    />
+    <link
+      rel="stylesheet"
+      href="../css/shared/kreezby-docked-sidebar.css?v=20261021dock"
+    />
+  </head>
+  <body class="kreezby-admin-home kreezby-ops-dashboard">
+    <script>
+      try {
+        if (localStorage.getItem("kreezbySidebarCollapsed") === "1")
+          document.body.classList.add("sidebar-collapsed");
+        if (window.innerWidth > 900) {
+          document.body.classList.add("kreezby-docked");
+          if (localStorage.getItem("kreezbyDockedSidebar") !== "0")
+            document.body.classList.add("kreezby-nav-open");
+        }
+      } catch (e) {}
+    </script>
 
     <header class="top-navbar-node">
-        <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
-        <div class="top-nav-links-right">
-            <button type="button" class="notification-pill" aria-label="Notifications">🔔</button>
-            <div class="user-dropdown">
-                <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">
-                    <span style="background:#fff; width:18px; height:18px; border-radius:50%; display:inline-block;"></span>
-                    Head Admin ▾
-                </button>
-                <div class="user-dropdown-menu" id="user-dropdown-menu">
-                                        <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
-                </div>
-            </div>
+      <div class="brand-logo-panel">
+        <img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo" />
+      </div>
+      <div class="top-nav-links-right">
+        <button
+          type="button"
+          class="notification-pill"
+          aria-label="Notifications"
+        >
+          🔔
+        </button>
+        <div class="user-dropdown">
+          <button
+            type="button"
+            class="user-dropdown-pill"
+            id="user-dropdown-trigger"
+          >
+            <span
+              style="
+                background: #fff;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                display: inline-block;
+              "
+            ></span>
+            Head Admin ▾
+          </button>
+          <div class="user-dropdown-menu" id="user-dropdown-menu">
+            <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+          </div>
         </div>
+      </div>
     </header>
- 
+
     <div class="core-viewport-wrapper">
+      <aside
+        class="dark-sidebar-panel"
+        aria-label="Head Admin navigation"
+      ></aside>
 
-        <aside class="dark-sidebar-panel" aria-label="Head Admin navigation"></aside>
-
-        <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
+      <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
-
-            <div id="admin-dashboard-root" class="ops-dash" data-role="Head Admin" data-fallback-name="Head Admin">
-                <div class="ops-toolbar">
-                    <button type="button" class="ops-menu" id="admin-open-menu" aria-expanded="true" aria-label="Close menu">☰</button>
-                    <div class="ops-user">
-                        <span class="ops-role" data-role-label>Head Admin</span>
-                        <button type="button" class="ops-user-btn" data-user-btn>
-                            <span class="ops-avatar" data-initials>H</span>
-                            <span data-person>Head Admin</span>
-                        </button>
-                        <div class="ops-user-menu" data-user-menu hidden>
-                            <a href="../auth/log_in.html">Log out</a>
-                        </div>
-                    </div>
+          <div
+            id="admin-dashboard-root"
+            class="ops-dash"
+            data-role="Head Admin"
+            data-fallback-name="Head Admin"
+          >
+            <div class="ops-toolbar">
+              <button
+                type="button"
+                class="ops-menu"
+                id="admin-open-menu"
+                aria-expanded="true"
+                aria-label="Close menu"
+              >
+                ☰
+              </button>
+              <div class="ops-user">
+                <span class="ops-role" data-role-label>Head Admin</span>
+                <button type="button" class="ops-user-btn" data-user-btn>
+                  <span class="ops-avatar" data-initials>H</span>
+                  <span data-person>Head Admin</span>
+                </button>
+                <div class="ops-user-menu" data-user-menu hidden>
+                  <a href="../auth/log_in.html">Log out</a>
                 </div>
-                <div class="ops-title-row">
-                    <div>
-                        <h1>Dashboard</h1>
-                        <p class="ops-welcome" data-welcome>Welcome back. Here is the overview of your business.</p>
-                    </div>
-                    <div class="ops-range-wrap">
-                        <button type="button" class="ops-range-btn" data-range-btn>
-                            <span aria-hidden="true">📅</span>
-                            <span data-range-label>Select dates</span>
-                        </button>
-                        <div class="ops-range-pop" data-range-pop hidden>
-                            <label>From<input type="date" data-from></label>
-                            <label>To<input type="date" data-to></label>
-                            <button type="button" data-apply-range>Apply</button>
-                        </div>
-                    </div>
-                </div>
-                <section class="ops-kpis" aria-label="Summary">
-                    <article class="ops-card ops-kpi">
-                        <span class="ops-kpi-icon sales" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg></span>
-                        <span class="ops-kpi-label">Total Sales</span>
-                        <strong class="ops-kpi-value" data-kpi="sales">₱0.00</strong>
-                        <span class="ops-trend flat" data-trend="sales">vs last month</span>
-                    </article>
-                    <article class="ops-card ops-kpi">
-                        <span class="ops-kpi-icon orders" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.2 11h11.3l1.5-7H7"/></svg></span>
-                        <span class="ops-kpi-label">Total Orders</span>
-                        <strong class="ops-kpi-value" data-kpi="orders">0</strong>
-                        <span class="ops-trend flat" data-trend="orders">vs last month</span>
-                    </article>
-                    <article class="ops-card ops-kpi">
-                        <span class="ops-kpi-icon units" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
-                        <span class="ops-kpi-label">Total Products Sold</span>
-                        <strong class="ops-kpi-value" data-kpi="units">0 pcs</strong>
-                        <span class="ops-trend flat" data-trend="units">vs last month</span>
-                    </article>
-                    <article class="ops-card ops-kpi">
-                        <span class="ops-kpi-icon low" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg></span>
-                        <span class="ops-kpi-label">Low Stock Items</span>
-                        <strong class="ops-kpi-value" data-kpi="low">0</strong>
-                        <span class="ops-trend flat" data-trend="low">below the reorder line</span>
-                    </article>
-                </section>
-                <section class="ops-mid">
-                    <article class="ops-card">
-                        <div class="ops-card-head">
-                            <h2>Sales Overview</h2>
-                            <select class="ops-select" data-chart-mode aria-label="Sales chart grouping">
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                            </select>
-                        </div>
-                        <div class="ops-chart" data-chart></div>
-                    </article>
-                    <article class="ops-card ops-best">
-                        <div class="ops-card-head">
-                            <h2>Best-Selling Products</h2>
-                            <select class="ops-select" data-best-mode aria-label="Best sellers period">
-                                <option value="this">This Month</option>
-                                <option value="last">Last Month</option>
-                            </select>
-                        </div>
-                        <div data-best></div>
-                    </article>
-                </section>
-                <section class="ops-low">
-                    <article class="ops-card">
-                        <div class="ops-card-head"><h2>Order Status</h2></div>
-                        <div class="ops-donut-wrap">
-                            <div data-donut="orders"></div>
-                            <div data-legend="orders"></div>
-                        </div>
-                    </article>
-                    <article class="ops-card">
-                        <div class="ops-card-head"><h2>Inventory Status</h2></div>
-                        <div class="ops-donut-wrap">
-                            <div data-donut="stock"></div>
-                            <div data-legend="stock"></div>
-                        </div>
-                    </article>
-                    <article class="ops-card">
-                        <div class="ops-card-head">
-                            <h2>Product Expiration</h2>
-                            <select class="ops-select" data-expiry-mode aria-label="Expiration window">
-                                <option value="30">Next 30 Days</option>
-                                <option value="7">Next 7 Days</option>
-                                <option value="90">Next 90 Days</option>
-                            </select>
-                        </div>
-                        <div class="ops-table-wrap">
-                            <table class="ops-table">
-                                <thead><tr><th>Product</th><th>Current Stock</th><th>Expiration Date</th></tr></thead>
-                                <tbody data-expiry></tbody>
-                            </table>
-                        </div>
-                    </article>
-                </section>
-                <article class="ops-card ops-insight">
-                    <div class="ops-insight-head">
-                        <h2>✦ AI Management Insight</h2>
-                        <div class="ops-insight-meta">
-                            <span data-generated>Generated just now</span>
-                            <button type="button" class="ops-regen" data-regen>Regenerate</button>
-                        </div>
-                    </div>
-                    <p data-insight>Gathering sales, orders, and stock…</p>
-                </article>
+              </div>
             </div>
-
+            <div class="ops-title-row">
+              <div>
+                <h1>Dashboard</h1>
+                <p class="ops-welcome" data-welcome>
+                  Welcome back. Here is the overview of your business.
+                </p>
+              </div>
+              <div class="ops-range-wrap">
+                <button type="button" class="ops-range-btn" data-range-btn>
+                  <span aria-hidden="true">📅</span>
+                  <span data-range-label>Select dates</span>
+                </button>
+                <div class="ops-range-pop" data-range-pop hidden>
+                  <label>From<input type="date" data-from /></label>
+                  <label>To<input type="date" data-to /></label>
+                  <button type="button" data-apply-range>Apply</button>
+                </div>
+              </div>
+            </div>
+            <section class="ops-kpis" aria-label="Summary">
+              <article class="ops-card ops-kpi">
+                <span class="ops-kpi-icon sales" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24">
+                    <path d="M4 19V5" />
+                    <path d="M4 19h16" />
+                    <path d="M8 16v-5" />
+                    <path d="M12 16V8" />
+                    <path d="M16 16v-3" /></svg
+                ></span>
+                <span class="ops-kpi-label">Total Sales</span>
+                <strong class="ops-kpi-value" data-kpi="sales">₱0.00</strong>
+                <span class="ops-trend flat" data-trend="sales"
+                  >vs last month</span
+                >
+              </article>
+              <article class="ops-card ops-kpi">
+                <span class="ops-kpi-icon orders" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24">
+                    <circle cx="9" cy="20" r="1" />
+                    <circle cx="18" cy="20" r="1" />
+                    <path d="M3 4h2l2.2 11h11.3l1.5-7H7" /></svg
+                ></span>
+                <span class="ops-kpi-label">Total Orders</span>
+                <strong class="ops-kpi-value" data-kpi="orders">0</strong>
+                <span class="ops-trend flat" data-trend="orders"
+                  >vs last month</span
+                >
+              </article>
+              <article class="ops-card ops-kpi">
+                <span class="ops-kpi-icon units" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24">
+                    <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+                    <path d="M3 8v8l9 5 9-5V8" />
+                    <path d="M12 13v8" /></svg
+                ></span>
+                <span class="ops-kpi-label">Total Products Sold</span>
+                <strong class="ops-kpi-value" data-kpi="units">0 pcs</strong>
+                <span class="ops-trend flat" data-trend="units"
+                  >vs last month</span
+                >
+              </article>
+              <article class="ops-card ops-kpi">
+                <span class="ops-kpi-icon low" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24">
+                    <path d="M12 3 2.5 20h19z" />
+                    <path d="M12 9v5" />
+                    <path d="M12 17h.01" /></svg
+                ></span>
+                <span class="ops-kpi-label">Low Stock Items</span>
+                <strong class="ops-kpi-value" data-kpi="low">0</strong>
+                <span class="ops-trend flat" data-trend="low"
+                  >below the reorder line</span
+                >
+              </article>
+            </section>
+            <section class="ops-mid">
+              <article class="ops-card">
+                <div class="ops-card-head">
+                  <h2>Sales Overview</h2>
+                  <select
+                    class="ops-select"
+                    data-chart-mode
+                    aria-label="Sales chart grouping"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+                <div class="ops-chart" data-chart></div>
+              </article>
+              <article class="ops-card ops-best">
+                <div class="ops-card-head">
+                  <h2>Best-Selling Products</h2>
+                  <select
+                    class="ops-select"
+                    data-best-mode
+                    aria-label="Best sellers period"
+                  >
+                    <option value="this">This Month</option>
+                    <option value="last">Last Month</option>
+                  </select>
+                </div>
+                <div data-best></div>
+              </article>
+            </section>
+            <section class="ops-low">
+              <article class="ops-card">
+                <div class="ops-card-head"><h2>Order Status</h2></div>
+                <div class="ops-donut-wrap">
+                  <div data-donut="orders"></div>
+                  <div data-legend="orders"></div>
+                </div>
+              </article>
+              <article class="ops-card">
+                <div class="ops-card-head"><h2>Inventory Status</h2></div>
+                <div class="ops-donut-wrap">
+                  <div data-donut="stock"></div>
+                  <div data-legend="stock"></div>
+                </div>
+              </article>
+              <article class="ops-card">
+                <div class="ops-card-head">
+                  <h2>Product Expiration</h2>
+                  <select
+                    class="ops-select"
+                    data-expiry-mode
+                    aria-label="Expiration window"
+                  >
+                    <option value="30">Next 30 Days</option>
+                    <option value="7">Next 7 Days</option>
+                    <option value="90">Next 90 Days</option>
+                  </select>
+                </div>
+                <div class="ops-table-wrap">
+                  <table class="ops-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Current Stock</th>
+                        <th>Expiration Date</th>
+                      </tr>
+                    </thead>
+                    <tbody data-expiry></tbody>
+                  </table>
+                </div>
+              </article>
+            </section>
+            <article class="ops-card ops-insight">
+              <div class="ops-insight-head">
+                <h2>✦ AI Management Insight</h2>
+                <div class="ops-insight-meta">
+                  <span data-generated>Generated just now</span>
+                  <button type="button" class="ops-regen" data-regen>
+                    Regenerate
+                  </button>
+                </div>
+              </div>
+              <p data-insight>Gathering sales, orders, and stock…</p>
+            </article>
+          </div>
         </main>
-        </turbo-frame>
+      </turbo-frame>
     </div>
 
-    <div class="notification-modal-overlay" id="notification-modal-overlay" hidden aria-hidden="true"></div>
+    <div
+      class="notification-modal-overlay"
+      id="notification-modal-overlay"
+      hidden
+      aria-hidden="true"
+    ></div>
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/kreezby-data-dictionary.js?v=20261027stock1"></script>
@@ -230,89 +369,119 @@
     <script src="../js/admin-sidebar.js?v=20261022menu4"></script>
     <script src="../js/sidebar-toggle.js?v=20261021dock"></script>
     <script>
-        (function () {
-            function isDashboard() {
-                var file = (location.pathname.split('/').pop() || '').toLowerCase().split('?')[0];
-                return file === 'head_admin.html' || file === '';
-            }
-            function keepNumberedBell(header) {
-                if (!header || !header.querySelector('.notification-popover-root')) return;
-                header.querySelectorAll('.notification-pill').forEach(function (el) { el.remove(); });
-            }
-            function stripHeaderChrome() {
-                var dashboard = isDashboard();
-                document.body.classList.toggle('kreezby-admin-home', dashboard);
-                if (!dashboard) return;
-                var header = document.querySelector('.top-navbar-node');
-                if (!header) return;
-                header.querySelectorAll('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs').forEach(function (el) {
-                    if (el.closest('.user-dropdown')) return;
-                    el.remove();
-                });
-                keepNumberedBell(header);
-            }
-            function syncMenuButton() {
-                var open = document.body.classList.contains('kreezby-nav-open');
-                var btn = document.getElementById('admin-open-menu');
-                if (btn) {
-                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    var label = btn.querySelector('.admin-home-menu-btn__label');
-                    if (label) label.textContent = open ? 'Close menu' : 'Open menu';
+      (function () {
+        function isDashboard() {
+          var file = (location.pathname.split("/").pop() || "")
+            .toLowerCase()
+            .split("?")[0];
+          return file === "head_admin.html" || file === "";
+        }
+        function keepNumberedBell(header) {
+          if (!header || !header.querySelector(".notification-popover-root"))
+            return;
+          header.querySelectorAll(".notification-pill").forEach(function (el) {
+            el.remove();
+          });
+        }
+        function stripHeaderChrome() {
+          var dashboard = isDashboard();
+          document.body.classList.toggle("kreezby-admin-home", dashboard);
+          if (!dashboard) return;
+          var header = document.querySelector(".top-navbar-node");
+          if (!header) return;
+          header
+            .querySelectorAll(
+              "a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs",
+            )
+            .forEach(function (el) {
+              if (el.closest(".user-dropdown")) return;
+              el.remove();
+            });
+          keepNumberedBell(header);
+        }
+        function syncMenuButton() {
+          var open = document.body.classList.contains("kreezby-nav-open");
+          var btn = document.getElementById("admin-open-menu");
+          if (btn) {
+            btn.setAttribute("aria-expanded", open ? "true" : "false");
+            var label = btn.querySelector(".admin-home-menu-btn__label");
+            if (label) label.textContent = open ? "Close menu" : "Open menu";
+          }
+          var ham = document.querySelector(
+            ".top-navbar-node .hamburger-toggle",
+          );
+          if (ham) {
+            ham.setAttribute("aria-expanded", open ? "true" : "false");
+            ham.setAttribute("aria-pressed", open ? "true" : "false");
+            ham.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+          }
+        }
+        stripHeaderChrome();
+        document.addEventListener("kreezby:page-load", function () {
+          stripHeaderChrome();
+          syncMenuButton();
+        });
+        document.addEventListener(
+          "kreezby-admin-sidebar-ready",
+          stripHeaderChrome,
+        );
+        var header = document.querySelector(".top-navbar-node");
+        if (header && window.MutationObserver) {
+          var stripTimer = null;
+          new MutationObserver(function (records) {
+            if (!document.body.classList.contains("kreezby-admin-home")) return;
+            var dirty = false;
+            records.forEach(function (record) {
+              record.addedNodes.forEach(function (node) {
+                if (!node || node.nodeType !== 1) return;
+                if (
+                  node.matches(
+                    "a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs",
+                  ) ||
+                  (node.querySelector &&
+                    node.querySelector(
+                      "a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs",
+                    ))
+                ) {
+                  dirty = true;
                 }
-                var ham = document.querySelector('.top-navbar-node .hamburger-toggle');
-                if (ham) {
-                    ham.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    ham.setAttribute('aria-pressed', open ? 'true' : 'false');
-                    ham.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-                }
-            }
-            stripHeaderChrome();
-            document.addEventListener('kreezby:page-load', function () {
-                stripHeaderChrome();
-                syncMenuButton();
+              });
             });
-            document.addEventListener('kreezby-admin-sidebar-ready', stripHeaderChrome);
-            var header = document.querySelector('.top-navbar-node');
-            if (header && window.MutationObserver) {
-                var stripTimer = null;
-                new MutationObserver(function (records) {
-                    if (!document.body.classList.contains('kreezby-admin-home')) return;
-                    var dirty = false;
-                    records.forEach(function (record) {
-                        record.addedNodes.forEach(function (node) {
-                            if (!node || node.nodeType !== 1) return;
-                            if (node.matches('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs') ||
-                                (node.querySelector && node.querySelector('a.home-badge, a.expandable-nav-tab, .expandable-nav-tabs'))) {
-                                dirty = true;
-                            }
-                        });
-                    });
-                    if (!dirty) return;
-                    clearTimeout(stripTimer);
-                    stripTimer = setTimeout(stripHeaderChrome, 50);
-                }).observe(header, { childList: true, subtree: true });
-            }
-            document.addEventListener('click', function (event) {
-                if (document.body.classList.contains('kreezby-docked')) return;
-                if (!event.target.closest('aside.dark-sidebar-panel a')) return;
-                document.body.classList.remove('kreezby-nav-open');
-                syncMenuButton();
-            });
-            document.addEventListener('keydown', function (event) {
-                if (event.key !== 'Escape' || document.body.classList.contains('kreezby-docked') || !document.body.classList.contains('kreezby-nav-open')) return;
-                document.body.classList.remove('kreezby-nav-open');
-                syncMenuButton();
-            });
-        })();
+            if (!dirty) return;
+            clearTimeout(stripTimer);
+            stripTimer = setTimeout(stripHeaderChrome, 50);
+          }).observe(header, { childList: true, subtree: true });
+        }
+        document.addEventListener("click", function (event) {
+          if (document.body.classList.contains("kreezby-docked")) return;
+          if (!event.target.closest("aside.dark-sidebar-panel a")) return;
+          document.body.classList.remove("kreezby-nav-open");
+          syncMenuButton();
+        });
+        document.addEventListener("keydown", function (event) {
+          if (
+            event.key !== "Escape" ||
+            document.body.classList.contains("kreezby-docked") ||
+            !document.body.classList.contains("kreezby-nav-open")
+          )
+            return;
+          document.body.classList.remove("kreezby-nav-open");
+          syncMenuButton();
+        });
+      })();
     </script>
     <script>
-        (function () {
-            var el = document.querySelector('[data-inquiry-count]');
-            if (!el || !window.KreezbyPartnerInquiries) return;
-            try {
-                el.textContent = String((window.KreezbyPartnerInquiries.list() || []).length);
-            } catch (e) { /* ignore */ }
-        })();
+      (function () {
+        var el = document.querySelector("[data-inquiry-count]");
+        if (!el || !window.KreezbyPartnerInquiries) return;
+        try {
+          el.textContent = String(
+            (window.KreezbyPartnerInquiries.list() || []).length,
+          );
+        } catch (e) {
+          /* ignore */
+        }
+      })();
     </script>
-</body>
+  </body>
 </html>

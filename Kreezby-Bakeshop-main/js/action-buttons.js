@@ -186,9 +186,7 @@
       case 'stocks':
         return [
           { key: 'edit', label: 'Edit' },
-          { key: 'view', label: 'View History' },
-          { key: 'adjust', label: 'Adjust Stock' },
-          { key: 'archive', label: 'Archive Item', danger: true }
+          { key: 'view', label: 'View History' }
         ];
       case 'alert':
         return [
@@ -377,10 +375,6 @@
     return prefix + suffix;
   }
 
-  function archivedStockNames() {
-    try { return JSON.parse(localStorage.getItem('kreezby_archived_stock') || '[]'); } catch (e) { return []; }
-  }
-
   function showStockHistory(name, rows) {
     var host = document.getElementById('kreezby-fr-stock-tools') || document.querySelector('.workspace-view-canvas, .page-shell') || document.body;
     var panel = document.getElementById('kreezby-stock-history');
@@ -442,67 +436,13 @@
   function performStockAction(action, label, row) {
     var name = label || 'Item';
     var dict = window.KreezbyDictionary;
-    if (action === 'archive') {
-      if (!confirm('Archive "' + name + '" from active tracking?')) return;
-      var archived = archivedStockNames();
-      if (archived.indexOf(name) < 0) archived.push(name);
-      try { localStorage.setItem('kreezby_archived_stock', JSON.stringify(archived)); } catch (e) { /* ignore */ }
-      if (row) row.hidden = true;
-      toast('"' + name + '" is archived and hidden from the active list.', 'success');
+    // Stocks are add-only: no archiving (deleting) and no typing over the count.
+    if (action === 'archive' || action === 'adjust') {
+      toast('Stock can only be added (Add stock), not changed or deleted.', 'warn');
       return;
     }
     if (action === 'edit') {
       showStockThreshold(name, row);
-      return;
-    }
-    if (action === 'adjust') {
-      if (dict && dict.materialByName && dict.materialByName(name)) {
-        var kind = prompt('Movement for "' + name + '": stock-in, stock-out, or usage', 'stock-in');
-        if (kind === null) return;
-        var moveQty = prompt('Quantity', '1');
-        if (moveQty === null) return;
-        var nextMaterial = dict.recordMaterialMovement(name, kind, moveQty);
-        if (nextMaterial == null) {
-          toast('Use stock-in, stock-out, or usage with a quantity above zero.', 'warn');
-          return;
-        }
-        toast(name + ' now has ' + nextMaterial + ' on hand.', 'success');
-        return;
-      }
-      var packagingCode = '';
-      var packagingName = String(name || '').toLowerCase();
-      if (packagingName.indexOf('sticker') >= 0) packagingCode = 'PKG-STK-01';
-      else if (packagingName.indexOf('pouch') >= 0 || packagingName.indexOf('packaging') >= 0) packagingCode = 'PKG-SUP-01';
-      if (packagingCode) {
-        var enteredPack = prompt('New packaging quantity for "' + name + '":', '0');
-        if (enteredPack === null) return;
-        var nextPack = Math.max(0, Number(enteredPack) || 0);
-        try {
-          var store = JSON.parse(localStorage.getItem('kreezby-stock-local-v1') || '{}') || {};
-          if (!store.qty) store.qty = {};
-          store.qty[packagingCode] = nextPack;
-          localStorage.setItem('kreezby-stock-local-v1', JSON.stringify(store));
-          document.dispatchEvent(new CustomEvent('kreezby:stocks-sync'));
-        } catch (e) {
-          toast('Packaging stock could not be saved.', 'warn');
-          return;
-        }
-        toast(name + ' now has ' + nextPack + ' on hand.', 'success');
-        return;
-      }
-      var current = dict && dict.productStock ? dict.productStock(name) : null;
-      var qty = prompt('New finished-goods quantity for "' + name + '":', String(current == null ? 0 : current));
-      if (qty === null) return;
-      if (dict && dict.setProductStock) {
-        var next = dict.setProductStock(name, qty);
-        if (next == null) {
-          toast('Stock for "' + name + '" could not be saved.', 'warn');
-          return;
-        }
-        toast('Stock for "' + name + '" is now ' + next + '.', 'success');
-        return;
-      }
-      toast('Stock for "' + name + '" could not be saved.', 'warn');
       return;
     }
     if (dict && dict.historyFor) {
