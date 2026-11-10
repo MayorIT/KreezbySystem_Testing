@@ -282,3 +282,20 @@ a.top-nav-item.home-badge:not(.expandable-nav-tab) {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Every page tab shows its name beside its icon, so no tab has to be guessed from the icon alone.
+   (Top navigation icon buttons keep their own rules.) */
+.expanding-tab {
+    gap: 8px !important;
+    padding: 0 16px 0 10px !important;
+    justify-content: flex-start;
+}
+
+.expanding-tab .expanding-tab__label {
+    max-width: 14rem;
+    opacity: 1;
+}
+
+.expanding-tab .expanding-tab__icon {
+    opacity: 1;
+}

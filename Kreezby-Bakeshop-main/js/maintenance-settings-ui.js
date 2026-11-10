@@ -15,16 +15,18 @@
         + '<button type="button" class="settings-sub-tab" data-sub="retailers">Retailers</button>'
         + '<button type="button" class="settings-sub-tab" data-sub="areas">Areas</button>'
         + '</div>'
-        + '<form id="settings-search-form" data-kreezby-native="1" style="display:flex;gap:8px;align-items:center;margin:12px 0;">'
-        + '<input type="search" id="settings-search-input" placeholder="Search names, emails, areas…" style="flex:1;max-width:360px;height:36px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;">'
-        + '<button type="submit" id="settings-search-btn">Search</button>'
-        + '<span id="settings-search-count" style="font-size:12px;color:#7a6558;"></span>'
+        + '<form id="settings-search-form" class="kz-settings-tools" data-kreezby-native="1">'
+        + '<label class="kz-settings-field"><span>Search</span><input type="search" id="settings-search-input" placeholder="Name, email, area…"></label>'
+        + '<label class="kz-settings-field"><span id="settings-filter-label">Filter</span><select id="settings-filter-select"><option value="">All</option></select></label>'
+        + '<button type="submit" class="kz-settings-btn" id="settings-search-btn">Search</button>'
+        + '<button type="button" class="kz-settings-btn kz-settings-btn--ghost" id="settings-clear-btn">Clear</button>'
+        + '<span id="settings-search-count" class="kz-settings-count"></span>'
         + '</form>'
         + '<div id="settings-sub-content"></div>'
         + '<div id="kreezby-backup-tools" style="margin-top:18px;">'
         + '<h4 class="settings-section-title">Backup and restore</h4>'
         + '<p class="settings-section-desc">Download inventory, sales, orders, accounts, and issue reports, or put a saved backup back.</p>'
-        + '<button type="button" id="kreezby-backup-download">Download backup</button> '
+        + '<button type="button" class="kz-settings-btn" id="kreezby-backup-download">Download backup</button> '
         + '<label style="margin-left:8px;">Restore backup <input type="file" id="kreezby-backup-file" accept="application/json,.json"></label>'
         + '<p id="kreezby-backup-note" style="margin-top:8px;"></p></div>';
 
@@ -70,7 +72,7 @@
         var list = window.KreezbyMaintenanceSettings.getUsers().retailers;
         var rows = list.map(function (r, i) {
             var note = r.upgradedFrom ? '<span style="font-size:11px;color:#7c4dff;">Upgraded from customer</span>' : '—';
-            return '<tr><td>' + (i + 1) + '</td><td>' + r.user_id + '</td><td><strong>' + r.name + '</strong></td><td>' + r.dictionaryRole + '</td><td>Hashed</td><td>' + r.contact + '</td><td>' + r.email + '</td><td>' + r.area + '</td><td>' + note + '</td></tr>';
+            return '<tr><td>' + (i + 1) + '</td><td>' + r.user_id + '</td><td><strong>' + r.name + '</strong></td><td>' + r.dictionaryRole + '</td><td>Hashed</td><td>' + esc(r.contact || r.phone || '—') + '</td><td>' + esc(r.email || '—') + '</td><td>' + esc(r.area || '—') + '</td><td>' + note + '</td></tr>';
         }).join('');
         return ''
             + '<h4 class="settings-section-title">Retailer Accounts</h4>'
@@ -141,8 +143,8 @@
         return ''
             + '<h4 class="settings-section-title">Areas</h4>'
             + '<p class="settings-section-desc">Areas used for customer and retailer accounts.</p>'
-            + '<form id="settings-add-area" data-kreezby-native="1" style="display:flex;gap:8px;align-items:end;margin:0 0 12px;">'
-            + '<label>Area name<br><input name="area" maxlength="60" required placeholder="e.g. San Juan" style="height:34px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;"></label>'
+            + '<form id="settings-add-area" data-kreezby-native="1" style="margin:0 0 12px;">'
+            + '<label class="kz-settings-field"><span>Area name</span><input name="area" maxlength="60" required placeholder="e.g. San Juan"></label>'
             + '<button type="submit">Add Area</button>'
             + '<span id="settings-area-note" style="font-size:12px;color:#5d4037;"></span>'
             + '</form>'
@@ -151,21 +153,86 @@
             + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
-    // Filters the rows of the table on the open Settings tab.
+    // Which column the Filter dropdown filters on, per Settings tab (matched by header text).
+    var FILTER_COLUMNS = {
+        'login-history': 'Account Type',
+        customers: 'Area',
+        retailers: 'Area',
+        areas: 'Source'
+    };
+
+    function filterColumnIndex(root) {
+        var want = String(FILTER_COLUMNS[currentSettingsSub] || '').toLowerCase();
+        var heads = root.querySelectorAll('table thead th');
+        for (var i = 0; i < heads.length; i++) {
+            if ((heads[i].textContent || '').trim().toLowerCase() === want) return i;
+        }
+        return -1;
+    }
+
+    // Fills the Filter dropdown with the values found in the open table.
+    function fillSettingsFilter() {
+        var select = document.getElementById('settings-filter-select');
+        var label = document.getElementById('settings-filter-label');
+        var root = document.getElementById('settings-sub-content');
+        if (!select || !root) return;
+        var col = filterColumnIndex(root);
+        if (label) label.textContent = col >= 0 ? 'Filter by ' + FILTER_COLUMNS[currentSettingsSub] : 'Filter';
+        var values = {};
+        if (col >= 0) {
+            root.querySelectorAll('table tbody tr').forEach(function (tr) {
+                var cell = tr.children[col];
+                var text = cell ? (cell.textContent || '').trim() : '';
+                if (text && text !== '—') values[text] = true;
+            });
+        }
+        select.innerHTML = '<option value="">All</option>' + Object.keys(values).sort().map(function (v) {
+            return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
+        }).join('');
+        select.disabled = col < 0;
+    }
+
+    // Filters the rows of the table on the open Settings tab by the search text and the filter.
     function applySettingsSearch() {
         var input = document.getElementById('settings-search-input');
+        var select = document.getElementById('settings-filter-select');
         var root = document.getElementById('settings-sub-content');
         var count = document.getElementById('settings-search-count');
         if (!input || !root) return;
         var q = String(input.value || '').toLowerCase().trim();
+        var pick = select ? select.value : '';
+        var col = filterColumnIndex(root);
         var rows = root.querySelectorAll('table tbody tr');
         var shown = 0;
         rows.forEach(function (tr) {
-            var match = !q || (tr.textContent || '').toLowerCase().indexOf(q) >= 0;
+            var cell = col >= 0 ? tr.children[col] : null;
+            var okFilter = !pick || (cell && (cell.textContent || '').trim() === pick);
+            var okSearch = !q || (tr.textContent || '').toLowerCase().indexOf(q) >= 0;
+            var match = okFilter && okSearch;
             tr.style.display = match ? '' : 'none';
             if (match) shown += 1;
         });
-        if (count) count.textContent = q ? (shown + ' of ' + rows.length + ' shown') : '';
+        if (count) count.textContent = (q || pick) ? (shown + ' of ' + rows.length + ' shown') : rows.length + ' total';
+    }
+
+    function ensureSettingsToolStyles() {
+        if (document.getElementById('kz-settings-tools-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-settings-tools-style';
+        st.textContent = ''
+            + '.kz-settings-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:14px 0;padding:12px 14px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;}'
+            + '.kz-settings-field{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#5d4037;}'
+            + '.kz-settings-field input,.kz-settings-field select{height:36px;min-width:200px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;background:#fff;font:inherit;font-weight:500;color:#3e2723;}'
+            + '.kz-settings-btn{height:36px;padding:0 18px;border:0;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;}'
+            + '.kz-settings-btn:hover{background:#4e342e;}'
+            + '.kz-settings-btn--ghost{background:#fff;color:#5d4037;border:1px solid #c4b4a4;}'
+            + '.kz-settings-btn--ghost:hover{background:#f6efe6;}'
+            + '.kz-settings-count{font-size:12px;color:#7a6558;align-self:center;}'
+            + '#settings-add-area{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}'
+            + '#settings-add-area input{height:36px;min-width:220px;padding:0 10px;border:1px solid #e4d8c4;border-radius:8px;}'
+            + '#settings-add-area button{height:36px;padding:0 18px;border:0;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;}'
+            + '@media (max-width:600px){.kz-settings-field,.kz-settings-field input,.kz-settings-field select{width:100%;min-width:0;}}';
+        document.head.appendChild(st);
     }
 
     function renderSettingsSub(subKey) {
@@ -181,6 +248,7 @@
         else if (subKey === 'customers') root.innerHTML = renderCustomers();
         else if (subKey === 'retailers') root.innerHTML = renderRetailers();
         else if (subKey === 'areas') root.innerHTML = renderAreas();
+        fillSettingsFilter();
         applySettingsSearch();
     }
 
@@ -195,10 +263,19 @@
             };
         });
 
+        ensureSettingsToolStyles();
         var searchForm = document.getElementById('settings-search-form');
         var searchInput = document.getElementById('settings-search-input');
+        var filterSelect = document.getElementById('settings-filter-select');
+        var clearBtn = document.getElementById('settings-clear-btn');
         if (searchForm) searchForm.onsubmit = function (ev) { ev.preventDefault(); applySettingsSearch(); };
         if (searchInput) searchInput.oninput = applySettingsSearch;
+        if (filterSelect) filterSelect.onchange = applySettingsSearch;
+        if (clearBtn) clearBtn.onclick = function () {
+            if (searchInput) searchInput.value = '';
+            if (filterSelect) filterSelect.value = '';
+            applySettingsSearch();
+        };
         var subRoot = document.getElementById('settings-sub-content');
         if (subRoot) {
             subRoot.onsubmit = function (ev) {
@@ -310,8 +387,7 @@
         for (var i = 0; i < dirs.length; i++) {
             if (!grid.querySelector('[data-maint-dir="' + dirs[i] + '"]')) return false;
         }
-        var row = document.querySelector('.maintenance-directory-tabs-row');
-        return !!(row && row.querySelector('[data-maint-tab="staff"]') && row.querySelector('[data-maint-tab="admins"]'));
+        return true;
     }
 
     function ensureDirectoryChrome() {
@@ -362,22 +438,10 @@
             grid.appendChild(card);
         });
 
-        var row = document.querySelector('.maintenance-directory-tabs-row');
-        if (row && !row.querySelector('[data-maint-tab="staff"]')) {
-            ['staff', 'admins'].forEach(function (dir) {
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'maintenance-tab-link';
-                btn.setAttribute('data-maint-tab', dir);
-                btn.textContent = DIRECTORY[dir].title;
-                var settings = row.querySelector('[onclick*="settings"]');
-                if (settings) row.insertBefore(btn, settings);
-                else row.appendChild(btn);
-                btn.addEventListener('click', function () {
-                    openDirectory(dir, btn);
-                });
-            });
-        }
+        // Staff and Admins open from their cards on top, so they get no duplicate tab here.
+        document.querySelectorAll('.maintenance-directory-tabs-row [data-maint-tab="staff"], .maintenance-directory-tabs-row [data-maint-tab="admins"]').forEach(function (btn) {
+            btn.remove();
+        });
 
         if (!document.getElementById('kreezby-account-card-style')) {
             var style = document.createElement('style');

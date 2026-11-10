@@ -183,8 +183,18 @@
         }
     }
 
+    // The tabs now show their names, so the heading under them would only repeat the open tab.
+    function hideRepeatedTitle() {
+        if (document.getElementById('kz-stocklevel-title-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-stocklevel-title-style';
+        st.textContent = '#stocklevel-title,#stocklevel-count{display:none !important;}';
+        document.head.appendChild(st);
+    }
+
     function bootPills() {
         if (!document.querySelector('#stocklevel-filter-pills')) return;
+        hideRepeatedTitle();
         initPills();
         wirePillClicks();
         if (document.getElementById('stocklevel-master')) showView(requestedView(), false);

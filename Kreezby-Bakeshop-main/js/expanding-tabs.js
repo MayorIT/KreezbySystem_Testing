@@ -9,7 +9,7 @@
     window.KreezbyExpandingTabsLoaded = true;
 
     var CSS_ID = 'kreezby-expanding-tabs-style';
-    var CSS_HREF = 'css/shared/expanding-tabs.css?v=20260927text';
+    var CSS_HREF = 'css/shared/expanding-tabs.css?v=20261110names';
 
     var LIST_SELECTOR = [
         '.po-order-tabs',
