@@ -468,6 +468,36 @@
         return n;
     }
 
+    // Philippine mobile number in the 09XXXXXXXXX form; '' when it is not a valid number.
+    function normalizePhone(value) {
+        var digits = String(value == null ? '' : value).replace(/[\s()-]/g, '');
+        if (/^\+639\d{9}$/.test(digits)) return '0' + digits.slice(3);
+        if (/^639\d{9}$/.test(digits)) return '0' + digits.slice(2);
+        if (/^09\d{9}$/.test(digits)) return digits;
+        return '';
+    }
+
+    // Change a retailer's phone number and area; saved to the shared list and the database.
+    function updateRetailerDetails(id, fields) {
+        var users = getUsers();
+        var list = users.retailers || [];
+        var user = null;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].id === id) { user = list[i]; break; }
+        }
+        if (!user) return { ok: false, message: 'Account not found.' };
+        var phone = normalizePhone(fields && fields.phone);
+        if (!phone) return { ok: false, message: 'Enter a valid mobile number, e.g. 09171234567.' };
+        var area = String((fields && fields.area) || '').trim();
+        if (!area) return { ok: false, message: 'Choose the retailer\'s area.' };
+        user.phone = phone;
+        user.contact = phone;
+        user.area = area;
+        saveUsers(withDictionaryFields(users));
+        publishAccount('retailers', user);
+        return { ok: true, message: user.name + ' was updated.' };
+    }
+
     function createAccount(bucket, fields) {
         var users = getUsers();
         if (!users[bucket]) return { ok: false, message: 'That account group is not available.' };
@@ -484,9 +514,12 @@
             if (!record.username) return { ok: false, message: 'Username is required.' };
         } else if (bucket === 'retailers') {
             record.username = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || ('retailer_' + Date.now());
-            record.contact = String((fields && fields.contact) || '').trim();
-            record.phone = record.contact;
+            var retailerPhone = normalizePhone(fields && fields.contact);
+            if (!retailerPhone) return { ok: false, message: 'Enter a valid mobile number, e.g. 09171234567.' };
+            record.contact = retailerPhone;
+            record.phone = retailerPhone;
             record.area = String((fields && fields.area) || '').trim();
+            if (!record.area) return { ok: false, message: 'Choose the retailer\'s area.' };
         } else {
             record.email = String((fields && fields.email) || '').trim();
             record.contact = String((fields && fields.contact) || '').trim();
@@ -653,6 +686,8 @@
         setAccountStatus: setAccountStatus,
         isHeadAdminAccount: isHeadAdminAccount,
         createAccount: createAccount,
+        updateRetailerDetails: updateRetailerDetails,
+        normalizePhone: normalizePhone,
         publishAccount: publishAccount,
         exportBackup: exportBackup,
         restoreBackup: restoreBackup,

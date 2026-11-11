@@ -127,7 +127,7 @@
         if (exists) return { ok: false, message: label + ' is already on the list.' };
         var list = savedAreas();
         var session = readSession();
-        list.push({ name: label, addedAt: new Date().toISOString(), addedBy: session.name || session.username || 'Head Admin' });
+        list.push({ name: label, addedAt: new Date().toISOString(), addedBy: session.userName || session.identity || 'Unknown account' });
         try { localStorage.setItem(AREAS_KEY, JSON.stringify(list)); } catch (e) { return { ok: false, message: 'The area could not be saved.' }; }
         return { ok: true, message: label + ' was added. It can now be picked when adding a customer or retailer.' };
     }
@@ -494,10 +494,19 @@
         }
     }
 
-    function areaPicker() {
-        return '<label>Area<br><select name="area"><option value="">— choose —</option>' + allAreas().map(function (a) {
-            return '<option value="' + esc(a.name) + '">' + esc(a.name) + '</option>';
+    function areaPicker(selected, required) {
+        var key = areaKey(selected || '');
+        var names = allAreas().map(function (a) { return a.name; });
+        if (selected && !names.some(function (n) { return areaKey(n) === key; })) names.push(selected);
+        return '<label>Area<br><select name="area"' + (required ? ' required' : '') + '><option value="">— choose —</option>' + names.map(function (n) {
+            return '<option value="' + esc(n) + '"' + (key && areaKey(n) === key ? ' selected' : '') + '>' + esc(n) + '</option>';
         }).join('') + '</select></label>';
+    }
+
+    function phoneInput(value, required) {
+        return '<label>Phone number<br><input name="contact" type="tel" inputmode="numeric" maxlength="13" placeholder="09XXXXXXXXX"'
+            + ' pattern="(09|\\+639|639)[0-9]{9}" title="Mobile number, e.g. 09171234567"'
+            + (required ? ' required' : '') + ' value="' + esc(value || '') + '"></label>';
     }
 
     function renderDirectory(dir) {
@@ -536,8 +545,8 @@
                 + (spec.bucket === 'staff' || spec.bucket === 'admins'
                     ? '<label>Username<br><input name="username" required></label><label>Role<br><input name="role" placeholder="Job title"></label>'
                     : (spec.bucket === 'retailers'
-                        ? '<label>Contact<br><input name="contact"></label>' + areaPicker()
-                        : '<label>Email<br><input name="email" type="email" required></label><label>Contact<br><input name="contact"></label>' + areaPicker()))
+                        ? phoneInput('', true) + areaPicker('', true)
+                        : '<label>Email<br><input name="email" type="email" required></label>' + phoneInput('', false) + areaPicker()))
                 + '<button type="submit">Add account</button></form>'
             : '';
         root.innerHTML = ''
@@ -773,7 +782,13 @@
             + (user.address ? '<p>Address: ' + esc(user.address) + '</p>' : '')
             + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · This account stays active.' : '') + '</p>'
             + (user.area ? '<p>Area: ' + esc(user.area) + '</p>' : '')
-            + (bucket === 'customers' ? '<p>Customer accounts are for monitoring only.</p>' : (manage ? '' : '<p>Only an authorized account can change this.</p>'));
+            + (bucket === 'customers' ? '<p>Customer accounts are for monitoring only.</p>' : (manage ? '' : '<p>Only an authorized account can change this.</p>'))
+            + (bucket === 'retailers' && manage
+                ? '<form id="maint-edit-retailer" data-kreezby-native="1" data-retailer-id="' + esc(user.id) + '" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:8px;">'
+                    + phoneInput(window.KreezbyMaintenanceSettings.normalizePhone ? KreezbyMaintenanceSettings.normalizePhone(user.phone || user.contact) : '', true)
+                    + areaPicker(user.area, true)
+                    + '<button type="submit">Save</button></form>'
+                : '');
     }
 
     function toggleAccount(bucket, id, active) {
@@ -848,6 +863,22 @@
                 if (ev.target.closest('#maint-dir-tools')) {
                     ev.preventDefault();
                     applyDirectoryFilter();
+                    return;
+                }
+                var editForm = ev.target.closest('#maint-edit-retailer');
+                if (editForm && window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.updateRetailerDetails) {
+                    ev.preventDefault();
+                    var retailerId = editForm.getAttribute('data-retailer-id');
+                    var saved = KreezbyMaintenanceSettings.updateRetailerDetails(retailerId, {
+                        phone: editForm.elements.contact && editForm.elements.contact.value,
+                        area: editForm.elements.area && editForm.elements.area.value
+                    });
+                    if (saved.ok) {
+                        renderDirectory(currentDirectory);
+                        showAccountDetail('retailers', retailerId);
+                    }
+                    var editBox = document.getElementById('maint-account-detail');
+                    if (editBox) editBox.insertAdjacentHTML('beforeend', '<p>' + esc(saved.message) + '</p>');
                     return;
                 }
                 var form = ev.target.closest('#maint-create-account');

@@ -813,12 +813,22 @@
             active: true
           };
           record.user_id = record.id;
+          // One account per person: the same email, username or contact number cannot sign up twice.
           if (window.KreezbyMaintenanceSettings) {
-            var users = KreezbyMaintenanceSettings.getUsers();
-            users.customers = users.customers || [];
-            users.customers.push(record);
-            KreezbyMaintenanceSettings.saveUsers(users);
-            KreezbyMaintenanceSettings.recordLogin(payload.username);
+            var known = KreezbyMaintenanceSettings.getUsers() || {};
+            var keyOf = function (v) { return String(v == null ? '' : v).trim().toLowerCase().replace(/^\+?63/, '0'); };
+            var mine = [payload.email, payload.username, payload.phone].map(keyOf).filter(Boolean);
+            var taken = ['customers', 'retailers', 'staff', 'admins'].some(function (bucket) {
+              return (known[bucket] || []).some(function (row) {
+                return row && [row.email, row.username, row.phone, row.contact].map(keyOf).some(function (k) { return k && mine.indexOf(k) !== -1; });
+              });
+            });
+            if (taken) {
+              form.__kzSignupBusy = false;
+              if (submitBtn) submitBtn.disabled = false;
+              toast('An account with that email, username or contact number already exists. Please log in instead.', 'warn');
+              return;
+            }
           }
           var published = window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.publishAccount
             ? KreezbyMaintenanceSettings.publishAccount('customers', record)
@@ -845,6 +855,15 @@
             if (!result || !result.ok) {
               toast((result && result.error) || 'Account could not be saved to the database. Please try again.', 'warn');
               return;
+            }
+            // Added to the shared account list only after the server accepted it, so a refused
+            // (duplicate) sign-up never lands in the list.
+            if (window.KreezbyMaintenanceSettings) {
+              var users = KreezbyMaintenanceSettings.getUsers();
+              users.customers = users.customers || [];
+              if (!users.customers.some(function (row) { return row && row.id === record.id; })) users.customers.push(record);
+              KreezbyMaintenanceSettings.saveUsers(users);
+              KreezbyMaintenanceSettings.recordLogin(payload.username);
             }
             try { localStorage.removeItem('kreezbyCart'); localStorage.setItem('kzCartOwner', record.id); } catch (cartErr) { /* ignore */ }
             toast('Account created successfully! Please log in.', 'success');
