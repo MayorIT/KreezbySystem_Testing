@@ -242,7 +242,7 @@
         link.rel = 'stylesheet';
         // media attribute: desktop never applies these rules
         link.media = '(max-width: 900px)';
-        link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-tables.css?v=20261104d';
+        link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-tables.css?v=20261111compact';
         (document.head || document.documentElement).appendChild(link);
     }
 
@@ -277,7 +277,7 @@
                 cell.classList.toggle('kz-pc-title', c === titleIdx);
                 cell.classList.toggle('kz-pc-action', c !== titleIdx && (ACTION_RE.test(label) || (!label && hasControl) || (hasControl && text.length <= 24 && /action|manage/i.test(text))));
                 cell.classList.toggle('kz-pc-wide', c !== titleIdx && !cell.classList.contains('kz-pc-action') && (WIDE_RE.test(label) || text.length > 26));
-                if (!label && !hasControl && !text) cell.classList.add('kz-pc-empty');
+                if (!hasControl && (!text || text === '—' || text === '-' || text === '–')) cell.classList.add('kz-pc-empty');
                 else cell.classList.remove('kz-pc-empty');
             }
         });
