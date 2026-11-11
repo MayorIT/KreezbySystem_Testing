@@ -667,6 +667,8 @@
             type: 'stock-out',
             reference_id: id,
             quantity: qty,
+            date: new Date().toISOString(),
+            by: movementActor(),
             note: 'Finished goods sold on ' + (salesDate || FORECAST_DATE)
         });
         saved.inventory_transactions_extra = moves;
@@ -701,6 +703,8 @@
             type: 'stock-in',
             reference_id: id,
             quantity: qty,
+            date: new Date().toISOString(),
+            by: movementActor(),
             note: 'POS sale reversed on ' + (date || FORECAST_DATE)
         });
         saved.inventory_transactions_extra = moves;
@@ -772,6 +776,31 @@
             }
         }
 
+        // Stock already on hand that has no batch record yet keeps its own produced and expiry
+        // dates as an "old stock" batch, so adding the new batch never merges or hides it.
+        var existing = productBatches(productName);
+        var openingBatch = null;
+        if (existing.earlier > 0) {
+            var current = null;
+            mergedProducts().forEach(function (p) { if (p.product_id === id) current = p; });
+            current = current || {};
+            var openingNumber = String(current.batch_number || '').trim() || ('BCH-OLD-' + (id.split('-')[1] || id));
+            if (openingNumber.toLowerCase() === batchNumber.toLowerCase()) openingNumber += '-OLD';
+            openingBatch = {
+                batch_id: id + '-old-' + Date.now(),
+                product_id: id,
+                product_name: productName,
+                batch_number: openingNumber,
+                production_date: String(current.production_date || ''),
+                expiration_date: String(current.expiration_date || ''),
+                quantity: existing.earlier,
+                // Sorts before every batch added later.
+                added_at: '0000-01-01T00:00:00.000Z',
+                added_by: '',
+                opening: true
+            };
+        }
+
         var saved = savedState();
         var stock = productStockMap();
         var before = Number(stock[id]) || 0;
@@ -779,6 +808,7 @@
         stock[id] = after;
         saved.product_stock = stock;
         var batches = saved.product_batches || [];
+        if (openingBatch) batches.push(openingBatch);
         batches.push({
             batch_id: id + '-' + Date.now(),
             product_id: id,
