@@ -758,6 +758,20 @@
         });
         if (clash) { lastStockError = 'Batch ' + batchNumber + ' was already added for this product. Use a new batch number.'; return null; }
 
+        // Each pouch produced uses one stand up pouch and one sticker of its flavor.
+        lastPackagingUsed = '';
+        var packagingNeeded = fields.use_packaging ? packagingForProduct(productName) : [];
+        if (packagingNeeded.length) {
+            var onHand = materialStockMap();
+            var short = packagingNeeded.filter(function (m) { return (Number(onHand[m.material_id]) || 0) < qty; });
+            if (short.length) {
+                lastStockError = 'Not enough packaging for ' + qty + ' pouches: ' + short.map(function (m) {
+                    return m.name + ' has ' + (Number(onHand[m.material_id]) || 0);
+                }).join(', ') + '. Add packaging stock first, or untick "Take packaging from stock".';
+                return null;
+            }
+        }
+
         var saved = savedState();
         var stock = productStockMap();
         var before = Number(stock[id]) || 0;
@@ -809,10 +823,27 @@
         });
         saved.inventory_transactions_extra = moves;
         writeState(saved);
+        packagingNeeded.forEach(function (m) {
+            recordMaterialMovement(m.name, 'usage', qty, 'Used for batch ' + batchNumber + ' (' + productName + ')', 'packaging');
+        });
+        lastPackagingUsed = packagingNeeded.map(function (m) { return qty + ' ' + m.name; }).join(', ');
         snapshot();
         paintStockCells();
         notifyStocks();
         return after;
+    }
+
+    var lastPackagingUsed = '';
+
+    // Packaging one pouch of this product uses: the stand up pouch and the flavor's sticker.
+    function packagingForProduct(productName) {
+        var list = [];
+        var pouch = materialByName('Stand up pouch');
+        if (pouch) list.push(pouch);
+        var flavor = String(productName || '').replace(/\s*crinkles\s*$/i, '').trim();
+        var sticker = flavor ? materialByName('Stickers (' + flavor + ')') : null;
+        if (sticker) list.push(sticker);
+        return list;
     }
 
     // Splits what is on hand into batches, newest first kept apart from older stock.
@@ -908,8 +939,10 @@
         if (costValue != null && (!isFinite(costValue) || costValue < 0)) { lastMovementError = 'Enter a cost of 0 or more.'; return null; }
         var kind = String(movementType || '').toLowerCase();
         if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
-        // Stocks are add-only: only received stock (stock in) can be recorded by hand.
-        if (kind !== 'stock-in') { lastMovementError = 'Stock can only be added (stock in), not taken out or changed.'; return null; }
+        // Stock is never edited or deleted: it comes in (stock in) and raw/packaging materials go
+        // out only when used in production.
+        if (kind !== 'stock-in' && kind !== 'usage') { lastMovementError = 'Materials can only be added (stock in) or taken out when used in production.'; return null; }
+        if (kind === 'usage') costValue = null;
         var qty = Math.abs(Number(quantity) || 0);
         if (!qty) { lastMovementError = 'Enter a quantity greater than zero.'; return null; }
         var material = ensureMaterial(materialName, materialKind);
@@ -1524,13 +1557,14 @@
                 + stockField('fr-expires', 'Expiry date', 'expires', '<input id="fr-expires" type="date">')
                 + stockField('fr-stock', 'Quantity to add', 'stock', '<input id="fr-stock" type="number" min="1" step="1" placeholder="0">')
                 + (canEditPrice() ? stockField('fr-price', 'Price (₱ per pouch)', 'price', '<input id="fr-price" type="number" min="1" step="0.01">') : '')
+                + '<label class="fr-field fr-field--wide" style="flex-direction:row;align-items:center;gap:8px;font-weight:600;"><input id="fr-use-pack" type="checkbox" checked style="width:auto;height:auto;"> Take packaging from stock (1 stand up pouch + 1 sticker of this flavor per pouch)</label>'
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-product">Add stock</button></div>'
                 + '</div>'
                 // Raw / packaging material
                 + '<div class="fr-group" data-fr-group="material" hidden>'
                 + '<label class="fr-field"><span class="fr-label">' + stockFieldIcon('material') + '<span id="fr-material-label">Raw material</span></span>'
                 + '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list"></datalist></label>'
-                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option></select>')
+                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="usage">Stock out (used in production)</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
                 + stockField('fr-unit-cost', 'Cost per unit (₱)', 'price', '<input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00">')
                 + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
@@ -1550,6 +1584,7 @@
                 + '<label>Produced date<br><input id="fr-produced" type="date"></label>'
                 + '<label>Expiry date<br><input id="fr-expires" type="date"></label>'
                 + '<label>Quantity to add<br><input id="fr-stock" type="number" min="1" step="1" placeholder="0" style="width:90px;"></label>'
+                + '<label style="align-self:center;"><input id="fr-use-pack" type="checkbox" checked> Take packaging from stock</label>'
                 + (canEditPrice() ? '<label>Price (₱ per pouch)<br><input id="fr-price" type="number" min="1" step="0.01" style="width:90px;"></label>' : '')
                 + '<button type="button" id="fr-save-product">Add stock</button>'
                 + '</div></div></section>'
@@ -1559,7 +1594,7 @@
                 + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then add the quantity received.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
-                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option></select></label>'
+                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="usage">Stock out (used in production)</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
                 + '<label>Cost per unit (₱)<br><input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00" style="width:110px;"></label>'
                 + '<label>Note<br><input id="fr-note" type="text" placeholder="Supplier, batch or reason"></label>'
@@ -1591,11 +1626,13 @@
         document.getElementById('fr-save-product').addEventListener('click', function () {
             var name = document.getElementById('fr-product').value;
             var note = document.getElementById('fr-stock-note');
+            var usePackNode = document.getElementById('fr-use-pack');
             var after = addProductBatch(name, {
                 batch_number: document.getElementById('fr-batch').value,
                 production_date: document.getElementById('fr-produced').value,
                 expiration_date: document.getElementById('fr-expires').value,
-                quantity: document.getElementById('fr-stock').value
+                quantity: document.getElementById('fr-stock').value,
+                use_packaging: !usePackNode || usePackNode.checked
             });
             if (after == null) {
                 note.textContent = lastStockError || 'That stock could not be added.';
@@ -1612,7 +1649,8 @@
             document.querySelectorAll('.dict-fields').forEach(function (node) { node.remove(); });
             decorateStocks();
             fillProduct();
-            note.textContent = added + ' pouches of ' + name + ' added as a new batch. On hand now: ' + after + '.' + priceText;
+            note.textContent = added + ' pouches of ' + name + ' added as a new batch. On hand now: ' + after + '.' + priceText
+                + (lastPackagingUsed ? ' Packaging used: ' + lastPackagingUsed + '.' : '');
         });
         document.getElementById('fr-save-move').addEventListener('click', function () {
             var name = String(document.getElementById('fr-material').value || '').trim();
@@ -1622,13 +1660,27 @@
             var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value, kind, costNode ? costNode.value : null) : null;
             document.getElementById('fr-stock-note').textContent = !name
                 ? (kind === 'packaging' ? 'Type a packaging material name.' : 'Type a raw material name.')
-                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : name + ' now has ' + next + ' on hand.'
+                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : (document.getElementById('fr-move').value === 'usage' ? document.getElementById('fr-qty').value + ' used in production. ' : '') + name + ' now has ' + next + ' on hand.'
                     + (lastMovementCost != null && costNode && costNode.value !== '' ? ' Cost per unit: ₱' + Number(lastMovementCost).toFixed(2) + ', stock value ₱' + (Number(lastMovementCost) * next).toFixed(2) + '.' : '')
                     + ' Movement saved to the log below.');
             if (next != null) lastMovementCost = null;
             if (next != null && document.getElementById('fr-note')) document.getElementById('fr-note').value = '';
         });
         fillProduct();
+
+        // Stock out (used in production) keeps the cost per unit, so its field is hidden.
+        var moveSelect = document.getElementById('fr-move');
+        var syncMoveFields = function () {
+            var costInput = document.getElementById('fr-unit-cost');
+            var field = costInput && (costInput.closest('.fr-field') || costInput.closest('label'));
+            if (field) field.style.display = moveSelect && moveSelect.value === 'usage' ? 'none' : '';
+            var noteInput = document.getElementById('fr-note');
+            if (noteInput) noteInput.placeholder = moveSelect && moveSelect.value === 'usage'
+                ? 'Batch or product it was used for (optional)'
+                : 'Supplier, batch or reason (optional)';
+        };
+        if (moveSelect) moveSelect.addEventListener('change', syncMoveFields);
+        syncMoveFields();
 
         // Picking a material fills in its current cost per unit (it can be changed).
         var materialInput = document.getElementById('fr-material');
@@ -1646,8 +1698,8 @@
         if (typeSelect) {
             var LEADS = {
                 product: 'Add a new batch with its produced and expiry dates' + (canEditPrice() ? ' (you can also set the selling price)' : '') + '. Stock can only be added; sales deduct finished goods automatically.',
-                raw: 'Type any raw material, then add the quantity received. Stock can only be added.',
-                packaging: 'Type any packaging material (pouches, stickers), then add the quantity received. Stock can only be added.'
+                raw: 'Type any raw material, then record stock received (stock in) or the amount used in production (stock out).',
+                packaging: 'Type any packaging material (pouches, stickers), then record stock received or used in production. Adding finished pouches also uses packaging automatically.'
             };
             var applyType = function () {
                 var type = typeSelect.value;
