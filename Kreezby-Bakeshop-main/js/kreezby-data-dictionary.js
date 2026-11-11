@@ -308,16 +308,27 @@
             }
             // No stock means no batch on hand, so no expiry alert for it.
             if (qty <= 0) return;
-            var days = daysUntil(product.expiration_date);
-            if (days == null) return;
             var threshold = Number(product.expiry_threshold_days);
             if (!Number.isFinite(threshold)) threshold = 3;
-            var batch = product.batch_number ? (' batch ' + product.batch_number) : '';
-            if (days < 0) {
-                pushAlert(list, 'expired', 'Admin', product.product_id, product.product_name + batch + ' expired on ' + product.expiration_date + ' (' + shelfLifeText(days) + ') and cannot be sold.');
-            } else if (days <= threshold) {
-                pushAlert(list, 'near_expiry', 'Staff', product.product_id, product.product_name + batch + ' expires on ' + product.expiration_date + ', with ' + shelfLifeText(days) + '.');
+            // Every batch still on hand is checked with its own expiry date.
+            var split = productBatches(product.product_name);
+            var lots = split.batches.filter(function (b) { return b.remaining > 0; }).map(function (b) {
+                return { batch: b.batch_number, expires: b.expiration_date, qty: b.remaining };
+            });
+            if (split.earlier > 0 || !lots.length) {
+                lots.push({ batch: product.batch_number, expires: product.expiration_date, qty: split.earlier > 0 ? split.earlier : qty });
             }
+            lots.forEach(function (lot) {
+                var days = daysUntil(lot.expires);
+                if (days == null) return;
+                var batch = lot.batch ? (' batch ' + lot.batch) : '';
+                var pcs = ' (' + lot.qty + ' ' + (lot.qty === 1 ? 'pouch' : 'pouches') + ')';
+                if (days < 0) {
+                    pushAlert(list, 'expired', 'Admin', product.product_id, product.product_name + batch + pcs + ' expired on ' + lot.expires + ' (' + shelfLifeText(days) + ') and cannot be sold.');
+                } else if (days <= threshold) {
+                    pushAlert(list, 'near_expiry', 'Staff', product.product_id, product.product_name + batch + pcs + ' expires on ' + lot.expires + ', with ' + shelfLifeText(days) + '.');
+                }
+            });
         });
         var materials = materialStockMap();
         allMaterials().forEach(function (item) {

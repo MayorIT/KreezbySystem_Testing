@@ -77,6 +77,7 @@
         if (!root) return;
         var query = ((root.querySelector('#alert-search') || {}).value || '').toLowerCase().trim();
         var size = parseInt((root.querySelector('#alert-show') || {}).value, 10) || 10;
+        var kind = ((root.querySelector('#alert-kind') || {}).value || '');
         var rows = Array.from(root.querySelectorAll('#alert-table tbody tr'));
         var shown = 0;
         var counts = { critical: 0, warning: 0, info: 0 };
@@ -85,7 +86,9 @@
                 row.hidden = true;
                 return;
             }
-            var match = !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+            if (!row.getAttribute('data-severity')) { row.hidden = false; return; }
+            var match = (!query || row.textContent.toLowerCase().indexOf(query) !== -1)
+                && (!kind || row.getAttribute('data-kind') === kind);
             var visible = match && shown < size;
             row.hidden = !visible;
             if (!visible) return;
@@ -211,7 +214,7 @@
     }
 
     function onChange(ev) {
-        if (!ev.target || ev.target.id !== 'alert-show') return;
+        if (!ev.target || (ev.target.id !== 'alert-show' && ev.target.id !== 'alert-kind')) return;
         applyFilter();
     }
 

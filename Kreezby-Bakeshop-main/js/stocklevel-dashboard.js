@@ -312,7 +312,10 @@
 
     function chartSvg(months, stock, sales, tall) {
 
-        var max = Math.max.apply(null, stock.concat(sales));
+        stock = stock.map(function (v) { return Number(v) || 0; });
+        sales = sales.map(function (v) { return Number(v) || 0; });
+        // With no stock or sales yet every value is 0: scale to 1 so the lines sit on the axis.
+        var max = Math.max.apply(null, stock.concat(sales)) || 1;
 
         var w = 560;
 

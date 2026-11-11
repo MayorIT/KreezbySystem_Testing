@@ -1152,7 +1152,9 @@
     xhr.send();
   }
   setInterval(pollStateVersion, 3000);
-  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 15000);
+  // Customers and retailers have no task permissions: only staff/admin pages keep checking.
+  var PERMISSION_PAGES = /\/(admin|head_admin|staff|admin_names|staff_names)\//i.test(location.pathname || "");
+  setInterval(function () { if (!document.hidden && PERMISSION_PAGES) pullSharedPermissions(); }, 15000);
 })();
 
 (function () {

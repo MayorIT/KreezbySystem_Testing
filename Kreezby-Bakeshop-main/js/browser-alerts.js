@@ -111,7 +111,7 @@
             if (Number.isFinite(itemValue) && itemValue >= 0) return itemValue;
         }
         var item = catalogItem(code);
-        if (item && Number.isFinite(Number(item.alert)) && Number(item.alert) >= 0) return Number(item.alert);
+        if (item && item.alert != null && Number.isFinite(Number(item.alert)) && Number(item.alert) >= 0) return Number(item.alert);
         return Number(current.shop);
     }
 
@@ -178,10 +178,23 @@
         return NaN; // no real stock source on this page
     }
 
+    // The alert catalog plus any other flavor that has stock (Melon, Strawberry, ...).
+    function alertCatalog() {
+        var list = CATALOG.slice();
+        var dict = window.KreezbyDictionary;
+        if (dict && typeof dict.productCatalog === 'function') {
+            dict.productCatalog().forEach(function (p) {
+                if (!p || !p.id || catalogItem(p.id)) return;
+                list.push({ code: p.id, name: p.name, kind: 'finished', qty: 0, alert: null });
+            });
+        }
+        return list;
+    }
+
     function stockRows() {
         var local = readJson(STOCK_KEY, {});
         var qty = local && local.qty ? local.qty : {};
-        return CATALOG.map(function (item) {
+        return alertCatalog().map(function (item) {
             var current = liveQty(item, qty);
             var fallback = !Number.isFinite(current);
             if (fallback) current = item.qty;
@@ -354,6 +367,17 @@
         return id;
     }
 
+    function pushReorder(row, rp) {
+        var entry = {
+            id: 'reorder-' + row.code + '-' + Date.now(),
+            title: row.name + ' reached its reorder point',
+            description: row.name + ' is at ' + row.count + ' (reorder point ' + rp + '). Order about ' + suggestedOrder(row) + ' now so it does not run low.',
+            source: 'alert',
+            audiences: ['admin', 'head', 'staff']
+        };
+        if (window.KreezbyNotifications) window.KreezbyNotifications.push(entry);
+    }
+
     function showInApp(title, body) {
         var existing = document.getElementById('kreezby-threshold-toast');
         if (existing) existing.remove();
@@ -390,6 +414,9 @@
                 last[row.code] = row.qty;
                 lastChanged = true;
             }
+            // Reorder point notification: sent once when stock first drops to the reorder point.
+            var rp = reorderPoint(row.threshold);
+            if (before != null && before > rp && row.qty <= rp && row.qty > row.threshold) pushReorder(row, rp);
             if (row.qty <= row.threshold) {
                 if (open && open.id) return;
                 var dropped = before != null && before > row.threshold;
@@ -418,69 +445,153 @@
         renderLiveRows();
     }
 
+    // Reorder point: a little above the alert line, so stock is ordered before it runs low.
+    // Reorder point = alert line × 1.5. Suggested order = enough to reach twice the alert line.
+    function reorderPoint(threshold) {
+        return Math.ceil(Number(threshold) * 1.5);
+    }
+
+    function suggestedOrder(row) {
+        return Math.max(0, Math.ceil(Number(row.threshold) * 2) - Number(row.qty));
+    }
+
+    function alertKinds() {
+        return {
+            low: { label: 'Low stock', severity: 'Warning' },
+            reorder: { label: 'Reorder point', severity: 'Info' },
+            near: { label: 'Near expiry', severity: 'Warning' },
+            expired: { label: 'Expired', severity: 'Critical' }
+        };
+    }
+
+    // Everything the Alerts page lists, from the live stock and batches.
+    function liveAlertItems() {
+        var active = readJson(ACTIVE_KEY, {});
+        var items = [];
+        stockRows().forEach(function (row) {
+            if (row.fallback || !(row.threshold >= 0)) return;
+            if (active[row.code] && active[row.code].muted && row.qty <= row.threshold) return;
+            var unit = row.kind === 'finished' ? ' pouches' : '';
+            if (row.qty <= row.threshold) {
+                items.push({
+                    kind: 'low', code: row.code, name: row.name,
+                    severity: row.qty <= 0 || row.qty <= Math.floor(row.threshold / 2) ? 'Critical' : 'Warning',
+                    actions: 'restock,dismiss',
+                    message: (row.qty <= 0 ? row.name + ' is out of stock' : row.name + ' is at ' + row.count)
+                        + ', at or below the alert line of ' + row.threshold + unit + '. Reorder about ' + suggestedOrder(row) + unit + '.'
+                });
+                return;
+            }
+            var rp = reorderPoint(row.threshold);
+            if (row.qty <= rp) {
+                items.push({
+                    kind: 'reorder', code: row.code, name: row.name, severity: 'Info', actions: 'restock,dismiss',
+                    message: row.name + ' is at ' + row.count + ', at its reorder point of ' + rp + unit
+                        + ' (alert line ' + row.threshold + '). Order about ' + suggestedOrder(row) + unit + ' now so it does not run low.'
+                });
+            }
+        });
+        var dict = window.KreezbyDictionary;
+        if (dict && typeof dict.alerts === 'function') {
+            dict.alerts().forEach(function (alert) {
+                if (!alert || alert.status !== 'pending') return;
+                if (alert.alert_type !== 'near_expiry' && alert.alert_type !== 'expired') return;
+                items.push({
+                    kind: alert.alert_type === 'expired' ? 'expired' : 'near',
+                    code: alert.reference_id, name: '', actions: 'dismiss',
+                    severity: alert.alert_type === 'expired' ? 'Critical' : 'Warning',
+                    message: alert.message + (alert.alert_type === 'expired' ? ' Remove it from sale.' : ' Sell or use it first.')
+                });
+            });
+        }
+        return items;
+    }
+
+    // "Alert results and interpretation": what the alerts mean right now, in plain words.
+    function renderResults(items) {
+        var host = document.getElementById('admin-alert-banners');
+        if (!host) return;
+        var count = { low: 0, reorder: 0, near: 0, expired: 0, out: 0 };
+        items.forEach(function (item) {
+            count[item.kind] += 1;
+            if (item.kind === 'low' && /out of stock/.test(item.message)) count.out += 1;
+        });
+        var lines = [];
+        if (count.expired) lines.push(count.expired + (count.expired === 1 ? ' batch has' : ' batches have') + ' expired. Take them off the shelf; they cannot be sold.');
+        if (count.out) lines.push(count.out + (count.out === 1 ? ' item is' : ' items are') + ' out of stock. Customers and retailers cannot be served until it is restocked.');
+        if (count.low - count.out > 0) lines.push((count.low - count.out) + (count.low - count.out === 1 ? ' item is' : ' items are') + ' at or below the alert line. Restock soon.');
+        if (count.near) lines.push(count.near + (count.near === 1 ? ' batch expires' : ' batches expire') + ' within its expiry alert days. Sell or use these first.');
+        if (count.reorder) lines.push(count.reorder + (count.reorder === 1 ? ' item has' : ' items have') + ' reached the reorder point. Order now so stock arrives before it runs low.');
+        var tone = count.expired || count.out ? 'destructive' : (count.low || count.near ? 'warning' : (count.reorder ? 'info' : 'success'));
+        var title = items.length ? 'Alert results: ' + items.length + (items.length === 1 ? ' item needs' : ' items need') + ' attention' : 'Alert results: all clear';
+        var chips = [
+            ['Low stock', count.low], ['Reorder point', count.reorder], ['Near expiry', count.near], ['Expired', count.expired]
+        ].map(function (c) {
+            return '<span style="display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;background:#fff;border:1px solid #eadfce;font-size:12px;font-weight:700;color:#3e2723;">' + c[0] + ' <b>' + c[1] + '</b></span>';
+        }).join(' ');
+        var body = lines.length
+            ? '<ul style="margin:6px 0 0;padding-left:18px;">' + lines.map(function (l) { return '<li>' + escapeHtml(l) + '</li>'; }).join('') + '</ul>'
+            : '<p style="margin:6px 0 0;">Every item is above its reorder point and no batch is near expiry or expired. No action is needed.</p>';
+        host.innerHTML = '<div role="status" class="kreezby-alert kreezby-alert--' + tone + ' kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>'
+            + '<div class="kreezby-alert__content">'
+            + '<div class="kreezby-alert__title">' + escapeHtml(title) + '</div>'
+            + '<div class="kreezby-alert__description"><div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px;">' + chips + '</div>' + body
+            + '<p style="margin:8px 0 0;font-size:12px;opacity:.85;">How to read this: <b>Low stock</b> = at or below the alert line set in Alert settings. <b>Reorder point</b> = 1.5 × the alert line; ordering at this point keeps stock from dropping to the alert line. <b>Near expiry</b> = within the item\'s expiry alert days. <b>Expired</b> = past its expiry date.</p>'
+            + '</div></div></div>';
+    }
+
+    // Type filter (All / Low stock / Reorder point / Near expiry / Expired) next to the search box.
+    function ensureKindFilter() {
+        if (document.getElementById('alert-kind')) return;
+        var tools = document.querySelector('#alert-master .po-list-toolbar-tools');
+        if (!tools) return;
+        var label = document.createElement('label');
+        label.className = 'po-page-size';
+        label.innerHTML = 'Type <select id="alert-kind"><option value="">All alerts</option>'
+            + '<option value="low">Low stock</option><option value="reorder">Reorder point</option>'
+            + '<option value="near">Near expiry</option><option value="expired">Expired</option></select>';
+        tools.insertBefore(label, tools.firstChild);
+    }
+
     function renderLiveRows() {
         var table = document.querySelector('#alert-table tbody');
         if (!table) return;
-        var active = readJson(ACTIVE_KEY, {});
-        var lows = stockRows().filter(function (row) {
-            return !row.fallback && row.qty <= row.threshold && !(active[row.code] && active[row.code].muted);
-        });
-        var signature = lows.map(function (row) { return row.code + ':' + row.qty + ':' + row.threshold; }).join('|');
-        var expiry = [];
-        if (window.KreezbyDictionary && typeof window.KreezbyDictionary.alerts === 'function') {
-            expiry = window.KreezbyDictionary.alerts().filter(function (alert) {
-                return alert && (alert.alert_type === 'near_expiry' || alert.alert_type === 'expired') && alert.status === 'pending';
-            });
-        }
-        signature += '|exp:' + expiry.map(function (alert) { return alert.alert_type + ':' + alert.reference_id + ':' + alert.message; }).join('|');
+        ensureKindFilter();
+        var items = liveAlertItems();
+        var signature = items.map(function (item) { return item.kind + ':' + item.code + ':' + item.message; }).join('|');
         if (table.dataset.liveSignature === signature) return;
         table.dataset.liveSignature = signature;
+        renderResults(items);
         table.querySelectorAll('tr').forEach(function (row) { row.remove(); });
         var stamp = new Date();
         var when = stamp.getFullYear() + '-' + String(stamp.getMonth() + 1).padStart(2, '0') + '-' + String(stamp.getDate()).padStart(2, '0')
             + ' ' + String(stamp.getHours()).padStart(2, '0') + ':' + String(stamp.getMinutes()).padStart(2, '0');
-        lows.slice().reverse().forEach(function (row) {
-            var severity = row.qty <= 0 || row.qty <= Math.floor(row.threshold / 2) ? 'Critical' : 'Warning';
+        var order = { expired: 0, low: 1, near: 2, reorder: 3 };
+        var kinds = alertKinds();
+        items.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
+        if (!items.length) {
+            table.innerHTML = '<tr class="kreezby-phone-span"><td colspan="6" style="text-align:center;padding:18px;color:#7a6558;">No alerts right now. Stock is above every reorder point and nothing is near expiry.</td></tr>';
+        }
+        items.forEach(function (item) {
             var tr = document.createElement('tr');
             tr.setAttribute('data-live-alert', '1');
-            tr.setAttribute('data-source', row.code);
+            tr.setAttribute('data-kind', item.kind);
+            tr.setAttribute('data-source', item.code);
             tr.setAttribute('data-time', when);
-            tr.setAttribute('data-severity', severity);
-            tr.setAttribute('data-actions', 'restock,modify,dismiss');
+            tr.setAttribute('data-severity', item.severity);
+            tr.setAttribute('data-actions', item.actions);
+            var menu = (item.actions.indexOf('restock') >= 0 ? '<button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>' : '')
+                + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>';
             tr.innerHTML = ''
                 + '<td class="po-col-num"></td>'
                 + '<td>' + escapeHtml(when) + '</td>'
-                + '<td><strong>' + escapeHtml(row.code) + '</strong></td>'
-                + '<td class="al-message">' + escapeHtml(row.name + ' is at ' + row.count + ', at or below the alert line of ' + row.threshold + '.') + '</td>'
-                + '<td class="al-severity"><span class="severity-badge ' + severity.toLowerCase() + '">' + severity + '</span></td>'
+                + '<td><strong>' + escapeHtml(item.code) + '</strong><div style="font-size:11px;color:#7a6558;margin-top:2px;">' + escapeHtml(kinds[item.kind].label) + '</div></td>'
+                + '<td class="al-message">' + escapeHtml(item.message) + '</td>'
+                + '<td class="al-severity"><span class="severity-badge ' + item.severity.toLowerCase() + '">' + item.severity + '</span></td>'
                 + '<td class="al-action"><div class="action-menu-relative-container" data-kreezby-page-menu>'
                 + '<button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>'
-                + '<div class="action-popup-menu">'
-                + '<button type="button" class="action-popup-item" data-alert-action="restock">Create Restock P.O.</button>'
-                + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>'
-                + '</div></div></td>';
-            table.insertBefore(tr, table.firstChild);
-        });
-        expiry.slice().reverse().forEach(function (alert) {
-            var severity = alert.alert_type === 'expired' ? 'Critical' : 'Warning';
-            var tr = document.createElement('tr');
-            tr.setAttribute('data-live-alert', '1');
-            tr.setAttribute('data-source', alert.reference_id);
-            tr.setAttribute('data-time', when);
-            tr.setAttribute('data-severity', severity);
-            tr.setAttribute('data-actions', 'dismiss');
-            tr.innerHTML = ''
-                + '<td class="po-col-num"></td>'
-                + '<td>' + escapeHtml(when) + '</td>'
-                + '<td><strong>' + escapeHtml(alert.reference_id) + '</strong></td>'
-                + '<td class="al-message">' + escapeHtml(alert.message) + '</td>'
-                + '<td class="al-severity"><span class="severity-badge ' + severity.toLowerCase() + '">' + severity + '</span></td>'
-                + '<td class="al-action"><div class="action-menu-relative-container" data-kreezby-page-menu>'
-                + '<button type="button" class="action-trigger-btn" data-alert-menu="1">Action ▾</button>'
-                + '<div class="action-popup-menu">'
-                + '<button type="button" class="action-popup-item dismiss-action" data-alert-action="dismiss">Dismiss Alert</button>'
-                + '</div></div></td>';
-            table.insertBefore(tr, table.firstChild);
+                + '<div class="action-popup-menu">' + menu + '</div></div></td>';
+            table.appendChild(tr);
         });
         if (window.AlertAdmin && typeof window.AlertAdmin.filter === 'function') window.AlertAdmin.filter();
     }
