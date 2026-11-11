@@ -544,6 +544,16 @@
             scanStorage(c);
         });
 
+        // Notes saved by another account (e.g. head admin changing access) arrive through
+        // the shared state: update the bell and pop-ups without a page refresh.
+        document.addEventListener('kreezby:remote-state', function (e) {
+            var keys = (e.detail && e.detail.keys) || [];
+            if (keys.indexOf(STORAGE_KEY) === -1) return;
+            emit({ type: 'storage-sync', unread: getUnreadCount() });
+        });
+
+        wireAccessToasts();
+
         document.addEventListener('kreezby:activity', function (e) {
             var detail = e.detail || {};
             if (!detail.title) return;
@@ -581,6 +591,112 @@
             window.addEventListener('pagehide', stopPoll);
             if (!document.hidden) startPoll();
         }
+    }
+
+    // ---- Live "access given / removed" pop-up for admin and staff -----------------------
+    // When head admin saves permissions, the note reaches this browser through the shared
+    // state within a few seconds. Show it on screen right away (no refresh needed).
+    var ACCESS_SEEN_KEY = 'kzAccessToastSeen';
+    var ACCESS_FRESH_MS = 15 * 60 * 1000;
+    var accessShownAt = {};
+
+    function readAccessSeen() {
+        try {
+            var list = JSON.parse(localStorage.getItem(ACCESS_SEEN_KEY) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (e) { return []; }
+    }
+
+    function writeAccessSeen(list) {
+        try { localStorage.setItem(ACCESS_SEEN_KEY, JSON.stringify(list.slice(-200))); } catch (e) { /* optional */ }
+    }
+
+    function ensureAccessToastStyles() {
+        if (document.getElementById('kz-access-toast-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-access-toast-style';
+        st.textContent = ''
+            + '#kz-access-toasts{position:fixed;top:76px;right:18px;z-index:100000;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 36px));}'
+            + '.kz-access-toast{background:#fff;border:1px solid #eadfce;border-left:6px solid #2e7d32;border-radius:12px;box-shadow:0 10px 28px rgba(62,39,35,.22);padding:12px 40px 12px 14px;position:relative;color:#3e2723;font:14px/1.4 inherit;animation:kzAccessIn .25s ease-out;}'
+            + '.kz-access-toast.is-removed{border-left-color:#c62828;}'
+            + '.kz-access-toast.is-mixed{border-left-color:#f9a825;}'
+            + '.kz-access-toast strong{display:block;font-size:15px;margin-bottom:2px;}'
+            + '.kz-access-toast p{margin:0;}'
+            + '.kz-access-toast small{display:block;margin-top:6px;color:#7a6558;}'
+            + '.kz-access-toast button{position:absolute;top:8px;right:8px;border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#7a6558;}'
+            + '@keyframes kzAccessIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}';
+        document.head.appendChild(st);
+    }
+
+    function showAccessToast(item) {
+        if (!document.body) return;
+        ensureAccessToastStyles();
+        var wrap = document.getElementById('kz-access-toasts');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.id = 'kz-access-toasts';
+            wrap.setAttribute('role', 'status');
+            wrap.setAttribute('aria-live', 'polite');
+            document.body.appendChild(wrap);
+        }
+        var title = String(item.title || 'Access updated');
+        var kind = /removed/i.test(title) ? 'is-removed' : (/given/i.test(title) ? '' : 'is-mixed');
+        var box = document.createElement('div');
+        box.className = 'kz-access-toast ' + kind;
+        var strong = document.createElement('strong');
+        strong.textContent = title;
+        var text = document.createElement('p');
+        text.textContent = String(item.description || '');
+        var hint = document.createElement('small');
+        hint.textContent = 'Set by the head admin. Your menu has been updated.';
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Close');
+        close.textContent = '\u00d7';
+        close.onclick = function () { box.remove(); };
+        box.appendChild(strong);
+        box.appendChild(text);
+        box.appendChild(hint);
+        box.appendChild(close);
+        wrap.appendChild(box);
+        setTimeout(function () { if (box.parentNode) box.remove(); }, 12000);
+    }
+
+    function checkAccessToasts() {
+        var role = portalRole();
+        if (role !== 'admin' && role !== 'staff') return;
+        if (!currentAccountKeys().length) return;
+        var seen = readAccessSeen();
+        var now = Date.now();
+        var changed = false;
+        readStored().forEach(function (n) {
+            if (!n || n.source !== 'access' || !n.id || seen.indexOf(n.id) !== -1) return;
+            if (!visibleToAudience(n)) return;
+            seen.push(n.id);
+            changed = true;
+            var at = new Date(n.timestamp).getTime();
+            if (!at || now - at > ACCESS_FRESH_MS) return;
+            accessShownAt[n.id] = now;
+            showAccessToast(n);
+        });
+        if (changed) writeAccessSeen(seen);
+    }
+
+    function wireAccessToasts() {
+        var run = function () { setTimeout(checkAccessToasts, 50); };
+        if (document.body) run();
+        else document.addEventListener('DOMContentLoaded', run);
+        document.addEventListener('kreezby:notification-change', run);
+        document.addEventListener('kreezby-admin-permissions-ready', run);
+        document.addEventListener('kreezby-staff-permissions-ready', run);
+        // If the page closes right after the pop-up (for example access to this page was
+        // removed and it moves to the dashboard), show it again on the next page.
+        window.addEventListener('pagehide', function () {
+            var now = Date.now();
+            var recent = Object.keys(accessShownAt).filter(function (id) { return now - accessShownAt[id] < 4000; });
+            if (!recent.length) return;
+            writeAccessSeen(readAccessSeen().filter(function (id) { return recent.indexOf(id) === -1; }));
+        });
     }
 
     function notifyExternalChange() {

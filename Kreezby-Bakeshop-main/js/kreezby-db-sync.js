@@ -768,9 +768,15 @@
     } catch (e) { /* listeners are optional */ }
   }
 
+  var permissionPullBusy = false;
   function pullSharedPermissions() {
+    // One request at a time: on a slow or cold server, polls must not pile up.
+    if (permissionPullBusy) return;
+    permissionPullBusy = true;
+    setTimeout(function () { permissionPullBusy = false; }, 9000);
     // The server copy (MongoDB) is the shared one; the static file is only a fallback.
     var xhr = new XMLHttpRequest();
+    xhr.addEventListener("loadend", function () { permissionPullBusy = false; });
     xhr.open("GET", "/api/permissions?t=" + Date.now(), true);
     xhr.timeout = 8000;
     xhr.onload = function () {
@@ -950,6 +956,9 @@
         document.dispatchEvent(new CustomEvent("kreezby:remote-state", { detail: { keys: changedKeys } }));
       } catch (e) { /* listeners are optional */ }
       scheduleLiveRefresh(changedKeys, fromFirstPull);
+      // A new note (for example "Access given") usually comes with a permission change:
+      // fetch the permissions now so the menu updates together with the notification.
+      if (changedKeys.indexOf("kreezbyNotifications") !== -1) pullSharedPermissions();
       // Stock screens, the customer shop and the dashboards re-read stock the moment it
       // changes anywhere (another user, POS, a paid online order).
       if (changedKeys.some(function (k) { return STOCK_KEYS[k] || k === "kreezbyOrders" || k === "kreezby-po-orders-v1"; })) announceStocks();
@@ -1116,15 +1125,18 @@
   // download the full state when it did (full refresh every 30 seconds as a safety net).
   var lastStateVersion = null;
   var lastFullPull = Date.now();
+  var versionPollBusy = false;
   function pollStateVersion() {
-    if (document.hidden) return;
+    if (document.hidden || versionPollBusy) return;
     if (Date.now() - lastFullPull > 30000) {
       lastFullPull = Date.now();
       pull(false);
     }
     var xhr = new XMLHttpRequest();
+    versionPollBusy = true;
     xhr.open("GET", "/api/state-version?t=" + Date.now(), true);
     xhr.timeout = 8000;
+    xhr.onloadend = function () { versionPollBusy = false; };
     xhr.onload = function () {
       if (xhr.status !== 200) return;
       try {
@@ -1132,14 +1144,15 @@
         if (version !== lastStateVersion) {
           var first = lastStateVersion === null;
           lastStateVersion = version;
-          if (!first) { lastFullPull = Date.now(); pull(false); }
+          // Something changed (data or permissions): fetch both now.
+          if (!first) { lastFullPull = Date.now(); pull(false); pullSharedPermissions(); }
         }
       } catch (e) { /* keep polling the cheap version check */ }
     };
     xhr.send();
   }
   setInterval(pollStateVersion, 3000);
-  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 8000);
+  setInterval(function () { if (!document.hidden) pullSharedPermissions(); }, 15000);
 })();
 
 (function () {

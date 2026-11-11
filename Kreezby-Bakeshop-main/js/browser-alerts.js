@@ -519,7 +519,12 @@
 
     function registerWorker() {
         if (!('serviceWorker' in navigator) || window.location.protocol === 'file:') return;
-        navigator.serviceWorker.register('/sw-alerts.js').catch(function () { /* page notifications still work */ });
+        // The site may live at the domain root (local server) or under /Kreezby-Bakeshop-main/
+        // (Vercel): register the worker from the folder that holds the portal folders.
+        var path = window.location.pathname.replace(/\\/g, '/');
+        var match = path.match(/^(.*?\/)(admin|head_admin|staff|retailer|customer|auth|admin_names|staff_names)\//i);
+        var base = match ? match[1] : '/';
+        navigator.serviceWorker.register(base + 'sw-alerts.js', { scope: base }).catch(function () { /* page notifications still work */ });
     }
 
     function ensureProfileLink() {

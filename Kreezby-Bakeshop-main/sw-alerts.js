@@ -1,7 +1,7 @@
 /* System notifications for head admin, admin, and staff browsers. */
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
-    var target = (event.notification.data && event.notification.data.href) || '/admin/alert-admin.html';
+    var target = (event.notification.data && event.notification.data.href) || (self.registration.scope + 'admin/alert-admin.html');
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
             var i;

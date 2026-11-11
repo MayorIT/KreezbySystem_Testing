@@ -343,6 +343,9 @@
     }
 
     var currentDirectory = 'retailer';
+    // Search text and area filter for the open account list; kept while the list re-renders.
+    var directorySearch = '';
+    var directoryArea = '';
 
     var DIRECTORY = {
         supplier: { bucket: 'suppliers', title: 'Suppliers', detail: 'Contact', detailOf: function (u) { return u.contact || '—'; }, accountOf: function (u) { return u.email || '—'; } },
@@ -461,11 +464,13 @@
                 + '.maint-status-btn.is-off{background:#c62828;color:#fff;}'
                 + '.maint-status-btn.is-on{background:#2e7d32;color:#fff;}'
                 + '.maint-status-btn:disabled{opacity:.55;cursor:not-allowed;}'
+                + '.maint-view-only{font-size:12px;font-weight:700;color:#7a6558;}'
                 + '.panel-data-card:has(#maintenance-grid-workspace-root){overflow-x:auto !important;max-width:100%;}'
                 + '#maintenance-grid-workspace-root{max-width:100%;overflow-x:auto;}'
                 + '#maintenance-grid-workspace-root .data-display-table{width:max-content;min-width:100%;}';
             document.head.appendChild(style);
         }
+        ensureSettingsToolStyles();
         if (window.KreezbyExpandingTabs && typeof window.KreezbyExpandingTabs.init === 'function') {
             window.KreezbyExpandingTabs.init();
         }
@@ -499,13 +504,18 @@
         if (!spec || !root || !window.KreezbyMaintenanceSettings) return;
         var users = KreezbyMaintenanceSettings.getUsers()[spec.bucket] || [];
         var manage = canManageAccounts();
+        // Customers sign up on their own; head admin and admin only monitor the list.
+        var monitorOnly = spec.bucket === 'customers';
+        var hasArea = spec.bucket === 'retailers' || spec.bucket === 'customers';
         var rows = users.map(function (user, index) {
             var on = user.active !== false;
             var locked = spec.bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
-            var action = locked
+            var action = monitorOnly
+                ? '<span class="maint-view-only">View only</span>'
+                : locked
                 ? '<button type="button" class="maint-status-btn is-on" disabled>Protected</button>'
                 : '<button type="button" class="maint-status-btn ' + (on ? 'is-off' : 'is-on') + '" data-account-toggle="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '" data-next-active="' + (on ? '0' : '1') + '"' + (manage ? '' : ' disabled') + '>' + (on ? 'Deactivate' : 'Activate') + '</button>';
-            return '<tr class="maint-account-row" data-account-row="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '">'
+            return '<tr class="maint-account-row" data-account-row="' + esc(user.id) + '" data-account-bucket="' + spec.bucket + '" data-account-area="' + esc(user.area || '') + '">'
                 + '<td data-label="#">' + (index + 1) + '</td>'
                 + '<td data-label="Name"><strong>' + esc(user.name) + '</strong></td>'
                 + '<td data-label="' + esc(spec.detail) + '">' + esc(spec.detailOf(user)) + '</td>'
@@ -513,10 +523,12 @@
                 + '<td data-label="Status"><span class="status-pill-badge ' + (on ? 'received' : 'rejected') + '">' + (on ? 'Active' : 'Deactivated') + '</span></td>'
                 + '<td data-label="Action">' + action + '</td></tr>';
         }).join('');
-        var note = manage
+        var note = monitorOnly
+            ? 'Customers create their own accounts when they sign up. This list is for monitoring only. Select a row to view the customer.'
+            : manage
             ? 'Select a row or use Activate / Deactivate. A deactivated account stays on file and cannot log in.'
             : 'You can open every account. Only an authorized account can activate or deactivate it.';
-        var createForm = manage
+        var createForm = manage && !monitorOnly
             ? '<form id="maint-create-account" data-kreezby-native="1" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 14px;">'
                 + '<label>Name<br><input name="name" required></label>'
                 + (spec.bucket === 'staff' || spec.bucket === 'admins'
@@ -531,9 +543,68 @@
             + createForm
             + '<div class="datatable-controls-bar"><div>' + esc(spec.title) + '</div></div>'
             + '<p class="settings-section-desc">' + note + '</p>'
+            + directoryToolbar(spec, users, hasArea)
             + '<table class="data-display-table"><thead><tr style="background-color:#e4c9a3;color:#4e342e;">'
             + '<th>#</th><th>Name</th><th>' + esc(spec.detail) + '</th><th>Account</th><th>Status</th><th>Action</th>'
             + '</tr></thead><tbody>' + (rows || '<tr class="kreezby-phone-span"><td colspan="6">No accounts in this list.</td></tr>') + '</tbody></table>';
+        applyDirectoryFilter();
+    }
+
+    // Search bar and area filter shown above an account list (Retailers, Customers, Staff, Admins).
+    function directoryToolbar(spec, users, hasArea) {
+        var areaOptions = '';
+        if (hasArea) {
+            var seen = {};
+            var names = [];
+            allAreas().forEach(function (a) { seen[areaKey(a.name)] = true; names.push(a.name); });
+            users.forEach(function (u) {
+                var label = String(u.area || '').trim();
+                if (label && !seen[areaKey(label)]) { seen[areaKey(label)] = true; names.push(label); }
+            });
+            names.sort(function (a, b) { return a.localeCompare(b); });
+            if (directoryArea && !seen[areaKey(directoryArea)]) directoryArea = '';
+            areaOptions = '<label class="kz-settings-field"><span>Filter by Area</span><select id="maint-dir-area">'
+                + '<option value="">All areas</option>'
+                + names.map(function (n) {
+                    return '<option value="' + esc(n) + '"' + (areaKey(n) === areaKey(directoryArea) ? ' selected' : '') + '>' + esc(n) + '</option>';
+                }).join('')
+                + '</select></label>';
+        }
+        return '<form id="maint-dir-tools" class="kz-settings-tools" data-kreezby-native="1">'
+            + '<label class="kz-settings-field"><span>Search</span><input type="search" id="maint-dir-search" placeholder="Search ' + esc(spec.title.toLowerCase()) + ' by name or account" value="' + esc(directorySearch) + '"></label>'
+            + areaOptions
+            + '<button type="submit" class="kz-settings-btn">Search</button>'
+            + '<button type="button" class="kz-settings-btn kz-settings-btn--ghost" id="maint-dir-clear">Clear</button>'
+            + '<span id="maint-dir-count" class="kz-settings-count"></span>'
+            + '</form>';
+    }
+
+    function applyDirectoryFilter() {
+        var root = document.getElementById('maintenance-grid-workspace-root');
+        if (!root) return;
+        var input = document.getElementById('maint-dir-search');
+        var select = document.getElementById('maint-dir-area');
+        if (input) directorySearch = input.value || '';
+        if (select) directoryArea = select.value || '';
+        var q = directorySearch.toLowerCase().trim();
+        var area = select ? areaKey(directoryArea) : '';
+        var rows = root.querySelectorAll('tr[data-account-row]');
+        var shown = 0;
+        rows.forEach(function (tr) {
+            var okArea = !area || areaKey(tr.getAttribute('data-account-area')) === area;
+            var okText = !q || ((tr.textContent || '') + ' ' + (tr.getAttribute('data-account-area') || '')).toLowerCase().indexOf(q) >= 0;
+            var match = okArea && okText;
+            tr.style.display = match ? '' : 'none';
+            if (match) shown += 1;
+        });
+        var empty = document.getElementById('maint-dir-empty');
+        if (empty) empty.remove();
+        if (rows.length && !shown) {
+            var body = root.querySelector('table.data-display-table tbody');
+            if (body) body.insertAdjacentHTML('beforeend', '<tr id="maint-dir-empty"><td colspan="6">No account matches the search or area.</td></tr>');
+        }
+        var count = document.getElementById('maint-dir-count');
+        if (count) count.textContent = (q || area) ? (shown + ' of ' + rows.length + ' shown') : rows.length + ' total';
     }
 
     // ---- Item List (Maintenance > Item List) ------------------------------------------------
@@ -699,13 +770,18 @@
             + (user.email ? '<p>Email: ' + esc(user.email) + '</p>' : '')
             + (user.address ? '<p>Address: ' + esc(user.address) + '</p>' : '')
             + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · This account stays active.' : '') + '</p>'
-            + (manage ? '' : '<p>Only an authorized account can change this.</p>');
+            + (user.area ? '<p>Area: ' + esc(user.area) + '</p>' : '')
+            + (bucket === 'customers' ? '<p>Customer accounts are for monitoring only.</p>' : (manage ? '' : '<p>Only an authorized account can change this.</p>'));
     }
 
     function toggleAccount(bucket, id, active) {
         var box = document.getElementById('maint-account-detail');
         if (!canManageAccounts()) {
             if (box) box.innerHTML = '<p>Only an authorized account can activate or deactivate accounts.</p>';
+            return;
+        }
+        if (bucket === 'customers') {
+            if (box) box.innerHTML = '<p>Customer accounts are for monitoring only.</p>';
             return;
         }
         var result = KreezbyMaintenanceSettings.setAccountStatus(bucket, id, active);
@@ -720,6 +796,10 @@
 
     function openDirectory(dir, tabNode) {
         if (!DIRECTORY[dir]) return;
+        if (dir !== currentDirectory) {
+            directorySearch = '';
+            directoryArea = '';
+        }
         currentDirectory = dir;
         markSelected(dir, tabNode);
         renderDirectory(dir);
@@ -763,9 +843,19 @@
                     saveItemEdit(itemForm);
                     return;
                 }
+                if (ev.target.closest('#maint-dir-tools')) {
+                    ev.preventDefault();
+                    applyDirectoryFilter();
+                    return;
+                }
                 var form = ev.target.closest('#maint-create-account');
                 if (!form || !window.KreezbyMaintenanceSettings || !KreezbyMaintenanceSettings.createAccount) return;
                 ev.preventDefault();
+                if (currentDirectory === 'customer') {
+                    var blocked = document.getElementById('maint-account-detail');
+                    if (blocked) blocked.innerHTML = '<p>Customers create their own accounts when they sign up. This list is for monitoring only.</p>';
+                    return;
+                }
                 var result = KreezbyMaintenanceSettings.createAccount(currentDirectory && DIRECTORY[currentDirectory] ? DIRECTORY[currentDirectory].bucket : '', {
                     name: form.elements.name && form.elements.name.value,
                     username: form.elements.username && form.elements.username.value,
@@ -781,7 +871,22 @@
                 var box = document.getElementById('maint-account-detail');
                 if (box) box.innerHTML = '<p>' + esc(result.message) + '</p>';
             });
+            root.addEventListener('input', function (ev) {
+                if (ev.target && ev.target.id === 'maint-dir-search') applyDirectoryFilter();
+            });
+            root.addEventListener('change', function (ev) {
+                if (ev.target && ev.target.id === 'maint-dir-area') applyDirectoryFilter();
+            });
             root.addEventListener('click', function (ev) {
+                if (ev.target.closest('#maint-dir-clear')) {
+                    ev.preventDefault();
+                    var clearInput = document.getElementById('maint-dir-search');
+                    var clearSelect = document.getElementById('maint-dir-area');
+                    if (clearInput) clearInput.value = '';
+                    if (clearSelect) clearSelect.value = '';
+                    applyDirectoryFilter();
+                    return;
+                }
                 if (ev.target.closest('[data-retailer-price-edit]')) {
                     ev.preventDefault();
                     openRetailerPriceEdit();
