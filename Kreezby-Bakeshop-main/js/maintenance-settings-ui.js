@@ -156,7 +156,6 @@
     // Which column the Filter dropdown filters on, per Settings tab (matched by header text).
     var FILTER_COLUMNS = {
         'login-history': 'Account Type',
-        customers: 'Area',
         retailers: 'Area',
         areas: 'Source'
     };
@@ -190,6 +189,9 @@
             return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
         }).join('');
         select.disabled = col < 0;
+        // Tabs without a filter (e.g. Customers) show the search box only.
+        var field = select.closest('.kz-settings-field');
+        if (field) field.style.display = col < 0 ? 'none' : '';
     }
 
     // Filters the rows of the table on the open Settings tab by the search text and the filter.
@@ -506,7 +508,7 @@
         var manage = canManageAccounts();
         // Customers sign up on their own; head admin and admin only monitor the list.
         var monitorOnly = spec.bucket === 'customers';
-        var hasArea = spec.bucket === 'retailers' || spec.bucket === 'customers';
+        var hasArea = spec.bucket === 'retailers';
         var rows = users.map(function (user, index) {
             var on = user.active !== false;
             var locked = spec.bucket === 'admins' && KreezbyMaintenanceSettings.isHeadAdminAccount(user);
