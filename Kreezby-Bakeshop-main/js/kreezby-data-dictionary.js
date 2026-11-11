@@ -39,7 +39,19 @@
     // Packaging stock (same codes as the Inventory list).
     var PACKAGING_MATERIALS = [
         { material_id: 'PKG-SUP-01', name: 'Stand up pouch', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
-        { material_id: 'PKG-STK-01', name: 'Stickers (Per Flavor)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 }
+        // One sticker stock per flavor, so each flavor's sticker count is clear.
+        { material_id: 'PKG-STK-CHO', name: 'Stickers (Chocolate)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-ALM', name: 'Stickers (Choco-Almond)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-CSH', name: 'Stickers (Choco-Cashew)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-STR', name: 'Stickers (Strawberry)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-RVL', name: 'Stickers (Red Velvet)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-LEM', name: 'Stickers (Lemon)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-MEL', name: 'Stickers (Melon)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-PAN', name: 'Stickers (Pandan)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-UBE', name: 'Stickers (Ube)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-MNG', name: 'Stickers (Mango)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-BUT', name: 'Stickers (Choco Butternut)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 },
+        { material_id: 'PKG-STK-AST', name: 'Stickers (Assorted)', type: 'packaging-material', current_stock: 0, expiration_date: '', expiry_threshold_days: 0 }
     ];
 
     var PROCUREMENT = [
@@ -146,6 +158,42 @@
 
     function isPackaging(row) {
         return !!row && (row.type === 'packaging-material' || /^PKG-/.test(String(row.material_id || '')));
+    }
+
+    // ---- Cost per unit of raw and packaging materials (used for the stock value) ----
+    // Kept in kreezby-stock-local-v1 -> cost[code], the same place the Stocks page and the
+    // Inventory "Cost" column read from.
+    var STOCK_LOCAL_KEY = 'kreezby-stock-local-v1';
+    var DEFAULT_UNIT_COSTS = {
+        'RM-WFL-01': 48, 'RM-WSG-01': 42, 'RM-OIL-01': 95, 'RM-EGG-01': 9, 'RM-COC-01': 180,
+        'RM-BKP-01': 35, 'RM-SLT-01': 18, 'RM-CFS-01': 55, 'RM-PSB-01': 220,
+        'PKG-SUP-01': 12, 'PKG-STK-CHO': 3, 'PKG-STK-ALM': 3, 'PKG-STK-CSH': 3, 'PKG-STK-STR': 3, 'PKG-STK-RVL': 3, 'PKG-STK-LEM': 3, 'PKG-STK-MEL': 3, 'PKG-STK-PAN': 3, 'PKG-STK-UBE': 3, 'PKG-STK-MNG': 3, 'PKG-STK-BUT': 3, 'PKG-STK-AST': 3
+    };
+
+    function materialUnitCost(code) {
+        var local = readJson(STOCK_LOCAL_KEY, {}) || {};
+        var costs = local.cost || {};
+        if (costs[code] != null && costs[code] !== '') return Number(costs[code]) || 0;
+        return DEFAULT_UNIT_COSTS[code] || 0;
+    }
+
+    // New stock bought at a different price: the unit cost becomes the average of what is on
+    // hand, so stock value = old value + value of what was just added.
+    function saveMaterialUnitCost(code, qtyBefore, qtyAdded, unitCost) {
+        var local = readJson(STOCK_LOCAL_KEY, {}) || {};
+        local.qty = local.qty || {};
+        local.history = local.history || {};
+        local.extra = local.extra || [];
+        local.cost = local.cost || {};
+        var oldQty = Math.max(0, Number(qtyBefore) || 0);
+        var addQty = Math.max(0, Number(qtyAdded) || 0);
+        var oldCost = materialUnitCost(code);
+        var next = oldQty > 0
+            ? (oldQty * oldCost + addQty * unitCost) / (oldQty + addQty)
+            : unitCost;
+        local.cost[code] = Math.round(next * 100) / 100;
+        try { localStorage.setItem(STOCK_LOCAL_KEY, JSON.stringify(local)); } catch (e) { /* keep the stock count */ }
+        return local.cost[code];
     }
 
     function ensureMaterial(name, kind) {
@@ -853,8 +901,11 @@
     }
 
     // Records a raw material movement in the ledger (date, who, balance before and after).
-    function recordMaterialMovement(materialName, movementType, quantity, note, materialKind) {
+    function recordMaterialMovement(materialName, movementType, quantity, note, materialKind, unitCost) {
         lastMovementError = '';
+        var costText = unitCost == null ? '' : String(unitCost).trim();
+        var costValue = costText === '' ? null : Number(costText);
+        if (costValue != null && (!isFinite(costValue) || costValue < 0)) { lastMovementError = 'Enter a cost of 0 or more.'; return null; }
         var kind = String(movementType || '').toLowerCase();
         if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
         // Stocks are add-only: only received stock (stock in) can be recorded by hand.
@@ -871,6 +922,7 @@
             return null;
         }
         var after = kind === 'stock-in' ? current + qty : current - qty;
+        var savedCost = costValue == null ? null : saveMaterialUnitCost(material.material_id, current, qty, costValue);
         stock[material.material_id] = after;
         saved.material_stock = stock;
         var moves = saved.inventory_transactions_extra || [];
@@ -884,8 +936,12 @@
             after: after,
             date: new Date().toISOString(),
             by: movementActor(),
-            note: text || (material.name + ' ' + (MOVEMENT_KINDS[kind] || kind).toLowerCase())
+            unit_cost: costValue == null ? undefined : costValue,
+            value: costValue == null ? undefined : Math.round(costValue * qty * 100) / 100,
+            note: (text || (material.name + ' ' + (MOVEMENT_KINDS[kind] || kind).toLowerCase()))
+                + (costValue == null ? '' : ' · ₱' + costValue.toFixed(2) + ' each (₱' + (costValue * qty).toFixed(2) + ')')
         });
+        lastMovementCost = savedCost;
         saved.inventory_transactions_extra = moves;
         writeState(saved);
         snapshot();
@@ -893,6 +949,8 @@
         notifyStocks();
         return after;
     }
+
+    var lastMovementCost = null;
 
     // Every raw material movement, newest first.
     function materialMovements() {
@@ -1474,6 +1532,7 @@
                 + '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list"></datalist></label>'
                 + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
+                + stockField('fr-unit-cost', 'Cost per unit (₱)', 'price', '<input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00">')
                 + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
                 + '<div class="fr-actions"><button type="button" class="fr-btn" id="fr-save-move">Add stock</button></div>'
                 + '</div>'
@@ -1502,6 +1561,7 @@
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
                 + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
+                + '<label>Cost per unit (₱)<br><input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00" style="width:110px;"></label>'
                 + '<label>Note<br><input id="fr-note" type="text" placeholder="Supplier, batch or reason"></label>'
                 + '<button type="button" id="fr-save-move">Add stock</button>'
                 + '</div></div></section>'
@@ -1558,13 +1618,28 @@
             var name = String(document.getElementById('fr-material').value || '').trim();
             var typeNode = document.getElementById('fr-type');
             var kind = typeNode && typeNode.value === 'packaging' ? 'packaging' : 'raw';
-            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value, kind) : null;
+            var costNode = document.getElementById('fr-unit-cost');
+            var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value, kind, costNode ? costNode.value : null) : null;
             document.getElementById('fr-stock-note').textContent = !name
                 ? (kind === 'packaging' ? 'Type a packaging material name.' : 'Type a raw material name.')
-                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : name + ' now has ' + next + ' on hand. Movement saved to the log below.');
+                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : name + ' now has ' + next + ' on hand.'
+                    + (lastMovementCost != null && costNode && costNode.value !== '' ? ' Cost per unit: ₱' + Number(lastMovementCost).toFixed(2) + ', stock value ₱' + (Number(lastMovementCost) * next).toFixed(2) + '.' : '')
+                    + ' Movement saved to the log below.');
+            if (next != null) lastMovementCost = null;
             if (next != null && document.getElementById('fr-note')) document.getElementById('fr-note').value = '';
         });
         fillProduct();
+
+        // Picking a material fills in its current cost per unit (it can be changed).
+        var materialInput = document.getElementById('fr-material');
+        if (materialInput) {
+            materialInput.addEventListener('change', function () {
+                var costInput = document.getElementById('fr-unit-cost');
+                var found = materialByName(materialInput.value);
+                if (!costInput) return;
+                costInput.value = found ? materialUnitCost(found.material_id).toFixed(2) : '';
+            });
+        }
 
         // One "Add stock" card: the Stock type picks which fields show.
         var typeSelect = document.getElementById('fr-type');
@@ -1604,6 +1679,8 @@
             typeSelect.addEventListener('change', function () {
                 var input = document.getElementById('fr-material');
                 if (input) input.value = '';
+                var costInput = document.getElementById('fr-unit-cost');
+                if (costInput) costInput.value = '';
                 applyType();
             });
             applyType();
@@ -1678,6 +1755,7 @@
         productCatalog: productCatalog,
         lastStockError: function () { return lastStockError; },
         recordMaterialMovement: recordMaterialMovement,
+        materialUnitCost: materialUnitCost,
         lastMovementError: function () { return lastMovementError; },
         materialMovements: materialMovements,
         saveProductFields: saveProductFields,

@@ -32,7 +32,18 @@
         { code: 'RM-CFS-01', name: 'Confectioner Sugar', kind: 'material', qty: 0, alert: 12 },
         { code: 'RM-PSB-01', name: 'Potassium Sorbate', kind: 'material', qty: 0, alert: 5 },
         { code: 'PKG-SUP-01', name: 'Stand up pouch', kind: 'material', qty: 0, alert: 25 },
-        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', kind: 'material', qty: 0, alert: 8 }
+        { code: 'PKG-STK-CHO', name: 'Stickers (Chocolate)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-ALM', name: 'Stickers (Choco-Almond)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-CSH', name: 'Stickers (Choco-Cashew)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-STR', name: 'Stickers (Strawberry)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-RVL', name: 'Stickers (Red Velvet)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-LEM', name: 'Stickers (Lemon)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-MEL', name: 'Stickers (Melon)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-PAN', name: 'Stickers (Pandan)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-UBE', name: 'Stickers (Ube)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-MNG', name: 'Stickers (Mango)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-BUT', name: 'Stickers (Choco Butternut)', kind: 'material', qty: 0, alert: 8 },
+        { code: 'PKG-STK-AST', name: 'Stickers (Assorted)', kind: 'material', qty: 0, alert: 8 }
     ];
 
     function readJson(key, fallback) {

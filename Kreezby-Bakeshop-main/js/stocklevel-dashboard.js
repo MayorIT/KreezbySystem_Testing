@@ -158,7 +158,7 @@
 
                 tone: 'warn',
 
-                items: ['Stand up pouch', 'Stickers (Per Flavor)']
+                items: ['Stand up pouch', 'Stickers (Chocolate)', 'Stickers (Choco-Almond)', 'Stickers (Choco-Cashew)', 'Stickers (Strawberry)', 'Stickers (Red Velvet)', 'Stickers (Lemon)', 'Stickers (Melon)', 'Stickers (Pandan)', 'Stickers (Ube)', 'Stickers (Mango)', 'Stickers (Choco Butternut)', 'Stickers (Assorted)']
 
             }
 
@@ -216,7 +216,18 @@
         { code: 'CRK-MNG-J', name: 'Mango Crinkles', category: 'Finished Products', qty: 45 },
         { code: 'CRK-UBE-P', name: 'Ube Crinkles', category: 'Finished Products', qty: 180 },
         { code: 'PKG-SUP-01', name: 'Stand up pouch', category: 'Packaging', qty: 80 },
-        { code: 'PKG-STK-01', name: 'Stickers (Per Flavor)', category: 'Packaging', qty: 12 }
+        { code: 'PKG-STK-CHO', name: 'Stickers (Chocolate)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-ALM', name: 'Stickers (Choco-Almond)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-CSH', name: 'Stickers (Choco-Cashew)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-STR', name: 'Stickers (Strawberry)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-RVL', name: 'Stickers (Red Velvet)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-LEM', name: 'Stickers (Lemon)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-MEL', name: 'Stickers (Melon)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-PAN', name: 'Stickers (Pandan)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-UBE', name: 'Stickers (Ube)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-MNG', name: 'Stickers (Mango)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-BUT', name: 'Stickers (Choco Butternut)', category: 'Packaging', qty: 0 },
+        { code: 'PKG-STK-AST', name: 'Stickers (Assorted)', category: 'Packaging', qty: 0 }
     ];
 
 
@@ -565,7 +576,7 @@
             add({
                 code: row.material_id,
                 name: row.name || row.material_id,
-                category: 'Raw Materials',
+                category: row.type === 'packaging-material' || /^PKG-/.test(String(row.material_id || '')) ? 'Packaging' : 'Raw Materials',
                 qty: Number(row.current_stock) || 0
             });
         });
@@ -576,6 +587,7 @@
             if (productStock[item.code] != null) item.qty = Number(productStock[item.code]) || 0;
             else if (materialStock[item.code] != null) item.qty = Number(materialStock[item.code]) || 0;
             else if (localQty[item.code] != null) item.qty = Number(localQty[item.code]) || 0;
+            else item.qty = 0;
         });
         return items;
     }
@@ -622,7 +634,7 @@
     var UNIT_COSTS = {
         'RM-WFL-01': 48, 'RM-WSG-01': 42, 'RM-OIL-01': 95, 'RM-EGG-01': 9, 'RM-COC-01': 180,
         'RM-BKP-01': 35, 'RM-SLT-01': 18, 'RM-CFS-01': 55, 'RM-PSB-01': 220,
-        'PKG-SUP-01': 12, 'PKG-STK-01': 3
+        'PKG-SUP-01': 12, 'PKG-STK-CHO': 3, 'PKG-STK-ALM': 3, 'PKG-STK-CSH': 3, 'PKG-STK-STR': 3, 'PKG-STK-RVL': 3, 'PKG-STK-LEM': 3, 'PKG-STK-MEL': 3, 'PKG-STK-PAN': 3, 'PKG-STK-UBE': 3, 'PKG-STK-MNG': 3, 'PKG-STK-BUT': 3, 'PKG-STK-AST': 3
     };
 
     function unitCost(item) {

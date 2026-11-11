@@ -33,7 +33,18 @@
         { code: 'RM-CFS-01', type: 'raw-material', name: 'Confectioner Sugar', unit: 'Quantity', qty: 0, cost: 55 },
         { code: 'RM-PSB-01', type: 'raw-material', name: 'Potassium Sorbate', unit: 'Quantity', qty: 0, cost: 220 },
         { code: 'PKG-SUP-01', type: 'packaging-material', name: 'Stand up pouch', unit: 'Quantity', qty: 0, cost: 12 },
-        { code: 'PKG-STK-01', type: 'packaging-material', name: 'Stickers (Per Flavor)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-CHO', type: 'packaging-material', name: 'Stickers (Chocolate)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-ALM', type: 'packaging-material', name: 'Stickers (Choco-Almond)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-CSH', type: 'packaging-material', name: 'Stickers (Choco-Cashew)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-STR', type: 'packaging-material', name: 'Stickers (Strawberry)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-RVL', type: 'packaging-material', name: 'Stickers (Red Velvet)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-LEM', type: 'packaging-material', name: 'Stickers (Lemon)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-MEL', type: 'packaging-material', name: 'Stickers (Melon)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-PAN', type: 'packaging-material', name: 'Stickers (Pandan)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-UBE', type: 'packaging-material', name: 'Stickers (Ube)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-MNG', type: 'packaging-material', name: 'Stickers (Mango)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-BUT', type: 'packaging-material', name: 'Stickers (Choco Butternut)', unit: 'Quantity', qty: 0, cost: 3 },
+        { code: 'PKG-STK-AST', type: 'packaging-material', name: 'Stickers (Assorted)', unit: 'Quantity', qty: 0, cost: 3 },
     ];
 
     function readJson(key, fallback) {
