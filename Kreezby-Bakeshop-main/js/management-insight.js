@@ -1,5 +1,6 @@
 /**
  * Management Insight (head admin, admin and staff · Insights > Management Insight).
+ * Summarizes notable sales, inventory and demand conditions in simple language for the owner.
  * Four parts, all worked out from the shop's own records (sales, stock, batches, alerts):
  *   1. Summary of sales performance
  *   2. Inventory conditions
@@ -42,7 +43,22 @@
             + '.mi-text ol{margin:6px 0 0;padding-left:20px;font-size:13.5px;line-height:1.55;color:#3e2723;}'
             + '.mi-empty{font-size:13px;color:#7a6558;margin:0;}'
             + '#management-insight-status{margin-left:10px;font-size:13px;font-weight:700;color:#5d4037;}'
-            + '@media (max-width:600px){.mi-card{padding:12px;}.mi-table th:nth-child(4),.mi-table td:nth-child(4){display:none;}}';
+            + '.mi-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}'
+            + '.mi-compact .mi-card{padding:12px 14px;}'
+            + '.mi-compact .mi-card h4{margin:0 0 8px;font-size:14px;}'
+            + '.mi-compact .mi-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 8px;}'
+            + '.mi-compact .mi-stat{padding:7px 10px;}'
+            + '.mi-compact .mi-stat strong{font-size:17px;}'
+            + '.mi-compact .mi-stat em{font-size:11px;}'
+            + '.mi-line{margin:0;font-size:12.5px;color:#3e2723;line-height:1.4;}'
+            + '.mi-muted{color:#8d6e63;margin-top:6px;}'
+            + '.mi-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px;}'
+            + '.mi-compact .mi-list{gap:5px;}'
+            + '.mi-compact .mi-list li{padding:6px 10px;font-size:12.5px;align-items:center;}'
+            + '.mi-compact.mi-wrap .mi-text p{font-size:12.5px;line-height:1.45;margin:0 0 6px;}'
+            + '.mi-compact.mi-wrap .mi-text ol{font-size:12.5px;line-height:1.45;margin:0;}'
+            + '@media (max-width:900px){.mi-compact{grid-template-columns:minmax(0,1fr);}}'
+            + '@media (max-width:600px){.mi-card{padding:12px;}.mi-compact .mi-stats{grid-template-columns:repeat(3,minmax(0,1fr));}}';
         document.head.appendChild(style);
     }
 
@@ -188,6 +204,13 @@
         if (data.expired.length) list.push({ cls: 'bad', title: plural(data.expired.length, 'expired batch', 'expired batches') + ' on hand', text: data.expired.map(function (a) { return a.message; }).join(' ') });
         if (data.nearExpiry.length) list.push({ cls: 'warn', title: plural(data.nearExpiry.length, 'batch', 'batches') + ' close to expiry', text: data.nearExpiry.map(function (a) { return a.message; }).join(' ') });
         if (data.lowMaterials.length) list.push({ cls: 'warn', title: plural(data.lowMaterials.length, 'material') + ' at or below the alert line', text: 'Production may stop if these run out: ' + data.lowMaterials.map(function (a) { return String(a.message).split(' is at ')[0]; }).join(', ') + '.' });
+        var shifts = demandShifts(data);
+        shifts.rising.slice(0, 2).forEach(function (i) {
+            list.push({ cls: 'ok', title: 'Demand rising: ' + i.name, text: 'Sold ' + count(i.sold30) + ' in the last 30 days vs ' + count(i.soldPrev30) + ' the 30 days before.' });
+        });
+        shifts.falling.slice(0, 2).forEach(function (i) {
+            list.push({ cls: 'warn', title: 'Demand falling: ' + i.name, text: 'Sold ' + count(i.sold30) + ' in the last 30 days vs ' + count(i.soldPrev30) + ' the 30 days before.' });
+        });
         var best = data.items.slice().sort(function (a, b) { return b.sold30 - a.sold30; })[0];
         if (best && best.sold30 > 0 && data.totals.sold30 > 0) {
             var share = Math.round(best.sold30 / data.totals.sold30 * 100);
@@ -197,36 +220,85 @@
     }
 
     // ---------- 4. interpretation ----------
+    // Which flavors customers are asking for more or less (last 30 days vs the 30 days before).
+    function demandShifts(data) {
+        var rising = [];
+        var falling = [];
+        data.items.forEach(function (i) {
+            var diff = i.sold30 - i.soldPrev30;
+            if (diff >= 3 && (!i.soldPrev30 || diff / i.soldPrev30 >= 0.25)) rising.push(i);
+            else if (diff <= -3 && i.soldPrev30 && -diff / i.soldPrev30 >= 0.25) falling.push(i);
+        });
+        rising.sort(function (a, b) { return (b.sold30 - b.soldPrev30) - (a.sold30 - a.soldPrev30); });
+        falling.sort(function (a, b) { return (a.sold30 - a.soldPrev30) - (b.sold30 - b.soldPrev30); });
+        return { rising: rising, falling: falling };
+    }
+
+    function short(name) {
+        return String(name || '').replace(/\s*Crinkles$/i, '');
+    }
+
+    function joinNames(list) {
+        var names = list.map(function (i) { return short(i.name); });
+        if (names.length <= 1) return names.join('');
+        return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    }
+
+    // Owner summary in simple words: Sales, Inventory, Demand, then what to do first.
     function interpretation(data, found) {
         var t = data.totals;
-        var paras = [];
+        var lines = [];
         var actions = [];
-        if (!t.sold30) {
-            paras.push('No sales were recorded in the last 30 days, so there is no sales trend to read yet. The insights below come from stock and expiry records only.');
-        } else {
-            var change = pct(t.sold30, t.soldPrev30);
-            var trend = change == null ? 'This is the first month with recorded sales, so there is nothing to compare it with yet.'
-                : change > 0 ? 'That is ' + change + '% more than the 30 days before, so demand is rising.'
-                : change < 0 ? 'That is ' + Math.abs(change) + '% less than the 30 days before, so demand is softening.'
-                : 'That is the same as the 30 days before, so demand is steady.';
-            paras.push('In the last 30 days the shop sold ' + plural(t.sold30, 'pouch', 'pouches') + ' worth about ' + peso(t.revenue30) + ' at customer prices. ' + trend);
-        }
-        var bad = found.filter(function (s) { return s.cls === 'bad'; }).length;
-        var warn = found.filter(function (s) { return s.cls === 'warn'; }).length;
-        if (!found.length) paras.push('No problem situations were found: stock, expiry and sales are all within normal ranges.');
-        else paras.push(found.length + (found.length === 1 ? ' situation was' : ' situations were') + ' found: ' + bad + ' urgent, ' + warn + ' to watch, and ' + (found.length - bad - warn) + ' for information.');
+        var change = pct(t.sold30, t.soldPrev30);
 
-        data.items.filter(function (i) { return i.stock <= 0 && i.sold30 > 0; })
-            .sort(function (a, b) { return b.sold30 - a.sold30; })
-            .forEach(function (i) { actions.push('Bake ' + i.name + ' first; it sells but is out of stock.'); });
-        data.items.filter(function (i) { return i.stock > 0 && i.daysCover != null && i.daysCover <= 7; })
-            .forEach(function (i) { actions.push('Plan the next batch of ' + i.name + ' within ' + Math.max(1, Math.round(i.daysCover)) + ' days.'); });
-        if (data.expired.length) actions.push('Remove the expired batches from sale and record them.');
-        if (data.nearExpiry.length) actions.push('Sell or promote the batches close to expiry before newer stock.');
-        if (data.lowMaterials.length) actions.push('Restock the raw and packaging materials at their alert line so production is not delayed.');
-        data.items.filter(function (i) { return i.stock > 0 && i.sold30 === 0; }).slice(0, 2)
-            .forEach(function (i) { actions.push('Hold off on baking ' + i.name + ' until the stock on hand starts selling.'); });
-        return { paras: paras, actions: actions.slice(0, 6) };
+        // Sales
+        if (!t.sold30) {
+            lines.push({ label: 'Sales', text: 'No sales were recorded in the last 30 days.' });
+        } else {
+            var trend = change == null ? 'This is the first month with sales.'
+                : change > 0 ? 'That is more than last month (up ' + change + '%).'
+                : change < 0 ? 'That is less than last month (down ' + Math.abs(change) + '%).'
+                : 'That is the same as last month.';
+            lines.push({ label: 'Sales', text: 'You sold ' + plural(t.sold30, 'pouch', 'pouches') + ' worth about ' + peso(t.revenue30) + ' in the last 30 days. ' + trend });
+        }
+
+        // Inventory
+        var out = data.items.filter(function (i) { return i.stock <= 0 && i.sold30 > 0; });
+        var low = data.items.filter(function (i) { return i.stock > 0 && i.daysCover != null && i.daysCover <= 7; });
+        var invParts = ['You have ' + plural(t.stock, 'pouch', 'pouches') + ' in stock.'];
+        if (out.length) invParts.push(joinNames(out) + (out.length === 1 ? ' is' : ' are') + ' out of stock.');
+        if (low.length) invParts.push(joinNames(low) + (low.length === 1 ? ' is' : ' are') + ' running low.');
+        if (data.expired.length) invParts.push(plural(data.expired.length, 'batch has', 'batches have') + ' expired.');
+        if (data.nearExpiry.length) invParts.push(plural(data.nearExpiry.length, 'batch expires', 'batches expire') + ' soon.');
+        if (!out.length && !low.length && !data.expired.length && !data.nearExpiry.length) invParts.push('Stock levels are fine.');
+        lines.push({ label: 'Inventory', text: invParts.join(' ') });
+
+        // Demand
+        var shifts = demandShifts(data);
+        var best = data.items.slice().sort(function (a, b) { return b.sold30 - a.sold30; })[0];
+        var demParts = [];
+        if (best && best.sold30 > 0) {
+            var share = t.sold30 ? Math.round(best.sold30 / t.sold30 * 100) : 0;
+            demParts.push('Customers buy ' + short(best.name) + ' the most (' + share + '% of pouches sold).');
+        }
+        if (shifts.rising.length) demParts.push('More people are buying ' + joinNames(shifts.rising.slice(0, 2)) + '.');
+        if (shifts.falling.length) demParts.push('Fewer people are buying ' + joinNames(shifts.falling.slice(0, 2)) + '.');
+        var idle = data.items.filter(function (i) { return i.stock > 0 && i.sold30 === 0; });
+        if (idle.length) demParts.push(joinNames(idle.slice(0, 2)) + (idle.length === 1 ? ' has' : ' have') + ' stock but no buyers this month.');
+        if (!demParts.length) demParts.push('There are not enough sales yet to see what customers prefer.');
+        lines.push({ label: 'Demand', text: demParts.join(' ') });
+
+        // What to do first
+        out.sort(function (a, b) { return b.sold30 - a.sold30; })
+            .forEach(function (i) { actions.push('Bake ' + short(i.name) + ' first — customers want it but it is out of stock.'); });
+        low.forEach(function (i) { actions.push('Bake more ' + short(i.name) + ' within ' + Math.max(1, Math.round(i.daysCover)) + ' days.'); });
+        if (data.expired.length) actions.push('Take the expired batches off the shelf.');
+        if (data.nearExpiry.length) actions.push('Sell the batches that expire soon first.');
+        shifts.rising.filter(function (i) { return out.indexOf(i) < 0 && low.indexOf(i) < 0; }).slice(0, 1)
+            .forEach(function (i) { actions.push('Make a little more ' + short(i.name) + ' — demand is going up.'); });
+        if (data.lowMaterials.length) actions.push('Buy the raw and packaging materials that are running low.');
+        idle.slice(0, 1).forEach(function (i) { actions.push('Bake less ' + short(i.name) + ' until it starts selling.'); });
+        return { lines: lines, actions: actions.slice(0, 3) };
     }
 
     // ---------- render ----------
@@ -249,69 +321,56 @@
         var found = situations(data);
         var reading = interpretation(data, found);
 
-        var html = '<div class="mi-wrap">';
-
-        // 1. Summary of sales performance
-        html += '<section class="mi-card"><h4><span class="mi-num">1</span>Summary of sales performance</h4>'
-            + '<p class="mi-lead">Pouches sold, from recorded sales (online orders, walk-in POS). Revenue uses each flavor\'s customer price.</p>'
-            + '<div class="mi-stats">'
-            + '<div class="mi-stat"><small>Last 7 days</small><strong>' + count(t.sold7) + '</strong><em>pouches sold</em></div>'
-            + '<div class="mi-stat"><small>Last 30 days</small><strong>' + count(t.sold30) + '</strong><em>' + (change == null ? 'no earlier month to compare' : '<span class="' + (change >= 0 ? 'mi-up' : 'mi-down') + '">' + (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%</span> vs previous 30 days') + '</em></div>'
-            + '<div class="mi-stat"><small>Sales value (30 days)</small><strong>' + peso(t.revenue30) + '</strong><em>' + plural(t.activeDays, 'day') + ' with sales</em></div>'
-            + '<div class="mi-stat"><small>Best seller</small><strong style="font-size:15px;">' + esc(sellers[0] ? sellers[0].name : '—') + '</strong><em>' + (sellers[0] ? plural(sellers[0].sold30, 'pouch', 'pouches') + ' in 30 days' : 'no sales yet') + '</em></div>'
-            + '</div>';
-        if (sellers.length) {
-            html += '<table class="mi-table"><thead><tr><th>Flavor</th><th class="n">Last 7 days</th><th class="n">Last 30 days</th><th class="n">Sales value</th></tr></thead><tbody>'
-                + sellers.map(function (i) {
-                    return '<tr><td><strong>' + esc(i.name) + '</strong></td><td class="n">' + count(i.sold7) + '</td><td class="n">' + count(i.sold30) + '</td><td class="n">' + peso(i.revenue30) + '</td></tr>';
-                }).join('') + '</tbody></table>';
-            if (data.busiest) html += '<p class="mi-lead" style="margin:8px 0 0;">Busiest day: ' + dayLabel(data.busiest.day) + ' with ' + plural(data.busiest.units, 'pouch', 'pouches') + '.</p>';
-        } else {
-            html += '<p class="mi-empty">No sales recorded in the last 30 days.</p>';
-        }
-        html += '</section>';
-
-        // 2. Inventory conditions
+        var html = '<div class="mi-wrap mi-compact">';
+        var trendTxt = change == null ? 'no earlier month' : '<span class="' + (change >= 0 ? 'mi-up' : 'mi-down') + '">' + (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%</span> vs prev. 30 days';
         var stocked = ranked.filter(function (i) { return i.stock > 0 || i.sold30 > 0; });
         var states = { bad: 0, warn: 0, ok: 0, info: 0 };
         stocked.forEach(function (i) { states[stockState(i).cls] += 1; });
-        html += '<section class="mi-card"><h4><span class="mi-num">2</span>Inventory conditions</h4>'
-            + '<p class="mi-lead">Days of stock = pouches on hand ÷ average pouches sold per day in the last 30 days.</p>'
-            + '<div class="mi-stats">'
-            + '<div class="mi-stat"><small>Finished pouches on hand</small><strong>' + count(t.stock) + '</strong><em>all flavors</em></div>'
-            + '<div class="mi-stat"><small>Out of stock / low</small><strong>' + states.bad + ' / ' + states.warn + '</strong><em>flavors</em></div>'
-            + '<div class="mi-stat"><small>Expired / near expiry</small><strong>' + data.expired.length + ' / ' + data.nearExpiry.length + '</strong><em>batches</em></div>'
-            + '<div class="mi-stat"><small>Materials at alert line</small><strong>' + data.lowMaterials.length + '</strong><em>raw and packaging</em></div>'
-            + '</div>';
-        if (stocked.length) {
-            html += '<table class="mi-table"><thead><tr><th>Flavor</th><th class="n">On hand</th><th>Condition</th><th class="n">Sold per day</th></tr></thead><tbody>'
-                + stocked.map(function (i) {
-                    var s = stockState(i);
-                    return '<tr><td><strong>' + esc(i.name) + '</strong></td><td class="n">' + count(i.stock) + '</td><td><span class="mi-tag ' + s.cls + '">' + esc(s.label) + '</span></td><td class="n">' + (i.perDay ? i.perDay.toFixed(1) : '0') + '</td></tr>';
-                }).join('') + '</tbody></table>';
-        } else {
-            html += '<p class="mi-empty">No finished stock and no recent sales recorded yet.</p>';
-        }
-        html += '</section>';
+        var priority = { bad: 0, warn: 1, ok: 2, info: 3 };
+        var topFound = found.slice().sort(function (a, b) { return priority[a.cls] - priority[b.cls]; });
 
-        // 3. Identified business situations
-        html += '<section class="mi-card"><h4><span class="mi-num">3</span>Identified business situations</h4>'
-            + '<p class="mi-lead">Found by checking sales trend (±15%), days of stock (≤ 7 low, > 30 overstocked), unsold stock, expiry and material alerts.</p>';
-        html += found.length
-            ? '<ul class="mi-list">' + found.map(function (s) {
+        // 1. Summary of sales performance
+        html += '<section class="mi-card"><h4><span class="mi-num">1</span>Summary of sales performance</h4>'
+            + '<div class="mi-stats">'
+            + '<div class="mi-stat"><small>7 days</small><strong>' + count(t.sold7) + '</strong><em>pouches</em></div>'
+            + '<div class="mi-stat"><small>30 days</small><strong>' + count(t.sold30) + '</strong><em>' + trendTxt + '</em></div>'
+            + '<div class="mi-stat"><small>Sales value</small><strong>' + peso(t.revenue30) + '</strong><em>last 30 days</em></div>'
+            + '</div>'
+            + '<p class="mi-line"><b>Top sellers:</b> ' + (sellers.length
+                ? sellers.slice(0, 3).map(function (i) { return esc(i.name) + ' (' + count(i.sold30) + ')'; }).join(' · ')
+                : 'no sales in the last 30 days') + '</p>'
+            + '</section>';
+
+        // 2. Inventory conditions
+        html += '<section class="mi-card"><h4><span class="mi-num">2</span>Inventory conditions</h4>'
+            + '<div class="mi-stats">'
+            + '<div class="mi-stat"><small>On hand</small><strong>' + count(t.stock) + '</strong><em>pouches</em></div>'
+            + '<div class="mi-stat"><small>Out / low</small><strong>' + states.bad + ' / ' + states.warn + '</strong><em>flavors</em></div>'
+            + '<div class="mi-stat"><small>Expired / near</small><strong>' + data.expired.length + ' / ' + data.nearExpiry.length + '</strong><em>batches</em></div>'
+            + '</div>'
+            + '<div class="mi-chips">' + (stocked.length ? stocked.slice(0, 8).map(function (i) {
+                var st = stockState(i);
+                return '<span class="mi-tag ' + st.cls + '" title="' + esc(i.name + ': ' + count(i.stock) + ' on hand · ' + st.label) + '">' + esc(i.name.replace(/\s*Crinkles$/i, '')) + ' · ' + esc(st.label.replace(/\s*\(.*\)$/, '')) + '</span>';
+            }).join('') : '<span class="mi-empty">No finished stock or recent sales yet.</span>') + '</div>'
+            + (data.lowMaterials.length ? '<p class="mi-line"><b>' + data.lowMaterials.length + '</b> raw/packaging materials at their alert line.</p>' : '')
+            + '</section>';
+
+        // 3. Identified business situations (most urgent first)
+        html += '<section class="mi-card"><h4><span class="mi-num">3</span>Identified business situations</h4>';
+        html += topFound.length
+            ? '<ul class="mi-list">' + topFound.slice(0, 4).map(function (s) {
                 var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
-                return '<li><span class="mi-tag ' + s.cls + '">' + tag + '</span><div><b>' + esc(s.title) + '</b>' + esc(s.text) + '</div></li>';
+                return '<li title="' + esc(s.text) + '"><span class="mi-tag ' + s.cls + '">' + tag + '</span><span>' + esc(s.title) + '</span></li>';
             }).join('') + '</ul>'
-            : '<p class="mi-empty">No situations need attention right now.</p>';
+                + (topFound.length > 4 ? '<p class="mi-line mi-muted">+' + (topFound.length - 4) + ' more (hover a line for details)</p>' : '')
+            : '<p class="mi-empty">Nothing needs attention right now.</p>';
         html += '</section>';
 
         // 4. Interpretation
-        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation of the generated insights</h4>'
-            + reading.paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('')
-            + (reading.actions.length ? '<p><strong>Recommended next steps:</strong></p><ol>' + reading.actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '')
-            + '<p class="mi-lead" style="margin-top:10px;">As of ' + esc(data.asOf.toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })) + '. Based on the shop\'s own sales, stock and expiry records.</p>'
+        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation for the owner</h4>'
+            + reading.lines.map(function (l) { return '<p><b>' + esc(l.label) + ':</b> ' + esc(l.text) + '</p>'; }).join('')
+            + (reading.actions.length ? '<p><b>Do first:</b></p><ol>' + reading.actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '')
             + '</section>';
-
         html += '</div>';
         body.innerHTML = html;
         return true;
