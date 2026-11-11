@@ -42,6 +42,7 @@
             id: entry.id || ('ISS-' + Date.now()),
             role: entry.role || 'User',
             submittedBy: entry.submittedBy || entry.fullName || 'Unknown',
+            accountId: entry.accountId || '',
             contact: entry.contact || entry.email || '',
             issueType: entry.issueType || 'Other',
             reference: entry.reference || entry.orderNumber || entry.affectedArea || entry.branch || '—',
@@ -92,7 +93,99 @@
         return clone(rows);
     }
 
+    // ---- Who is reporting: always the signed-in account, never a typed or made-up name ----
+    var ROLE_LABELS = {
+        'Head Administrator': 'Head Admin',
+        'Administrator': 'Admin',
+        'Admin': 'Admin',
+        'Staff': 'Staff',
+        'Retailer': 'Retailer',
+        'Customer': 'Customer',
+        'Regular Customer': 'Customer'
+    };
+    var ROLE_BUCKETS = {
+        'Head Administrator': 'admins', 'Administrator': 'admins', 'Admin': 'admins',
+        'Staff': 'staff', 'Retailer': 'retailers', 'Customer': 'customers', 'Regular Customer': 'customers'
+    };
+
+    function readSession() {
+        try {
+            var s = JSON.parse(localStorage.getItem('kreezby_session') || '{}');
+            return s && typeof s === 'object' ? s : {};
+        } catch (e) { return {}; }
+    }
+
+    function lower(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
+
+    // The account record of the signed-in user, from the shared account list.
+    function findAccount(session) {
+        var bucket = ROLE_BUCKETS[session.accountType];
+        if (!bucket) return null;
+        try {
+            var users = JSON.parse(localStorage.getItem('kreezby_maintenance_users') || '{}');
+            var rows = users && Array.isArray(users[bucket]) ? users[bucket] : [];
+            var keys = [session.accountId, session.customerId, session.identity, session.username, session.email]
+                .map(lower).filter(Boolean);
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i] || {};
+                var rowKeys = [row.id, row.user_id, row.username, row.email, row.contact]
+                    .map(lower).filter(Boolean);
+                for (var k = 0; k < rowKeys.length; k++) {
+                    if (keys.indexOf(rowKeys[k]) !== -1) return row;
+                }
+            }
+        } catch (e) { /* use the session only */ }
+        return null;
+    }
+
+    function currentReporter() {
+        var session = readSession();
+        var name = String(session.userName || '').trim();
+        if (!name || !session.accountType) return null;
+        var account = findAccount(session) || {};
+        return {
+            name: name,
+            role: ROLE_LABELS[session.accountType] || session.accountType,
+            contact: String(session.email || account.email || account.contact || account.phone || session.identity || '').trim(),
+            accountId: String(session.accountId || session.customerId || account.id || account.user_id || session.identity || '')
+        };
+    }
+
+    // Fill the report form with the signed-in account so the name cannot be changed.
+    function fillReportForm() {
+        var reporter = currentReporter();
+        if (!reporter) return;
+        document.querySelectorAll('form.report-form, form#customer-issue-form, form[data-issue-form]').forEach(function (form) {
+            var nameInput = form.querySelector('[name="fullName"]');
+            var storeInput = form.querySelector('[name="storeName"]');
+            var contactInput = form.querySelector('[name="email"]') || form.querySelector('[name="contact"]');
+            [nameInput, storeInput].forEach(function (input) {
+                if (!input) return;
+                input.value = reporter.name;
+                input.readOnly = true;
+                input.title = 'Filled from the account you are signed in with.';
+            });
+            if (contactInput && reporter.contact) {
+                var fitsEmail = contactInput.type !== 'email' || /@/.test(reporter.contact);
+                if (fitsEmail && !contactInput.value) contactInput.value = reporter.contact;
+            }
+        });
+    }
+
+    if (root.document) {
+        if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', fillReportForm);
+        else fillReportForm();
+    }
+
     function add(entry) {
+        // Whoever is signed in is the reporter, whatever was typed in the form.
+        var reporter = currentReporter();
+        if (reporter && entry && typeof entry === 'object') {
+            entry.submittedBy = reporter.name;
+            entry.accountId = reporter.accountId;
+            if (!entry.role || entry.role === 'User') entry.role = reporter.role;
+            if (reporter.contact) entry.contact = reporter.contact;
+        }
         var report = normalize(entry);
         var rows = list();
         rows.unshift(report);
@@ -135,6 +228,7 @@
         STORAGE_KEY: STORAGE_KEY,
         add: add,
         list: list,
+        currentReporter: currentReporter,
         setStatus: setStatus,
         formatReceived: formatReceived,
         inboxHref: inboxHref
