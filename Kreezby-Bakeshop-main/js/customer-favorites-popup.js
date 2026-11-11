@@ -64,6 +64,16 @@
         overlay.addEventListener('click', function (event) {
             if (event.target === overlay || event.target.closest('[data-favorites-close]')) {
                 closePopup();
+                return;
+            }
+            var orderCard = event.target.closest('[data-popup-order]');
+            if (orderCard) openOrderDetail(orderCard.getAttribute('data-popup-order'));
+        });
+        overlay.addEventListener('keydown', function (event) {
+            var orderCard = event.target.closest && event.target.closest('[data-popup-order]');
+            if (orderCard && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                openOrderDetail(orderCard.getAttribute('data-popup-order'));
             }
         });
         document.body.appendChild(overlay);
@@ -239,14 +249,28 @@
             var image = first.img ? '<img src="' + escapeHtml(first.img) + '" alt="' + escapeHtml(first.name || 'Order item') + '">' : '';
             var names = items.map(function (item) { return item.name; }).filter(Boolean);
             var label = names.length > 1 ? names[0] + ' +' + (names.length - 1) + ' more' : (names[0] || '');
-            return '<article class="favorites-popup__card">' + image +
+            return '<article class="favorites-popup__card" role="button" tabindex="0" style="cursor:pointer;" data-popup-order="' + escapeHtml(order.orderNumber || '') + '" aria-label="View details of ' + escapeHtml(order.orderNumber || 'this order') + '">' + image +
                 '<div>' +
                     '<div class="favorites-popup__meta"><span>' + escapeHtml(order.status || 'Processing') + '</span><strong>' + escapeHtml(order.total || '') + '</strong></div>' +
                     '<h3>' + escapeHtml(order.orderNumber || 'Order') + '</h3>' +
                     '<p>' + escapeHtml([orderWhen(order), label, order.trackingNumber ? 'Tracking ' + order.trackingNumber : ''].filter(Boolean).join(' · ')) + '</p>' +
+                    '<p style="margin-top:4px;font-weight:700;color:#5d4037;">View details ›</p>' +
                 '</div>' +
             '</article>';
         }).join('');
+    }
+
+    // Opens the full order details (items, address, payment, tracking, review) for one order.
+    function openOrderDetail(orderNumber) {
+        if (!orderNumber) return;
+        closePopup();
+        var api = window.KreezbyCustomerOrders;
+        if (document.getElementById('orders-tracker-modal') && typeof window.openModal === 'function' && api && api.showOrderDetail) {
+            window.openModal('orders-tracker-modal');
+            api.showOrderDetail(orderNumber);
+            return;
+        }
+        location.href = 'customer.html?open=orders&order=' + encodeURIComponent(orderNumber);
     }
 
     function profileAddresses(profile) {

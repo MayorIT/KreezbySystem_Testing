@@ -1075,7 +1075,12 @@ html:has(#global-modal-overlay-context.active) { overflow: hidden; }
 
             const openPanel = new URLSearchParams(window.location.search).get('open');
             if (openPanel === 'favorites') openModal('favorites-modal');
-            else if (openPanel === 'orders') openModal('orders-tracker-modal');
+            else if (openPanel === 'orders') {
+                openModal('orders-tracker-modal');
+                // customer.html?open=orders&order=ORD-... opens that order's details directly.
+                const openOrder = new URLSearchParams(window.location.search).get('order');
+                if (openOrder && window.KreezbyCustomerOrders) window.KreezbyCustomerOrders.showOrderDetail(openOrder);
+            }
             else if (openPanel === 'profile') openModal('profile-settings-modal');
             else if (openPanel === 'cart') toggleCartSidebar();
         });
