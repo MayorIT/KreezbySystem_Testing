@@ -367,7 +367,7 @@
         html += '</section>';
 
         // 4. Interpretation
-        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation for the owner</h4>'
+        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation</h4>'
             + reading.lines.map(function (l) { return '<p><b>' + esc(l.label) + ':</b> ' + esc(l.text) + '</p>'; }).join('')
             + (reading.actions.length ? '<p><b>Do first:</b></p><ol>' + reading.actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '')
             + '</section>';
