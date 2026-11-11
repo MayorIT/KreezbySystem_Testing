@@ -927,7 +927,8 @@
     function movementActor() {
         try {
             var sess = JSON.parse(localStorage.getItem('kreezby_session') || 'null') || {};
-            return String(sess.name || sess.fullName || sess.username || sess.email || sess.role || 'Staff');
+            // The signed-in account's own name (set at login), never a role word.
+            return String(sess.userName || sess.name || sess.fullName || sess.username || sess.identity || sess.email || 'Unknown account');
         } catch (e) { return 'Staff'; }
     }
 
