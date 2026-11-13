@@ -373,7 +373,101 @@
             + '</section>';
         html += '</div>';
         body.innerHTML = html;
+        lastGenerated = historyEntry(data, ranked, stocked, states, topFound, reading, change);
         return true;
+    }
+
+    // ---------- history (for checking factual consistency) ----------
+    // The output as plain text plus the exact figures it was worked out from.
+    var lastGenerated = null;
+    var saveTimer = null;
+    var wantSave = false;
+
+    function historyEntry(data, ranked, stocked, states, found, reading, change) {
+        var t = data.totals;
+        var inputData = {
+            asOf: isoDay(data.asOf),
+            periods: { shortDays: 7, longDays: 30, previousDays: 30 },
+            totals: {
+                sold7: t.sold7,
+                sold30: t.sold30,
+                soldPrev30: t.soldPrev30,
+                changePct: change,
+                revenue30: Math.round(t.revenue30 * 100) / 100,
+                stock: t.stock
+            },
+            flavors: ranked.map(function (i) {
+                return {
+                    name: i.name,
+                    price: i.price,
+                    stock: i.stock,
+                    sold7: i.sold7,
+                    sold30: i.sold30,
+                    soldPrev30: i.soldPrev30,
+                    sharePct: t.sold30 ? Math.round(i.sold30 / t.sold30 * 100) : 0,
+                    perDay: Math.round(i.perDay * 10) / 10,
+                    daysCover: i.daysCover == null ? null : Math.round(i.daysCover),
+                    daysLeft: i.daysCover == null ? null : Math.max(1, Math.round(i.daysCover)),
+                    stockState: stockState(i).label
+                };
+            }),
+            flavorStates: { outOfStock: states.bad, low: states.warn, healthy: states.ok, other: states.info },
+            alerts: {
+                expired: data.expired.map(function (a) { return a.message; }),
+                nearExpiry: data.nearExpiry.map(function (a) { return a.message; }),
+                lowMaterials: data.lowMaterials.map(function (a) { return a.message; })
+            }
+        };
+        var sellers = ranked.filter(function (i) { return i.sold30 > 0; });
+        var parts = [];
+        parts.push('Summary of sales performance: '
+            + count(t.sold7) + ' pouches in 7 days; ' + count(t.sold30) + ' pouches in 30 days'
+            + (change == null ? ' (no earlier month)' : ' (' + (change >= 0 ? 'up ' : 'down ') + Math.abs(change) + '% vs previous 30 days)')
+            + '; sales value ' + peso(t.revenue30) + ' in the last 30 days. Top sellers: '
+            + (sellers.length ? sellers.slice(0, 3).map(function (i) { return i.name + ' (' + count(i.sold30) + ')'; }).join(', ') : 'no sales in the last 30 days') + '.');
+        parts.push('Inventory conditions: ' + count(t.stock) + ' pouches on hand; out / low: ' + states.bad + ' / ' + states.warn + ' flavors; expired / near expiry: '
+            + data.expired.length + ' / ' + data.nearExpiry.length + ' batches. '
+            + (stocked.length ? stocked.map(function (i) { return i.name + ': ' + stockState(i).label; }).join('; ') + '.' : 'No finished stock or recent sales yet.')
+            + (data.lowMaterials.length ? ' ' + data.lowMaterials.length + ' raw/packaging materials at their alert line.' : ''));
+        parts.push('Identified business situations: ' + (found.length
+            ? found.map(function (s) {
+                var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
+                return '[' + tag + '] ' + s.title + ' — ' + s.text;
+            }).join(' ')
+            : 'Nothing needs attention right now.'));
+        parts.push('Interpretation: ' + reading.lines.map(function (l) { return l.label + ': ' + l.text; }).join(' ')
+            + (reading.actions.length ? ' Do first: ' + reading.actions.join(' ') : ''));
+        return { inputData: inputData, output: parts.join('\n\n') };
+    }
+
+    function sessionToken() {
+        try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
+    }
+
+    // Saved when the insight is opened or refreshed (not on every live update). Waits a moment so
+    // the shop records finish loading; the server keeps an unchanged output only once.
+    function queueSave() {
+        wantSave = true;
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+            saveTimer = null;
+            if (!wantSave || !lastGenerated) return;
+            wantSave = false;
+            var token = sessionToken();
+            if (!token) return;
+            fetch('/api/ai-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': token },
+                body: JSON.stringify({
+                    module: 'management-insight',
+                    engine: 'Rule-based (computed in the system)',
+                    inputData: lastGenerated.inputData,
+                    output: lastGenerated.output
+                })
+            }).then(function () {
+                document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'management-insight' } }));
+            }).catch(function () { /* history is best-effort; the insight itself is already shown */ });
+        }, 2000);
     }
 
     function setStatus(text) {
@@ -389,8 +483,12 @@
     }
 
     function refresh() {
-        if (render()) setStatus('Updated ' + new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }));
-        else setStatus('Shop records are still loading. Try again in a moment.');
+        if (render()) {
+            queueSave();
+            setStatus('Updated ' + new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }));
+        } else {
+            setStatus('Shop records are still loading. Try again in a moment.');
+        }
     }
 
     function whenReady(done) {
@@ -409,7 +507,7 @@
             button.setAttribute('data-bound', '1');
             button.addEventListener('click', refresh);
         }
-        whenReady(render);
+        whenReady(function () { if (render()) queueSave(); });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

@@ -1811,10 +1811,22 @@ app.post("/api/product-recommendation", async (req, res) => {
 
   try {
     const recommendation = await writeProductRecommendation(apiKey, snapshot);
-    const safeRecommendation = recommendationMatchesSnapshot(recommendation, snapshot)
+    const matches = recommendationMatchesSnapshot(recommendation, snapshot);
+    const safeRecommendation = matches
       ? recommendation
       : deterministicRecommendation(snapshot);
-    res.json({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL });
+    // Every GPT answer is kept (word for word) so researchers can judge its factual consistency later.
+    const historyId = await logAiOutput({
+      module: "production-recommendation",
+      engine: OPENAI_MODEL,
+      inputData: snapshot,
+      rawOutput: recommendation,
+      shownOutput: safeRecommendation,
+      usedFallback: !matches,
+      extraCheckNotes: matches ? [] : ["The AI text did not name every product or every bake amount, so the computed text was shown instead."],
+      token: retailerRecords.readToken(req),
+    });
+    res.json({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL, historyId });
   } catch (error) {
     const code = error && error.code;
     if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
@@ -1831,6 +1843,321 @@ app.post("/api/product-recommendation", async (req, res) => {
         ? "The production recommendation service rejected the API key."
         : "The production recommendation could not be written just now.",
     });
+  }
+});
+
+// ---------- AI output history (factual consistency evaluation) ----------
+// Each Management Insight and Production Recommendation output is kept in ai_output_history with
+// the exact data it was based on. Head admin / admin accounts mark each output as factually
+// consistent or not, using the definition the researchers wrote (kept in the "_definition" doc).
+//   AI Consistency Rate (%) = (Factually Consistent Outputs / Total Outputs Evaluated) x 100
+const AI_HISTORY_COL = "ai_output_history";
+const AI_HISTORY_MODULES = {
+  "management-insight": "Management Insight",
+  "production-recommendation": "Production Recommendation",
+};
+const AI_DEFINITION_ID = "_definition";
+
+function aiHistoryCollection() {
+  return client.db(DB_NAME).collection(AI_HISTORY_COL);
+}
+
+function round2(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+// Every number written in a piece of text: "1,234.50" -> 1234.5, "15%" -> 15.
+function numbersInText(text) {
+  return (String(text || "").match(/\d[\d,]*(?:\.\d+)?/g) || [])
+    .map((raw) => Number(raw.replace(/,/g, "")))
+    .filter((value) => Number.isFinite(value));
+}
+
+function collectNumbers(value, out, key) {
+  if (key === "asOf") return out;
+  if (typeof value === "number") {
+    if (Number.isFinite(value)) out.push(value);
+  } else if (typeof value === "string") {
+    numbersInText(value).forEach((n) => out.push(n));
+  } else if (Array.isArray(value)) {
+    value.forEach((item) => collectNumbers(item, out));
+  } else if (value && typeof value === "object") {
+    Object.keys(value).forEach((k) => collectNumbers(value[k], out, k));
+  }
+  return out;
+}
+
+// System number check: is every number in the output also in the data it was based on?
+// It only helps the reviewers; it is not the evaluation and does not count in the rate.
+function numberCheck(outputText, inputData, extraNotes) {
+  const known = new Set(collectNumbers(inputData, []).map(round2));
+  const found = numbersInText(outputText);
+  const unsupported = [];
+  found.forEach((value) => {
+    const r = round2(value);
+    if (!known.has(r) && unsupported.indexOf(r) < 0) unsupported.push(r);
+  });
+  const notes = (extraNotes || []).slice();
+  if (unsupported.length) notes.push("Numbers not found in the input data: " + unsupported.join(", ") + ".");
+  return {
+    passed: unsupported.length === 0 && !(extraNotes && extraNotes.length),
+    numbersFound: found.length,
+    unsupportedNumbers: unsupported,
+    notes,
+  };
+}
+
+async function accountFromToken(token) {
+  if (!token || !token.id) return null;
+  const bucket = String(token.bucket || "");
+  let name = token.id;
+  let role = { admins: "Admin", staff: "Staff" }[bucket] || bucket;
+  try {
+    const collectionName = ACCOUNT_COLLECTIONS[bucket];
+    if (collectionName) {
+      const doc = await client.db(DB_NAME).collection(collectionName).findOne({ _id: token.id });
+      if (doc) {
+        name = doc.name || doc.full_name || doc.username || doc.email || token.id;
+        const key = [doc.username, doc.user_id, doc.id, doc._id].map(loginKey).join("|");
+        if (bucket === "admins" && /(^|\|)(marcela_admin|admin-owner)(\||$)/.test(key)) role = "Head Admin";
+      }
+    }
+  } catch (error) {
+    /* keep the id as the name */
+  }
+  return { id: String(token.id), name: String(name), role, bucket };
+}
+
+function safeInputData(value) {
+  try {
+    const text = JSON.stringify(value == null ? {} : value);
+    if (text.length > 60000) return { note: "Input data was too large to keep." };
+    return JSON.parse(text);
+  } catch (error) {
+    return {};
+  }
+}
+
+function historyFingerprint(module, inputData, output) {
+  return crypto.createHash("sha1").update(module + "\n" + JSON.stringify(inputData) + "\n" + output).digest("hex");
+}
+
+// Saves one output. Identical output from identical data (e.g. reopening the page) is kept once.
+async function logAiOutput(entry) {
+  if (!mongoReady || !client) return null;
+  try {
+    const inputData = safeInputData(entry.inputData);
+    const shownOutput = String(entry.shownOutput || "").slice(0, 20000);
+    const rawOutput = String(entry.rawOutput == null ? shownOutput : entry.rawOutput).slice(0, 20000);
+    const fingerprint = historyFingerprint(entry.module, inputData, rawOutput);
+    const col = aiHistoryCollection();
+    const latest = await col.find({ module: entry.module, _id: { $ne: AI_DEFINITION_ID } }).sort({ createdAt: -1 }).limit(1).next();
+    if (latest && latest.fingerprint === fingerprint) return String(latest._id);
+    const generatedBy = entry.account || await accountFromToken(entry.token);
+    const doc = {
+      _id: "aih-" + Date.now().toString(36) + "-" + crypto.randomBytes(4).toString("hex"),
+      module: entry.module,
+      createdAt: new Date(),
+      generatedBy: generatedBy || { id: "", name: "Unknown (not signed in)", role: "" },
+      engine: String(entry.engine || ""),
+      inputData,
+      rawOutput,
+      shownOutput,
+      usedFallback: !!entry.usedFallback,
+      autoCheck: numberCheck(rawOutput, inputData, entry.extraCheckNotes),
+      fingerprint,
+      review: null,
+    };
+    await col.insertOne(doc);
+    return doc._id;
+  } catch (error) {
+    console.error("AI output history: " + error.message);
+    return null;
+  }
+}
+
+function historyToken(req, res, adminOnly) {
+  const token = retailerRecords.readToken(req);
+  if (!token) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again to see the AI output history." });
+    return null;
+  }
+  if (token.bucket !== "admins" && !(token.bucket === "staff" && !adminOnly)) {
+    res.status(403).json({
+      ok: false,
+      error: adminOnly
+        ? "Only head admin and admin accounts can evaluate AI outputs."
+        : "Only head admin, admin and staff accounts can see the AI output history.",
+    });
+    return null;
+  }
+  return token;
+}
+
+function publicHistoryRow(doc) {
+  const row = { ...doc, id: String(doc._id) };
+  delete row._id;
+  delete row.fingerprint;
+  row.moduleLabel = AI_HISTORY_MODULES[row.module] || row.module;
+  return row;
+}
+
+async function readDefinition() {
+  const doc = await aiHistoryCollection().findOne({ _id: AI_DEFINITION_ID });
+  return doc ? { text: doc.text || "", updatedAt: doc.updatedAt || null, updatedBy: doc.updatedBy || null } : { text: "", updatedAt: null, updatedBy: null };
+}
+
+// Management Insight is worked out in the browser; the page sends each generated output here.
+app.post("/api/ai-history", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = historyToken(req, res, false);
+  if (!token) return;
+  const body = req.body || {};
+  if (body.module !== "management-insight") {
+    // Production recommendations are saved by the server itself, straight from the GPT reply.
+    res.status(400).json({ ok: false, error: "Only Management Insight outputs are sent from the page." });
+    return;
+  }
+  const output = String(body.output || "").trim();
+  if (!output) {
+    res.status(400).json({ ok: false, error: "The output is empty." });
+    return;
+  }
+  const id = await logAiOutput({
+    module: body.module,
+    engine: String(body.engine || "Rule-based (computed in the system)").slice(0, 80),
+    inputData: body.inputData,
+    rawOutput: output,
+    shownOutput: output,
+    usedFallback: false,
+    token,
+  });
+  if (!id) {
+    res.status(500).json({ ok: false, error: "The output could not be saved to the history." });
+    return;
+  }
+  res.json({ ok: true, id });
+});
+
+app.get("/api/ai-history", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = historyToken(req, res, false);
+  if (!token) return;
+  try {
+    const filter = { _id: { $ne: AI_DEFINITION_ID } };
+    const module = String(req.query.module || "");
+    if (AI_HISTORY_MODULES[module]) filter.module = module;
+    const from = Number(req.query.from);
+    const to = Number(req.query.to);
+    if (Number.isFinite(from) && from > 0) filter.createdAt = Object.assign(filter.createdAt || {}, { $gte: new Date(from) });
+    if (Number.isFinite(to) && to > 0) filter.createdAt = Object.assign(filter.createdAt || {}, { $lte: new Date(to) });
+
+    const col = aiHistoryCollection();
+    // The rate always uses every output in the chosen module and dates; "Show" only narrows the list.
+    const all = await col.find(filter, { projection: { "review.verdict": 1, "autoCheck.passed": 1, module: 1 } }).toArray();
+    const stats = { total: all.length, evaluated: 0, consistent: 0, inconsistent: 0, notEvaluated: 0, autoChecked: all.length, autoPassed: 0, rate: null, byModule: {} };
+    Object.keys(AI_HISTORY_MODULES).forEach((key) => {
+      stats.byModule[key] = { label: AI_HISTORY_MODULES[key], total: 0, evaluated: 0, consistent: 0, rate: null };
+    });
+    all.forEach((doc) => {
+      const verdict = doc.review && doc.review.verdict;
+      const mod = stats.byModule[doc.module];
+      if (mod) mod.total += 1;
+      if (doc.autoCheck && doc.autoCheck.passed) stats.autoPassed += 1;
+      if (verdict === "consistent" || verdict === "inconsistent") {
+        stats.evaluated += 1;
+        if (mod) mod.evaluated += 1;
+        if (verdict === "consistent") {
+          stats.consistent += 1;
+          if (mod) mod.consistent += 1;
+        } else {
+          stats.inconsistent += 1;
+        }
+      } else {
+        stats.notEvaluated += 1;
+      }
+    });
+    stats.rate = stats.evaluated ? round2((stats.consistent / stats.evaluated) * 100) : null;
+    Object.keys(stats.byModule).forEach((key) => {
+      const mod = stats.byModule[key];
+      mod.rate = mod.evaluated ? round2((mod.consistent / mod.evaluated) * 100) : null;
+    });
+
+    const status = String(req.query.status || "");
+    const listFilter = Object.assign({}, filter);
+    if (status === "consistent" || status === "inconsistent") listFilter["review.verdict"] = status;
+    else if (status === "pending") listFilter["review.verdict"] = { $nin: ["consistent", "inconsistent"] };
+    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 2000);
+    const rows = await col.find(listFilter).sort({ createdAt: -1 }).limit(limit).toArray();
+
+    res.json({
+      ok: true,
+      canReview: token.bucket === "admins",
+      formula: "AI Consistency Rate (%) = (Factually Consistent Outputs / Total Outputs Evaluated) x 100",
+      definition: await readDefinition(),
+      stats,
+      records: rows.map(publicHistoryRow),
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/ai-history/review", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = historyToken(req, res, true);
+  if (!token) return;
+  const body = req.body || {};
+  const id = String(body.id || "");
+  const verdict = String(body.verdict || "");
+  if (!id || id === AI_DEFINITION_ID) {
+    res.status(400).json({ ok: false, error: "Choose an output to evaluate." });
+    return;
+  }
+  if (["consistent", "inconsistent", "clear"].indexOf(verdict) < 0) {
+    res.status(400).json({ ok: false, error: "Choose Factually consistent or Not consistent." });
+    return;
+  }
+  try {
+    const col = aiHistoryCollection();
+    const existing = await col.findOne({ _id: id });
+    if (!existing) {
+      res.status(404).json({ ok: false, error: "That output is no longer in the history." });
+      return;
+    }
+    let review = null;
+    if (verdict !== "clear") {
+      const definition = await readDefinition();
+      review = {
+        verdict,
+        notes: String(body.notes || "").slice(0, 2000),
+        reviewer: await accountFromToken(token),
+        reviewedAt: new Date(),
+        definitionUsed: definition.text,
+      };
+    }
+    await col.updateOne({ _id: id }, { $set: { review } });
+    res.json({ ok: true, record: publicHistoryRow(await col.findOne({ _id: id })) });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/ai-history/definition", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = historyToken(req, res, true);
+  if (!token) return;
+  const text = String((req.body && req.body.text) || "").trim().slice(0, 4000);
+  try {
+    const updatedBy = await accountFromToken(token);
+    await aiHistoryCollection().updateOne(
+      { _id: AI_DEFINITION_ID },
+      { $set: { text, updatedAt: new Date(), updatedBy } },
+      { upsert: true }
+    );
+    res.json({ ok: true, definition: await readDefinition() });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
   }
 });
 

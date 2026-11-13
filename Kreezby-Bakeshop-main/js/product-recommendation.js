@@ -9,6 +9,22 @@
     var requestId = 0;
     var startedForBody = null;
 
+    function sessionToken() {
+        try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
+    }
+
+    // The "View History" button and window come from ai-output-history.js. Pages opened through
+    // the fast page switch load this file on its own, so it brings the history script along.
+    (function loadHistoryScript() {
+        if (window.KreezbyAiHistory || document.getElementById('kreezby-ai-history-script')) return;
+        var me = document.currentScript && document.currentScript.src;
+        var src = me ? me.replace(/product-recommendation\.js(\?.*)?$/, 'ai-output-history.js?v=20261112hist') : '../js/ai-output-history.js?v=20261112hist';
+        var s = document.createElement('script');
+        s.id = 'kreezby-ai-history-script';
+        s.src = src;
+        (document.body || document.head).appendChild(s);
+    })();
+
     function esc(value) {
         var node = document.createElement('div');
         node.textContent = value == null ? '' : String(value);
@@ -92,9 +108,13 @@
                 setBusy(false);
                 return;
             }
+            var headers = { 'Content-Type': 'application/json' };
+            var token = sessionToken();
+            // Lets the server note who generated this recommendation in the AI output history.
+            if (token) headers['X-Kreezby-Token'] = token;
             fetch('/api/product-recommendation', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({ snapshot: snapshot })
             }).then(function (res) {
                 return res.json().then(function (data) {
@@ -104,6 +124,9 @@
                 if (id !== requestId) return;
                 if (result.data && result.data.recommendation) {
                     setBody(result.data.recommendation);
+                    if (result.data.historyId) {
+                        document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'production-recommendation' } }));
+                    }
                     return;
                 }
                 setBody((result.data && result.data.error) || 'The production recommendation could not be written just now.');
