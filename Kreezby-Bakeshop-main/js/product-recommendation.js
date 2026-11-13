@@ -18,7 +18,7 @@
     (function loadHistoryScript() {
         if (window.KreezbyAiHistory || document.getElementById('kreezby-ai-history-script')) return;
         var me = document.currentScript && document.currentScript.src;
-        var src = me ? me.replace(/product-recommendation\.js(\?.*)?$/, 'ai-output-history.js?v=20261112hist') : '../js/ai-output-history.js?v=20261112hist';
+        var src = me ? me.replace(/product-recommendation\.js(\?.*)?$/, 'ai-output-history.js?v=20261112hist3') : '../js/ai-output-history.js?v=20261112hist3';
         var s = document.createElement('script');
         s.id = 'kreezby-ai-history-script';
         s.src = src;

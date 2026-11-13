@@ -496,7 +496,7 @@
                 done();
                 return;
             }
-            loadScript(root + 'js/product-recommendation.js?v=20261112hist', 'kreezby-product-recommendation-script', done);
+            loadScript(root + 'js/product-recommendation.js?v=20261112hist3', 'kreezby-product-recommendation-script', done);
         }
         function start() {
             loadRecommendation(boot);

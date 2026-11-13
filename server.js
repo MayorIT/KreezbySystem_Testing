@@ -1558,28 +1558,6 @@ function insightNumber(value) {
   return Number.isFinite(number) ? Math.round(number * 10) / 10 : null;
 }
 
-function sanitizeInsightSnapshot(input) {
-  const source = input && typeof input === "object" ? input : {};
-  const products = Array.isArray(source.products) ? source.products.slice(0, 12) : [];
-  const materials = Array.isArray(source.materials) ? source.materials.slice(0, 8) : [];
-  const alerts = Array.isArray(source.alerts) ? source.alerts.slice(0, 6) : [];
-  return {
-    asOf: cleanInsightText(source.asOf, 20),
-    products: products.map((row) => ({
-      name: cleanInsightText(row && row.name, 80),
-      stock: insightNumber(row && row.stock),
-      recommendedStock: insightNumber(row && row.recommendedStock),
-      recentSales: insightNumber(row && row.recentSales),
-    })).filter((row) => row.name),
-    materials: materials.map((row) => ({
-      name: cleanInsightText(row && row.name, 80),
-      stock: insightNumber(row && row.stock),
-      expires: cleanInsightText(row && row.expires, 20),
-    })).filter((row) => row.name),
-    alerts: alerts.map((item) => cleanInsightText(item, 180)).filter(Boolean),
-  };
-}
-
 function insightAllowed(ip) {
   const now = Date.now();
   const last = insightLastCall.get(ip) || 0;
@@ -1588,7 +1566,7 @@ function insightAllowed(ip) {
   return true;
 }
 
-async function writeOwnerNote(apiKey, snapshot, instructions) {
+async function writeOwnerNote(apiKey, snapshot, instructions, maxTokens) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -1599,7 +1577,7 @@ async function writeOwnerNote(apiKey, snapshot, instructions) {
     body: JSON.stringify({
       model: OPENAI_MODEL,
       temperature: 0.4,
-      max_tokens: 320,
+      max_tokens: maxTokens || 320,
       messages: [
         {
           role: "system",
@@ -1631,52 +1609,91 @@ async function writeOwnerNote(apiKey, snapshot, instructions) {
   return text;
 }
 
-function writeManagementInsight(apiKey, snapshot) {
-  return writeOwnerNote(
-    apiKey,
-    snapshot,
-    "Reply with JSON only, no markdown: {\"insights\":[{\"name\":\"\",\"text\":\"\"}]}. Write one object for every product. Each text is one or two short sentences for that product alone. Include that product's stock, recommended stock, and recent sales, using the exact numbers from the data. Say whether its stock is below, equal to, or above the recommended stock. Do not combine products into one summary. Do not invent products or numbers. Do not forecast. Do not use business jargon."
-  );
-}
-
 function insightIncludesNumber(text, value) {
   if (value == null) return true;
   const digits = String(value).replace(/\.0$/, "");
   return new RegExp("(^|[^0-9])" + digits.replace(".", "\\.") + "([^0-9]|$)").test(String(text || ""));
 }
 
-function localInsightRows(snapshot) {
-  return (snapshot.products || []).map((product) => {
-    const low = Number(product.stock) <= Number(product.recommendedStock);
-    const sentence = product.name + " has " + product.stock + " in stock against a recommended " + product.recommendedStock + ", with " + product.recentSales + " recent sales. "
-      + (low
-        ? "Stock is at or below the recommended level and needs a management review."
-        : "Stock covers the recommended level.");
-    return { name: product.name, text: sentence };
-  });
+// ---------- Management Insight: the Interpretation is written by GPT ----------
+// The page works out sales, stock and situations from the shop's records and sends them here.
+// GPT writes the owner's interpretation from those figures only.
+function cleanInsightData(value, depth) {
+  if (depth > 5) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
+  if (typeof value === "string") return cleanInsightText(value, 400);
+  if (typeof value === "boolean" || value == null) return value == null ? null : value;
+  if (Array.isArray(value)) return value.slice(0, 40).map((item) => cleanInsightData(item, depth + 1));
+  if (typeof value === "object") {
+    const out = {};
+    Object.keys(value).slice(0, 40).forEach((key) => { out[cleanInsightText(key, 40)] = cleanInsightData(value[key], depth + 1); });
+    return out;
+  }
+  return null;
 }
 
-function parseManagementInsights(text, snapshot) {
+function numbersInText(text) {
+  return (String(text || "").match(/\d[\d,]*(?:\.\d+)?/g) || [])
+    .map((raw) => Number(raw.replace(/,/g, "")))
+    .filter((value) => Number.isFinite(value));
+}
+
+function collectNumbers(value, out, key) {
+  if (key === "asOf") return out;
+  if (typeof value === "number") out.push(value);
+  else if (typeof value === "string") numbersInText(value).forEach((n) => out.push(n));
+  else if (Array.isArray(value)) {
+    out.push(value.length);
+    value.forEach((item) => collectNumbers(item, out));
+  } else if (value && typeof value === "object") Object.keys(value).forEach((k) => collectNumbers(value[k], out, k));
+  return out;
+}
+
+// Every number GPT writes must come from the figures it was given (counts of listed items allowed).
+function insightNumbersMatch(text, data) {
+  const known = new Set(collectNumbers(data, []).map((n) => Math.round(n * 100) / 100));
+  return numbersInText(text).every((n) => n === 1 || known.has(Math.round(n * 100) / 100));
+}
+
+function writeManagementInsight(apiKey, data) {
+  return writeOwnerNote(
+    apiKey,
+    data,
+    "You write the Interpretation part of the Management Insight for the owner of Kreezby Bakeshop, a crinkles bakery that sells pouches. "
+      + "The data has sales totals for the last 7 and 30 days and the 30 days before, each flavor's stock and sales, alerts, and the business situations already found. "
+      + "Reply with JSON only, no markdown: {\"sales\":\"\",\"inventory\":\"\",\"demand\":\"\",\"doFirst\":[\"\"]}. "
+      + "sales: one or two short sentences on how many pouches sold and the sales value in the last 30 days, and whether that is more or less than the 30 days before. "
+      + "inventory: one or two short sentences on pouches in stock, flavors out of stock or running low, and expired or near-expiry batches. "
+      + "demand: one or two short sentences on which flavors customers buy most, and which are rising, falling or not selling. "
+      + "doFirst: up to 3 short actions for the owner, most urgent first. "
+      + "Use simple everyday words. Use only numbers that appear in the data, written exactly as given; write peso amounts with the peso sign. "
+      + "Do not invent products, numbers or reasons. Do not forecast. Do not use business jargon. If there are no sales yet, say so plainly.",
+    600
+  );
+}
+
+function parseInterpretation(text) {
   const raw = String(text || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim();
   let parsed;
   try {
     parsed = JSON.parse(raw);
   } catch (error) {
-    return [];
+    return null;
   }
-  const list = parsed && Array.isArray(parsed.insights) ? parsed.insights : [];
-  const byName = new Map();
-  snapshot.products.forEach((product) => byName.set(product.name.toLowerCase(), product));
-  return list.map((item) => {
-    const name = cleanInsightText(item && item.name, 80);
-    const product = byName.get(name.toLowerCase());
-    const sentence = cleanInsightText(item && item.text, 320);
-    if (!product || !sentence) return null;
-    if (!insightIncludesNumber(sentence, product.stock)
-      || !insightIncludesNumber(sentence, product.recommendedStock)
-      || !insightIncludesNumber(sentence, product.recentSales)) return null;
-    return { name: product.name, text: sentence };
-  }).filter(Boolean);
+  if (!parsed || typeof parsed !== "object") return null;
+  const result = {
+    sales: cleanInsightText(parsed.sales, 600),
+    inventory: cleanInsightText(parsed.inventory, 600),
+    demand: cleanInsightText(parsed.demand, 600),
+    doFirst: (Array.isArray(parsed.doFirst) ? parsed.doFirst : []).map((a) => cleanInsightText(a, 300)).filter(Boolean).slice(0, 3),
+  };
+  if (!result.sales || !result.inventory || !result.demand) return null;
+  return result;
+}
+
+function interpretationText(item) {
+  return "Sales: " + item.sales + "\nInventory: " + item.inventory + "\nDemand: " + item.demand
+    + (item.doFirst.length ? "\nDo first: " + item.doFirst.map((a, i) => (i + 1) + ") " + a).join(" ") : "");
 }
 
 const productRecommendationLastCall = new Map();
@@ -1737,19 +1754,16 @@ function writeProductRecommendation(apiKey, snapshot) {
 app.post("/api/management-insight", async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    res.status(503).json({ ok: false, error: "Management insight is not configured." });
+    res.status(503).json({ ok: false, error: "Management insight is not configured (OPENAI_API_KEY is missing on the server)." });
     return;
   }
-
-  const snapshot = sanitizeInsightSnapshot(req.body && req.body.snapshot);
-  if (!snapshot.products.length) {
-    res.json({
-      ok: true,
-      insight: "There is not enough sales or stock data yet to summarize. Once products have stock and recent sales, this note will tell you what stands out.",
-      model: OPENAI_MODEL,
-    });
+  const body = req.body || {};
+  const data = cleanInsightData(body.data, 0);
+  if (!data || typeof data !== "object" || !Array.isArray(data.flavors) || !data.flavors.length) {
+    res.status(400).json({ ok: false, error: "There is no sales or stock data to interpret yet." });
     return;
   }
+  const fallback = parseInterpretation(JSON.stringify(body.fallback || {}));
 
   const ip = req.ip || "local";
   if (!insightAllowed(ip)) {
@@ -1758,15 +1772,25 @@ app.post("/api/management-insight", async (req, res) => {
   }
 
   try {
-    const insight = await writeManagementInsight(apiKey, snapshot);
-    const parsed = parseManagementInsights(insight, snapshot);
-    const insights = parsed.length ? parsed : localInsightRows(snapshot);
-    res.json({
-      ok: true,
-      insight: insights.map((item) => item.text).join(" "),
-      insights,
-      model: OPENAI_MODEL,
+    const reply = await writeManagementInsight(apiKey, data);
+    const parsed = parseInterpretation(reply);
+    const matches = !!parsed && insightNumbersMatch(interpretationText(parsed), data);
+    const shown = matches ? parsed : fallback;
+    if (!shown) {
+      res.status(502).json({ ok: false, error: "The management insight could not be written just now." });
+      return;
+    }
+    // Every GPT answer is kept word for word in the output history.
+    const historyId = await logAiOutput({
+      module: "management-insight",
+      engine: OPENAI_MODEL,
+      inputData: data,
+      rawOutput: parsed ? interpretationText(parsed) : reply,
+      shownOutput: interpretationText(shown),
+      usedFallback: !matches,
+      token: retailerRecords.readToken(req),
     });
+    res.json({ ok: true, interpretation: shown, usedFallback: !matches, model: OPENAI_MODEL, historyId });
   } catch (error) {
     const code = error && error.code;
     if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
@@ -1815,7 +1839,7 @@ app.post("/api/product-recommendation", async (req, res) => {
     const safeRecommendation = matches
       ? recommendation
       : deterministicRecommendation(snapshot);
-    // Every GPT answer is kept (word for word) so researchers can judge its factual consistency later.
+    // Every GPT answer is kept word for word in the output history.
     const historyId = await logAiOutput({
       module: "production-recommendation",
       engine: OPENAI_MODEL,
@@ -1823,7 +1847,6 @@ app.post("/api/product-recommendation", async (req, res) => {
       rawOutput: recommendation,
       shownOutput: safeRecommendation,
       usedFallback: !matches,
-      extraCheckNotes: matches ? [] : ["The AI text did not name every product or every bake amount, so the computed text was shown instead."],
       token: retailerRecords.readToken(req),
     });
     res.json({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL, historyId });
@@ -1846,65 +1869,17 @@ app.post("/api/product-recommendation", async (req, res) => {
   }
 });
 
-// ---------- AI output history (factual consistency evaluation) ----------
-// Each Management Insight and Production Recommendation output is kept in ai_output_history with
-// the exact data it was based on. Head admin / admin accounts mark each output as factually
-// consistent or not, using the definition the researchers wrote (kept in the "_definition" doc).
-//   AI Consistency Rate (%) = (Factually Consistent Outputs / Total Outputs Evaluated) x 100
+// ---------- AI output history ----------
+// Every GPT-4o mini output (Management Insight and Production Recommendation) is kept in
+// ai_output_history with the date, the account that generated it, and the data it was based on.
 const AI_HISTORY_COL = "ai_output_history";
 const AI_HISTORY_MODULES = {
   "management-insight": "Management Insight",
   "production-recommendation": "Production Recommendation",
 };
-const AI_DEFINITION_ID = "_definition";
 
 function aiHistoryCollection() {
   return client.db(DB_NAME).collection(AI_HISTORY_COL);
-}
-
-function round2(value) {
-  return Math.round(Number(value) * 100) / 100;
-}
-
-// Every number written in a piece of text: "1,234.50" -> 1234.5, "15%" -> 15.
-function numbersInText(text) {
-  return (String(text || "").match(/\d[\d,]*(?:\.\d+)?/g) || [])
-    .map((raw) => Number(raw.replace(/,/g, "")))
-    .filter((value) => Number.isFinite(value));
-}
-
-function collectNumbers(value, out, key) {
-  if (key === "asOf") return out;
-  if (typeof value === "number") {
-    if (Number.isFinite(value)) out.push(value);
-  } else if (typeof value === "string") {
-    numbersInText(value).forEach((n) => out.push(n));
-  } else if (Array.isArray(value)) {
-    value.forEach((item) => collectNumbers(item, out));
-  } else if (value && typeof value === "object") {
-    Object.keys(value).forEach((k) => collectNumbers(value[k], out, k));
-  }
-  return out;
-}
-
-// System number check: is every number in the output also in the data it was based on?
-// It only helps the reviewers; it is not the evaluation and does not count in the rate.
-function numberCheck(outputText, inputData, extraNotes) {
-  const known = new Set(collectNumbers(inputData, []).map(round2));
-  const found = numbersInText(outputText);
-  const unsupported = [];
-  found.forEach((value) => {
-    const r = round2(value);
-    if (!known.has(r) && unsupported.indexOf(r) < 0) unsupported.push(r);
-  });
-  const notes = (extraNotes || []).slice();
-  if (unsupported.length) notes.push("Numbers not found in the input data: " + unsupported.join(", ") + ".");
-  return {
-    passed: unsupported.length === 0 && !(extraNotes && extraNotes.length),
-    numbersFound: found.length,
-    unsupportedNumbers: unsupported,
-    notes,
-  };
 }
 
 async function accountFromToken(token) {
@@ -1925,7 +1900,7 @@ async function accountFromToken(token) {
   } catch (error) {
     /* keep the id as the name */
   }
-  return { id: String(token.id), name: String(name), role, bucket };
+  return { id: String(token.id), name: String(name), role };
 }
 
 function safeInputData(value) {
@@ -1942,7 +1917,7 @@ function historyFingerprint(module, inputData, output) {
   return crypto.createHash("sha1").update(module + "\n" + JSON.stringify(inputData) + "\n" + output).digest("hex");
 }
 
-// Saves one output. Identical output from identical data (e.g. reopening the page) is kept once.
+// Saves one output. The same output from the same data (e.g. reopening the page) is kept once.
 async function logAiOutput(entry) {
   if (!mongoReady || !client) return null;
   try {
@@ -1951,22 +1926,19 @@ async function logAiOutput(entry) {
     const rawOutput = String(entry.rawOutput == null ? shownOutput : entry.rawOutput).slice(0, 20000);
     const fingerprint = historyFingerprint(entry.module, inputData, rawOutput);
     const col = aiHistoryCollection();
-    const latest = await col.find({ module: entry.module, _id: { $ne: AI_DEFINITION_ID } }).sort({ createdAt: -1 }).limit(1).next();
+    const latest = await col.find({ module: entry.module }).sort({ createdAt: -1 }).limit(1).next();
     if (latest && latest.fingerprint === fingerprint) return String(latest._id);
-    const generatedBy = entry.account || await accountFromToken(entry.token);
     const doc = {
       _id: "aih-" + Date.now().toString(36) + "-" + crypto.randomBytes(4).toString("hex"),
       module: entry.module,
       createdAt: new Date(),
-      generatedBy: generatedBy || { id: "", name: "Unknown (not signed in)", role: "" },
+      generatedBy: (await accountFromToken(entry.token)) || { id: "", name: "Unknown (not signed in)", role: "" },
       engine: String(entry.engine || ""),
       inputData,
       rawOutput,
       shownOutput,
       usedFallback: !!entry.usedFallback,
-      autoCheck: numberCheck(rawOutput, inputData, entry.extraCheckNotes),
       fingerprint,
-      review: null,
     };
     await col.insertOne(doc);
     return doc._id;
@@ -1976,186 +1948,45 @@ async function logAiOutput(entry) {
   }
 }
 
-function historyToken(req, res, adminOnly) {
+function historyToken(req, res) {
   const token = retailerRecords.readToken(req);
   if (!token) {
-    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again to see the AI output history." });
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log out and log in again to see the output history." });
     return null;
   }
-  if (token.bucket !== "admins" && !(token.bucket === "staff" && !adminOnly)) {
-    res.status(403).json({
-      ok: false,
-      error: adminOnly
-        ? "Only head admin and admin accounts can evaluate AI outputs."
-        : "Only head admin, admin and staff accounts can see the AI output history.",
-    });
+  if (token.bucket !== "admins" && token.bucket !== "staff") {
+    res.status(403).json({ ok: false, error: "Only head admin, admin and staff accounts can see the output history." });
     return null;
   }
   return token;
 }
 
-function publicHistoryRow(doc) {
-  const row = { ...doc, id: String(doc._id) };
-  delete row._id;
-  delete row.fingerprint;
-  row.moduleLabel = AI_HISTORY_MODULES[row.module] || row.module;
-  return row;
-}
-
-async function readDefinition() {
-  const doc = await aiHistoryCollection().findOne({ _id: AI_DEFINITION_ID });
-  return doc ? { text: doc.text || "", updatedAt: doc.updatedAt || null, updatedBy: doc.updatedBy || null } : { text: "", updatedAt: null, updatedBy: null };
-}
-
-// Management Insight is worked out in the browser; the page sends each generated output here.
-app.post("/api/ai-history", async (req, res) => {
-  if (!databaseReady(res)) return;
-  const token = historyToken(req, res, false);
-  if (!token) return;
-  const body = req.body || {};
-  if (body.module !== "management-insight") {
-    // Production recommendations are saved by the server itself, straight from the GPT reply.
-    res.status(400).json({ ok: false, error: "Only Management Insight outputs are sent from the page." });
-    return;
-  }
-  const output = String(body.output || "").trim();
-  if (!output) {
-    res.status(400).json({ ok: false, error: "The output is empty." });
-    return;
-  }
-  const id = await logAiOutput({
-    module: body.module,
-    engine: String(body.engine || "Rule-based (computed in the system)").slice(0, 80),
-    inputData: body.inputData,
-    rawOutput: output,
-    shownOutput: output,
-    usedFallback: false,
-    token,
-  });
-  if (!id) {
-    res.status(500).json({ ok: false, error: "The output could not be saved to the history." });
-    return;
-  }
-  res.json({ ok: true, id });
-});
-
 app.get("/api/ai-history", async (req, res) => {
   if (!databaseReady(res)) return;
-  const token = historyToken(req, res, false);
-  if (!token) return;
+  if (!historyToken(req, res)) return;
   try {
-    const filter = { _id: { $ne: AI_DEFINITION_ID } };
+    const filter = {};
     const module = String(req.query.module || "");
     if (AI_HISTORY_MODULES[module]) filter.module = module;
     const from = Number(req.query.from);
     const to = Number(req.query.to);
     if (Number.isFinite(from) && from > 0) filter.createdAt = Object.assign(filter.createdAt || {}, { $gte: new Date(from) });
     if (Number.isFinite(to) && to > 0) filter.createdAt = Object.assign(filter.createdAt || {}, { $lte: new Date(to) });
-
     const col = aiHistoryCollection();
-    // The rate always uses every output in the chosen module and dates; "Show" only narrows the list.
-    const all = await col.find(filter, { projection: { "review.verdict": 1, "autoCheck.passed": 1, module: 1 } }).toArray();
-    const stats = { total: all.length, evaluated: 0, consistent: 0, inconsistent: 0, notEvaluated: 0, autoChecked: all.length, autoPassed: 0, rate: null, byModule: {} };
-    Object.keys(AI_HISTORY_MODULES).forEach((key) => {
-      stats.byModule[key] = { label: AI_HISTORY_MODULES[key], total: 0, evaluated: 0, consistent: 0, rate: null };
-    });
-    all.forEach((doc) => {
-      const verdict = doc.review && doc.review.verdict;
-      const mod = stats.byModule[doc.module];
-      if (mod) mod.total += 1;
-      if (doc.autoCheck && doc.autoCheck.passed) stats.autoPassed += 1;
-      if (verdict === "consistent" || verdict === "inconsistent") {
-        stats.evaluated += 1;
-        if (mod) mod.evaluated += 1;
-        if (verdict === "consistent") {
-          stats.consistent += 1;
-          if (mod) mod.consistent += 1;
-        } else {
-          stats.inconsistent += 1;
-        }
-      } else {
-        stats.notEvaluated += 1;
-      }
-    });
-    stats.rate = stats.evaluated ? round2((stats.consistent / stats.evaluated) * 100) : null;
-    Object.keys(stats.byModule).forEach((key) => {
-      const mod = stats.byModule[key];
-      mod.rate = mod.evaluated ? round2((mod.consistent / mod.evaluated) * 100) : null;
-    });
-
-    const status = String(req.query.status || "");
-    const listFilter = Object.assign({}, filter);
-    if (status === "consistent" || status === "inconsistent") listFilter["review.verdict"] = status;
-    else if (status === "pending") listFilter["review.verdict"] = { $nin: ["consistent", "inconsistent"] };
-    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 2000);
-    const rows = await col.find(listFilter).sort({ createdAt: -1 }).limit(limit).toArray();
-
+    const total = await col.countDocuments(filter);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 300, 1), 2000);
+    const rows = await col.find(filter).sort({ createdAt: -1 }).limit(limit).toArray();
     res.json({
       ok: true,
-      canReview: token.bucket === "admins",
-      formula: "AI Consistency Rate (%) = (Factually Consistent Outputs / Total Outputs Evaluated) x 100",
-      definition: await readDefinition(),
-      stats,
-      records: rows.map(publicHistoryRow),
+      total,
+      records: rows.map((doc) => {
+        const row = { ...doc, id: String(doc._id) };
+        delete row._id;
+        delete row.fingerprint;
+        row.moduleLabel = AI_HISTORY_MODULES[row.module] || row.module;
+        return row;
+      }),
     });
-  } catch (error) {
-    res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-app.post("/api/ai-history/review", async (req, res) => {
-  if (!databaseReady(res)) return;
-  const token = historyToken(req, res, true);
-  if (!token) return;
-  const body = req.body || {};
-  const id = String(body.id || "");
-  const verdict = String(body.verdict || "");
-  if (!id || id === AI_DEFINITION_ID) {
-    res.status(400).json({ ok: false, error: "Choose an output to evaluate." });
-    return;
-  }
-  if (["consistent", "inconsistent", "clear"].indexOf(verdict) < 0) {
-    res.status(400).json({ ok: false, error: "Choose Factually consistent or Not consistent." });
-    return;
-  }
-  try {
-    const col = aiHistoryCollection();
-    const existing = await col.findOne({ _id: id });
-    if (!existing) {
-      res.status(404).json({ ok: false, error: "That output is no longer in the history." });
-      return;
-    }
-    let review = null;
-    if (verdict !== "clear") {
-      const definition = await readDefinition();
-      review = {
-        verdict,
-        notes: String(body.notes || "").slice(0, 2000),
-        reviewer: await accountFromToken(token),
-        reviewedAt: new Date(),
-        definitionUsed: definition.text,
-      };
-    }
-    await col.updateOne({ _id: id }, { $set: { review } });
-    res.json({ ok: true, record: publicHistoryRow(await col.findOne({ _id: id })) });
-  } catch (error) {
-    res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-app.post("/api/ai-history/definition", async (req, res) => {
-  if (!databaseReady(res)) return;
-  const token = historyToken(req, res, true);
-  if (!token) return;
-  const text = String((req.body && req.body.text) || "").trim().slice(0, 4000);
-  try {
-    const updatedBy = await accountFromToken(token);
-    await aiHistoryCollection().updateOne(
-      { _id: AI_DEFINITION_ID },
-      { $set: { text, updatedAt: new Date(), updatedBy } },
-      { upsert: true }
-    );
-    res.json({ ok: true, definition: await readDefinition() });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }

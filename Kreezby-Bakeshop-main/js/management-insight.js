@@ -5,8 +5,8 @@
  *   1. Summary of sales performance
  *   2. Inventory conditions
  *   3. Identified business situations
- *   4. Interpretation of the generated insights
- * Refresh recalculates everything from the latest records.
+ *   4. Interpretation of the generated insights (written by GPT-4o mini on the server)
+ * Refresh recalculates everything from the latest records and asks GPT-4o mini for a new interpretation.
  */
 (function () {
     'use strict';
@@ -366,26 +366,28 @@
             : '<p class="mi-empty">Nothing needs attention right now.</p>';
         html += '</section>';
 
-        // 4. Interpretation
-        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation</h4>'
-            + reading.lines.map(function (l) { return '<p><b>' + esc(l.label) + ':</b> ' + esc(l.text) + '</p>'; }).join('')
-            + (reading.actions.length ? '<p><b>Do first:</b></p><ol>' + reading.actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '')
-            + '</section>';
+        // 4. Interpretation (written by GPT-4o mini from the figures above)
+        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation</h4>' + interpretationHtml(reading) + '</section>';
         html += '</div>';
         body.innerHTML = html;
-        lastGenerated = historyEntry(data, ranked, stocked, states, topFound, reading, change);
+        lastInput = aiInput(data, ranked, states, topFound, change);
+        lastReading = reading;
         return true;
     }
 
-    // ---------- history (for checking factual consistency) ----------
-    // The output as plain text plus the exact figures it was worked out from.
-    var lastGenerated = null;
-    var saveTimer = null;
-    var wantSave = false;
+    // ---------- 4. interpretation by GPT-4o mini ----------
+    // Parts 1-3 are worked out here from the shop's records. Those figures go to the server, where
+    // GPT-4o mini writes the owner's interpretation. Each reply is saved in the output history.
+    var lastInput = null;
+    var lastReading = null;
+    var ai = { status: 'idle', result: null, at: null, usedFallback: false, model: '', error: '' };
+    var aiRequestId = 0;
+    var aiTimer = null;
+    var aiStartedFor = null;
 
-    function historyEntry(data, ranked, stocked, states, found, reading, change) {
+    function aiInput(data, ranked, states, found, change) {
         var t = data.totals;
-        var inputData = {
+        return {
             asOf: isoDay(data.asOf),
             periods: { shortDays: 7, longDays: 30, previousDays: 30 },
             totals: {
@@ -406,7 +408,6 @@
                     soldPrev30: i.soldPrev30,
                     sharePct: t.sold30 ? Math.round(i.sold30 / t.sold30 * 100) : 0,
                     perDay: Math.round(i.perDay * 10) / 10,
-                    daysCover: i.daysCover == null ? null : Math.round(i.daysCover),
                     daysLeft: i.daysCover == null ? null : Math.max(1, Math.round(i.daysCover)),
                     stockState: stockState(i).label
                 };
@@ -416,58 +417,109 @@
                 expired: data.expired.map(function (a) { return a.message; }),
                 nearExpiry: data.nearExpiry.map(function (a) { return a.message; }),
                 lowMaterials: data.lowMaterials.map(function (a) { return a.message; })
-            }
-        };
-        var sellers = ranked.filter(function (i) { return i.sold30 > 0; });
-        var parts = [];
-        parts.push('Summary of sales performance: '
-            + count(t.sold7) + ' pouches in 7 days; ' + count(t.sold30) + ' pouches in 30 days'
-            + (change == null ? ' (no earlier month)' : ' (' + (change >= 0 ? 'up ' : 'down ') + Math.abs(change) + '% vs previous 30 days)')
-            + '; sales value ' + peso(t.revenue30) + ' in the last 30 days. Top sellers: '
-            + (sellers.length ? sellers.slice(0, 3).map(function (i) { return i.name + ' (' + count(i.sold30) + ')'; }).join(', ') : 'no sales in the last 30 days') + '.');
-        parts.push('Inventory conditions: ' + count(t.stock) + ' pouches on hand; out / low: ' + states.bad + ' / ' + states.warn + ' flavors; expired / near expiry: '
-            + data.expired.length + ' / ' + data.nearExpiry.length + ' batches. '
-            + (stocked.length ? stocked.map(function (i) { return i.name + ': ' + stockState(i).label; }).join('; ') + '.' : 'No finished stock or recent sales yet.')
-            + (data.lowMaterials.length ? ' ' + data.lowMaterials.length + ' raw/packaging materials at their alert line.' : ''));
-        parts.push('Identified business situations: ' + (found.length
-            ? found.map(function (s) {
+            },
+            situations: found.map(function (s) {
                 var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
-                return '[' + tag + '] ' + s.title + ' — ' + s.text;
-            }).join(' ')
-            : 'Nothing needs attention right now.'));
-        parts.push('Interpretation: ' + reading.lines.map(function (l) { return l.label + ': ' + l.text; }).join(' ')
-            + (reading.actions.length ? ' Do first: ' + reading.actions.join(' ') : ''));
-        return { inputData: inputData, output: parts.join('\n\n') };
+                return { level: tag, title: s.title, detail: s.text };
+            })
+        };
+    }
+
+    function timeLabel(date) {
+        return date ? date.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }) : '';
+    }
+
+    function readingHtml(r) {
+        return '<p><b>Sales:</b> ' + esc(r.sales) + '</p>'
+            + '<p><b>Inventory:</b> ' + esc(r.inventory) + '</p>'
+            + '<p><b>Demand:</b> ' + esc(r.demand) + '</p>'
+            + (r.doFirst && r.doFirst.length ? '<p><b>Do first:</b></p><ol>' + r.doFirst.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '');
+    }
+
+    // The system's own reading, used when GPT-4o mini cannot answer or its reply does not match the figures.
+    function systemReading(reading) {
+        var pick = function (label) {
+            var line = reading.lines.filter(function (l) { return l.label === label; })[0];
+            return line ? line.text : '';
+        };
+        return { sales: pick('Sales'), inventory: pick('Inventory'), demand: pick('Demand'), doFirst: reading.actions.slice(0, 3) };
+    }
+
+    function interpretationHtml(reading) {
+        if (ai.result) {
+            var note = ai.usedFallback
+                ? 'GPT-4o mini\'s reply used figures that are not in the shop records, so the system\'s own interpretation is shown. Both are kept in View History.'
+                : 'Written by ' + esc(ai.model || 'GPT-4o mini') + ' at ' + timeLabel(ai.at) + ' from the figures above.';
+            if (ai.status === 'loading') note = 'GPT-4o mini is writing a new interpretation…';
+            else if (ai.error) note = esc(ai.error) + ' Showing the interpretation from ' + timeLabel(ai.at) + '.';
+            return readingHtml(ai.result) + '<p class="mi-line mi-muted">' + note + '</p>';
+        }
+        if (ai.status === 'error') {
+            return '<p class="mi-line mi-muted">' + esc(ai.error) + ' Below is the system\'s own interpretation of the figures.</p>'
+                + readingHtml(systemReading(reading));
+        }
+        return '<p class="mi-line mi-muted">GPT-4o mini is writing the interpretation…</p>';
     }
 
     function sessionToken() {
         try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
     }
 
-    // Saved when the insight is opened or refreshed (not on every live update). Waits a moment so
-    // the shop records finish loading; the server keeps an unchanged output only once.
-    function queueSave() {
-        wantSave = true;
-        if (saveTimer) clearTimeout(saveTimer);
-        saveTimer = setTimeout(function () {
-            saveTimer = null;
-            if (!wantSave || !lastGenerated) return;
-            wantSave = false;
+    function panelVisible() {
+        var panel = document.querySelector('[data-insights-panel="management-insight"]');
+        return !!panel && !panel.hidden;
+    }
+
+    // Asked when the insight is opened and on Refresh, not on every live update. Waits a moment so
+    // the shop records finish loading before the figures are sent.
+    function requestAi() {
+        if (aiTimer) clearTimeout(aiTimer);
+        var id = ++aiRequestId;
+        ai.status = 'loading';
+        render();
+        aiTimer = setTimeout(function () {
+            aiTimer = null;
+            if (id !== aiRequestId) return;
+            render();
+            if (!lastInput || !lastReading) {
+                ai.status = 'error';
+                ai.error = 'Shop records are still loading.';
+                render();
+                return;
+            }
+            var headers = { 'Content-Type': 'application/json' };
             var token = sessionToken();
-            if (!token) return;
-            fetch('/api/ai-history', {
+            if (token) headers['X-Kreezby-Token'] = token;
+            fetch('/api/management-insight', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Kreezby-Token': token },
-                body: JSON.stringify({
-                    module: 'management-insight',
-                    engine: 'Rule-based (computed in the system)',
-                    inputData: lastGenerated.inputData,
-                    output: lastGenerated.output
-                })
-            }).then(function () {
-                document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'management-insight' } }));
-            }).catch(function () { /* history is best-effort; the insight itself is already shown */ });
-        }, 2000);
+                headers: headers,
+                body: JSON.stringify({ data: lastInput, fallback: systemReading(lastReading) })
+            }).then(function (res) {
+                return res.json().catch(function () { return {}; });
+            }).then(function (data) {
+                if (id !== aiRequestId) return;
+                if (data && data.ok && data.interpretation) {
+                    ai = { status: 'done', result: data.interpretation, at: new Date(), usedFallback: !!data.usedFallback, model: data.model || '', error: '' };
+                    if (data.historyId) document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'management-insight' } }));
+                } else {
+                    ai.status = ai.result ? 'done' : 'error';
+                    ai.error = (data && data.error) || 'The management insight could not be written just now.';
+                }
+                render();
+            }).catch(function () {
+                if (id !== aiRequestId) return;
+                ai.status = ai.result ? 'done' : 'error';
+                ai.error = 'The management insight could not be written just now.';
+                render();
+            });
+        }, 1500);
+    }
+
+    function maybeRequestAi() {
+        var panel = document.querySelector('[data-insights-panel="management-insight"]');
+        if (!panel || !panelVisible() || aiStartedFor === panel) return;
+        aiStartedFor = panel;
+        requestAi();
     }
 
     function setStatus(text) {
@@ -484,8 +536,9 @@
 
     function refresh() {
         if (render()) {
-            queueSave();
-            setStatus('Updated ' + new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }));
+            aiStartedFor = document.querySelector('[data-insights-panel="management-insight"]');
+            requestAi();
+            setStatus('Updated ' + timeLabel(new Date()));
         } else {
             setStatus('Shop records are still loading. Try again in a moment.');
         }
@@ -507,7 +560,7 @@
             button.setAttribute('data-bound', '1');
             button.addEventListener('click', refresh);
         }
-        whenReady(function () { if (render()) queueSave(); });
+        whenReady(function () { if (render()) maybeRequestAi(); });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
@@ -517,4 +570,9 @@
     // New sales or stock from any account update the insight without a reload.
     document.addEventListener('kreezby:remote-state', function () { whenReady(render); });
     document.addEventListener('kreezby:stocks-sync', function () { whenReady(render); });
+    // Opening the Management Insight tab asks GPT-4o mini for the interpretation.
+    document.addEventListener('kreezby:insights-tab', function (event) {
+        if (!event.detail || event.detail.key !== 'management-insight') return;
+        whenReady(function () { if (render()) maybeRequestAi(); });
+    });
 })();
