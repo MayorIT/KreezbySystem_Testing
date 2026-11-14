@@ -1,10 +1,15 @@
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
+const dns = require("dns");
 const express = require("express");
 const { MongoClient } = require("mongodb");
 const QRCode = require("qrcode");
 require("dotenv").config();
 const crypto = require("crypto");
+// Vercel's network can leave the IPv6 route to api.openai.com hanging until the
+// function is killed. Prefer IPv4 for every lookup, same as the Mongo client.
+if (typeof dns.setDefaultResultOrder === "function") dns.setDefaultResultOrder("ipv4first");
 const retailerRecords = require("./scripts/retailer-records.js");
 
 const PORT = process.env.PORT || 3000;
@@ -756,7 +761,11 @@ app.use("/api", async (req, res, next) => {
             .catch((error) => console.error("MongoDB setup: " + error.message));
         })().finally(() => { lazyConnect = null; });
       }
-      await lazyConnect;
+      // Insight routes must answer before Vercel kills the function. Mongo can
+      // finish in the background; the note is still saved if the connection is up.
+      const insightRoute = req.path === "/management-insight" || req.path === "/product-recommendation";
+      if (insightRoute) await Promise.race([lazyConnect.catch(() => {}), sleep(3000)]);
+      else await lazyConnect;
     } else if (/^\/(state(?!-)|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
       lastCacheRefresh = Date.now();
       await refreshCache();
@@ -1566,41 +1575,98 @@ function insightAllowed(ip) {
   return true;
 }
 
-async function writeOwnerNote(apiKey, snapshot, instructions, maxTokens) {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + apiKey,
-      "Content-Type": "application/json",
-    },
-    signal: AbortSignal.timeout(20000),
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      temperature: 0.4,
-      max_tokens: maxTokens || 320,
-      messages: [
-        {
-          role: "system",
-          content: instructions,
-        },
-        {
-          role: "user",
-          content: JSON.stringify(snapshot),
-        },
-      ],
-    }),
-  });
+// Stay under Vercel's function limit: connect, call OpenAI, then still have time to reply.
+const OPENAI_TIMEOUT_MS = SERVERLESS ? 12000 : 20000;
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
+function openaiKey() {
+  return String(process.env.OPENAI_API_KEY || "").replace(/^\uFEFF/, "").trim();
+}
+
+function completionText(payload) {
+  const message = payload && payload.choices && payload.choices[0] && payload.choices[0].message;
+  if (!message) return "";
+  const content = message.content;
+  if (typeof content === "string") return content.trim();
+  if (Array.isArray(content)) {
+    return content.map((part) => (part && typeof part.text === "string" ? part.text : "")).join("").trim();
+  }
+  return "";
+}
+
+// Node's global fetch follows IPv6 first and can sit there until Vercel times the
+// function out, which the browser sees as no response. Force IPv4.
+function postOpenAI(apiKey, body, timeoutMs) {
+  const data = Buffer.from(JSON.stringify(body));
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: "api.openai.com",
+      path: "/v1/chat/completions",
+      method: "POST",
+      family: 4,
+      headers: {
+        Authorization: "Bearer " + apiKey,
+        "Content-Type": "application/json",
+        "Content-Length": data.length,
+      },
+      timeout: timeoutMs,
+    }, (response) => {
+      const chunks = [];
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => {
+        let payload = {};
+        try { payload = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch (error) { payload = {}; }
+        resolve({ status: response.statusCode || 0, payload });
+      });
+    });
+    req.on("timeout", () => req.destroy(Object.assign(new Error("OpenAI timed out"), { status: 504 })));
+    req.on("error", reject);
+    req.write(data);
+    req.end();
+  });
+}
+
+function openAiFailure(error, feature) {
+  const code = error && error.code;
+  if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
+    return { status: 402, error: "The GPT-4o mini account has no credits left. Add credits in OpenAI billing, then refresh this note." };
+  }
+  if (error && error.status === 401) {
+    return { status: 401, error: "The " + feature + " service rejected the API key. Check OPENAI_API_KEY in the Vercel project settings." };
+  }
+  if (error && (error.status === 504 || /timed out/i.test(String(error.message || "")))) {
+    return { status: 504, error: "OpenAI did not answer in time. Try again in a moment." };
+  }
+  return { status: error && error.status >= 400 && error.status < 500 ? error.status : 502, error: "The " + feature + " could not be written just now." };
+}
+
+async function writeOwnerNote(apiKey, snapshot, instructions, maxTokens) {
+  const limit = maxTokens || 320;
+  const reasoning = /^(o\d|gpt-5)/i.test(OPENAI_MODEL);
+  const body = {
+    model: OPENAI_MODEL,
+    messages: [
+      { role: "system", content: instructions },
+      { role: "user", content: JSON.stringify(snapshot) },
+    ],
+  };
+  if (!reasoning) body.temperature = 0;
+  body[reasoning ? "max_completion_tokens" : "max_tokens"] = limit;
+
+  let result = await postOpenAI(apiKey, body, OPENAI_TIMEOUT_MS);
+  const errMsg = result.payload && result.payload.error ? String(result.payload.error.message || "") : "";
+  if (result.status === 400 && /max_tokens|max_completion_tokens|temperature/i.test(errMsg)) {
+    delete body.temperature;
+    delete body.max_tokens;
+    body.max_completion_tokens = limit;
+    result = await postOpenAI(apiKey, body, OPENAI_TIMEOUT_MS);
+  }
+  if (result.status < 200 || result.status >= 300) {
     const error = new Error("OpenAI request failed");
-    error.status = response.status;
-    error.code = payload && payload.error ? payload.error.code : "";
+    error.status = result.status || 502;
+    error.code = result.payload && result.payload.error ? result.payload.error.code : "";
     throw error;
   }
-  const text = payload && payload.choices && payload.choices[0] && payload.choices[0].message
-    ? String(payload.choices[0].message.content || "").trim()
-    : "";
+  const text = completionText(result.payload);
   if (!text) {
     const error = new Error("Empty insight");
     error.status = 502;
@@ -1752,7 +1818,7 @@ function writeProductRecommendation(apiKey, snapshot) {
 }
 
 app.post("/api/management-insight", async (req, res) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = openaiKey();
   if (!apiKey) {
     res.status(503).json({ ok: false, error: "Management insight is not configured (OPENAI_API_KEY is missing on the server)." });
     return;
@@ -1764,6 +1830,18 @@ app.post("/api/management-insight", async (req, res) => {
     return;
   }
   const fallback = parseInterpretation(JSON.stringify(body.fallback || {}));
+  const salesKey = cleanSalesKey(body.salesKey);
+  const trigger = cleanTrigger(body.trigger);
+
+  // Not a Refresh click: if someone already wrote an output for these same sales, show that one
+  // instead of asking GPT-4o mini again (e.g. two accounts open the page right after a sale).
+  if (trigger !== "manual") {
+    const saved = await latestAiOutput("management-insight");
+    if (saved && saved.salesKey === salesKey && saved.shown) {
+      res.json(Object.assign({ ok: true, interpretation: saved.shown, reused: true }, savedMeta(saved)));
+      return;
+    }
+  }
 
   const ip = req.ip || "local";
   if (!insightAllowed(ip)) {
@@ -1781,37 +1859,34 @@ app.post("/api/management-insight", async (req, res) => {
       return;
     }
     // Every GPT answer is kept word for word in the output history.
-    const historyId = await logAiOutput({
-      module: "management-insight",
-      engine: OPENAI_MODEL,
-      inputData: data,
-      rawOutput: parsed ? interpretationText(parsed) : reply,
-      shownOutput: interpretationText(shown),
-      usedFallback: !matches,
-      token: retailerRecords.readToken(req),
-    });
-    res.json({ ok: true, interpretation: shown, usedFallback: !matches, model: OPENAI_MODEL, historyId });
+    const saved = mongoReady ? await Promise.race([
+      logAiOutput({
+        module: "management-insight",
+        engine: OPENAI_MODEL,
+        inputData: data,
+        rawOutput: parsed ? interpretationText(parsed) : reply,
+        shownOutput: interpretationText(shown),
+        shown,
+        usedFallback: !matches,
+        salesKey,
+        trigger,
+        token: retailerRecords.readToken(req),
+      }),
+      sleep(2000).then(() => null),
+    ]) : null;
+    res.json(Object.assign({ ok: true, interpretation: shown, usedFallback: !matches, model: OPENAI_MODEL, historyId: saved ? saved.id : null }, saved ? savedMeta(saved) : { createdAt: new Date() }));
   } catch (error) {
-    const code = error && error.code;
-    if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
-      res.status(402).json({
-        ok: false,
-        error: "The GPT-4o mini account has no credits left. Add credits in OpenAI billing, then refresh this note.",
-      });
+    const failure = openAiFailure(error, "management insight");
+    if (fallback && failure.status !== 401 && failure.status !== 402) {
+      res.json({ ok: true, interpretation: fallback, usedFallback: true, model: OPENAI_MODEL, error: failure.error });
       return;
     }
-    const status = error && error.status === 401 ? 401 : 502;
-    res.status(status).json({
-      ok: false,
-      error: status === 401
-        ? "The management insight service rejected the API key."
-        : "The management insight could not be written just now.",
-    });
+    res.status(failure.status).json({ ok: false, error: failure.error });
   }
 });
 
 app.post("/api/product-recommendation", async (req, res) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = openaiKey();
   if (!apiKey) {
     res.status(503).json({ ok: false, error: "Production recommendation is not configured." });
     return;
@@ -1827,6 +1902,18 @@ app.post("/api/product-recommendation", async (req, res) => {
     return;
   }
 
+  const salesKey = cleanSalesKey(req.body && req.body.salesKey);
+  const trigger = cleanTrigger(req.body && req.body.trigger);
+
+  // Not a Refresh click: reuse the output already written for these same sales.
+  if (trigger !== "manual") {
+    const saved = await latestAiOutput("production-recommendation");
+    if (saved && saved.salesKey === salesKey && saved.shownOutput) {
+      res.json(Object.assign({ ok: true, recommendation: saved.shownOutput, reused: true }, savedMeta(saved)));
+      return;
+    }
+  }
+
   const ip = req.ip || "local";
   if (!productRecommendationAllowed(ip)) {
     res.status(429).json({ ok: false, error: "Please wait a few seconds before asking for another recommendation." });
@@ -1840,32 +1927,33 @@ app.post("/api/product-recommendation", async (req, res) => {
       ? recommendation
       : deterministicRecommendation(snapshot);
     // Every GPT answer is kept word for word in the output history.
-    const historyId = await logAiOutput({
-      module: "production-recommendation",
-      engine: OPENAI_MODEL,
-      inputData: snapshot,
-      rawOutput: recommendation,
-      shownOutput: safeRecommendation,
-      usedFallback: !matches,
-      token: retailerRecords.readToken(req),
-    });
-    res.json({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL, historyId });
+    const saved = mongoReady ? await Promise.race([
+      logAiOutput({
+        module: "production-recommendation",
+        engine: OPENAI_MODEL,
+        inputData: snapshot,
+        rawOutput: recommendation,
+        shownOutput: safeRecommendation,
+        usedFallback: !matches,
+        salesKey,
+        trigger,
+        token: retailerRecords.readToken(req),
+      }),
+      sleep(2000).then(() => null),
+    ]) : null;
+    res.json(Object.assign({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL, historyId: saved ? saved.id : null }, saved ? savedMeta(saved) : { createdAt: new Date() }));
   } catch (error) {
-    const code = error && error.code;
-    if (code === "credit_balance_exhausted" || code === "insufficient_quota") {
-      res.status(402).json({
-        ok: false,
-        error: "The GPT-4o mini account has no credits left. Add credits in OpenAI billing, then refresh this note.",
+    const failure = openAiFailure(error, "production recommendation");
+    if (failure.status !== 401 && failure.status !== 402) {
+      res.json({
+        ok: true,
+        recommendation: deterministicRecommendation(snapshot),
+        model: OPENAI_MODEL,
+        error: failure.error,
       });
       return;
     }
-    const status = error && error.status === 401 ? 401 : 502;
-    res.status(status).json({
-      ok: false,
-      error: status === 401
-        ? "The production recommendation service rejected the API key."
-        : "The production recommendation could not be written just now.",
-    });
+    res.status(failure.status).json({ ok: false, error: failure.error });
   }
 });
 
@@ -1890,7 +1978,7 @@ async function accountFromToken(token) {
   try {
     const collectionName = ACCOUNT_COLLECTIONS[bucket];
     if (collectionName) {
-      const doc = await client.db(DB_NAME).collection(collectionName).findOne({ _id: token.id });
+      const doc = await client.db(DB_NAME).collection(collectionName).findOne({ _id: token.id }, { maxTimeMS: 1500 });
       if (doc) {
         name = doc.name || doc.full_name || doc.username || doc.email || token.id;
         const key = [doc.username, doc.user_id, doc.id, doc._id].map(loginKey).join("|");
@@ -1926,8 +2014,15 @@ async function logAiOutput(entry) {
     const rawOutput = String(entry.rawOutput == null ? shownOutput : entry.rawOutput).slice(0, 20000);
     const fingerprint = historyFingerprint(entry.module, inputData, rawOutput);
     const col = aiHistoryCollection();
-    const latest = await col.find({ module: entry.module }).sort({ createdAt: -1 }).limit(1).next();
-    if (latest && latest.fingerprint === fingerprint) return String(latest._id);
+    const latest = await col.find({ module: entry.module }).maxTimeMS(1500).sort({ createdAt: -1 }).limit(1).next();
+    if (latest && latest.fingerprint === fingerprint) {
+      // Same output from the same data: keep one record, but note the sales it now matches.
+      if (latest.salesKey !== entry.salesKey) {
+        await col.updateOne({ _id: latest._id }, { $set: { salesKey: entry.salesKey || "" } }, { timeoutMS: 1500 });
+        latest.salesKey = entry.salesKey || "";
+      }
+      return Object.assign({ id: String(latest._id) }, latest);
+    }
     const doc = {
       _id: "aih-" + Date.now().toString(36) + "-" + crypto.randomBytes(4).toString("hex"),
       module: entry.module,
@@ -1938,14 +2033,51 @@ async function logAiOutput(entry) {
       rawOutput,
       shownOutput,
       usedFallback: !!entry.usedFallback,
+      salesKey: String(entry.salesKey || ""),
+      trigger: String(entry.trigger || ""),
       fingerprint,
     };
-    await col.insertOne(doc);
-    return doc._id;
+    if (entry.shown) doc.shown = entry.shown;
+    await col.insertOne(doc, { timeoutMS: 2000 });
+    return Object.assign({ id: doc._id }, doc);
   } catch (error) {
     console.error("AI output history: " + error.message);
     return null;
   }
+}
+
+// The sales "fingerprint" sent by the page. A new sale changes it; nothing else does.
+function cleanSalesKey(value) {
+  return String(value == null ? "" : value).replace(/[^\w:.-]/g, "").slice(0, 80);
+}
+
+// What asked for the output: "manual" (Refresh button), "new-sales", or "first" (none saved yet).
+function cleanTrigger(value) {
+  const text = String(value || "");
+  return text === "manual" || text === "new-sales" || text === "first" ? text : "first";
+}
+
+async function latestAiOutput(module) {
+  if (!mongoReady || !client) return null;
+  try {
+    return await Promise.race([
+      aiHistoryCollection().find({ module }).maxTimeMS(1500).sort({ createdAt: -1 }).limit(1).next(),
+      sleep(1800).then(() => null),
+    ]);
+  } catch (error) {
+    return null;
+  }
+}
+
+function savedMeta(doc) {
+  return {
+    historyId: String(doc.id || doc._id || ""),
+    createdAt: doc.createdAt,
+    generatedBy: doc.generatedBy || null,
+    salesKey: doc.salesKey || "",
+    usedFallback: !!doc.usedFallback,
+    model: doc.engine || OPENAI_MODEL,
+  };
 }
 
 function historyToken(req, res) {
@@ -1960,6 +2092,24 @@ function historyToken(req, res) {
   }
   return token;
 }
+
+// The last saved output of one module, so the page shows it instead of writing a new one on every open.
+app.get("/api/ai-latest", async (req, res) => {
+  if (!databaseReady(res)) return;
+  if (!historyToken(req, res)) return;
+  const module = String(req.query.module || "");
+  if (!AI_HISTORY_MODULES[module]) {
+    res.status(400).json({ ok: false, error: "Unknown module." });
+    return;
+  }
+  const doc = await latestAiOutput(module);
+  if (!doc) {
+    res.json({ ok: true, record: null });
+    return;
+  }
+  const record = Object.assign({ shownOutput: doc.shownOutput || "", shown: doc.shown || null }, savedMeta(doc));
+  res.json({ ok: true, record });
+});
 
 app.get("/api/ai-history", async (req, res) => {
   if (!databaseReady(res)) return;

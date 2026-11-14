@@ -59,7 +59,7 @@
         if (window.KreezbyMobileLoaded || document.getElementById('kreezby-mobile-script')) return;
         var s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
-        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261104pc4';
+        s.src = moduleRelativeRoot() + 'js/kreezby-mobile.js?v=20261113phone';
         s.defer = true;
         (document.head || document.documentElement).appendChild(s);
     }
@@ -496,7 +496,7 @@
                 done();
                 return;
             }
-            loadScript(root + 'js/product-recommendation.js?v=20261112hist3', 'kreezby-product-recommendation-script', done);
+            loadScript(root + 'js/product-recommendation.js?v=20261113ai', 'kreezby-product-recommendation-script', done);
         }
         function start() {
             loadRecommendation(boot);

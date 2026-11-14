@@ -246,9 +246,25 @@
         (document.head || document.documentElement).appendChild(link);
     }
 
+    /* Phone layout fixes for the portals: full tab names, two fields per card row, stacked
+       toolbars and forms. Kept as the last stylesheet so it wins over the desktop page styles. */
+    function ensurePhoneLayoutCss() {
+        if (!isOpsPortal()) return;
+        var link = document.getElementById('kreezby-phone-layout-style');
+        if (!link) {
+            link = document.createElement('link');
+            link.id = 'kreezby-phone-layout-style';
+            link.rel = 'stylesheet';
+            link.media = '(max-width: 900px)';
+            link.href = moduleRelativeRoot() + 'css/shared/kreezby-phone-layout.css?v=20261113phone';
+        }
+        var head = document.head || document.documentElement;
+        if (head.lastElementChild !== link) head.appendChild(link);
+    }
+
     // Every table in these portals, except spreadsheet-style sheets and printed receipts.
     var OPS_TABLES = 'table';
-    var SKIP_TABLES = '.sheet-editor-table, .ksheet-table, .delivery-stop-table, .po-receipt-table, .po-receipt-sum, [data-phone-table="keep"], .flatpickr-calendar table, .ui-datepicker table';
+    var SKIP_TABLES = '.aih-table, .sheet-editor-table, .ksheet-table, .delivery-stop-table, .po-receipt-table, .po-receipt-sum, [data-phone-table="keep"], .flatpickr-calendar table, .ui-datepicker table';
     var PC_CLASSES = ['kz-pc-title', 'kz-pc-wide', 'kz-pc-action', 'kz-pc-num'];
     var TITLE_RE = /^(item name|product( name)?|name|full name|customer( name)?|retailer( name)?|store|shop|locations?|entity|item|flavor|account name|month|subject)$/i;
     var ID_RE = /^(order( #| no\.?| id)?|item code|code|po( #| code)?|sale|ref(erence)?( #)?|ticket( #)?|timestamp|date)$/i;
@@ -408,6 +424,21 @@
         syncHamburgerPressed();
         syncChromeIntoSidebar();
         labelWideTables();
+        ensurePhoneLayoutCss();
+        showActiveTabs();
+    }
+
+    // Tabs scroll sideways on a phone: bring the selected one into view (without moving the page).
+    function showActiveTabs() {
+        if (!isPhone()) return;
+        var bars = document.querySelectorAll('.po-order-tabs, .bo-order-tabs, .ai-filter-pills');
+        Array.prototype.forEach.call(bars, function (bar) {
+            if (bar.scrollWidth <= bar.clientWidth + 2) return;
+            var active = bar.querySelector('.active, .is-active, [aria-selected="true"]');
+            if (!active) return;
+            var left = active.offsetLeft - (bar.clientWidth - active.offsetWidth) / 2;
+            bar.scrollLeft = Math.max(0, left);
+        });
     }
     function applyMode() {
         clearTimeout(applyModeTimer);
@@ -418,6 +449,7 @@
         ensureViewport();
         ensureCss();
         ensureOpsPhoneCss();
+        ensurePhoneLayoutCss();
         watchWideTables();
         applyMode();
     }
@@ -444,6 +476,7 @@
     }
 
     document.addEventListener('kreezby:page-load', applyMode);
+    document.addEventListener('kreezby:insights-tab', function () { setTimeout(showActiveTabs, 30); });
     document.addEventListener('kreezby-admin-sidebar-ready', applyMode);
     document.addEventListener('kreezby-staff-sidebar-ready', applyMode);
     document.addEventListener('kreezby-portal-sidebar-ready', applyMode);

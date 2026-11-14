@@ -655,15 +655,46 @@
       };
     }
 
-    function refreshDateOptions() {
+    // Dates in the chosen month that THIS area has a route sheet on (never another area's dates).
+    function areaDates(month, area) {
+      var bucket = filterMeta && filterMeta.byMonth[month];
+      if (!bucket) return [];
+      if (!area) return bucket.dateList || [];
+      return (bucket.byArea && bucket.byArea[area]) || [];
+    }
+
+    // Months the chosen area has at least one route sheet in.
+    function areaMonths(area) {
+      if (!filterMeta) return [];
+      return (filterMeta.months || []).filter(function (m) {
+        return areaDates(m.value, area).length > 0;
+      });
+    }
+
+    function refreshMonthOptions(keepPrev) {
+      if (!monthEl || !filterMeta) return;
+      var area = areaEl ? areaEl.value : '';
+      var months = area ? areaMonths(area) : (filterMeta.months || []);
+      var prev = monthEl.value;
+      fillSelect(monthEl, months, months.length ? null : 'No records');
+      if (keepPrev && prev && months.some(function (m) { return m.value === prev; })) {
+        monthEl.value = prev;
+      } else if (months.length) {
+        monthEl.value = months[0].value;
+      }
+    }
+
+    // keepPrev: keep the selected date only if this area really has a sheet that day
+    // (used when the lists are rebuilt after a save). Changing area or month goes to
+    // that area's latest date instead.
+    function refreshDateOptions(keepPrev) {
       if (!dateEl || !filterMeta) return;
       var month = monthEl ? monthEl.value : '';
       var area = areaEl ? areaEl.value : '';
-      var bucket = filterMeta.byMonth[month];
-      var dates = (bucket && area && bucket.byArea && bucket.byArea[area]) || (bucket && bucket.dateList) || [];
+      var dates = areaDates(month, area);
       var prev = dateEl.value;
-      fillSelect(dateEl, dates, dates.length ? null : 'No dates this month');
-      if (prev && dates.some(function (d) { return d.value === prev; })) {
+      fillSelect(dateEl, dates, dates.length ? null : 'No dates');
+      if (keepPrev && prev && dates.some(function (d) { return d.value === prev; })) {
         dateEl.value = prev;
       } else if (dates.length) {
         dateEl.value = dates[0].value;
@@ -686,6 +717,12 @@
       var f = currentFilters();
       if (!wrap) {
         if (flatTbody) renderAdminStaffTable(flatTbody, api.getSales(), true);
+        return;
+      }
+
+      if (f.source && (!f.month || !f.reportDate)) {
+        wrap.innerHTML =
+          '<p class="route-sheet-empty-hint">No sales records for <strong>' + esc(api.areaLabel(f.source)) + '</strong> yet.</p>';
         return;
       }
 
@@ -718,7 +755,7 @@
     }
 
     function onMonthChange() {
-      refreshDateOptions();
+      refreshDateOptions(false);
       rerender();
     }
 
@@ -727,7 +764,8 @@
     }
 
     function onAreaChange() {
-      refreshDateOptions();
+      refreshMonthOptions(true);
+      refreshDateOptions(false);
       rerender();
     }
 
@@ -735,14 +773,12 @@
       filterMeta = api.getRouteFilterOptions();
       var defaults = api.getDefaultRouteFilters();
 
-      if (monthEl) {
-        fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
-        if (defaults.month) monthEl.value = defaults.month;
-      }
       refreshAreaOptions();
       if (areaEl && defaults.source) areaEl.value = defaults.source;
-      refreshDateOptions();
+      if (monthEl && defaults.month) monthEl.value = defaults.month;
+      refreshMonthOptions(true);
       if (dateEl && defaults.reportDate) dateEl.value = defaults.reportDate;
+      refreshDateOptions(true);
 
       if (!alreadyBound) {
         if (monthEl) monthEl.addEventListener('change', onMonthChange);
@@ -760,19 +796,17 @@
         filterMeta = api.getRouteFilterOptions();
         if (report && monthEl && dateEl && areaEl) {
           // A new month or area may have appeared: rebuild every list, then select the sheet.
-          fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
-          monthEl.value = report.reportDate.slice(0, 7);
           refreshAreaOptions();
           areaEl.value = report.source;
-          refreshDateOptions();
+          refreshMonthOptions(false);
+          monthEl.value = report.reportDate.slice(0, 7);
+          refreshDateOptions(false);
           dateEl.value = report.reportDate;
         } else if (monthEl && dateEl && areaEl) {
           // A sheet was removed: rebuild the lists and keep the month / area / date if still there.
-          var keepMonth = monthEl.value;
-          fillSelect(monthEl, filterMeta.months, filterMeta.months.length ? null : 'No data');
-          if (keepMonth && filterMeta.months.some(function (m) { return m.value === keepMonth; })) monthEl.value = keepMonth;
           refreshAreaOptions();
-          refreshDateOptions();
+          refreshMonthOptions(true);
+          refreshDateOptions(true);
         }
         rerender();
       };

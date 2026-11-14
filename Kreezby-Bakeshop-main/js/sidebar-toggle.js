@@ -257,7 +257,7 @@
         if (ref && ref.getAttribute('src')) {
             src = ref.getAttribute('src').replace(/[^/]+$/, 'kreezby-mobile.js');
         }
-        if (src.indexOf('?') < 0) src += '?v=20261104pc4';
+        if (src.indexOf('?') < 0) src += '?v=20261113phone';
         const s = document.createElement('script');
         s.id = 'kreezby-mobile-script';
         s.src = src;

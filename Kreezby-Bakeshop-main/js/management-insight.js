@@ -6,7 +6,11 @@
  *   2. Inventory conditions
  *   3. Identified business situations
  *   4. Interpretation of the generated insights (written by GPT-4o mini on the server)
- * Refresh recalculates everything from the latest records and asks GPT-4o mini for a new interpretation.
+ *
+ * Opening the page does NOT write a new interpretation. The last saved one is shown.
+ * A new one is written only when:
+ *   - the Refresh button is clicked, or
+ *   - a new sale was recorded (by head admin, admin, staff, or a completed order) since the saved one.
  */
 (function () {
     'use strict';
@@ -19,46 +23,41 @@
         var style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = ''
-            + '.mi-wrap{display:grid;gap:14px;}'
-            + '.mi-card{background:#fff;border:1px solid #eadfce;border-radius:14px;padding:16px 18px;}'
-            + '.mi-card h4{margin:0 0 4px;font-size:15px;color:#3e2723;display:flex;align-items:center;gap:8px;}'
-            + '.mi-card h4 span.mi-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:#5d4037;color:#fff;font-size:12px;align-items:center;justify-content:center;}'
-            + '.mi-lead{margin:0 0 12px;font-size:12px;color:#7a6558;}'
-            + '.mi-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px;}'
-            + '.mi-stat{background:#fffaf3;border:1px solid #f0e4d2;border-radius:10px;padding:10px 12px;}'
-            + '.mi-stat small{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
-            + '.mi-stat strong{display:block;font-size:20px;color:#3e2723;margin-top:2px;}'
-            + '.mi-stat em{display:block;font-style:normal;font-size:12px;color:#7a6558;margin-top:2px;}'
+            + '.mi-wrap{display:grid;gap:12px;}'
+            + '.mi-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;border-radius:10px;background:#fbf6f2;border:1px solid #f0e4d2;font-size:12px;color:#6d5a4e;}'
+            + '.mi-meta b{color:#3e2723;}'
+            + '.mi-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;}'
+            + '.mi-pill.ok{background:#e8f5e9;color:#2e7d32;}.mi-pill.busy{background:#fff3e0;color:#e65100;}.mi-pill.bad{background:#ffebee;color:#c62828;}'
+            + '.mi-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}'
+            + '.mi-row--wide{grid-template-columns:minmax(0,2fr) minmax(0,3fr);}'
+            + '.mi-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:14px 16px;min-width:0;}'
+            + '.mi-card h4{margin:0 0 10px;font-size:14px;color:#3e2723;display:flex;align-items:center;gap:8px;}'
+            + '.mi-num{display:inline-flex;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:#5d4037;color:#fff;font-size:12px;align-items:center;justify-content:center;}'
+            + '.mi-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}'
+            + '.mi-stat{background:#fffaf3;border:1px solid #f0e4d2;border-radius:10px;padding:8px 10px;min-width:0;}'
+            + '.mi-stat small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
+            + '.mi-stat strong{display:block;font-size:18px;line-height:1.25;color:#3e2723;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
+            + '.mi-stat em{display:block;font-style:normal;font-size:11px;color:#7a6558;margin-top:1px;}'
             + '.mi-up{color:#2e7d32 !important;}.mi-down{color:#c62828 !important;}'
-            + '.mi-table{width:100%;border-collapse:collapse;font-size:13px;}'
-            + '.mi-table th,.mi-table td{padding:8px 10px;border-bottom:1px solid #f2e9dc;text-align:left;}'
-            + '.mi-table th{background:#fbf6f2;color:#5d4037;font-size:11px;text-transform:uppercase;letter-spacing:.03em;}'
-            + '.mi-table td.n,.mi-table th.n{text-align:right;white-space:nowrap;}'
-            + '.mi-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;}'
+            + '.mi-line{margin:8px 0 0;font-size:12px;color:#7a6558;line-height:1.4;}'
+            + '.mi-tag{display:inline-block;min-width:54px;text-align:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;}'
             + '.mi-tag.ok{background:#e8f5e9;color:#2e7d32;}.mi-tag.warn{background:#fff3e0;color:#e65100;}.mi-tag.bad{background:#ffebee;color:#c62828;}.mi-tag.info{background:#e3f2fd;color:#1565c0;}'
-            + '.mi-list{margin:0;padding:0;list-style:none;display:grid;gap:8px;}'
-            + '.mi-list li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:10px 12px;border-radius:10px;background:#fffaf3;border:1px solid #f0e4d2;font-size:13px;line-height:1.45;color:#3e2723;}'
-            + '.mi-list li b{display:block;}'
-            + '.mi-text p{margin:0 0 8px;font-size:13.5px;line-height:1.55;color:#3e2723;}'
-            + '.mi-text ol{margin:6px 0 0;padding-left:20px;font-size:13.5px;line-height:1.55;color:#3e2723;}'
-            + '.mi-empty{font-size:13px;color:#7a6558;margin:0;}'
-            + '#management-insight-status{margin-left:10px;font-size:13px;font-weight:700;color:#5d4037;}'
-            + '.mi-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}'
-            + '.mi-compact .mi-card{padding:12px 14px;}'
-            + '.mi-compact .mi-card h4{margin:0 0 8px;font-size:14px;}'
-            + '.mi-compact .mi-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 8px;}'
-            + '.mi-compact .mi-stat{padding:7px 10px;}'
-            + '.mi-compact .mi-stat strong{font-size:17px;}'
-            + '.mi-compact .mi-stat em{font-size:11px;}'
-            + '.mi-line{margin:0;font-size:12.5px;color:#3e2723;line-height:1.4;}'
-            + '.mi-muted{color:#8d6e63;margin-top:6px;}'
-            + '.mi-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px;}'
-            + '.mi-compact .mi-list{gap:5px;}'
-            + '.mi-compact .mi-list li{padding:6px 10px;font-size:12.5px;align-items:center;}'
-            + '.mi-compact.mi-wrap .mi-text p{font-size:12.5px;line-height:1.45;margin:0 0 6px;}'
-            + '.mi-compact.mi-wrap .mi-text ol{font-size:12.5px;line-height:1.45;margin:0;}'
-            + '@media (max-width:900px){.mi-compact{grid-template-columns:minmax(0,1fr);}}'
-            + '@media (max-width:600px){.mi-card{padding:12px;}.mi-compact .mi-stats{grid-template-columns:repeat(3,minmax(0,1fr));}}';
+            + '.mi-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;}'
+            + '.mi-list li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:7px 10px;border-radius:9px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12.5px;line-height:1.4;color:#3e2723;}'
+            + '.mi-list li small{display:block;color:#7a6558;font-size:11.5px;margin-top:2px;}'
+            + '.mi-more{margin-top:6px;font-size:12px;color:#5d4037;}'
+            + '.mi-more summary{cursor:pointer;font-weight:700;}'
+            + '.mi-more .mi-list{margin-top:6px;}'
+            + '.mi-read{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;margin:0;font-size:13px;line-height:1.5;color:#3e2723;}'
+            + '.mi-read dt{font-weight:700;color:#5d4037;}'
+            + '.mi-read dd{margin:0;}'
+            + '.mi-do{margin:12px 0 0;padding:10px 12px 10px 30px;border-radius:10px;background:#fffaf3;border:1px solid #f0e4d2;font-size:13px;line-height:1.5;color:#3e2723;}'
+            + '.mi-do-title{margin:12px 0 0;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
+            + '.mi-do-title + .mi-do{margin-top:6px;}'
+            + '.mi-empty{font-size:12.5px;color:#7a6558;margin:0;}'
+            + '.mi-loading{opacity:.55;}'
+            + '@media (max-width:900px){.mi-row,.mi-row--wide{grid-template-columns:minmax(0,1fr);}}'
+            + '@media (max-width:600px){.mi-card{padding:12px;}.mi-stats{grid-template-columns:minmax(0,1fr);gap:6px;}.mi-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:10px;padding:7px 10px;}.mi-stat strong{grid-row:1 / span 2;grid-column:2;font-size:17px;margin:0;text-align:right;}.mi-stat em{grid-column:1;}.mi-read{grid-template-columns:minmax(0,1fr);gap:2px;}.mi-read dd{margin-bottom:8px;}}';
         document.head.appendChild(style);
     }
 
@@ -317,73 +316,80 @@
         var t = data.totals;
         var change = pct(t.sold30, t.soldPrev30);
         var ranked = data.items.slice().sort(function (a, b) { return b.sold30 - a.sold30 || a.name.localeCompare(b.name); });
-        var sellers = ranked.filter(function (i) { return i.sold30 > 0; });
         var found = situations(data);
         var reading = interpretation(data, found);
-
-        var html = '<div class="mi-wrap mi-compact">';
-        var trendTxt = change == null ? 'no earlier month' : '<span class="' + (change >= 0 ? 'mi-up' : 'mi-down') + '">' + (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%</span> vs prev. 30 days';
         var stocked = ranked.filter(function (i) { return i.stock > 0 || i.sold30 > 0; });
         var states = { bad: 0, warn: 0, ok: 0, info: 0 };
         stocked.forEach(function (i) { states[stockState(i).cls] += 1; });
         var priority = { bad: 0, warn: 1, ok: 2, info: 3 };
         var topFound = found.slice().sort(function (a, b) { return priority[a.cls] - priority[b.cls]; });
+        var best = ranked[0] && ranked[0].sold30 > 0 ? ranked[0] : null;
 
-        // 1. Summary of sales performance
+        var trendTxt = change == null ? 'no earlier month'
+            : '<span class="' + (change >= 0 ? 'mi-up' : 'mi-down') + '">' + (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%</span> vs prev. 30 days';
+
+        var html = '<div class="mi-wrap">' + metaHtml();
+
+        html += '<div class="mi-row">';
+        // 1. Summary of sales performance (last 30 days)
         html += '<section class="mi-card"><h4><span class="mi-num">1</span>Summary of sales performance</h4>'
             + '<div class="mi-stats">'
-            + '<div class="mi-stat"><small>7 days</small><strong>' + count(t.sold7) + '</strong><em>pouches</em></div>'
-            + '<div class="mi-stat"><small>30 days</small><strong>' + count(t.sold30) + '</strong><em>' + trendTxt + '</em></div>'
-            + '<div class="mi-stat"><small>Sales value</small><strong>' + peso(t.revenue30) + '</strong><em>last 30 days</em></div>'
-            + '</div>'
-            + '<p class="mi-line"><b>Top sellers:</b> ' + (sellers.length
-                ? sellers.slice(0, 3).map(function (i) { return esc(i.name) + ' (' + count(i.sold30) + ')'; }).join(' · ')
-                : 'no sales in the last 30 days') + '</p>'
-            + '</section>';
+            + stat('Pouches sold', count(t.sold30), trendTxt)
+            + stat('Sales value', peso(t.revenue30), 'last 30 days')
+            + stat('Top seller', best ? esc(short(best.name)) : '—', best ? count(best.sold30) + ' pouches' : 'no sales yet')
+            + '</div></section>';
 
         // 2. Inventory conditions
         html += '<section class="mi-card"><h4><span class="mi-num">2</span>Inventory conditions</h4>'
             + '<div class="mi-stats">'
-            + '<div class="mi-stat"><small>On hand</small><strong>' + count(t.stock) + '</strong><em>pouches</em></div>'
-            + '<div class="mi-stat"><small>Out / low</small><strong>' + states.bad + ' / ' + states.warn + '</strong><em>flavors</em></div>'
-            + '<div class="mi-stat"><small>Expired / near</small><strong>' + data.expired.length + ' / ' + data.nearExpiry.length + '</strong><em>batches</em></div>'
+            + stat('On hand', count(t.stock), 'pouches')
+            + stat('Out / Low', states.bad + ' / ' + states.warn, 'flavors')
+            + stat('Expired / Near', data.expired.length + ' / ' + data.nearExpiry.length, 'batches')
             + '</div>'
-            + '<div class="mi-chips">' + (stocked.length ? stocked.slice(0, 8).map(function (i) {
-                var st = stockState(i);
-                return '<span class="mi-tag ' + st.cls + '" title="' + esc(i.name + ': ' + count(i.stock) + ' on hand · ' + st.label) + '">' + esc(i.name.replace(/\s*Crinkles$/i, '')) + ' · ' + esc(st.label.replace(/\s*\(.*\)$/, '')) + '</span>';
-            }).join('') : '<span class="mi-empty">No finished stock or recent sales yet.</span>') + '</div>'
-            + (data.lowMaterials.length ? '<p class="mi-line"><b>' + data.lowMaterials.length + '</b> raw/packaging materials at their alert line.</p>' : '')
+            + (data.lowMaterials.length ? '<p class="mi-line"><b>' + data.lowMaterials.length + '</b> raw/packaging ' + (data.lowMaterials.length === 1 ? 'material is' : 'materials are') + ' at the alert line.</p>' : '')
             + '</section>';
+        html += '</div>';
 
-        // 3. Identified business situations (most urgent first)
+        html += '<div class="mi-row mi-row--wide">';
+        // 3. Identified business situations (most urgent first, 3 shown)
         html += '<section class="mi-card"><h4><span class="mi-num">3</span>Identified business situations</h4>';
-        html += topFound.length
-            ? '<ul class="mi-list">' + topFound.slice(0, 4).map(function (s) {
-                var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
-                return '<li title="' + esc(s.text) + '"><span class="mi-tag ' + s.cls + '">' + tag + '</span><span>' + esc(s.title) + '</span></li>';
-            }).join('') + '</ul>'
-                + (topFound.length > 4 ? '<p class="mi-line mi-muted">+' + (topFound.length - 4) + ' more (hover a line for details)</p>' : '')
-            : '<p class="mi-empty">Nothing needs attention right now.</p>';
+        if (topFound.length) {
+            html += '<ul class="mi-list">' + topFound.slice(0, 3).map(situationItem).join('') + '</ul>';
+            if (topFound.length > 3) {
+                html += '<details class="mi-more"><summary>Show ' + (topFound.length - 3) + ' more</summary>'
+                    + '<ul class="mi-list">' + topFound.slice(3).map(situationItem).join('') + '</ul></details>';
+            }
+        } else {
+            html += '<p class="mi-empty">Nothing needs attention right now.</p>';
+        }
         html += '</section>';
 
         // 4. Interpretation (written by GPT-4o mini from the figures above)
-        html += '<section class="mi-card mi-text"><h4><span class="mi-num">4</span>Interpretation</h4>' + interpretationHtml(reading) + '</section>';
-        html += '</div>';
+        html += '<section class="mi-card"><h4><span class="mi-num">4</span>Interpretation</h4>' + interpretationHtml(reading) + '</section>';
+        html += '</div></div>';
+
+        // Keep the "Show more" list open if the user had opened it before a live update.
+        var wasOpen = !!body.querySelector('.mi-more[open]');
         body.innerHTML = html;
+        if (wasOpen) { var more = body.querySelector('.mi-more'); if (more) more.open = true; }
         lastInput = aiInput(data, ranked, states, topFound, change);
         lastReading = reading;
+        setButton();
         return true;
+    }
+
+    function stat(label, value, note) {
+        return '<div class="mi-stat"><small>' + label + '</small><strong>' + value + '</strong><em>' + note + '</em></div>';
+    }
+
+    function situationItem(s) {
+        var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
+        return '<li><span class="mi-tag ' + s.cls + '">' + tag + '</span><span>' + esc(s.title) + '<small>' + esc(s.text) + '</small></span></li>';
     }
 
     // ---------- 4. interpretation by GPT-4o mini ----------
     // Parts 1-3 are worked out here from the shop's records. Those figures go to the server, where
     // GPT-4o mini writes the owner's interpretation. Each reply is saved in the output history.
-    var lastInput = null;
-    var lastReading = null;
-    var ai = { status: 'idle', result: null, at: null, usedFallback: false, model: '', error: '' };
-    var aiRequestId = 0;
-    var aiTimer = null;
-    var aiStartedFor = null;
 
     function aiInput(data, ranked, states, found, change) {
         var t = data.totals;
@@ -425,15 +431,44 @@
         };
     }
 
-    function timeLabel(date) {
-        return date ? date.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }) : '';
+    function stamp(date) {
+        if (!date) return '';
+        var d = date instanceof Date ? date : new Date(date);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function byLabel(who) {
+        if (!who || !who.name) return '';
+        return who.name + (who.role ? ' (' + who.role + ')' : '');
+    }
+
+    // One line above the four parts: when the interpretation was written, by whom, and whether
+    // it still matches the shop's sales.
+    function metaHtml() {
+        var parts = [];
+        if (ai.status === 'loading') {
+            parts.push('<span class="mi-pill busy">' + (ai.trigger === 'new-sales' ? 'New sales recorded · updating' : 'Writing') + '…</span>');
+        } else if (ai.result) {
+            var stale = ai.salesKey && currentSalesKey() !== ai.salesKey;
+            parts.push(stale ? '<span class="mi-pill busy">New sales recorded</span>' : '<span class="mi-pill ok">Up to date with sales</span>');
+        } else if (ai.status === 'error') {
+            parts.push('<span class="mi-pill bad">Not written</span>');
+        } else {
+            parts.push('<span class="mi-pill busy">Loading saved insight…</span>');
+        }
+        if (ai.at) parts.push('Interpretation written <b>' + esc(stamp(ai.at)) + '</b>' + (byLabel(ai.by) ? ' by <b>' + esc(byLabel(ai.by)) + '</b>' : ''));
+        parts.push('Figures cover the last 30 days');
+        return '<div class="mi-meta">' + parts.join('<span aria-hidden="true">·</span>') + '</div>';
     }
 
     function readingHtml(r) {
-        return '<p><b>Sales:</b> ' + esc(r.sales) + '</p>'
-            + '<p><b>Inventory:</b> ' + esc(r.inventory) + '</p>'
-            + '<p><b>Demand:</b> ' + esc(r.demand) + '</p>'
-            + (r.doFirst && r.doFirst.length ? '<p><b>Do first:</b></p><ol>' + r.doFirst.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '');
+        return '<dl class="mi-read">'
+            + '<dt>Sales</dt><dd>' + esc(r.sales) + '</dd>'
+            + '<dt>Inventory</dt><dd>' + esc(r.inventory) + '</dd>'
+            + '<dt>Demand</dt><dd>' + esc(r.demand) + '</dd>'
+            + '</dl>'
+            + (r.doFirst && r.doFirst.length ? '<p class="mi-do-title">Do first</p><ol class="mi-do">' + r.doFirst.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '');
     }
 
     // The system's own reading, used when GPT-4o mini cannot answer or its reply does not match the figures.
@@ -447,22 +482,28 @@
 
     function interpretationHtml(reading) {
         if (ai.result) {
-            var note = ai.usedFallback
-                ? 'GPT-4o mini\'s reply used figures that are not in the shop records, so the system\'s own interpretation is shown. Both are kept in View History.'
-                : 'Written by ' + esc(ai.model || 'GPT-4o mini') + ' at ' + timeLabel(ai.at) + ' from the figures above.';
-            if (ai.status === 'loading') note = 'GPT-4o mini is writing a new interpretation…';
-            else if (ai.error) note = esc(ai.error) + ' Showing the interpretation from ' + timeLabel(ai.at) + '.';
-            return readingHtml(ai.result) + '<p class="mi-line mi-muted">' + note + '</p>';
+            var note = '';
+            if (ai.error) note = esc(ai.error);
+            else if (ai.usedFallback) note = 'GPT-4o mini\'s reply used figures that are not in the shop records, so the system\'s own interpretation is shown. Both are kept in View History.';
+            return '<div' + (ai.status === 'loading' ? ' class="mi-loading"' : '') + '>' + readingHtml(ai.result) + '</div>'
+                + (note ? '<p class="mi-line">' + note + '</p>' : '');
         }
         if (ai.status === 'error') {
-            return '<p class="mi-line mi-muted">' + esc(ai.error) + ' Below is the system\'s own interpretation of the figures.</p>'
+            return '<p class="mi-line">' + esc(ai.error) + ' Below is the system\'s own interpretation of the figures.</p>'
                 + readingHtml(systemReading(reading));
         }
-        return '<p class="mi-line mi-muted">GPT-4o mini is writing the interpretation…</p>';
+        return '<p class="mi-empty">' + (ai.status === 'loading' ? 'GPT-4o mini is writing the interpretation…' : 'Loading the saved interpretation…') + '</p>';
     }
 
     function sessionToken() {
         try { return (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { return ''; }
+    }
+
+    function authHeaders() {
+        var headers = { 'Content-Type': 'application/json' };
+        var token = sessionToken();
+        if (token) headers['X-Kreezby-Token'] = token;
+        return headers;
     }
 
     function panelVisible() {
@@ -470,78 +511,141 @@
         return !!panel && !panel.hidden;
     }
 
-    // Asked when the insight is opened and on Refresh, not on every live update. Waits a moment so
-    // the shop records finish loading before the figures are sent.
-    function requestAi() {
-        if (aiTimer) clearTimeout(aiTimer);
-        var id = ++aiRequestId;
-        ai.status = 'loading';
-        render();
-        aiTimer = setTimeout(function () {
-            aiTimer = null;
-            if (id !== aiRequestId) return;
-            render();
-            if (!lastInput || !lastReading) {
-                ai.status = 'error';
-                ai.error = 'Shop records are still loading.';
-                render();
-                return;
-            }
-            var headers = { 'Content-Type': 'application/json' };
-            var token = sessionToken();
-            if (token) headers['X-Kreezby-Token'] = token;
-            fetch('/api/management-insight', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify({ data: lastInput, fallback: systemReading(lastReading) })
-            }).then(function (res) {
-                return res.json().catch(function () { return {}; });
-            }).then(function (data) {
-                if (id !== aiRequestId) return;
-                if (data && data.ok && data.interpretation) {
-                    ai = { status: 'done', result: data.interpretation, at: new Date(), usedFallback: !!data.usedFallback, model: data.model || '', error: '' };
-                    if (data.historyId) document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'management-insight' } }));
-                } else {
-                    ai.status = ai.result ? 'done' : 'error';
-                    ai.error = (data && data.error) || 'The management insight could not be written just now.';
-                }
-                render();
-            }).catch(function () {
-                if (id !== aiRequestId) return;
-                ai.status = ai.result ? 'done' : 'error';
-                ai.error = 'The management insight could not be written just now.';
-                render();
-            });
-        }, 1500);
+    // A short code for "which sales exist". It changes only when a sale is added, changed or removed,
+    // so stock moves, page opens and tab switches do not ask GPT-4o mini for a new interpretation.
+    function currentSalesKey() {
+        var dict = window.KreezbyDictionary;
+        var rows = dict && typeof dict.salesTransactions === 'function' ? dict.salesTransactions() : [];
+        var text = rows.map(function (r) {
+            return [r.product_id, String(r.sales_date || '').slice(0, 19), n(r.quantity_sold), r.transaction_id || r.sales_id || r.order_id || r.id || ''].join('|');
+        }).sort().join('\n');
+        var h = 5381;
+        for (var i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+        return 's' + rows.length + '-' + (h >>> 0).toString(36);
     }
 
-    function maybeRequestAi() {
-        var panel = document.querySelector('[data-insights-panel="management-insight"]');
-        if (!panel || !panelVisible() || aiStartedFor === panel) return;
-        aiStartedFor = panel;
-        requestAi();
-    }
-
-    function setStatus(text) {
+    function setButton() {
         var button = document.getElementById('management-insight-refresh');
         if (!button) return;
-        var note = document.getElementById('management-insight-status');
-        if (!note) {
-            note = document.createElement('span');
-            note.id = 'management-insight-status';
-            button.insertAdjacentElement('afterend', note);
+        var busy = ai.status === 'loading';
+        button.disabled = busy;
+        button.textContent = busy ? 'Refreshing…' : 'Refresh';
+        button.title = 'Write a new interpretation from the latest figures';
+        var old = document.getElementById('management-insight-status');
+        if (old) old.remove();
+    }
+
+    // ---------- saved interpretation ----------
+    var lastInput = null;
+    var lastReading = null;
+    var ai = { status: 'idle', result: null, at: null, by: null, usedFallback: false, model: '', error: '', salesKey: '', trigger: '' };
+    var savedLoaded = false;      // the last saved interpretation was fetched from the server
+    var savedLoading = null;
+    var aiRequestId = 0;
+    var checkTimer = null;
+
+    function adopt(record) {
+        ai.result = record.shown || record.interpretation || null;
+        ai.at = record.createdAt ? new Date(record.createdAt) : new Date();
+        ai.by = record.generatedBy || null;
+        ai.usedFallback = !!record.usedFallback;
+        ai.model = record.model || '';
+        ai.salesKey = record.salesKey || '';
+    }
+
+    function loadSaved() {
+        if (savedLoaded) return Promise.resolve();
+        if (savedLoading) return savedLoading;
+        savedLoading = fetch('/api/ai-latest?module=management-insight', { headers: authHeaders() })
+            .then(function (res) { return res.json().catch(function () { return {}; }); })
+            .then(function (data) {
+                if (data && data.ok && data.record && data.record.shown && !ai.result) {
+                    adopt(data.record);
+                    ai.status = 'done';
+                }
+            })
+            .catch(function () { /* nothing saved can be read; a new one is written below */ })
+            .then(function () { savedLoaded = true; savedLoading = null; render(); });
+        return savedLoading;
+    }
+
+    // Writes a new interpretation. trigger: "manual" (Refresh), "new-sales" or "first".
+    function generate(trigger) {
+        var id = ++aiRequestId;
+        ai.status = 'loading';
+        ai.trigger = trigger;
+        ai.error = '';
+        if (!render() || !lastInput || !lastReading) {
+            ai.status = ai.result ? 'done' : 'error';
+            ai.error = 'Shop records are still loading. Try Refresh in a moment.';
+            render();
+            return;
         }
-        note.textContent = text || '';
+        var key = currentSalesKey();
+        var fetchOpts = {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ data: lastInput, fallback: systemReading(lastReading), salesKey: key, trigger: trigger })
+        };
+        if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) fetchOpts.signal = AbortSignal.timeout(22000);
+        fetch('/api/management-insight', fetchOpts).then(function (res) {
+            return res.json().catch(function () { return {}; });
+        }).then(function (data) {
+            if (id !== aiRequestId) return;
+            if (data && data.ok && data.interpretation) {
+                adopt({
+                    interpretation: data.interpretation,
+                    createdAt: data.createdAt,
+                    generatedBy: data.generatedBy,
+                    usedFallback: data.usedFallback,
+                    model: data.model,
+                    salesKey: data.salesKey || key
+                });
+                ai.status = 'done';
+                ai.error = data.error || '';
+                if (data.historyId && !data.reused) document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'management-insight' } }));
+            } else {
+                ai.status = ai.result ? 'done' : 'error';
+                ai.error = (data && data.error) || 'The management insight could not be written just now.';
+            }
+            render();
+        }).catch(function () {
+            if (id !== aiRequestId) return;
+            ai.status = ai.result ? 'done' : 'error';
+            ai.error = 'The management insight could not be written just now.';
+            render();
+        });
+    }
+
+    // Only writes a new interpretation when there is none yet, or the sales changed since the saved one.
+    function checkForNewSales() {
+        if (!panelVisible() || !savedLoaded || ai.status === 'loading') return;
+        if (!ai.result) {
+            if (ai.status !== 'error') generate('first');
+            return;
+        }
+        if (ai.salesKey !== currentSalesKey()) generate('new-sales');
+    }
+
+    // Waits a moment so the latest shop records from the server have arrived before comparing sales.
+    function scheduleCheck(delay) {
+        if (checkTimer) clearTimeout(checkTimer);
+        checkTimer = setTimeout(function () {
+            checkTimer = null;
+            checkForNewSales();
+        }, delay);
+    }
+
+    function open() {
+        whenReady(function () {
+            if (!render() || !panelVisible()) return;
+            loadSaved().then(function () { scheduleCheck(2000); });
+        });
     }
 
     function refresh() {
-        if (render()) {
-            aiStartedFor = document.querySelector('[data-insights-panel="management-insight"]');
-            requestAi();
-            setStatus('Updated ' + timeLabel(new Date()));
-        } else {
-            setStatus('Shop records are still loading. Try again in a moment.');
-        }
+        if (ai.status === 'loading') return;
+        whenReady(function () { generate('manual'); });
     }
 
     function whenReady(done) {
@@ -560,19 +664,26 @@
             button.setAttribute('data-bound', '1');
             button.addEventListener('click', refresh);
         }
-        whenReady(function () { if (render()) maybeRequestAi(); });
+        open();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
     document.addEventListener('kreezby:page-load', boot);
     document.addEventListener('content:replaced', boot);
-    // New sales or stock from any account update the insight without a reload.
-    document.addEventListener('kreezby:remote-state', function () { whenReady(render); });
-    document.addEventListener('kreezby:stocks-sync', function () { whenReady(render); });
-    // Opening the Management Insight tab asks GPT-4o mini for the interpretation.
+    // New records from any account update parts 1-3 right away. The interpretation is rewritten
+    // only if a sale was added (checked a moment later, once the records settle).
+    function onRecords() {
+        whenReady(function () {
+            if (!render()) return;
+            if (savedLoaded) scheduleCheck(2500);
+        });
+    }
+    document.addEventListener('kreezby:remote-state', onRecords);
+    document.addEventListener('kreezby:stocks-sync', onRecords);
+    // Opening the Management Insight tab shows the saved interpretation (no new one is written).
     document.addEventListener('kreezby:insights-tab', function (event) {
         if (!event.detail || event.detail.key !== 'management-insight') return;
-        whenReady(function () { if (render()) maybeRequestAi(); });
+        open();
     });
 })();

@@ -1,0 +1,408 @@
+/*
+ * Kreezby — phone layout (all portals). Loaded last by kreezby-mobile.js with
+ * media="(max-width: 900px)", so desktop never reads it.
+ *
+ * A phone gets its own layout instead of a squeezed copy of the desktop page:
+ *   - tabs keep their full names and scroll sideways instead of shrinking or hiding names
+ *   - table cards show two fields per row (one on very narrow phones)
+ *   - toolbars, filters and forms stack into full-width rows
+ *   - the account pill in the top bar never pushes past the screen edge
+ */
+@media (max-width: 900px) {
+
+    /* ---------- top bar ---------- */
+    body .top-navbar-node {
+        gap: 8px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+        max-width: 100vw !important;
+    }
+
+    body .top-navbar-node .top-nav-links-right {
+        min-width: 0 !important;
+        flex: 0 1 auto !important;
+        gap: 6px !important;
+    }
+
+    body .top-navbar-node .user-dropdown {
+        min-width: 0 !important;
+        max-width: 44vw !important;
+    }
+
+    body .top-navbar-node .user-dropdown-pill {
+        min-width: 0 !important;
+        max-width: 44vw !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    body .top-navbar-node .user-dropdown-pill * {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ---------- tabs: full names, scroll sideways ---------- */
+    body .po-order-tabs,
+    body .bo-order-tabs,
+    body .ai-filter-pills,
+    body #ai-filter-pills.po-order-tabs,
+    body #ai-filter-pills.ai-filter-pills,
+    body.po-admin-page #sales-analysis-master > #ai-filter-pills.po-order-tabs,
+    body .po-tabbed-card > .po-order-tabs,
+    body .panel-data-card > .po-order-tabs,
+    body .po-order-tabs.expanding-tabs,
+    body .bo-order-tabs.expanding-tabs {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        gap: 6px !important;
+        padding: 6px !important;
+    }
+
+    body .po-order-tabs::-webkit-scrollbar,
+    body .bo-order-tabs::-webkit-scrollbar,
+    body .ai-filter-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    body .po-order-tabs .po-order-tab,
+    body .po-order-tabs .expanding-tab,
+    body .po-order-tabs .pill,
+    body .bo-order-tabs .bo-order-tab,
+    body .bo-order-tabs .expanding-tab,
+    body #ai-filter-pills .po-order-tab,
+    body #ai-filter-pills .expanding-tab,
+    body #ai-filter-pills .pill,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .pill,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .po-order-tab {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: max-content !important;
+        max-width: none !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 0 14px !important;
+        gap: 6px !important;
+        font-size: 12.5px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        scroll-snap-align: start;
+    }
+
+    body .po-order-tabs .expanding-tab__label,
+    body .bo-order-tabs .expanding-tab__label,
+    body .po-order-tabs .expanding-tab.is-expanded .expanding-tab__label,
+    body .bo-order-tabs .expanding-tab.is-expanded .expanding-tab__label,
+    body #ai-filter-pills .expanding-tab__label,
+    body #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__label,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab__label,
+    body.po-admin-page #sales-analysis-master #ai-filter-pills .expanding-tab.is-expanded .expanding-tab__label {
+        display: inline !important;
+        width: auto !important;
+        max-width: none !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+        font-size: 12.5px !important;
+        text-overflow: clip !important;
+    }
+
+    body .po-order-tabs .expanding-tab__icon,
+    body .bo-order-tabs .expanding-tab__icon,
+    body #ai-filter-pills .expanding-tab__icon {
+        width: 16px !important;
+        height: 16px !important;
+        flex: 0 0 16px !important;
+    }
+
+    body .po-order-tabs .expanding-tab__icon svg,
+    body .bo-order-tabs .expanding-tab__icon svg,
+    body #ai-filter-pills .expanding-tab__icon svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    /* Two-option switches (Active/Archive, Admin/Staff...) still split the bar evenly. */
+    body .po-order-tabs:not(:has(> :nth-child(3))) > .po-order-tab,
+    body .po-order-tabs:not(:has(> :nth-child(3))) > .expanding-tab,
+    body .bo-order-tabs:not(:has(> :nth-child(3))) > .bo-order-tab,
+    body .bo-order-tabs:not(:has(> :nth-child(3))) > .expanding-tab {
+        flex: 1 0 auto !important;
+        justify-content: center !important;
+    }
+
+    /* ---------- toolbars: title on its own row, tools below at full width ---------- */
+    body .po-list-toolbar {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    body .po-list-toolbar-title {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: baseline !important;
+        gap: 4px 8px !important;
+        min-width: 0 !important;
+    }
+
+    body .po-list-toolbar-title h3 {
+        font-size: 15px !important;
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere;
+    }
+
+    body .po-list-toolbar-tools {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body .po-list-toolbar-tools .search-field-wrap,
+    body .po-list-toolbar-tools input[type="text"],
+    body .po-list-toolbar-tools input[type="search"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    body .po-list-toolbar-tools > .btn-call-to-action,
+    body .po-list-toolbar-tools > button {
+        flex: 1 1 calc(50% - 4px) !important;
+        min-height: 40px !important;
+        margin: 0 !important;
+    }
+
+    /* Refresh + View History on the Insights tabs */
+    body .aih-open-btn {
+        margin-left: 0 !important;
+    }
+
+    body #management-insight-status {
+        flex: 1 1 100%;
+        margin: 0 !important;
+        font-size: 12px !important;
+    }
+
+    /* ---------- table cards: two fields per row ---------- */
+    html.kz-ops-phone {
+        --kz-pc-cols: 2 !important;
+    }
+
+    html.kz-ops-phone table.kz-pc-table td {
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    /* ---------- forms: full-width fields ---------- */
+    body form[data-kreezby-native] {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    body form[data-kreezby-native] label {
+        display: grid !important;
+        gap: 4px !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        color: #5d4037 !important;
+        width: 100% !important;
+    }
+
+    body form[data-kreezby-native] label br {
+        display: none;
+    }
+
+    body form[data-kreezby-native] input,
+    body form[data-kreezby-native] select,
+    body form[data-kreezby-native] textarea {
+        width: 100% !important;
+        min-height: 42px !important;
+        box-sizing: border-box !important;
+        border: 1px solid #d7c4ae !important;
+        border-radius: 10px !important;
+        padding: 8px 12px !important;
+        font: inherit !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        color: #3e2723 !important;
+        background: #fff !important;
+    }
+
+    body form[data-kreezby-native] button[type="submit"] {
+        min-height: 44px !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+        background: #5d4037 !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+    }
+
+    /* Inputs at 16px stop iPhone Safari from zooming in when a field is tapped. */
+    body input[type="text"],
+    body input[type="search"],
+    body input[type="tel"],
+    body input[type="email"],
+    body input[type="number"],
+    body input[type="password"],
+    body input[type="date"],
+    body select,
+    body textarea {
+        font-size: 16px !important;
+        max-width: 100%;
+    }
+
+    /* ---------- Management Insight cards ---------- */
+    body .mi-compact .mi-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+    }
+
+    body .mi-compact .mi-stat {
+        padding: 8px !important;
+    }
+
+    body .mi-compact .mi-stat small {
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+        overflow-wrap: anywhere;
+    }
+
+    body .mi-compact .mi-stat strong {
+        font-size: 16px !important;
+        overflow-wrap: anywhere;
+    }
+
+    body .mi-list li {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 4px !important;
+    }
+
+    body .mi-list li .mi-tag {
+        justify-self: start;
+    }
+
+    /* ---------- output history window ---------- */
+    body .aih-overlay {
+        padding: 0 !important;
+    }
+
+    body .aih-panel {
+        border-radius: 0 !important;
+        min-height: 100%;
+        padding: 14px 12px 20px !important;
+    }
+
+    body .aih-top {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+    }
+
+    body .aih-top .aih-tabs {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    body .aih-top .aih-tab {
+        flex: 0 0 auto;
+    }
+
+    body .aih-filters label {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    body .aih-filters input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    body .aih-filters .aih-btn {
+        flex: 1 1 auto;
+        min-height: 40px;
+    }
+
+    /* history list: each output is a card instead of a wide table */
+    body .aih-table-wrap > table.aih-list,
+    body .aih-table-wrap > table.aih-list tbody,
+    body .aih-table-wrap > table.aih-list tr,
+    body .aih-table-wrap > table.aih-list td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    body .aih-table-wrap:has(> table.aih-list) {
+        border: 0;
+        background: transparent;
+    }
+
+    body .aih-table-wrap > table.aih-list thead {
+        display: none;
+    }
+
+    body .aih-table-wrap > table.aih-list tr {
+        background: #fff;
+        border: 1px solid #eadfce;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 0 0 8px;
+    }
+
+    body .aih-table-wrap > table.aih-list td {
+        border: 0;
+        padding: 3px 0;
+        text-align: left;
+    }
+
+    body .aih-table-wrap > table.aih-list td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #8d6e63;
+    }
+
+    body .aih-table-wrap > table.aih-list td.aih-num {
+        display: none;
+    }
+
+    body .aih-table-wrap > table.aih-list td .aih-btn {
+        width: 100%;
+        min-height: 40px;
+        margin-top: 4px;
+    }
+
+    body .aih-meta {
+        grid-template-columns: minmax(0, 1fr) 1fr !important;
+    }
+}
+
+@media (max-width: 359px) {
+    html.kz-ops-phone {
+        --kz-pc-cols: 1 !important;
+    }
+
+    body .mi-compact .mi-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
