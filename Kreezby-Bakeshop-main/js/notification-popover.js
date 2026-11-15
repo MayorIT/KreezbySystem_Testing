@@ -225,42 +225,10 @@
         }
     };
 
+    // Clicking a notification only marks it as read; it never opens another page.
     NotificationPopoverInstance.prototype.markAsRead = function (id) {
-        var item = null;
-        for (var i = 0; i < this.notifications.length; i++) {
-            if (String(this.notifications[i].id) === String(id)) {
-                item = this.notifications[i];
-                break;
-            }
-        }
         if (window.KreezbyNotifications) window.KreezbyNotifications.markRead(id);
-        if (item && item.href) openInPage(item.href, this);
     };
-
-    // Open the notification's page inside the main area (like the sidebar links) instead of
-    // reloading the whole website. Already on that page: just close the panel.
-    function openInPage(href, popover) {
-        var target;
-        try { target = new URL(href, window.location.href); } catch (e) { window.location.href = href; return; }
-        if (target.pathname === window.location.pathname && !target.hash) {
-            if (popover) popover.close();
-            return;
-        }
-        var frame = document.getElementById('kreezby-main-content');
-        if (window.Turbo && frame && target.origin === window.location.origin) {
-            if (popover) popover.close();
-            var link = document.createElement('a');
-            link.href = target.href;
-            link.setAttribute('data-turbo-frame', 'kreezby-main-content');
-            link.setAttribute('data-turbo-action', 'advance');
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(function () { if (link.parentNode) link.parentNode.removeChild(link); }, 0);
-            return;
-        }
-        window.location.href = target.href;
-    }
 
     NotificationPopoverInstance.prototype.markAllAsRead = function () {
         if (window.KreezbyNotifications) window.KreezbyNotifications.markAllRead();

@@ -267,7 +267,7 @@
                 var note = new Notification(title, { body: body, tag: tag || title, icon: iconUrl() });
                 note.onclick = function () {
                     window.focus();
-                    window.location.href = href;
+                    note.close();
                 };
             } catch (e) { /* this browser blocked the system notification */ }
         }
