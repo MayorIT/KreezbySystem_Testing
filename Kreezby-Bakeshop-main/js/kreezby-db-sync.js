@@ -884,7 +884,7 @@
   ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(function (name) {
     window.addEventListener(name, function () { lastUserAction = Date.now(); }, { capture: true, passive: true });
   });
-  var SELF_HANDLED = { "kreezby-po-orders-v1": 1, "kreezby-bo-orders-v1": 1, "kreezby-return-records-v1": 1 };
+  var SELF_HANDLED = { "kreezby-po-orders-v1": 1, "kreezby-bo-orders-v1": 1, "kreezby-return-records-v1": 1, "kreezby-partner-inquiries-v1": 1, "kreezby-issue-reports-v1": 1 };
   function userIsBusy() {
     var el = document.activeElement;
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return true;

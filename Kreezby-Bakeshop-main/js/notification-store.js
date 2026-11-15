@@ -50,10 +50,12 @@
     }
 
     var SOURCE_TASKS = {
-        order: ['bo', 'ordertracking', 'saleslist', 'dailysales', 'inbox'],
+        // Customer orders belong to Order Tracking and the Sales List, never to Order Error
+        // (Order Error is only the P.O / Replace records from the retailer route sheets).
+        order: ['ordertracking', 'saleslist', 'dailysales', 'inbox'],
         payment: ['ordertracking', 'saleslist', 'dailysales'],
-        po: ['bo', 'ordertracking'],
-        receive: ['bo', 'ordertracking'],
+        po: ['ordertracking'],
+        receive: ['ordertracking'],
         return: ['ordertracking'],
         alert: ['alert', 'stocklevel', 'stocks', 'inventoryreport'],
         stock: ['stocks', 'stocklevel', 'inventoryreport'],
@@ -62,13 +64,13 @@
         forecast: ['aiforecast']
     };
 
-    // Sidebar badges: each kind of activity counts on ONE menu item only, and a badge
-    // only counts activity that happened after that account last opened the page.
+    // Sidebar badges: which menu items count each kind of activity. A badge only counts
+    // activity that happened after that account last opened the page.
     var BADGE_TASKS = {
-        order: ['bo'],
+        order: ['ordertracking', 'saleslist'],
         payment: ['saleslist'],
-        po: ['bo'],
-        receive: ['bo'],
+        po: ['ordertracking'],
+        receive: ['ordertracking'],
         return: ['ordertracking'],
         alert: ['alert'],
         stock: ['stocks'],

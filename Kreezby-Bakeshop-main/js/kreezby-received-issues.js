@@ -55,6 +55,22 @@
         return 'status-new';
     }
 
+    // Real time: when someone sends a new issue report, it arrives in this browser through the shared
+    // data within a few seconds. Redraw the list then, with no page refresh.
+    var liveRender = null;
+    function onLiveChange(keys) {
+        if (!liveRender) return;
+        if (keys && keys.length && keys.indexOf('kreezby-issue-reports-v1') === -1) return;
+        if (!document.getElementById('received-issues-tbody')) { liveRender = null; return; }
+        try { liveRender(); } catch (e) { /* next change redraws */ }
+    }
+    document.addEventListener('kreezby:remote-state', function (e) {
+        onLiveChange((e.detail && e.detail.keys) || []);
+    });
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'kreezby-issue-reports-v1') onLiveChange([e.key]);
+    });
+
     function boot() {
         if (!window.KreezbyIssueReports) return;
         var tbody = document.getElementById('received-issues-tbody');
@@ -160,6 +176,7 @@
 
         placeholder();
         render();
+        liveRender = render;
     }
 
     if (document.readyState === 'loading') {

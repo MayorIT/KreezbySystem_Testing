@@ -18,8 +18,11 @@
         }
     }
 
+    // Date and time, e.g. "Nov 15, 2026 · 9:14 PM".
     function timeLabel(date) {
-        return (date || new Date()).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+        var d = date || new Date();
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     }
 
     function uid() {

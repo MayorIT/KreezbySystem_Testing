@@ -1256,7 +1256,7 @@
         function deliverVoice(blob, mime, chatId) {
             if (!chatId || !blob || !blob.size) return;
             if (!messages[chatId]) messages[chatId] = [];
-            var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            var time = chatStamp(new Date());
             messages[chatId].push({
                 type: 'outgoing',
                 text: '',
@@ -1418,7 +1418,7 @@
             }
 
             if (!messages[activeId]) messages[activeId] = [];
-            var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            var time = chatStamp(new Date());
             var attachments = pendingFiles.map(function (item) {
                 return {
                     name: item.name,
@@ -1628,12 +1628,23 @@
             try { return Number(localStorage.getItem(teamReadKey(peer))) || 0; } catch (e) { return 0; }
         }
 
+        // Every message shows its date and time, e.g. "Nov 15, 2026 · 9:14 PM".
+        function chatStamp(d) {
+            if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        }
+
         function teamTime(at) {
+            return chatStamp(new Date(at));
+        }
+
+        // Shorter form for the conversation list, e.g. "Nov 15 · 9:14 PM".
+        function teamListTime(at) {
             var d = new Date(at);
-            if (d.toDateString() === new Date().toDateString()) {
-                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-            return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         }
 
         function teamInitials(name) {
@@ -1679,7 +1690,7 @@
                 var last = conv.last;
                 contact.messagesData = conv.messages;
                 contact.updatedAt = last.at;
-                contact.time = teamTime(last.at);
+                contact.time = teamListTime(last.at);
                 contact.preview = (last.from === me ? 'You: ' : '') + String(last.text).split('\n')[0];
                 contact.unread = activeId !== contact.id && last.from !== me && last.at > teamReadAt(conv.peer);
                 if (contact.unread) contact.archived = false;

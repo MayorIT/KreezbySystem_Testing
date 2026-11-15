@@ -233,4 +233,50 @@
         formatReceived: formatReceived,
         inboxHref: inboxHref
     };
+
+    // Report an Issue forms: a "Remove" button next to the chosen file, so a wrong file can be
+    // taken off before submitting. Shows only while a file is chosen.
+    function addRemoveButton(input) {
+        if (!input || input.getAttribute('data-kz-remove') === '1') return;
+        input.setAttribute('data-kz-remove', '1');
+        if (!document.getElementById('kz-file-remove-style')) {
+            var style = document.createElement('style');
+            style.id = 'kz-file-remove-style';
+            style.textContent = '.kz-file-remove{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 14px;border:1px solid #e0b4b4;border-radius:999px;background:#fff5f5;color:#c62828;font:inherit;font-size:13px;font-weight:700;cursor:pointer;}'
+                + '.kz-file-remove:hover{background:#ffebee;border-color:#c62828;}'
+                + '.kz-file-remove[hidden]{display:none;}';
+            document.head.appendChild(style);
+        }
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'kz-file-remove';
+        btn.textContent = '✕ Remove file';
+        btn.hidden = true;
+        btn.setAttribute('aria-label', 'Remove the chosen file');
+        input.insertAdjacentElement('afterend', btn);
+        function sync() {
+            var has = !!(input.files && input.files.length);
+            btn.hidden = !has;
+            if (has) btn.textContent = '✕ Remove ' + (input.files.length > 1 ? input.files.length + ' files' : input.files[0].name);
+        }
+        input.addEventListener('change', sync);
+        btn.addEventListener('click', function () {
+            input.value = '';
+            sync();
+            input.focus();
+        });
+        var form = input.form;
+        if (form) form.addEventListener('reset', function () { setTimeout(sync, 0); });
+        sync();
+    }
+
+    function wireFileRemoval() {
+        var inputs = document.querySelectorAll('form.report-form input[type="file"], input[type="file"][name="attachment"]');
+        Array.prototype.forEach.call(inputs, addRemoveButton);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireFileRemoval);
+    else wireFileRemoval();
+    document.addEventListener('turbo:frame-load', wireFileRemoval);
+    document.addEventListener('kreezby:page-load', wireFileRemoval);
 })(window);

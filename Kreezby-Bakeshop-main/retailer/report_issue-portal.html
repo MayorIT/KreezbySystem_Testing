@@ -38,9 +38,9 @@
             <aside class="retailer-issue-aside">
                 <p class="retailer-issue-kicker">The Crinkle Factory</p>
                 <h1>Report an Issue</h1>
-                <p class="retailer-issue-lead">Orders, deliveries, payments, or stock. Include the PO number so the team can find the record.</p>
+                <p class="retailer-issue-lead">Orders, deliveries, payments, or stock. Include the date so the team can find the record.</p>
                 <ul class="retailer-issue-points">
-                    <li>Use the order or PO number from your portal.</li>
+                    <li>Pick the date of the order or delivery.</li>
                     <li>Choose the issue type that matches the problem.</li>
                     <li>A screenshot or invoice photo helps the review.</li>
                 </ul>
@@ -61,8 +61,8 @@
                             <input id="retailer-store" name="storeName" type="text" value="Retailer" readonly>
                         </div>
                         <div class="form-row">
-                            <label for="retailer-order">Order / PO Number</label>
-                            <input id="retailer-order" name="orderNumber" type="text" placeholder="E.g. PO-2026-0042" required>
+                            <label for="retailer-date">Date</label>
+                            <input id="retailer-date" name="issueDate" type="date" required>
                         </div>
                         <div class="form-row full-width">
                             <label for="retailer-issue-type">Issue Type</label>
@@ -97,6 +97,19 @@
         </section>
         <script src="../js/kreezby-issue-reports.js?v=20260924c"></script>
         <script>
+        // Date picker: no future dates.
+        (function () {
+            var input = document.getElementById('retailer-date');
+            if (!input) return;
+            var d = new Date();
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            input.max = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        })();
+        function issueDateLabel(value) {
+            if (!value) return '';
+            var d = new Date(value + 'T12:00:00');
+            return isNaN(d.getTime()) ? value : 'Date: ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
         function submitIssue(event, role) {
             event.preventDefault();
             var form = event.target;
@@ -107,7 +120,7 @@
                     submittedBy: (form.fullName && form.fullName.value) || '',
                     contact: (form.contact && form.contact.value) || '',
                     issueType: (form.issueType && form.issueType.value) || 'Other',
-                    reference: (form.orderNumber && form.orderNumber.value) || (form.storeName && form.storeName.value) || '',
+                    reference: issueDateLabel(form.issueDate && form.issueDate.value) || (form.storeName && form.storeName.value) || '',
                     description: (form.description && form.description.value) || '',
                     notes: (form.notes && form.notes.value) || '',
                     attachmentName: file ? file.name : '',

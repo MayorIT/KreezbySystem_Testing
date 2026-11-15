@@ -50,6 +50,22 @@
             '<p>Click a row to read the full issue, contact details, and update status.</p>';
     }
 
+    // Real time: when someone sends a new issue report, it arrives in this browser through the shared
+    // data within a few seconds. Redraw the list then, with no page refresh.
+    var liveRender = null;
+    function onLiveChange(keys) {
+        if (!liveRender) return;
+        if (keys && keys.length && keys.indexOf('kreezby-issue-reports-v1') === -1) return;
+        if (!document.getElementById('issue-reports-tbody')) { liveRender = null; return; }
+        try { liveRender(); } catch (e) { /* next change redraws */ }
+    }
+    document.addEventListener('kreezby:remote-state', function (e) {
+        onLiveChange((e.detail && e.detail.keys) || []);
+    });
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'kreezby-issue-reports-v1') onLiveChange([e.key]);
+    });
+
     function boot() {
         if (!window.KreezbyIssueReports) return;
         var tbody = document.getElementById('issue-reports-tbody');
@@ -157,6 +173,7 @@
         });
 
         render();
+        liveRender = render;
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
