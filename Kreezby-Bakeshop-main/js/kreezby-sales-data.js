@@ -721,6 +721,7 @@
     getDefaultRouteFilters: getDefaultRouteFilters,
     areaLabel: areaLabel,
     formatDateLabel: formatDateLabel,
+    formatMonthLabel: formatMonthLabel,
     computeReportFinancials: computeReportFinancials,
     saveReport: saveReport,
     reloadFromServer: reloadFromServer,

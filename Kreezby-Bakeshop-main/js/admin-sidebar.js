@@ -281,7 +281,7 @@
         if (filename.indexOf('maintenance') === 0) return 'maintenance';
 
         if (filename.indexOf('inbox-') === 0) return 'inbox';
-        if (filename.indexOf('issue-reports-') === 0) return 'issuereports';
+        if (filename.indexOf('issue-reports-') === 0 || filename === 'report_issue-admin.html') return 'issuereports';
         if (filename === 'inquiries.html' || filename.indexOf('inquir') === 0) return 'inquiry';
         if (filename === 'admin_permissions-headadmin.html' || filename === 'admin-permissions.html' || filename === 'staff-permissions.html') return 'adminpermissions';
 
@@ -377,11 +377,12 @@
 
 
 
+    // Head admin: the Reports list (every report). Admins: the Report Issue form only.
     function issueReportsHref() {
         var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
         if (path.indexOf('/head_admin/') >= 0) return 'issue-reports-headadmin.html';
-        if (path.indexOf('/admin_names/') >= 0) return '../../admin/issue-reports-admin.html';
-        return 'issue-reports-admin.html';
+        if (path.indexOf('/admin_names/') >= 0) return '../../admin/report_issue-admin.html';
+        return 'report_issue-admin.html';
     }
 
     function viewerHasFullAccess() {
@@ -391,7 +392,9 @@
     }
 
     function canSeeIssueReports() {
-        if (isHeadAdminPortal() && viewerHasFullAccess()) return true;
+        // Every admin may send a report.
+        if (!isHeadAdminPortal()) return true;
+        if (viewerHasFullAccess()) return true;
         var api = window.KreezbyAdminPermissions;
         if (!api) return false;
         if (typeof api.isHeadAdmin === 'function' && api.isHeadAdmin()) return true;
@@ -428,7 +431,7 @@
         return items.map(function (item) {
             var next = {
                 key: item.key,
-                label: item.label,
+                label: item.key === 'issuereports' && !isHeadAdminPortal() ? 'Report Issue' : item.label,
                 href: item.key === 'issuereports' ? issueReportsHref() : portalHref(item.href),
                 icon: item.icon,
                 top: item.top

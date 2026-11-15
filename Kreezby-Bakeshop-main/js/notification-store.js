@@ -600,6 +600,11 @@
         // the shared state: update the bell and pop-ups without a page refresh.
         document.addEventListener('kreezby:remote-state', function (e) {
             var keys = (e.detail && e.detail.keys) || [];
+            // A new customer order arriving from the server: add its notification right away.
+            if (keys.indexOf('kreezbyOrders') !== -1) {
+                var cur = readJson(CURSOR_KEY, ensureCursor());
+                scanStorage(cur);
+            }
             if (keys.indexOf(STORAGE_KEY) === -1) return;
             emit({ type: 'storage-sync', unread: getUnreadCount() });
         });
@@ -626,7 +631,7 @@
             }
             function startPoll() {
                 if (pollTimer) return;
-                pollTimer = setInterval(pollOnce, 8000);
+                pollTimer = setInterval(pollOnce, 4000);
             }
             function stopPoll() {
                 if (!pollTimer) return;

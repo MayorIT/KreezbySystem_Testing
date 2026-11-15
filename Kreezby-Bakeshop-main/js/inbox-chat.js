@@ -237,7 +237,13 @@
             empty.style.display = contacts.length ? 'none' : '';
         }
 
-        contacts.forEach(function (contact) {
+        // The chat with the newest message is always on top (like any messaging app).
+        // Chats with the same time keep their current order.
+        var ordered = contacts.map(function (contact, index) { return { c: contact, i: index }; })
+            .sort(function (a, b) { return ((b.c.updatedAt || 0) - (a.c.updatedAt || 0)) || (a.i - b.i); })
+            .map(function (entry) { return entry.c; });
+
+        ordered.forEach(function (contact) {
             var row = document.createElement('div');
             var isUnread = Boolean(contact.unread) && !contact.archived;
             row.className = 'inbox-contact-item thread-item-card' +
@@ -1270,7 +1276,10 @@
                 }]
             });
             var contact = getContact(chatId);
-            if (contact) contact.preview = 'You: Voice message';
+            if (contact) {
+                contact.preview = 'You: Voice message';
+                contact.updatedAt = Date.now();
+            }
             if (activeId === chatId && messageContainer) renderMessages(messageContainer, messages[chatId]);
             refreshContactList();
         }
@@ -1436,7 +1445,10 @@
             renderMessages(messageContainer, messages[activeId]);
 
             var contact = getContact(activeId);
-            if (contact) contact.preview = 'You: ' + attachmentPreview(attachments, text);
+            if (contact) {
+                contact.preview = 'You: ' + attachmentPreview(attachments, text);
+                contact.updatedAt = Date.now();
+            }
             refreshContactList();
             if (window.KreezbyStaffInbox && typeof window.KreezbyStaffInbox.onThreadSelected === 'function') {
                 window.KreezbyStaffInbox.onThreadSelected(contact);

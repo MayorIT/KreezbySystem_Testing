@@ -36,7 +36,8 @@
         alert: { label: 'Alerts', page: 'alert-admin.html' },
         stocklevel: { label: 'Stocks', page: 'stocklevel-admin.html' },
         inbox: { label: 'Inbox', page: 'inbox-admin.html' },
-        issuereports: { label: 'Reports', page: 'issue-reports-admin.html' }
+        // Admins only send reports; reading reports and inquiries is for the head admin.
+        issuereports: { label: 'Report Issue', page: 'report_issue-admin.html' }
     };
 
     var DEFAULT_PERMISSIONS = {
@@ -49,8 +50,9 @@
         'inbox', 'issuereports'
     ];
 
+    // Report Issue is always open to admins, so it is not a permission the head admin grants.
     var PERMISSION_MATRIX_ORDER = TASK_ORDER.filter(function (key) {
-        return key !== 'dashboard';
+        return key !== 'dashboard' && key !== 'issuereports';
     });
 
     var PAGE_TO_TASK = {};

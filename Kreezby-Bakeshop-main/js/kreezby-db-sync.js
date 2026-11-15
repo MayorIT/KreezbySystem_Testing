@@ -889,32 +889,74 @@
     var el = document.activeElement;
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return true;
     if (document.querySelector(".modal-triggered, .modal-box.active, .notification-modal-overlay.active, .system-modal-backdrop.modal-triggered")) return true;
+    // Any open dialog, pop-up panel or menu: never redraw under it.
+    if (document.querySelector('[aria-modal="true"], .notification-popover-panel.is-open, .user-dropdown-menu.show, .user-dropdown-menu.is-open, .action-popup-menu.is-open, .action-popup-menu.show')) return true;
     var sel = window.getSelection && window.getSelection();
     return !!(sel && String(sel).length > 0);
   }
+  // Redraw only the page area (the sidebar, header and bell stay), keeping the scroll position.
+  // Falls back to a full reload only on pages that have no in-page area.
+  var softPending = null;
+  function softRefresh() {
+    var frame = document.getElementById("kreezby-main-content");
+    if (window.Turbo && frame && /^turbo-frame$/i.test(frame.tagName)) {
+      var main = frame.querySelector("main") || frame;
+      softPending = { y: window.scrollY, inner: main.scrollTop };
+      try {
+        if (frame.getAttribute("src") === location.href && typeof frame.reload === "function") frame.reload();
+        else frame.setAttribute("src", location.href);
+        return;
+      } catch (e) { /* fall through to a full reload */ }
+    }
+    try { sessionStorage.setItem("kreezby_live_scroll", String(window.scrollY)); } catch (e2) { /* ignore */ }
+    location.reload();
+  }
+  document.addEventListener("turbo:frame-load", function (event) {
+    if (!softPending || !event.target || event.target.id !== "kreezby-main-content") return;
+    var keep = softPending;
+    softPending = null;
+    setTimeout(function () {
+      var main = event.target.querySelector("main") || event.target;
+      if (keep.inner) main.scrollTop = keep.inner;
+      if (keep.y) window.scrollTo(0, keep.y);
+    }, 60);
+  });
+
+  function livePageAllowed() {
+    var path = location.pathname || "";
+    if (/\/(admin_permissions|staff-permissions|maintenance|pos-|checkout|report_issue|profile)/i.test(path)) return false;
+    if (/\/customer\//i.test(path)) return /order|track/i.test(path);
+    return /\/(admin|head_admin|staff|retailer)\//i.test(path);
+  }
+  // Shop-side records that mean nothing on a retailer's or customer's page.
+  function ignoredHere(key) {
+    var path = location.pathname || "";
+    if (/\/retailer\//i.test(path)) return /^(kreezbyOrders|kreezbyCustomerReceipts|kreezbyOwnerReceipts|kreezby_pos_sales_v1)$/.test(key);
+    if (/\/customer\//i.test(path)) return !/^(kreezbyOrders|kreezbyCustomerReceipts)$/.test(key);
+    return false;
+  }
+
   function scheduleLiveRefresh(keys, fromFirstPull) {
     if (fromFirstPull) return;
     if (Date.now() < quietUntil) return;
-    if (Date.now() - pageOpenedAt < 8000) return;
-    if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || "")) return;
-    if (/\/(admin_permissions|staff-permissions|maintenance|pos-)/i.test(location.pathname || "")) return;
+    if (Date.now() - pageOpenedAt < 3000) return;
+    if (!livePageAllowed()) return;
     var relevant = keys.filter(function (k) {
-      return !SELF_HANDLED[k] && !/^(kreezbyNotification|kreezbyBrowserAlert|kreezbyAlert|kreezbyBadgeSeen|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_|kreezbyHelpQueue|kreezby_data_dictionary|kreezby_stock_snapshots|kreezbyPortalSeedVersion|kreezby_users_seed_version|kreezbyDockedSidebar|kreezby_(admin|staff)_pos_nav)/.test(k);
+      return !SELF_HANDLED[k] && !ignoredHere(k) && !/^(kreezbyNotification|kreezbyBrowserAlert|kreezbyAlert|kreezbyBadgeSeen|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_|kreezbyHelpQueue|kreezby_data_dictionary|kreezby_stock_snapshots|kreezbyPortalSeedVersion|kreezby_users_seed_version|kreezbyDockedSidebar|kreezby_(admin|staff)_pos_nav)/.test(k);
     });
     if (!relevant.length) return;
     if (liveRefreshTimer) return;
     liveRefreshTimer = setTimeout(function tryRefresh() {
       if (Date.now() < quietUntil) { liveRefreshTimer = null; return; }
-      if (document.hidden || userIsBusy() || Date.now() - lastUserAction < 20000 || Date.now() - lastLiveRefresh < 60000) {
-        liveRefreshTimer = setTimeout(tryRefresh, 2500);
+      // Wait while someone is typing, has a dialog open, is selecting text or clicked a moment ago.
+      if (document.hidden || userIsBusy() || Date.now() - lastUserAction < 2500 || Date.now() - lastLiveRefresh < 4000) {
+        liveRefreshTimer = setTimeout(tryRefresh, 1000);
         return;
       }
       liveRefreshTimer = null;
       lastLiveRefresh = Date.now();
-      var y = window.scrollY;
-      try { sessionStorage.setItem("kreezby_live_scroll", String(y)); } catch (e) { /* ignore */ }
-      location.reload();
-    }, 1200);
+      softRefresh();
+    }, 300);
   }
   try {
     var savedScroll = sessionStorage.getItem("kreezby_live_scroll");
@@ -924,14 +966,15 @@
     }
   } catch (e) { /* ignore */ }
 
-  function applyItems(items, uploadMissing, fromFirstPull) {
+  function applyItems(items, uploadMissing, fromFirstPull, partial) {
     if (!items) return;
     applyingRemote = true;
     var changedKeys = [];
     try {
       var incomingCount = Object.keys(items).length;
       var knownCount = Object.keys(known).length;
-      var snapshotLooksComplete = !knownCount || incomingCount >= Math.max(3, knownCount * 0.5);
+      // A partial (changes-only) answer never means "everything else was deleted".
+      var snapshotLooksComplete = !partial && (!knownCount || incomingCount >= Math.max(3, knownCount * 0.5));
       if (snapshotLooksComplete) {
         Object.keys(known).forEach(function (key) {
           if (isBusy(key)) return;
@@ -975,7 +1018,7 @@
       if (changedKeys.some(function (k) { return STOCK_KEYS[k] || k === "kreezbyOrders" || k === "kreezby-po-orders-v1"; })) announceStocks();
     }
 
-    known = {};
+    if (!partial) known = {};
     Object.keys(items).forEach(function (key) {
       if (isShared(key)) known[key] = 1;
     });
@@ -992,6 +1035,32 @@
 
   var synced = false;
   var pullInFlight = false;
+  // Server time of the last pull: the next check asks only for what changed after it.
+  var lastServerTime = 0;
+  var deltaQueued = false;
+
+  function pullChanges() {
+    if (!firstPullDone || !lastServerTime) { pull(false); return; }
+    if (pullInFlight) { deltaQueued = true; return; }
+    pullInFlight = true;
+    var req = new XMLHttpRequest();
+    req.open("GET", "/api/state?since=" + lastServerTime, true);
+    req.timeout = 10000;
+    req.onloadend = function () {
+      pullInFlight = false;
+      if (deltaQueued) { deltaQueued = false; setTimeout(pullChanges, 0); }
+    };
+    req.onload = function () {
+      if (req.status !== 200) return;
+      try {
+        var body = JSON.parse(req.responseText);
+        if (!body || !body.items || typeof body.items !== "object") return;
+        if (body.serverTime) lastServerTime = body.serverTime;
+        if (Object.keys(body.items).length) applyItems(body.items, false, false, true);
+      } catch (e) { /* the next check tries again */ }
+    };
+    req.send();
+  }
 
   function pull(uploadMissing) {
     if (pullInFlight) return;
@@ -1008,8 +1077,10 @@
       if (poll.status !== 200) { retryFirst(); return; }
       pullInFlight = false;
       try {
-        var items = JSON.parse(poll.responseText).items;
+        var body = JSON.parse(poll.responseText);
+        var items = body.items;
         if (!items || typeof items !== "object") { retryFirst(); return; }
+        if (body.serverTime) lastServerTime = body.serverTime;
         var first = !firstPullDone;
         firstPullDone = true;
         applyItems(items, uploadMissing && !synced, first);
@@ -1139,7 +1210,9 @@
   var versionPollBusy = false;
   function pollStateVersion() {
     if (document.hidden || versionPollBusy) return;
-    if (Date.now() - lastFullPull > 30000) {
+    // Full download only once a minute (catches records deleted straight in the database);
+    // everything else arrives as small change-only pulls.
+    if (Date.now() - lastFullPull > 60000) {
       lastFullPull = Date.now();
       pull(false);
     }
@@ -1156,13 +1229,15 @@
           var first = lastStateVersion === null;
           lastStateVersion = version;
           // Something changed (data or permissions): fetch both now.
-          if (!first) { lastFullPull = Date.now(); pull(false); pullSharedPermissions(); }
+          if (!first) { pullChanges(); pullSharedPermissions(); }
         }
       } catch (e) { /* keep polling the cheap version check */ }
     };
     xhr.send();
   }
-  setInterval(pollStateVersion, 3000);
+  setInterval(pollStateVersion, 2000);
+  // Coming back to the tab: check at once instead of waiting for the next tick.
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) pollStateVersion(); });
   // Customers and retailers have no task permissions: only staff/admin pages keep checking.
   var PERMISSION_PAGES = /\/(admin|head_admin|staff|admin_names|staff_names)\//i.test(location.pathname || "");
   setInterval(function () { if (!document.hidden && PERMISSION_PAGES) pullSharedPermissions(); }, 15000);

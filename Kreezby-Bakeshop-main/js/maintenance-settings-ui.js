@@ -178,11 +178,22 @@
         var col = filterColumnIndex(root);
         if (label) label.textContent = col >= 0 ? 'Filter by ' + FILTER_COLUMNS[currentSettingsSub] : 'Filter';
         var values = {};
+        var seenKey = {};
+        function addValue(text) {
+            text = String(text || '').trim();
+            if (!text || text === '—') return;
+            var key = currentSettingsSub === 'retailers' ? areaKey(text) : text;
+            if (seenKey[key]) return;
+            seenKey[key] = true;
+            values[text] = true;
+        }
+        // Retailers: every area is listed (delivery areas, areas added in Settings, and areas on
+        // accounts), even an area with no retailer yet.
+        if (col >= 0 && currentSettingsSub === 'retailers') allAreas().forEach(function (a) { addValue(a.name); });
         if (col >= 0) {
             root.querySelectorAll('table tbody tr').forEach(function (tr) {
                 var cell = tr.children[col];
-                var text = cell ? (cell.textContent || '').trim() : '';
-                if (text && text !== '—') values[text] = true;
+                addValue(cell ? cell.textContent : '');
             });
         }
         select.innerHTML = '<option value="">All</option>' + Object.keys(values).sort().map(function (v) {
@@ -208,7 +219,8 @@
         var shown = 0;
         rows.forEach(function (tr) {
             var cell = col >= 0 ? tr.children[col] : null;
-            var okFilter = !pick || (cell && (cell.textContent || '').trim() === pick);
+            var cellText = cell ? (cell.textContent || '').trim() : '';
+            var okFilter = !pick || (currentSettingsSub === 'retailers' ? areaKey(cellText) === areaKey(pick) : cellText === pick);
             var okSearch = !q || (tr.textContent || '').toLowerCase().indexOf(q) >= 0;
             var match = okFilter && okSearch;
             tr.style.display = match ? '' : 'none';

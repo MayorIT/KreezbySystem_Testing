@@ -5,12 +5,115 @@
     <link rel="icon" type="image/png" href="../assets/logo/favicon.png?v=20261018tab">
     <link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png?v=20261018tab">
 
+<script src="../js/kreezby-db-sync.js?v=20261027stock1"></script>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=issue-reports-admin.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
     <title>Report Issue - Admin</title>
-    <script>window.location.replace('issue-reports-admin.html');</script>
+    <link rel="stylesheet" href="../css/pages/staff/report_issue-staff.css">
+    <link rel="stylesheet" href="../css/pages/admin/admin.css">
+    <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+    <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/kreezby-mobile.css?v=20261020icon2">
 </head>
 <body>
-    <p>Issue reports open in <a href="issue-reports-admin.html">Report Center</a>.</p>
+<script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
+
+<header class="top-navbar-node">
+    <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
+    <div class="top-nav-links-right">
+        <div class="user-dropdown">
+            <button type="button" class="user-dropdown-pill" id="user-dropdown-trigger">Admin ▾</button>
+            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                <a href="report_issue-admin.html" class="dropdown-item">Report Issue</a>
+                <a href="../auth/log_in.html" class="dropdown-item">↩ Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="core-viewport-wrapper">
+    <aside class="dark-sidebar-panel" aria-label="Admin navigation"></aside>
+    <main class="workspace-view-canvas">
+        <div class="page-shell">
+            <div class="report-panel">
+                <div class="report-header">
+                    <h1>Report an Issue</h1>
+                    <p>Send a report to the head admin about stock, orders, deliveries, payments, or the system.</p>
+                </div>
+                <div class="report-body">
+                    <form class="report-form" onsubmit="submitIssue(event, 'Admin');">
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label for="admin-name">Full Name</label>
+                                <input id="admin-name" name="fullName" type="text" placeholder="Your full name" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="admin-email">Email Address</label>
+                                <input id="admin-email" name="email" type="email" placeholder="you@kreezby.com" required>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="admin-issue-type">Issue Type</label>
+                                <select id="admin-issue-type" name="issueType" required>
+                                    <option value="">Select issue type</option>
+                                    <option>Stock / Inventory</option>
+                                    <option>Sales / Orders</option>
+                                    <option>Retailer Delivery</option>
+                                    <option>Payment / Invoice</option>
+                                    <option>System Access</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="admin-description">Issue Description</label>
+                                <textarea id="admin-description" name="description" placeholder="Describe the issue and how it affects the shop." required></textarea>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="admin-notes">Additional Notes</label>
+                                <textarea id="admin-notes" name="notes" placeholder="Dates, quantities, or what you were doing when it happened."></textarea>
+                            </div>
+                            <div class="form-row full-width">
+                                <label for="admin-attachment">Attach Screenshot / File (optional)</label>
+                                <input id="admin-attachment" name="attachment" type="file">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit">Submit Report</button>
+                            <a href="admin.html" class="btn-secondary">Return to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../js/kreezby-issue-reports.js?v=20261115admin"></script>
+<script>
+function submitIssue(event, role) {
+    event.preventDefault();
+    var form = event.target;
+    var file = form.attachment && form.attachment.files && form.attachment.files[0];
+    if (window.KreezbyIssueReports) {
+        KreezbyIssueReports.add({
+            role: role,
+            submittedBy: (form.fullName && form.fullName.value) || '',
+            contact: (form.email && form.email.value) || '',
+            issueType: (form.issueType && form.issueType.value) || 'Other',
+            reference: '',
+            description: (form.description && form.description.value) || '',
+            notes: (form.notes && form.notes.value) || '',
+            attachmentName: file ? file.name : '',
+            status: 'New'
+        });
+    }
+    alert('Issue report sent to the head admin.');
+    window.location.href = 'admin.html';
+}
+</script>
+<script src="../js/admin-permissions.js?v=20261020menu"></script>
+<script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
+<script src="../js/admin-sidebar.js?v=20261115report"></script>
+<script src="../js/sidebar-toggle.js?v=20261010dash"></script>
 </body>
 </html>

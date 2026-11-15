@@ -767,7 +767,7 @@ app.use("/api", async (req, res, next) => {
   if (!client) return next();
   if (!SERVERLESS) {
     // Always-on server: re-read MongoDB so a document deleted or edited in Atlas shows up here too.
-    if (mongoReady && /^\/(state(?!-)|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
+    if (mongoReady && /^\/(state(?!-)|permissions)/.test(req.path) && !(req.query && req.query.since) && Date.now() - lastCacheRefresh > 1500) {
       lastCacheRefresh = Date.now();
       try { await refreshCache(); } catch (error) { /* keep the last copy */ }
     }
@@ -793,7 +793,7 @@ app.use("/api", async (req, res, next) => {
       const insightRoute = req.path === "/management-insight" || req.path === "/product-recommendation";
       if (insightRoute) await Promise.race([lazyConnect.catch(() => {}), sleep(3000)]);
       else await lazyConnect;
-    } else if (/^\/(state(?!-)|permissions)/.test(req.path) && Date.now() - lastCacheRefresh > 1500) {
+    } else if (/^\/(state(?!-)|permissions)/.test(req.path) && !(req.query && req.query.since) && Date.now() - lastCacheRefresh > 1500) {
       lastCacheRefresh = Date.now();
       await refreshCache();
     }
@@ -859,10 +859,32 @@ app.get("/api/state-version", async (req, res) => {
 
 app.get("/api/state", async (req, res) => {
   if (!databaseReady(res)) return;
+  // ?since=<server time>: only the documents changed after that moment (a few small keys
+  // instead of the whole shared state), so open pages pick up new data almost at once.
+  const since = Number(req.query && req.query.since);
+  if (Number.isFinite(since) && since > 0) {
+    try {
+      const serverTime = Date.now();
+      const docs = await collection()
+        .find({ updatedAt: { $gt: new Date(since - 3000) } }, { projection: { value: 1 } })
+        .toArray();
+      const items = {};
+      for (const doc of docs) {
+        if (typeof doc.value !== "string" || !isSharedKey(String(doc._id))) continue;
+        items[doc._id] = doc.value;
+        cache[doc._id] = doc.value;
+      }
+      res.json({ items, partial: true, serverTime });
+    } catch (error) {
+      res.status(503).json({ ok: false, error: error.message });
+    }
+    return;
+  }
   try {
+    const serverTime = Date.now();
     await refreshCache();
     lastCacheRefresh = Date.now();
-    res.json({ items: cache });
+    res.json({ items: cache, serverTime });
   } catch (error) {
     res.status(503).json({ ok: false, error: error.message });
   }

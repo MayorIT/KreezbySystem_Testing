@@ -663,18 +663,11 @@
       return (bucket.byArea && bucket.byArea[area]) || [];
     }
 
-    // Months the chosen area has at least one route sheet in.
-    function areaMonths(area) {
-      if (!filterMeta) return [];
-      return (filterMeta.months || []).filter(function (m) {
-        return areaDates(m.value, area).length > 0;
-      });
-    }
-
+    // Every month that has sales records is listed, whatever area is chosen (an area with no
+    // sheet that month just says so). The Date list still shows only the chosen area's dates.
     function refreshMonthOptions(keepPrev) {
       if (!monthEl || !filterMeta) return;
-      var area = areaEl ? areaEl.value : '';
-      var months = area ? areaMonths(area) : (filterMeta.months || []);
+      var months = filterMeta.months || [];
       var prev = monthEl.value;
       fillSelect(monthEl, months, months.length ? null : 'No records');
       if (keepPrev && prev && months.some(function (m) { return m.value === prev; })) {
@@ -720,7 +713,17 @@
         return;
       }
 
-      if (f.source && (!f.month || !f.reportDate)) {
+      if (f.source && f.month && !f.reportDate) {
+        var others = (filterMeta && filterMeta.byMonth[f.month] && filterMeta.byMonth[f.month].byArea)
+          ? Object.keys(filterMeta.byMonth[f.month].byArea).map(function (src) { return api.areaLabel(src); }).sort()
+          : [];
+        wrap.innerHTML =
+          '<p class="route-sheet-empty-hint">No sales records for <strong>' + esc(api.areaLabel(f.source)) + '</strong> in <strong>'
+          + esc(api.formatMonthLabel(f.month)) + '</strong>.'
+          + (others.length ? ' Areas with records this month: ' + esc(others.join(', ')) + '.' : '') + '</p>';
+        return;
+      }
+      if (f.source && !f.month) {
         wrap.innerHTML =
           '<p class="route-sheet-empty-hint">No sales records for <strong>' + esc(api.areaLabel(f.source)) + '</strong> yet.</p>';
         return;
