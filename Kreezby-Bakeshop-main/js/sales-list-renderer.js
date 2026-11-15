@@ -1112,10 +1112,18 @@
     return {
       title: 'OFFICIAL RECEIPT',
       meta: (function () {
-        var named = /^walk-?in$/i.test(String(row.customer || '')) ? '' : (row.customer || '');
-        var rows = [[row.invoice || '—', row.channel === 'walkin' ? 'Walk-in' : (row.fulfil === 'pickup' ? 'Pick-up' : 'Online')]];
+        // Walk-in sales print only "Walk-in Customer": never the name of the account that rang it up.
+        if (row.channel === 'walkin') {
+            return [
+                [row.invoice || '—', 'Walk-in Customer'],
+                [row.time || '', 'Date ' + (row.date || '')],
+                ['', row.payment || '']
+            ];
+        }
+        var named = row.customer || '';
+        var rows = [[row.invoice || '—', row.fulfil === 'pickup' ? 'Pick-up' : 'Online']];
         if (named) rows.push(['Customer', named]);
-        rows.push([row.cashier || row.status || '', row.payment || '']);
+        rows.push([row.status || '', row.payment || '']);
         rows.push([row.time || '', 'Date ' + (row.date || '')]);
         return rows;
       })(),
