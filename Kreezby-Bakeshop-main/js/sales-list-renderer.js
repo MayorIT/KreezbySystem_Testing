@@ -1035,32 +1035,34 @@
     return d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
   }
 
+  // Printed on short bond paper (8.5 × 11 in) with large, easy-to-read text. The page has no
+  // margin so the browser adds no header/footer; the spacing is inside the page instead.
   function receiptCss() {
-    return '@page{size:auto;margin:0}' +
+    return '@page{size:letter portrait;margin:0}' +
       '*{box-sizing:border-box}' +
       'html,body{margin:0;padding:0;background:#fff;color:#111}' +
-      'body{font-family:Arial,Helvetica,sans-serif;padding:12mm 0}' +
-      '.rc{width:80mm;max-width:100%;margin:0 auto;padding:0 4mm;font-size:12px;line-height:1.4}' +
-      '.rc-shop{text-align:center;margin-bottom:12px}' +
-      '.rc-shop h1{margin:0 0 3px;font-size:18px;letter-spacing:.5px}' +
-      '.rc-shop p{margin:0}' +
-      '.rc-title{text-align:center;font-weight:700;margin:0 0 10px;letter-spacing:.5px}' +
-      '.rc-meta{width:100%;border-collapse:collapse;margin-bottom:8px}' +
-      '.rc-meta td{padding:1px 0;vertical-align:top;white-space:nowrap}' +
+      'body{font-family:Arial,Helvetica,sans-serif;padding:16mm 18mm}' +
+      '.rc{width:100%;max-width:180mm;margin:0 auto;font-size:16px;line-height:1.5}' +
+      '.rc-shop{text-align:center;margin-bottom:22px}' +
+      '.rc-shop h1{margin:0 0 6px;font-size:32px;letter-spacing:1px}' +
+      '.rc-shop p{margin:0;font-size:16px}' +
+      '.rc-title{text-align:center;font-weight:700;font-size:20px;margin:0 0 18px;letter-spacing:1px}' +
+      '.rc-meta{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:16px}' +
+      '.rc-meta td{padding:3px 0;vertical-align:top;white-space:nowrap}' +
       '.rc-meta td:last-child{text-align:right}' +
-      '.rc-rule{border:0;border-top:1.5px solid #111;margin:8px 0}' +
-      '.rc-items{width:100%;border-collapse:collapse}' +
-      '.rc-items td{padding:2px 0;vertical-align:top}' +
-      '.rc-items td.q{width:28px}' +
-      '.rc-items td.a{text-align:right;white-space:nowrap;padding-left:8px}' +
-      '.rc-items .sub td{font-size:11px;color:#444;padding-top:0}' +
-      '.rc-sum{width:100%;border-collapse:collapse;margin-top:2px}' +
-      '.rc-sum td{padding:1px 0}' +
-      '.rc-sum td:first-child{text-align:right;padding-right:12px}' +
-      '.rc-sum td:last-child{text-align:right;width:90px;white-space:nowrap}' +
-      '.rc-sum .grand td{font-weight:700;font-size:13px}' +
-      '.rc-foot{margin-top:18px;text-align:center;font-size:11px}' +
-      '.rc-foot p{margin:2px 0}';
+      '.rc-rule{border:0;border-top:2px solid #111;margin:14px 0}' +
+      '.rc-items{width:100%;border-collapse:collapse;font-size:17px}' +
+      '.rc-items td{padding:5px 0;vertical-align:top}' +
+      '.rc-items td.q{width:48px}' +
+      '.rc-items td.a{text-align:right;white-space:nowrap;padding-left:16px}' +
+      '.rc-items .sub td{font-size:14px;color:#444;padding-top:0}' +
+      '.rc-sum{width:100%;border-collapse:collapse;margin-top:4px;font-size:17px}' +
+      '.rc-sum td{padding:3px 0}' +
+      '.rc-sum td:first-child{text-align:right;padding-right:24px}' +
+      '.rc-sum td:last-child{text-align:right;width:150px;white-space:nowrap}' +
+      '.rc-sum .grand td{font-weight:700;font-size:21px;padding-top:6px}' +
+      '.rc-foot{margin-top:36px;text-align:center;font-size:15px}' +
+      '.rc-foot p{margin:4px 0}';
   }
 
   function receiptHtml(r) {
@@ -1157,7 +1159,7 @@
       frame = document.createElement('iframe');
       frame.id = 'sales-receipt-print-frame';
       frame.setAttribute('aria-hidden', 'true');
-      frame.style.cssText = 'position:fixed;left:0;top:-10000px;width:120mm;height:200mm;border:0;';
+      frame.style.cssText = 'position:fixed;left:0;top:-10000px;width:216mm;height:279mm;border:0;';
       document.body.appendChild(frame);
     }
     var doc = frame.contentWindow.document;

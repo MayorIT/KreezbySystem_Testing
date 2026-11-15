@@ -705,7 +705,16 @@
     });
   }
 
+  // Reading or clearing notifications saves the notification list. That save makes the server
+  // report "something changed", and the next check used to reload the whole page about 20
+  // seconds later. A page never reloads because of this browser's own notification clicks.
+  var quietUntil = 0;
+  function isQuietKey(key) {
+    return /^(kreezbyNotification|kreezbyBadgeSeen|kreezbyBrowserAlert)/.test(String(key || ""));
+  }
+
   function queue(key, value) {
+    if (isQuietKey(key)) quietUntil = Date.now() + 60000;
     if (!firstPullDone) {
       heldBeforePull[key] = value;
       return;
@@ -885,6 +894,7 @@
   }
   function scheduleLiveRefresh(keys, fromFirstPull) {
     if (fromFirstPull) return;
+    if (Date.now() < quietUntil) return;
     if (Date.now() - pageOpenedAt < 8000) return;
     if (!/\/(admin|head_admin|staff)\//i.test(location.pathname || "")) return;
     if (/\/(admin_permissions|staff-permissions|maintenance|pos-)/i.test(location.pathname || "")) return;
@@ -894,6 +904,7 @@
     if (!relevant.length) return;
     if (liveRefreshTimer) return;
     liveRefreshTimer = setTimeout(function tryRefresh() {
+      if (Date.now() < quietUntil) { liveRefreshTimer = null; return; }
       if (document.hidden || userIsBusy() || Date.now() - lastUserAction < 20000 || Date.now() - lastLiveRefresh < 60000) {
         liveRefreshTimer = setTimeout(tryRefresh, 2500);
         return;
