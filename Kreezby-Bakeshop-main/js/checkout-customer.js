@@ -303,8 +303,9 @@ td { padding: 3px 2px; border-bottom: 1px dotted #999; vertical-align: top; }
 .actions { margin: 8px auto 14px; display: flex; gap: 6px; justify-content: center; }
 button { padding: 8px 10px; border: 1px solid #222; background: #fff; cursor: pointer; font-family: inherit; font-size: 11px; }
 .print { font-weight: 700; }
+@page { size: auto; margin: 0; }
 @media print {
-    body { background: #fff; }
+    body { background: #fff; padding: 8mm 6mm; }
     .actions { display: none; }
     .sheet { max-width: 340px; margin: 0 auto; }
     .receipt-copy { border: none; page-break-inside: avoid; box-shadow: none; }

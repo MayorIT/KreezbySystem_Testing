@@ -395,9 +395,194 @@
 
             + '<p class="sl-footer-note">ⓘ Stock levels are updated in real-time. Last updated: ' + esc(DATA.lastUpdated) + '</p>'
 
-            + '<a class="sl-btn-report" data-turbo-frame="kreezby-main-content" data-turbo-action="advance" href="' + esc(reportHref) + '">View Full Inventory Report</a>'
+            + '<button type="button" class="sl-btn-report" id="sl-full-report-btn" aria-expanded="' + (REPORT_STATE.open ? 'true' : 'false') + '" aria-controls="sl-full-report">'
+            + (REPORT_STATE.open ? 'Hide Full Inventory Report' : 'View Full Inventory Report') + '</button>'
 
+            + '</div>'
+            + '<div id="sl-full-report" class="sl-full-report"' + (REPORT_STATE.open ? '' : ' hidden') + '></div>';
+    }
+
+    // ---- Full Inventory Report (shown on this same page, no redirect) ----
+    var REPORT_STATE = { open: false, q: '', category: 'all', status: 'all' };
+
+    function ensureReportStyles() {
+        if (document.getElementById('sl-full-report-style')) return;
+        var style = document.createElement('style');
+        style.id = 'sl-full-report-style';
+        style.textContent = ''
+            + 'button.sl-btn-report{cursor:pointer;font:inherit;}'
+            + '.sl-full-report{margin-top:16px;}'
+            + '.sl-full-report[hidden]{display:none;}'
+            + '.sl-report-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;}'
+            + '.sl-report-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}'
+            + '.sl-report-tools label{display:flex;flex-direction:column;font-size:12px;gap:3px;font-weight:600;}'
+            + '.sl-report-tools input,.sl-report-tools select{padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:13px;min-width:150px;background:#fff;}'
+            + '.sl-report-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0;}'
+            + '.sl-report-summary div{border:1px solid #eee;border-radius:10px;padding:10px 12px;background:#fffaf6;}'
+            + '.sl-report-summary span{display:block;font-size:12px;color:#795548;}'
+            + '.sl-report-summary strong{font-size:18px;}'
+            + '.sl-report-cat td{background:#f5ede8;font-weight:700;}'
+            + '.sl-report-empty{text-align:center;padding:18px;color:#8d6e63;}'
+            + '.sl-report-close{cursor:pointer;border:1px solid #d7ccc8;background:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;align-self:flex-end;}'
+            + '@media (max-width:640px){.sl-report-tools{width:100%;}.sl-report-tools label{flex:1 1 100%;}.sl-report-tools input,.sl-report-tools select{width:100%;min-width:0;}}';
+        document.head.appendChild(style);
+    }
+
+    function reportRows() {
+        var catalog = {};
+        inventoryCatalog().forEach(function (item) { catalog[item.code] = item; });
+        return (DATA.healthItems || []).map(function (row) {
+            var item = catalog[row.code] || { code: row.code, qty: 0, category: row.category };
+            var hasValue = row.category !== 'Finished Products';
+            return {
+                item: row.item, code: row.code, category: row.category,
+                qty: Number(item.qty) || 0, stock: row.stock, reorder: row.reorder,
+                weeks: row.weeks, status: row.status,
+                cost: hasValue ? unitCost(item) : null,
+                value: hasValue ? valueFor(item) : null
+            };
+        });
+    }
+
+    function reportTable(rows) {
+        if (!rows.length) {
+            return '<p class="sl-report-empty">No items match your search or filter.</p>';
+        }
+        var order = ['Raw Materials', 'Packaging', 'Finished Products'];
+        var groups = {};
+        rows.forEach(function (row) { (groups[row.category] = groups[row.category] || []).push(row); });
+        Object.keys(groups).forEach(function (name) { if (order.indexOf(name) < 0) order.push(name); });
+        var body = order.filter(function (name) { return groups[name]; }).map(function (name) {
+            var list = groups[name];
+            var subValue = 0;
+            var hasValue = false;
+            list.forEach(function (row) { if (row.value != null) { subValue += row.value; hasValue = true; } });
+            return '<tr class="sl-report-cat"><td colspan="5">' + esc(name) + ' (' + list.length + ' items)</td>'
+                + '<td colspan="3">' + (hasValue ? 'Subtotal value: ' + money(subValue) : '') + '</td></tr>'
+                + list.map(function (row) {
+                    return '<tr><td><strong>' + esc(row.item) + '</strong></td>'
+                        + '<td>' + esc(row.code) + '</td>'
+                        + '<td>' + esc(row.stock) + '</td>'
+                        + '<td>' + esc(row.reorder) + '</td>'
+                        + '<td>' + esc(row.weeks) + '</td>'
+                        + '<td>' + (row.cost == null ? '—' : money(row.cost)) + '</td>'
+                        + '<td>' + (row.value == null ? '—' : money(row.value)) + '</td>'
+                        + '<td>' + statusBadge(row.status) + '</td></tr>';
+                }).join('');
+        }).join('');
+        return '<table class="sl-compact-table sl-detail-table" data-sl-skip-open="1"><thead><tr>'
+            + '<th>Item</th><th>Code</th><th>Current Stock</th><th>Reorder Level</th><th>Weeks of Stock</th>'
+            + '<th>Unit Cost</th><th>Stock Value</th><th>Status</th>'
+            + '</tr></thead><tbody>' + body + '</tbody></table>';
+    }
+
+    function filteredReportRows() {
+        var q = String(REPORT_STATE.q || '').toLowerCase();
+        return reportRows().filter(function (row) {
+            if (REPORT_STATE.category !== 'all' && row.category !== REPORT_STATE.category) return false;
+            if (REPORT_STATE.status !== 'all' && row.status !== REPORT_STATE.status) return false;
+            if (!q) return true;
+            return row.item.toLowerCase().indexOf(q) !== -1
+                || String(row.code).toLowerCase().indexOf(q) !== -1
+                || row.category.toLowerCase().indexOf(q) !== -1;
+        });
+    }
+
+    function reportSummary(rows) {
+        var counts = { well: 0, low: 0, out: 0 };
+        var value = 0;
+        rows.forEach(function (row) {
+            counts[row.status] = (counts[row.status] || 0) + 1;
+            if (row.value != null) value += row.value;
+        });
+        return '<div><span>Items shown</span><strong>' + rows.length + '</strong></div>'
+            + '<div><span>Well Stocked</span><strong>' + counts.well + '</strong></div>'
+            + '<div><span>Low Stock</span><strong>' + counts.low + '</strong></div>'
+            + '<div><span>Out of Stock</span><strong>' + counts.out + '</strong></div>'
+            + '<div><span>Stock value (raw &amp; packaging)</span><strong>' + money(value) + '</strong></div>';
+    }
+
+    function refreshReportResults(root) {
+        var rows = filteredReportRows();
+        var summary = root.querySelector('#sl-report-summary');
+        var wrap = root.querySelector('#sl-report-table-wrap');
+        if (summary) summary.innerHTML = reportSummary(rows);
+        if (wrap) wrap.innerHTML = reportTable(rows);
+    }
+
+    function renderFullReport(root) {
+        var box = root.querySelector('#sl-full-report');
+        if (!box) return;
+        ensureReportStyles();
+        var cats = ['Raw Materials', 'Packaging', 'Finished Products'];
+        function opt(value, label, current) {
+            return '<option value="' + esc(value) + '"' + (value === current ? ' selected' : '') + '>' + esc(label) + '</option>';
+        }
+        box.innerHTML = ''
+            + '<div class="sl-panel">'
+            + '<div class="sl-panel-head sl-report-head"><h4>Full Inventory Report</h4>'
+            + '<div class="sl-report-tools">'
+            + '<label for="sl-report-search">Search<input type="text" id="sl-report-search" placeholder="Item, code or category…" value="' + esc(REPORT_STATE.q) + '"></label>'
+            + '<label for="sl-report-category">Category<select id="sl-report-category">'
+            + opt('all', 'All categories', REPORT_STATE.category)
+            + cats.map(function (c) { return opt(c, c, REPORT_STATE.category); }).join('')
+            + '</select></label>'
+            + '<label for="sl-report-status">Status<select id="sl-report-status">'
+            + opt('all', 'All statuses', REPORT_STATE.status)
+            + opt('well', 'Well Stocked', REPORT_STATE.status)
+            + opt('low', 'Low Stock', REPORT_STATE.status)
+            + opt('out', 'Out of Stock', REPORT_STATE.status)
+            + '</select></label>'
+            + '<button type="button" class="sl-report-close" id="sl-report-close">Close Report</button>'
+            + '</div></div>'
+            + '<div class="sl-report-summary" id="sl-report-summary"></div>'
+            + '<div class="sl-table-wrap" id="sl-report-table-wrap"></div>'
             + '</div>';
+        refreshReportResults(root);
+    }
+
+    function setReportOpen(root, open) {
+        REPORT_STATE.open = !!open;
+        var box = root.querySelector('#sl-full-report');
+        var btn = root.querySelector('#sl-full-report-btn');
+        if (btn) {
+            btn.textContent = open ? 'Hide Full Inventory Report' : 'View Full Inventory Report';
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        if (!box) return;
+        if (open) {
+            box.hidden = false;
+            renderFullReport(root);
+            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            box.hidden = true;
+            box.innerHTML = '';
+            if (btn) btn.focus();
+        }
+    }
+
+    function bindFullReport(root) {
+        if (root.getAttribute('data-full-report-bound') === '1') return;
+        root.setAttribute('data-full-report-bound', '1');
+        root.addEventListener('click', function (event) {
+            if (event.target.closest('#sl-full-report-btn')) {
+                event.preventDefault();
+                setReportOpen(root, !REPORT_STATE.open);
+            } else if (event.target.closest('#sl-report-close')) {
+                setReportOpen(root, false);
+            }
+        });
+        root.addEventListener('input', function (event) {
+            if (event.target.id !== 'sl-report-search') return;
+            REPORT_STATE.q = event.target.value;
+            refreshReportResults(root);
+        });
+        root.addEventListener('change', function (event) {
+            if (event.target.id === 'sl-report-category') REPORT_STATE.category = event.target.value;
+            else if (event.target.id === 'sl-report-status') REPORT_STATE.status = event.target.value;
+            else return;
+            refreshReportResults(root);
+        });
 
     }
 
@@ -1505,9 +1690,22 @@
         refreshInventoryTotals();
         var fn = RENDERERS[view] || renderValue;
 
+        var active = document.activeElement;
+        var keepId = active && root.contains(active) && /^sl-report-/.test(active.id || '') ? active.id : '';
+        var caret = keepId === 'sl-report-search' ? active.selectionStart : null;
+
         fn(root, reportHref);
         linkStockRows(root, reportHref);
         bindValueActions(root);
+        bindFullReport(root);
+        if (REPORT_STATE.open) {
+            renderFullReport(root);
+            var again = keepId ? document.getElementById(keepId) : null;
+            if (again) {
+                again.focus();
+                if (caret != null && again.setSelectionRange) again.setSelectionRange(caret, caret);
+            }
+        }
 
     }
 
@@ -1568,6 +1766,7 @@
 
     function boot() {
         if (headStock()) document.body.classList.add('kreezby-head-stock');
+        REPORT_STATE.open = false;
         render(document.getElementById('stocklevel-dashboard-root'));
         ensureDictionary();
     }

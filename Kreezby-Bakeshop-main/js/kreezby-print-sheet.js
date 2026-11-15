@@ -31,8 +31,13 @@
         return esc(value);
     }
 
-    function css() {
-        return '@page{size:A4 portrait;margin:12mm 14mm 16mm}' +
+    function css(doc) {
+        // Receipts print with no page margin so the browser does not add its own
+        // header/footer (date, title, web address, page number); the spacing moves into the body.
+        var page = doc && doc.hidePageChrome
+            ? '@page{size:A4 portrait;margin:0}@media print{body{padding:12mm 14mm 16mm}}'
+            : '@page{size:A4 portrait;margin:12mm 14mm 16mm}';
+        return page +
             '*{box-sizing:border-box}' +
             'html,body{margin:0;padding:0;background:#fff;color:#1a2340}' +
             'body{font-family:"Segoe UI",Tahoma,Geneva,sans-serif}' +
@@ -126,7 +131,7 @@
 
     function documentHtml(doc) {
         return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc((doc && doc.title) || 'Kreezby') +
-            '</title><style>' + css() + '</style></head><body>' + bodyHtml(doc || {}) + '</body></html>';
+            '</title><style>' + css(doc) + '</style></head><body>' + bodyHtml(doc || {}) + '</body></html>';
     }
 
     function print(doc) {

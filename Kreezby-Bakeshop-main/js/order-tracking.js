@@ -152,12 +152,12 @@
 
     function ensureKreezbyPrintSheet() {
         if (window.KreezbyPrintSheet || document.getElementById('kreezby-print-sheet-js')) return;
-        var src = '../js/kreezby-print-sheet.js?v=20261010roles';
+        var src = '../js/kreezby-print-sheet.js?v=20261115rcpt';
         var scripts = document.getElementsByTagName('script');
         for (var i = 0; i < scripts.length; i++) {
             var url = scripts[i].getAttribute('src') || '';
             if (/order-tracking\.js/i.test(url)) {
-                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261010roles');
+                src = url.replace(/[^/?]+\.js(\?.*)?$/, 'kreezby-print-sheet.js?v=20261115rcpt');
                 break;
             }
         }
@@ -195,6 +195,7 @@
             var vatAmount = netTotal - vatableSales;
             var opened = sheet.openPreview({
                 title: 'Official Receipt',
+                hidePageChrome: true,
                 docNo: receipt.receiptNumber || receipt.orderNumber,
                 status: receipt.paymentStatus || 'PAID',
                 totalLabel: 'Grand total',
