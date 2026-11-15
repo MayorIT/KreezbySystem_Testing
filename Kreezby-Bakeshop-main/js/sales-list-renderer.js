@@ -871,7 +871,7 @@
     setDetailText('bauan-detail-po', 'P.O / Replaced:', (row.po || '—') + ' / ' + (row.replaced || '—'));
     setDetailText('bauan-detail-ar', 'Account Receivable:', row.accountReceivable ? api.formatMoney(row.accountReceivable) : '—');
     setDetailText('bauan-detail-total', 'Collected (this row):', api.formatMoney(row.totalPaid));
-    currentReceipt = retailerReceipt(row, api);
+    window.__kreezbySalesReceipt = retailerReceipt(row, api);
 
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost && report) {
@@ -1011,7 +1011,8 @@
   }
 
   // ---- Official receipt (printed on its own, without the website header/footer) ----
-  var currentReceipt = null;
+  // Kept on window: moving between pages loads this script again, and the click on a sale and
+  // the Print button can belong to different copies of it. Both must see the same opened sale.
   var SHOP = {
     name: 'KREEZBY BAKESHOP',
     lines: ['The Crinkle Factory', 'Batangas City, Philippines', '0921 957 4748', 'kreezbyph@gmail.com']
@@ -1146,6 +1147,7 @@
   }
 
   function printCurrentReceipt() {
+    var currentReceipt = window.__kreezbySalesReceipt;
     if (!currentReceipt) {
       alert('Open a sale first, then print its receipt.');
       return;
@@ -1284,7 +1286,7 @@
     setDetailText('bauan-detail-po', 'Status:', row.status || '—');
     setDetailText('bauan-detail-ar', 'Account:', row.account || '—');
     setDetailText('bauan-detail-total', 'Total paid:', row.total || '—');
-    currentReceipt = customerReceipt(row);
+    window.__kreezbySalesReceipt = customerReceipt(row);
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost) {
       sheetHost.innerHTML = '<div class="po-detail-hero"><p class="po-detail-kicker">Customer</p><h4>' +

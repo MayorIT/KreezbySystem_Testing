@@ -516,27 +516,61 @@
             count[item.kind] += 1;
             if (item.kind === 'low' && /out of stock/.test(item.message)) count.out += 1;
         });
+        // Each line: [tag text, tag tone, what it means and what to do].
         var lines = [];
-        if (count.expired) lines.push(count.expired + (count.expired === 1 ? ' batch has' : ' batches have') + ' expired. Take them off the shelf; they cannot be sold.');
-        if (count.out) lines.push(count.out + (count.out === 1 ? ' item is' : ' items are') + ' out of stock. Customers and retailers cannot be served until it is restocked.');
-        if (count.low - count.out > 0) lines.push((count.low - count.out) + (count.low - count.out === 1 ? ' item is' : ' items are') + ' at or below the alert line. Restock soon.');
-        if (count.near) lines.push(count.near + (count.near === 1 ? ' batch expires' : ' batches expire') + ' within its expiry alert days. Sell or use these first.');
-        if (count.reorder) lines.push(count.reorder + (count.reorder === 1 ? ' item has' : ' items have') + ' reached the reorder point. Order now so stock arrives before it runs low.');
-        var tone = count.expired || count.out ? 'destructive' : (count.low || count.near ? 'warning' : (count.reorder ? 'info' : 'success'));
+        if (count.expired) lines.push(['Expired', 'bad', count.expired + (count.expired === 1 ? ' batch has' : ' batches have') + ' expired. Take them off the shelf; they cannot be sold.']);
+        if (count.out) lines.push(['Out of stock', 'bad', count.out + (count.out === 1 ? ' item is' : ' items are') + ' out of stock. Customers and retailers cannot be served until it is restocked.']);
+        if (count.low - count.out > 0) lines.push(['Low stock', 'warn', (count.low - count.out) + (count.low - count.out === 1 ? ' item is' : ' items are') + ' at or below the alert line. Restock soon.']);
+        if (count.near) lines.push(['Near expiry', 'warn', count.near + (count.near === 1 ? ' batch expires' : ' batches expire') + ' within its expiry alert days. Sell or use these first.']);
+        if (count.reorder) lines.push(['Reorder', 'info', count.reorder + (count.reorder === 1 ? ' item has' : ' items have') + ' reached the reorder point. Order now so stock arrives before it runs low.']);
         var title = items.length ? 'Alert results: ' + items.length + (items.length === 1 ? ' item needs' : ' items need') + ' attention' : 'Alert results: all clear';
-        var chips = [
+        ensureResultsStyle();
+        var stats = [
             ['Low stock', count.low], ['Reorder point', count.reorder], ['Near expiry', count.near], ['Expired', count.expired]
         ].map(function (c) {
-            return '<span style="display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;background:#fff;border:1px solid #eadfce;font-size:12px;font-weight:700;color:#3e2723;">' + c[0] + ' <b>' + c[1] + '</b></span>';
-        }).join(' ');
+            return '<div class="ka-stat' + (c[1] ? ' has' : '') + '"><small>' + c[0] + '</small><strong>' + c[1] + '</strong></div>';
+        }).join('');
         var body = lines.length
-            ? '<ul style="margin:6px 0 0;padding-left:18px;">' + lines.map(function (l) { return '<li>' + escapeHtml(l) + '</li>'; }).join('') + '</ul>'
-            : '<p style="margin:6px 0 0;">Every item is above its reorder point and no batch is near expiry or expired. No action is needed.</p>';
-        host.innerHTML = '<div role="status" class="kreezby-alert kreezby-alert--' + tone + ' kreezby-alert--light kreezby-alert--md" data-kreezby-alert data-kreezby-alert-static>'
-            + '<div class="kreezby-alert__content">'
-            + '<div class="kreezby-alert__title">' + escapeHtml(title) + '</div>'
-            + '<div class="kreezby-alert__description"><div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px;">' + chips + '</div>' + body
-            + '</div></div></div>';
+            ? '<ul class="ka-list">' + lines.map(function (l) {
+                return '<li><span class="ka-tag ' + l[1] + '">' + escapeHtml(l[0]) + '</span><span>' + escapeHtml(l[2]) + '</span></li>';
+            }).join('') + '</ul>'
+            : '<p class="ka-empty">Every item is above its reorder point and no batch is near expiry or expired. No action is needed.</p>';
+        host.innerHTML = '<section class="ka-card" role="status">'
+            + '<div class="ka-head"><h4>' + escapeHtml(title) + '</h4></div>'
+            + '<div class="ka-stats">' + stats + '</div>'
+            + body
+            + '</section>';
+    }
+
+    // Same look as Insights > Management Insight: white card, small stat tiles, tagged lines.
+    function ensureResultsStyle() {
+        if (document.getElementById('ka-results-style')) return;
+        var style = document.createElement('style');
+        style.id = 'ka-results-style';
+        style.textContent = ''
+            + '.ka-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:14px 16px;margin:0 0 14px;color:#3e2723;}'
+            + '.ka-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 10px;}'
+            + '.ka-head h4{margin:0;font-size:14px;color:#3e2723;}'
+            + '.ka-tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}'
+            + '.ka-tag.ok{background:#e8f5e9;color:#2e7d32;}'
+            + '.ka-tag.warn{background:#fff3e0;color:#e65100;}'
+            + '.ka-tag.bad{background:#ffebee;color:#c62828;}'
+            + '.ka-tag.info{background:#e3f2fd;color:#1565c0;}'
+            + '.ka-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}'
+            + '.ka-stat{background:#fffaf3;border:1px solid #f0e4d2;border-radius:10px;padding:8px 10px;min-width:0;}'
+            + '.ka-stat small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
+            + '.ka-stat strong{display:block;font-size:18px;line-height:1.25;color:#3e2723;margin-top:2px;}'
+            + '.ka-stat.has strong{color:#c62828;}'
+            + '.ka-list{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px;}'
+            + '.ka-list li{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start;padding:7px 10px;border-radius:9px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12.5px;line-height:1.4;}'
+            + '.ka-list .ka-tag{justify-self:start;}'
+            + '.ka-empty{margin:12px 0 0;font-size:12.5px;color:#7a6558;}'
+            + '@media (max-width:900px){.ka-stats{grid-template-columns:repeat(2,minmax(0,1fr));}}'
+            + '@media (max-width:600px){.ka-card{padding:12px;}.ka-stats{grid-template-columns:minmax(0,1fr);gap:6px;}'
+            + '.ka-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:10px;padding:7px 10px;}'
+            + '.ka-stat strong{grid-row:1 / span 2;grid-column:2;font-size:17px;margin:0;text-align:right;}'
+            + '.ka-list li{grid-template-columns:minmax(0,1fr);gap:4px;}}';
+        document.head.appendChild(style);
     }
 
     // Type filter (All / Low stock / Reorder point / Near expiry / Expired) next to the search box.

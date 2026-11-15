@@ -491,7 +491,7 @@
             : 'No extra production is needed right now.';
         return [
             { label: 'Sales', text: change + ', with ' + leaders + '.' },
-            { label: 'Stock', text: stockNote },
+            { label: 'Inventory', text: stockNote },
             { label: 'Production', text: advice }
         ];
     }
@@ -523,7 +523,7 @@
             : 'Record more sales before changing the production plan.';
         return [
             { label: 'Sales', text: change + ', with ' + leaders + '.' },
-            { label: 'Stock', text: stockNote },
+            { label: 'Inventory', text: stockNote },
             { label: 'Production', text: advice }
         ];
     }

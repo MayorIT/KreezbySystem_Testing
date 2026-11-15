@@ -180,15 +180,23 @@
         }
         return localReadCache;
     }
+    // Who is signed in, taken straight from the login session. It is known the moment the page
+    // starts, unlike the account id from the permission scripts, which load a little later; using
+    // that id made reads saved before it loaded invisible afterwards (the count jumped back up).
+    function localReadOwner() {
+        var sess = readSession();
+        var who = String(sess.email || sess.identity || sess.userName || sess.name || sess.id || '').trim().toLowerCase();
+        return portalRole() + ':' + (who || 'signed-in');
+    }
     function isLocallyRead(id) {
         var map = localReadMap();
-        var own = map[audienceKey()];
+        var own = map[localReadOwner()];
         return !!(own && own[String(id)]);
     }
     function rememberLocallyRead(ids) {
         if (!ids.length) return;
         var map = Object.assign({}, localReadMap());
-        var key = audienceKey();
+        var key = localReadOwner();
         var own = Object.assign({}, map[key] || {});
         var now = Date.now();
         ids.forEach(function (id) { own[String(id)] = now; });
