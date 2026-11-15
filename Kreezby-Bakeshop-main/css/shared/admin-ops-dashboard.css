@@ -747,8 +747,10 @@ body.kreezby-ops-dashboard #admin-dashboard-root {
 .ops-insight-row { display: contents; }
 .ops-insight-row dt { margin: 0; font-weight: 700; color: #5d4037; }
 .ops-insight-row dd { margin: 0; }
+.ops-regen { white-space: nowrap; flex: 0 0 auto; }
 @media (max-width: 600px) {
     .ops-card.ops-insight { padding: 12px; }
+    .ops-insight-meta { width: 100%; justify-content: space-between; }
     .ops-insight-list { grid-template-columns: minmax(0, 1fr); gap: 2px; }
     .ops-insight-row dd { margin-bottom: 8px; }
 }

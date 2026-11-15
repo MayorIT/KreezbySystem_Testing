@@ -457,8 +457,8 @@
             var subValue = 0;
             var hasValue = false;
             list.forEach(function (row) { if (row.value != null) { subValue += row.value; hasValue = true; } });
-            return '<tr class="sl-report-cat"><td colspan="5">' + esc(name) + ' (' + list.length + ' items)</td>'
-                + '<td colspan="3">' + (hasValue ? 'Subtotal value: ' + money(subValue) : '') + '</td></tr>'
+            return '<tr class="sl-report-cat"><td colspan="8">' + esc(name) + ' · ' + list.length + ' items'
+                + (hasValue ? ' · Subtotal value: ' + money(subValue) : '') + '</td></tr>'
                 + list.map(function (row) {
                     return '<tr><td><strong>' + esc(row.item) + '</strong></td>'
                         + '<td>' + esc(row.code) + '</td>'
