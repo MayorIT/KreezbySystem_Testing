@@ -713,3 +713,26 @@ body.kreezby-ops-dashboard #admin-dashboard-root {
 .ops-table td { color: #3d2c2a; border-bottom: 1px solid #f3ece6; }
 .ops-table tbody tr:nth-child(even) td { background: #fcf9f6; }
 .ops-table tbody tr:hover td { background: rgba(255, 202, 40, 0.14); }
+
+/* AI Management Insight: three labelled lines, with room below the card so it is not cut off */
+.ops-insight { margin-bottom: 28px; padding: 18px 20px 20px; }
+.ops-insight-head { flex-wrap: wrap; }
+.ops-insight-list { margin: 14px 0 0; display: grid; gap: 10px; }
+.ops-insight-row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; }
+.ops-insight-row dt {
+    margin: 0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #fff4d6;
+    color: #5d4037;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-align: center;
+}
+.ops-insight-row dd { margin: 0; color: #4e463f; font-size: 14px; line-height: 1.55; }
+@media (max-width: 640px) {
+    .ops-insight-row { grid-template-columns: 1fr; gap: 4px; }
+    .ops-insight-row dt { justify-self: start; }
+}

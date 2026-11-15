@@ -871,6 +871,7 @@
     setDetailText('bauan-detail-po', 'P.O / Replaced:', (row.po || '—') + ' / ' + (row.replaced || '—'));
     setDetailText('bauan-detail-ar', 'Account Receivable:', row.accountReceivable ? api.formatMoney(row.accountReceivable) : '—');
     setDetailText('bauan-detail-total', 'Collected (this row):', api.formatMoney(row.totalPaid));
+    currentReceipt = retailerReceipt(row, api);
 
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost && report) {
@@ -1005,12 +1006,167 @@
     var printBtn = document.getElementById('sales-details-print-btn');
     if (back) back.onclick = function () { window.switchToSalesMasterDirectoryListingView(); };
     if (printBtn) {
-      printBtn.onclick = function () {
-        var original = window.print;
-        window.print = original;
-        original.call(window);
-      };
+      printBtn.onclick = function () { printCurrentReceipt(); };
     }
+  }
+
+  // ---- Official receipt (printed on its own, without the website header/footer) ----
+  var currentReceipt = null;
+  var SHOP = {
+    name: 'KREEZBY BAKESHOP',
+    lines: ['The Crinkle Factory', 'Batangas City, Philippines', '0921 957 4748', 'kreezbyph@gmail.com']
+  };
+
+  function toNumber(value) {
+    if (typeof value === 'number') return value;
+    var n = parseFloat(String(value == null ? '' : value).replace(/[^0-9.\-]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function peso(n) {
+    return Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function receiptTime(value) {
+    if (!value) return '';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function receiptCss() {
+    return '@page{size:auto;margin:0}' +
+      '*{box-sizing:border-box}' +
+      'html,body{margin:0;padding:0;background:#fff;color:#111}' +
+      'body{font-family:Arial,Helvetica,sans-serif;padding:12mm 0}' +
+      '.rc{width:80mm;max-width:100%;margin:0 auto;padding:0 4mm;font-size:12px;line-height:1.4}' +
+      '.rc-shop{text-align:center;margin-bottom:12px}' +
+      '.rc-shop h1{margin:0 0 3px;font-size:18px;letter-spacing:.5px}' +
+      '.rc-shop p{margin:0}' +
+      '.rc-title{text-align:center;font-weight:700;margin:0 0 10px;letter-spacing:.5px}' +
+      '.rc-meta{width:100%;border-collapse:collapse;margin-bottom:8px}' +
+      '.rc-meta td{padding:1px 0;vertical-align:top;white-space:nowrap}' +
+      '.rc-meta td:last-child{text-align:right}' +
+      '.rc-rule{border:0;border-top:1.5px solid #111;margin:8px 0}' +
+      '.rc-items{width:100%;border-collapse:collapse}' +
+      '.rc-items td{padding:2px 0;vertical-align:top}' +
+      '.rc-items td.q{width:28px}' +
+      '.rc-items td.a{text-align:right;white-space:nowrap;padding-left:8px}' +
+      '.rc-items .sub td{font-size:11px;color:#444;padding-top:0}' +
+      '.rc-sum{width:100%;border-collapse:collapse;margin-top:2px}' +
+      '.rc-sum td{padding:1px 0}' +
+      '.rc-sum td:first-child{text-align:right;padding-right:12px}' +
+      '.rc-sum td:last-child{text-align:right;width:90px;white-space:nowrap}' +
+      '.rc-sum .grand td{font-weight:700;font-size:13px}' +
+      '.rc-foot{margin-top:18px;text-align:center;font-size:11px}' +
+      '.rc-foot p{margin:2px 0}';
+  }
+
+  function receiptHtml(r) {
+    var shop = '<div class="rc-shop"><h1>' + esc(SHOP.name) + '</h1>' +
+      SHOP.lines.map(function (line) { return '<p>' + esc(line) + '</p>'; }).join('') + '</div>';
+    var meta = (r.meta || []).map(function (pair) {
+      return '<tr><td>' + esc(pair[0] || '') + '</td><td>' + esc(pair[1] || '') + '</td></tr>';
+    }).join('');
+    var items = (r.lines || []).map(function (line) {
+      var amount = line.amount == null ? '' : peso(line.amount);
+      var row = '<tr><td class="q">' + esc(line.qty == null ? '' : line.qty) + '</td><td>' + esc(String(line.name || '').toUpperCase()) +
+        '</td><td class="a">' + amount + '</td></tr>';
+      if (line.note) row += '<tr class="sub"><td></td><td colspan="2">' + esc(line.note) + '</td></tr>';
+      return row;
+    }).join('');
+    var sums = (r.sums || []).map(function (pair) {
+      return '<tr' + (pair[2] ? ' class="grand"' : '') + '><td>' + esc(pair[0]) + '</td><td>' + esc(pair[1]) + '</td></tr>';
+    }).join('');
+    var foot = (r.footer || []).map(function (line) { return '<p>' + esc(line) + '</p>'; }).join('');
+    return '<div class="rc">' + shop +
+      '<p class="rc-title">' + esc(r.title || 'OFFICIAL RECEIPT') + '</p>' +
+      '<table class="rc-meta">' + meta + '</table>' +
+      '<hr class="rc-rule"><table class="rc-items">' + items + '</table><hr class="rc-rule">' +
+      '<table class="rc-sum">' + sums + '</table>' +
+      '<div class="rc-foot">' + foot + '</div></div>';
+  }
+
+  function customerReceipt(row) {
+    var lines = (row.lines || []).map(function (line) {
+      var qty = Number(line.qty) || 1;
+      var price = line.price == null || line.price === '' ? null : toNumber(line.price);
+      return { qty: qty, name: line.name, amount: price == null ? null : price * qty, note: price == null ? '' : qty + ' @ ' + peso(price) };
+    });
+    var subtotal = lines.reduce(function (sum, line) { return sum + (line.amount || 0); }, 0);
+    var total = toNumber(row.totalNum != null ? row.totalNum : row.total);
+    if (!subtotal) subtotal = total - (row.deliveryFee || 0);
+    var vatable = total / 1.12;
+    var sums = [['Sub Total', peso(subtotal)]];
+    if (row.deliveryFee) sums.push([row.deliveryLabel || 'Delivery Fee', peso(row.deliveryFee)]);
+    sums.push(['VATable Sales', peso(vatable)]);
+    sums.push(['VAT (12%)', peso(total - vatable)]);
+    sums.push(['Total', peso(total), true]);
+    if (row.amountGiven) {
+      sums.push(['Amount Given', peso(row.amountGiven)]);
+      sums.push(['Change', peso(row.change || 0)]);
+    }
+    return {
+      title: 'OFFICIAL RECEIPT',
+      meta: (function () {
+        var named = /^walk-?in$/i.test(String(row.customer || '')) ? '' : (row.customer || '');
+        var rows = [[row.invoice || '—', row.channel === 'walkin' ? 'Walk-in' : (row.fulfil === 'pickup' ? 'Pick-up' : 'Online')]];
+        if (named) rows.push(['Customer', named]);
+        rows.push([row.cashier || row.status || '', row.payment || '']);
+        rows.push([row.time || '', 'Date ' + (row.date || '')]);
+        return rows;
+      })(),
+      lines: lines.length ? lines : [{ qty: '', name: row.items || 'Items', amount: total }],
+      sums: sums,
+      footer: ['THANK YOU FOR YOUR ORDER!', 'This serves as your official receipt.']
+    };
+  }
+
+  function retailerReceipt(row, api) {
+    var money = function (n) { return api && api.formatMoney ? api.formatMoney(n) : peso(n); };
+    var lines = [];
+    if (row.cons) lines.push({ qty: row.cons, name: 'Consignment', amount: null });
+    if (row.cod) lines.push({ qty: row.cod, name: 'COD', amount: null });
+    if (row.staff) lines.push({ qty: row.staff, name: 'Staff', amount: null });
+    if (!lines.length) lines.push({ qty: '', name: 'No pieces recorded', amount: null });
+    var sums = [];
+    if (row.po || row.replaced) sums.push(['P.O / Replaced', (row.po || '—') + ' / ' + (row.replaced || '—')]);
+    if (row.accountReceivable) sums.push(['Account Receivable', money(row.accountReceivable)]);
+    sums.push(['Collected', money(row.totalPaid), true]);
+    return {
+      title: 'DELIVERY RECEIPT',
+      meta: [
+        [row.invoiceCode || '—', row.areaLabel || ''],
+        [row.retailerName || 'Retailer', 'Date ' + (row.reportDate || '')]
+      ],
+      lines: lines,
+      sums: sums,
+      footer: ['THANK YOU FOR YOUR PARTNERSHIP!']
+    };
+  }
+
+  function printCurrentReceipt() {
+    if (!currentReceipt) {
+      alert('Open a sale first, then print its receipt.');
+      return;
+    }
+    var frame = document.getElementById('sales-receipt-print-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = 'sales-receipt-print-frame';
+      frame.setAttribute('aria-hidden', 'true');
+      frame.style.cssText = 'position:fixed;left:0;top:-10000px;width:120mm;height:200mm;border:0;';
+      document.body.appendChild(frame);
+    }
+    var doc = frame.contentWindow.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title><style>' +
+      receiptCss() + '</style></head><body>' + receiptHtml(currentReceipt) + '</body></html>');
+    doc.close();
+    setTimeout(function () {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    }, 80);
   }
 
   function localDay(value) {
@@ -1128,6 +1284,7 @@
     setDetailText('bauan-detail-po', 'Status:', row.status || '—');
     setDetailText('bauan-detail-ar', 'Account:', row.account || '—');
     setDetailText('bauan-detail-total', 'Total paid:', row.total || '—');
+    currentReceipt = customerReceipt(row);
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost) {
       sheetHost.innerHTML = '<div class="po-detail-hero"><p class="po-detail-kicker">Customer</p><h4>' +
@@ -1169,6 +1326,13 @@
         status: 'Completed',
         account: account,
         total: total,
+        totalNum: Number(sale.total) || 0,
+        payment: sale.payment || 'Cash',
+        cashier: sale.cashier || '',
+        time: receiptTime(sale.at),
+        amountGiven: Number(sale.amountGiven) || 0,
+        change: Number(sale.change) || 0,
+        lines: (sale.lines || []).map(function (l) { return { name: l.name || 'Item', qty: l.qty || 1, price: l.price }; }),
         hay: ((sale.id || '') + ' ' + customer + ' ' + items + ' walk-in completed ' + (sale.payment || '')).toLowerCase(),
         html: customerSaleRow(key, dateLabel, sale.id || '', customer, 'Walk-in customer · ' + (sale.payment || 'Cash'), '', items, total, 'received', 'Completed', 'walkin')
       };
@@ -1218,6 +1382,15 @@
         status: status,
         account: (order.accountType || 'Regular Customer') + (order.accountArea ? ' · ' + order.accountArea : ''),
         total: order.total || '',
+        payment: order.paymentMethod ? String(order.paymentMethod).replace(/_/g, ' ') : '',
+        time: receiptTime(order.date),
+        deliveryFee: toNumber(order.deliveryFee),
+        deliveryLabel: order.deliveryLabel || '',
+        lines: Object.keys(order.items || {}).map(function (k) {
+          var it = order.items[k] || {};
+          var price = it.cost != null ? it.cost : it.price;
+          return { name: it.name || 'Item', qty: it.qty || 1, price: price };
+        }),
         hay: (invoice + ' ' + customer + ' ' + names + ' ' + status).toLowerCase(),
         html: customerSaleRow(key, dateLabel, invoice, customer, order.accountType || 'Regular Customer', order.accountArea, names, order.total || '', statusClass, status, 'online')
       };
@@ -1261,6 +1434,7 @@
           status: status,
           account: 'Customer',
           total: row.Order_Total || '',
+          lines: [{ name: row.Product_ID || 'Item', qty: row.Order_Quantity || 1, price: null }],
           hay: (invoice + ' ' + customer + ' ' + items + ' ' + status).toLowerCase(),
           html: customerSaleRow(key, row.Order_Date || '', invoice, customer, 'Customer', '', items, row.Order_Total || '', statusClass, status, 'online')
         });

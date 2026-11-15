@@ -1568,11 +1568,11 @@
             + '<div class="sl-breakdown-totals">'
             + '<div><span>Stock value</span><strong>' + money(stock) + '</strong></div>'
             + '<div><span>Sales value</span><strong>' + money(sales) + '</strong></div>'
-            + '<div><span>Variance</span><strong>' + signedMoney(stock - sales) + '</strong></div>'
+            + '<div><span>Stock minus Sales</span><strong>' + signedMoney(stock - sales) + '</strong></div>'
             + '</div>'
             + '<p class="sl-breakdown-note">Category and item amounts add up to this month.</p>'
             + '<div class="sl-table-wrap"><table class="sl-compact-table sl-breakdown-table"><thead><tr>'
-            + '<th>Category / item</th><th>Stock value</th><th>Sales value</th><th>Variance</th><th>Share</th>'
+            + '<th>Category / item</th><th>Stock value</th><th>Sales value</th><th>Stock minus Sales</th><th>Share</th>'
             + '</tr></thead><tbody>' + breakdownRows(index) + '</tbody></table></div>'
             + '</div>';
         document.body.appendChild(overlay);
@@ -1602,7 +1602,7 @@
 
             + '<div class="sl-table-wrap"><table class="sl-compact-table sl-detail-table" data-sl-skip-open="1"><thead><tr>'
 
-            + '<th>Month</th><th>Stock Value (₱)</th><th>Sales Value (₱)</th><th>Variance</th><th>View</th>'
+            + '<th>Month</th><th>Stock Value (₱)</th><th>Sales Value (₱)</th><th>Stock minus Sales (₱)</th><th>View</th>'
 
             + '</tr></thead><tbody>'
 

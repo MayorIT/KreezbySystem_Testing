@@ -243,11 +243,10 @@
         return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
     }
 
-    // Owner summary in simple words: Sales, Inventory, Demand, then what to do first.
+    // Owner summary in simple words: Sales, Inventory, Demand.
     function interpretation(data, found) {
         var t = data.totals;
         var lines = [];
-        var actions = [];
         var change = pct(t.sold30, t.soldPrev30);
 
         // Sales
@@ -287,17 +286,7 @@
         if (!demParts.length) demParts.push('There are not enough sales yet to see what customers prefer.');
         lines.push({ label: 'Demand', text: demParts.join(' ') });
 
-        // What to do first
-        out.sort(function (a, b) { return b.sold30 - a.sold30; })
-            .forEach(function (i) { actions.push('Bake ' + short(i.name) + ' first — customers want it but it is out of stock.'); });
-        low.forEach(function (i) { actions.push('Bake more ' + short(i.name) + ' within ' + Math.max(1, Math.round(i.daysCover)) + ' days.'); });
-        if (data.expired.length) actions.push('Take the expired batches off the shelf.');
-        if (data.nearExpiry.length) actions.push('Sell the batches that expire soon first.');
-        shifts.rising.filter(function (i) { return out.indexOf(i) < 0 && low.indexOf(i) < 0; }).slice(0, 1)
-            .forEach(function (i) { actions.push('Make a little more ' + short(i.name) + ' — demand is going up.'); });
-        if (data.lowMaterials.length) actions.push('Buy the raw and packaging materials that are running low.');
-        idle.slice(0, 1).forEach(function (i) { actions.push('Bake less ' + short(i.name) + ' until it starts selling.'); });
-        return { lines: lines, actions: actions.slice(0, 3) };
+        return { lines: lines };
     }
 
     // ---------- render ----------
@@ -467,8 +456,7 @@
             + '<dt>Sales</dt><dd>' + esc(r.sales) + '</dd>'
             + '<dt>Inventory</dt><dd>' + esc(r.inventory) + '</dd>'
             + '<dt>Demand</dt><dd>' + esc(r.demand) + '</dd>'
-            + '</dl>'
-            + (r.doFirst && r.doFirst.length ? '<p class="mi-do-title">Do first</p><ol class="mi-do">' + r.doFirst.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol>' : '');
+            + '</dl>';
     }
 
     // The system's own reading, used when GPT-4o mini cannot answer or its reply does not match the figures.
@@ -477,7 +465,7 @@
             var line = reading.lines.filter(function (l) { return l.label === label; })[0];
             return line ? line.text : '';
         };
-        return { sales: pick('Sales'), inventory: pick('Inventory'), demand: pick('Demand'), doFirst: reading.actions.slice(0, 3) };
+        return { sales: pick('Sales'), inventory: pick('Inventory'), demand: pick('Demand') };
     }
 
     function interpretationHtml(reading) {

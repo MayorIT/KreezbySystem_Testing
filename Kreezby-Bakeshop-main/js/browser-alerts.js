@@ -536,7 +536,6 @@
             + '<div class="kreezby-alert__content">'
             + '<div class="kreezby-alert__title">' + escapeHtml(title) + '</div>'
             + '<div class="kreezby-alert__description"><div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px;">' + chips + '</div>' + body
-            + '<p style="margin:8px 0 0;font-size:12px;opacity:.85;">How to read this: <b>Low stock</b> = at or below the alert line set in Alert settings. <b>Reorder point</b> = 1.5 × the alert line; ordering at this point keeps stock from dropping to the alert line. <b>Near expiry</b> = within the item\'s expiry alert days. <b>Expired</b> = past its expiry date.</p>'
             + '</div></div></div>';
     }
 
@@ -705,7 +704,7 @@
             else {
                 var script = document.createElement('script');
                 script.id = 'kreezby-notification-store-script';
-                script.src = '../js/notification-store.js?v=20261108cart';
+                script.src = '../js/notification-store.js?v=20261115keepread';
                 script.onload = start;
                 document.head.appendChild(script);
             }

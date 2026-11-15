@@ -21,7 +21,6 @@
         chart: 'daily',
         best: 'this',
         expiryDays: 30,
-        insightVariant: 0,
         generatedAt: new Date()
     };
 
@@ -452,7 +451,7 @@
         } catch (e) { return null; }
     }
 
-    function snapshotInsightText(model, products) {
+    function snapshotInsightRows(model, products) {
         var salesTrend = trend(model.sales.value, model.priorSales.value, 'compared to last month');
         var change = salesTrend.cls === 'up' && model.priorSales.value
             ? 'Sales increased by ' + salesTrend.text.replace('↑ ', '').replace(' compared to last month', '') + ' compared to last month'
@@ -490,17 +489,17 @@
         var advice = produce.length
             ? 'It is recommended to produce more ' + nameList(produce.map(function (r) { return r.name; })) + ' to reach the recommended stock.'
             : 'No extra production is needed right now.';
-        var variants = [
-            change + ', with ' + leaders + '. ' + stockNote + ' ' + advice,
-            leaders.charAt(0).toUpperCase() + leaders.slice(1) + '. ' + change + '. ' + stockNote + ' ' + advice,
-            stockNote + ' ' + change + ', and ' + leaders + '. ' + advice
+        return [
+            { label: 'Sales', text: change + ', with ' + leaders + '.' },
+            { label: 'Stock', text: stockNote },
+            { label: 'Production', text: advice }
         ];
-        return variants[state.insightVariant % variants.length];
     }
 
-    function insightText(model) {
+    // The insight as three short labelled lines: Sales, Stock, Production.
+    function insightRows(model) {
         var products = managementSnapshot();
-        if (products) return snapshotInsightText(model, products);
+        if (products) return snapshotInsightRows(model, products);
         var top = model.best.slice(0, 2).map(function (row) { return row.name; });
         var low = model.lowNames.slice(0, 3);
         var salesTrend = trend(model.sales.value, model.priorSales.value, 'compared to last month');
@@ -522,12 +521,11 @@
         var advice = top.length
             ? 'Based on current orders and stock levels, it is recommended to increase production of ' + top.join(' and ') + ' to meet the expected demand for the coming week.'
             : 'Record more sales before changing the production plan.';
-        var variants = [
-            change + ', with ' + leaders + '. ' + stockNote + ' ' + advice,
-            leaders.charAt(0).toUpperCase() + leaders.slice(1) + '. ' + change + '. ' + stockNote + ' ' + advice,
-            stockNote + ' ' + change + ', and ' + leaders + '. ' + advice
+        return [
+            { label: 'Sales', text: change + ', with ' + leaders + '.' },
+            { label: 'Stock', text: stockNote },
+            { label: 'Production', text: advice }
         ];
-        return variants[state.insightVariant % variants.length];
     }
 
     function nameList(list) {
@@ -613,7 +611,14 @@
             }).join('')
             : '<tr><td colspan="3">No products expire in this window.</td></tr>';
 
-        root.querySelector('[data-insight]').textContent = insightText(model);
+        var insightHost = root.querySelector('[data-insight]');
+        var insightList = document.createElement('dl');
+        insightList.className = 'ops-insight-list';
+        insightList.setAttribute('data-insight', '');
+        insightList.innerHTML = insightRows(model).map(function (row) {
+            return '<div class="ops-insight-row"><dt>' + esc(row.label) + '</dt><dd>' + esc(row.text) + '</dd></div>';
+        }).join('');
+        insightHost.parentNode.replaceChild(insightList, insightHost);
         root.querySelector('[data-generated]').textContent = 'Generated on ' + formatStamp(state.generatedAt);
         var rangeBtn = root.querySelector('[data-range-label]');
         if (rangeBtn) rangeBtn.textContent = formatLong(state.from) + ' – ' + formatLong(state.to);
@@ -696,7 +701,6 @@
             paint(root);
         });
         if (regen) regen.addEventListener('click', function () {
-            state.insightVariant += 1;
             state.generatedAt = new Date();
             paint(root);
         });

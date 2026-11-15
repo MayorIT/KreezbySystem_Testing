@@ -105,7 +105,34 @@ const RETIRED_ORDER_NUMBERS = new Set(["ORD-2026-1042", "ORD-2026-1038", "ORD-20
 // that sends an empty or outdated list cannot wipe orders.
 const APPEND_ONLY_LISTS = { kreezbyOrders: "orderNumber", kreezbyCustomerReceipts: "receiptNumber", kreezbyOwnerReceipts: "receiptNumber" };
 
+// A note someone has read stays read: when a page sends an older copy of the notification
+// list (for example while adding a new note), the read marks already saved are kept.
+function keepNotificationReads(incoming) {
+  if (typeof cache.kreezbyNotifications !== "string") return incoming;
+  let next;
+  let stored;
+  try { next = JSON.parse(incoming); stored = JSON.parse(cache.kreezbyNotifications); } catch (error) { return incoming; }
+  if (!Array.isArray(next) || !Array.isArray(stored)) return incoming;
+  const saved = new Map();
+  stored.forEach((row) => { if (row && row.id != null) saved.set(String(row.id), row); });
+  let changed = false;
+  next.forEach((row) => {
+    const was = row && row.id != null ? saved.get(String(row.id)) : null;
+    if (!was) return;
+    if (was.read && !row.read) { row.read = true; changed = true; }
+    if (was.readBy && typeof was.readBy === "object") {
+      const readBy = row.readBy && typeof row.readBy === "object" ? row.readBy : {};
+      Object.keys(was.readBy).forEach((who) => {
+        if (was.readBy[who] && !readBy[who]) { readBy[who] = true; changed = true; }
+      });
+      row.readBy = readBy;
+    }
+  });
+  return changed ? JSON.stringify(next) : incoming;
+}
+
 function keepStoredRecords(key, incoming) {
+  if (key === "kreezbyNotifications") return keepNotificationReads(incoming);
   const field = APPEND_ONLY_LISTS[key];
   if (!field || typeof cache[key] !== "string") return incoming;
   let next;
@@ -1727,11 +1754,10 @@ function writeManagementInsight(apiKey, data) {
     data,
     "You write the Interpretation part of the Management Insight for the owner of Kreezby Bakeshop, a crinkles bakery that sells pouches. "
       + "The data has sales totals for the last 7 and 30 days and the 30 days before, each flavor's stock and sales, alerts, and the business situations already found. "
-      + "Reply with JSON only, no markdown: {\"sales\":\"\",\"inventory\":\"\",\"demand\":\"\",\"doFirst\":[\"\"]}. "
+      + "Reply with JSON only, no markdown: {\"sales\":\"\",\"inventory\":\"\",\"demand\":\"\"}. "
       + "sales: one or two short sentences on how many pouches sold and the sales value in the last 30 days, and whether that is more or less than the 30 days before. "
       + "inventory: one or two short sentences on pouches in stock, flavors out of stock or running low, and expired or near-expiry batches. "
       + "demand: one or two short sentences on which flavors customers buy most, and which are rising, falling or not selling. "
-      + "doFirst: up to 3 short actions for the owner, most urgent first. "
       + "Use simple everyday words. Use only numbers that appear in the data, written exactly as given; write peso amounts with the peso sign. "
       + "Do not invent products, numbers or reasons. Do not forecast. Do not use business jargon. If there are no sales yet, say so plainly.",
     600
@@ -1751,15 +1777,13 @@ function parseInterpretation(text) {
     sales: cleanInsightText(parsed.sales, 600),
     inventory: cleanInsightText(parsed.inventory, 600),
     demand: cleanInsightText(parsed.demand, 600),
-    doFirst: (Array.isArray(parsed.doFirst) ? parsed.doFirst : []).map((a) => cleanInsightText(a, 300)).filter(Boolean).slice(0, 3),
   };
   if (!result.sales || !result.inventory || !result.demand) return null;
   return result;
 }
 
 function interpretationText(item) {
-  return "Sales: " + item.sales + "\nInventory: " + item.inventory + "\nDemand: " + item.demand
-    + (item.doFirst.length ? "\nDo first: " + item.doFirst.map((a, i) => (i + 1) + ") " + a).join(" ") : "");
+  return "Sales: " + item.sales + "\nInventory: " + item.inventory + "\nDemand: " + item.demand;
 }
 
 const productRecommendationLastCall = new Map();

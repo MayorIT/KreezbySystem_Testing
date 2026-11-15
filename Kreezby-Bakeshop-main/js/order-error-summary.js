@@ -66,6 +66,8 @@
             '.kz-oe-h{margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3e2723}' +
             '.kz-oe-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}' +
             'main.workspace-canvas,main.workspace-view-canvas{overflow-y:auto!important;min-height:0}' +
+            // Inside a fixed-height tab (head admin / admin / staff Order Error page) the list scrolls on its own.
+            '.kz-oe-scroll{overflow-y:auto!important;min-height:0!important;-webkit-overflow-scrolling:touch}' +
             '.kz-oe-table{width:100%;border-collapse:collapse;font-size:14px}' +
             '.kz-oe-table th,.kz-oe-table td{padding:9px 12px;border-bottom:1px solid #efe6df;text-align:left;vertical-align:top}' +
             '.kz-oe-table th{background:#fbf6f2;color:#5d4037;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}' +
@@ -256,6 +258,8 @@
         if (!host || host.dataset.oeBound === '1') return;
         host.dataset.oeBound = '1';
         injectStyle();
+        var box = host.parentElement && host.parentElement.closest('.po-list-body, .po-tab-panel .card-body-padded');
+        if (box) box.classList.add('kz-oe-scroll');
         var mode = host.getAttribute('data-order-error');
         host.innerHTML =
             '<div class="kz-oe-tools">' +

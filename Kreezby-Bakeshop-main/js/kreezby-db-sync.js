@@ -1213,6 +1213,6 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261020bell";
+  script.src = "../js/browser-alerts.js?v=20261115noread";
   document.head.appendChild(script);
 })();

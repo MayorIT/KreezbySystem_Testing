@@ -164,7 +164,48 @@
         return keys.length ? role + ':' + keys[0] : legacyAudienceKey();
     }
 
+    // Notes this browser has opened, kept apart from the shared list. The shared list can be
+    // re-sent by another page or account with an older copy; this record makes sure a note that
+    // was clicked stays read, so the unread number never climbs back.
+    var LOCAL_READ_KEY = 'kzNotifReadLocal';
+    var localReadRaw = null;
+    var localReadCache = {};
+    function localReadMap() {
+        var raw = null;
+        try { raw = localStorage.getItem(LOCAL_READ_KEY); } catch (e) { raw = null; }
+        if (raw !== localReadRaw) {
+            localReadRaw = raw;
+            try { localReadCache = JSON.parse(raw || '{}') || {}; } catch (e2) { localReadCache = {}; }
+            if (typeof localReadCache !== 'object' || Array.isArray(localReadCache)) localReadCache = {};
+        }
+        return localReadCache;
+    }
+    function isLocallyRead(id) {
+        var map = localReadMap();
+        var own = map[audienceKey()];
+        return !!(own && own[String(id)]);
+    }
+    function rememberLocallyRead(ids) {
+        if (!ids.length) return;
+        var map = Object.assign({}, localReadMap());
+        var key = audienceKey();
+        var own = Object.assign({}, map[key] || {});
+        var now = Date.now();
+        ids.forEach(function (id) { own[String(id)] = now; });
+        // Keep the record small: only the 500 most recent reads per account.
+        var keep = Object.keys(own).sort(function (a, b) { return own[b] - own[a]; }).slice(0, 500);
+        var trimmed = {};
+        keep.forEach(function (id) { trimmed[id] = own[id]; });
+        map[key] = trimmed;
+        try { localStorage.setItem(LOCAL_READ_KEY, JSON.stringify(map)); } catch (e) { /* storage full */ }
+    }
+
     function isReadForAudience(item) {
+        if (item && item.id != null && isLocallyRead(item.id)) return true;
+        return isSharedRead(item);
+    }
+
+    function isSharedRead(item) {
         var readBy = item.readBy && typeof item.readBy === 'object' ? item.readBy : null;
         var key = audienceKey();
         if (readBy && Object.prototype.hasOwnProperty.call(readBy, key)) return !!readBy[key];
@@ -452,35 +493,36 @@
 
     function markRead(id) {
         var key = audienceKey();
+        var wasUnread = getAll().some(function (n) { return String(n.id) === String(id) && !n.read; });
+        rememberLocallyRead([id]);
         var list = readStored();
         var changed = false;
         list = list.map(function (n) {
-            if (String(n.id) !== String(id) || isReadForAudience(n)) return n;
+            if (String(n.id) !== String(id) || isSharedRead(n)) return n;
             changed = true;
             var readBy = Object.assign({}, n.readBy || {});
             readBy[key] = true;
             return Object.assign({}, n, { readBy: readBy });
         });
-        if (changed) {
-            saveAll(list);
-            emit({ type: 'read', id: id, unread: getUnreadCount() });
-        }
+        if (changed) saveAll(list);
+        if (changed || wasUnread) emit({ type: 'read', id: id, unread: getUnreadCount() });
     }
 
     function markAllRead() {
         var key = audienceKey();
+        var unreadIds = getAll().filter(function (n) { return !n.read; }).map(function (n) { return n.id; });
+        rememberLocallyRead(unreadIds);
         var list = readStored();
         var changed = false;
         list = list.map(function (n) {
-            if (!visibleToAudience(n) || isReadForAudience(n)) return n;
+            if (!visibleToAudience(n) || isSharedRead(n)) return n;
             changed = true;
             var readBy = Object.assign({}, n.readBy || {});
             readBy[key] = true;
             return Object.assign({}, n, { readBy: readBy });
         });
-        if (!changed) return;
-        saveAll(list);
-        emit({ type: 'read-all', unread: getUnreadCount() });
+        if (changed) saveAll(list);
+        if (changed || unreadIds.length) emit({ type: 'read-all', unread: getUnreadCount() });
     }
 
     function subscribe(fn) {
