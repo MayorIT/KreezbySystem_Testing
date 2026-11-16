@@ -90,11 +90,24 @@
         });
     }
 
+    // An area set in Settings that is not one of the routes above (a shop moved for an
+    // unexpected delivery line) is added to the Area list.
+    function areaForAccount(label) {
+        var text = String(label || '').trim();
+        if (!text) return '';
+        var known = areaValueFromLabel(text);
+        if (known) return known;
+        var value = cleanName(text).replace(/\s+/g, '');
+        if (!value) return '';
+        if (!AREAS.some(function (x) { return x.value === value; })) AREAS.push({ value: value, label: text });
+        return value;
+    }
+
     function loadAccounts() {
         if (accountsPromise) return accountsPromise;
         accountsPromise = request('/api/retailer-records').then(function (data) {
             accounts = (data.accounts || []).map(function (a) {
-                return { id: a.id, name: a.name, area: a.area || '', source: areaValueFromLabel(a.area), usualPcs: Number(a.usualPcs) || 0 };
+                return { id: a.id, name: a.name, area: a.area || '', source: areaForAccount(a.area), usualPcs: Number(a.usualPcs) || 0 };
             });
             return accounts;
         }).catch(function () {
@@ -163,6 +176,7 @@
             '.dpos-table th{background:#fbf6f2;color:#5d4037;font-size:12px;text-transform:uppercase;letter-spacing:.03em}' +
             '.dpos-table .n{text-align:right;white-space:nowrap}' +
             '.dpos-table tr[data-shop]{cursor:pointer}.dpos-table tr[data-shop]:hover td{background:#fffaf0}' +
+            '.dpos-table tr.dpos-unrecorded td{color:#9a8f88;font-style:italic}' +
             '.dpos-empty{color:#8d6e63;padding:14px 0}' +
             '@media (max-width:1100px){.dpos-grid.six{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
             '@media (max-width:900px){.dpos-grid,.dpos-grid.four,.dpos-grid.five,.dpos-grid.six{grid-template-columns:1fr 1fr}}' +
@@ -370,21 +384,44 @@
         return { name: opt.textContent, accountId: opt.getAttribute('data-id') || '' };
     }
 
+    // A shop counts as recorded only when a number was entered for it.
+    var NUMBER_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced', 'expired', 'collected'];
+    function isRecorded(e) {
+        return !!e && NUMBER_FIELDS.some(function (f) { return e[f] !== undefined && e[f] !== null && String(e[f]).trim() !== ''; });
+    }
+
     function renderList(root) {
         var date = field(root, 'date').value;
         var area = field(root, 'area').value;
         var sheet = findSheet(date, area);
-        root.querySelector('[data-list-title]').textContent = 'Deliveries on ' + (date || '—') + ' · ' + areaLabel(area);
         var host = root.querySelector('[data-list]');
-        var entries = sheet ? (sheet.entries || []) : [];
+        var saved = sheet ? (sheet.entries || []) : [];
+        // Every shop of the area is listed; shops without numbers are "Not recorded".
+        var entries = saved.filter(isRecorded);
+        shopsForArea(area).forEach(function (shop) {
+            var s = { name: shop.name, accountId: shop.id };
+            if (!entries.some(function (e) { return sameShop(e, s); })) entries.push({ retailerName: shop.name, accountId: shop.id, notRecorded: true });
+        });
+        saved.forEach(function (e) {
+            if (isRecorded(e)) return;
+            var s = { name: e.accountName || e.retailerName, accountId: e.accountId };
+            if (!entries.some(function (x) { return sameShop(x, s); })) entries.push({ retailerName: e.accountName || e.retailerName, accountId: e.accountId, notRecorded: true });
+        });
+        var recorded = entries.filter(function (e) { return !e.notRecorded; }).length;
+        root.querySelector('[data-list-title]').textContent = 'Deliveries on ' + (date || '—') + ' · ' + areaLabel(area) +
+            ' · ' + recorded + ' of ' + entries.length + ' shops recorded';
         if (!entries.length) {
-            host.innerHTML = '<p class="dpos-empty">No deliveries saved for this date and area yet.</p>';
+            host.innerHTML = '<p class="dpos-empty">No shops under this area yet.</p>';
             return;
         }
         var full = canRecordMoney();
         host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Staff</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
             (full ? '<th class="n">Expired</th><th class="n">Collected</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
             entries.map(function (e, i) {
+                if (e.notRecorded) {
+                    return '<tr data-shop="' + i + '" class="dpos-unrecorded" title="Click to record this shop"><td>' + esc(e.retailerName) + '</td><td>Not recorded</td>' +
+                        '<td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td>' + (full ? '<td class="n">—</td><td class="n">—</td>' : '') + '<td></td></tr>';
+                }
                 return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + TERM_LABELS[entryTerms(e)] + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
                     '</td><td class="n">' + (e.staff != null ? esc(e.staff) : '—') +
                     '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.replaced != null ? esc(e.replaced) : '—') + '</td>' +
@@ -394,6 +431,15 @@
         host.querySelectorAll('tr[data-shop]').forEach(function (tr) {
             tr.addEventListener('click', function () {
                 var e = entries[Number(tr.getAttribute('data-shop'))];
+                if (e.notRecorded) {
+                    clearForm(root);
+                    fillShops(root, e.retailerName || '');
+                    updateCollection(root);
+                    setStatus(root, 'Recording ' + e.retailerName + ' — enter the numbers and save.', '');
+                    var first = field(root, 'ordered');
+                    if (first) first.focus();
+                    return;
+                }
                 fillShops(root, e.accountName || e.retailerName || '');
                 field(root, 'terms').value = entryTerms(e);
                 applyTerms(root);
@@ -585,6 +631,9 @@
                 if (!root.dataset.loaded) {
                     root.dataset.loaded = '1';
                     Promise.all([loadAccounts(), loadSheets().catch(function () { return []; })]).then(function () {
+                        var keepArea = field(root, 'area').value;
+                        field(root, 'area').innerHTML = AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
+                        field(root, 'area').value = keepArea;
                         fillShops(root);
                         renderList(root);
                         updateCollection(root);
@@ -597,6 +646,23 @@
         switcher.addEventListener('click', function (e) {
             var b = e.target.closest('button[data-mode]');
             if (b) show(b.getAttribute('data-mode'));
+        });
+        // A shop moved to another area in Settings shows under its new area right away.
+        function areaOptionsHtml() {
+            return AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
+        }
+        document.addEventListener('kreezby:remote-state', function (event) {
+            var keys = (event && event.detail && event.detail.keys) || [];
+            if (keys.indexOf('kreezby_maintenance_users') === -1 || !root.dataset.loaded || !document.body.contains(root)) return;
+            var keepArea = field(root, 'area').value;
+            var keepShop = shopFromInput(root).name;
+            accountsPromise = null;
+            loadAccounts().then(function () {
+                field(root, 'area').innerHTML = areaOptionsHtml();
+                field(root, 'area').value = keepArea;
+                fillShops(root, keepShop);
+                renderList(root);
+            });
         });
 
         // Staff pages have no Collected field.

@@ -239,14 +239,22 @@
     }));
   }
 
+  // A shop counts as recorded only when a number was entered for it.
+  var RECORD_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced', 'expired', 'collected'];
+  function isRecordedEntry(e) {
+    return !!e && RECORD_FIELDS.some(function (f) { return e[f] !== undefined && e[f] !== null && String(e[f]).trim() !== ''; });
+  }
+
   function flattenReportToSales(report, seqStart) {
     var sales = [];
     var seq = seqStart || 1;
     var d = report.reportDate.replace(/-/g, '');
     var prefix = SOURCE_PREFIX[report.source] || String(report.source || '').toUpperCase();
     (report.entries || []).forEach(function (e, i) {
+      if (!isRecordedEntry(e)) return;
       var collected = e.collected || 0;
       sales.push({
+        entryIndex: i,
         retailerArea: e.retailerArea || report.source,
         retailerSlug: e.retailerSlug || '',
         retailerName: e.retailerName || 'Unknown',
@@ -677,7 +685,7 @@
     };
     (CACHE && CACHE.dailyReports || []).forEach(function (report) {
       if (!inRange(report.reportDate)) return;
-      var n = (report.entries || []).length;
+      var n = (report.entries || []).filter(isRecordedEntry).length;
       counts.total += n;
       if (counts[report.source] != null) counts[report.source] += n;
     });
@@ -722,6 +730,7 @@
     areaLabel: areaLabel,
     formatDateLabel: formatDateLabel,
     formatMonthLabel: formatMonthLabel,
+    isRecordedEntry: isRecordedEntry,
     computeReportFinancials: computeReportFinancials,
     saveReport: saveReport,
     reloadFromServer: reloadFromServer,

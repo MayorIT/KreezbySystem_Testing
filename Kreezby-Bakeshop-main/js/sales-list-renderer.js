@@ -194,6 +194,64 @@
     );
   }
 
+  // Every retailer shop of the sheet's area is listed. A shop counts as recorded only when a
+  // number was entered for it; the others show as "Not recorded" and are not counted.
+  var RECORD_FIELDS = ['accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced', 'expired', 'collected'];
+  function isRecorded(e) {
+    return !!e && RECORD_FIELDS.some(function (f) { return e[f] !== undefined && e[f] !== null && String(e[f]).trim() !== ''; });
+  }
+  function areaNorm(v) {
+    return String(v || '').toLowerCase().replace(/\bsanto\b/g, 'sto').replace(/[^a-z0-9]+/g, '');
+  }
+  function shopNorm(v) {
+    return String(v || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  var areaShopAccounts = null;
+  var areaShopRequest = null;
+  function loadAreaShops() {
+    if (areaShopAccounts || areaShopRequest) return;
+    var token = '';
+    try { token = (JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {}).token || ''; } catch (e) { token = ''; }
+    if (!token) return;
+    areaShopRequest = fetch('/api/retailer-records', { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Kreezby-Token': token } })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        areaShopAccounts = (data && data.accounts) || [];
+        if (typeof window.refreshRouteSheetView === 'function') window.refreshRouteSheetView();
+      })
+      .catch(function () { /* the sheet still shows its own rows */ })
+      .then(function () { areaShopRequest = null; });
+  }
+  // A shop moved to another area in Settings: reload the shop list.
+  document.addEventListener('kreezby:remote-state', function (event) {
+    var keys = (event && event.detail && event.detail.keys) || [];
+    if (keys.indexOf('kreezby_maintenance_users') === -1 || !areaShopAccounts) return;
+    areaShopAccounts = null;
+    loadAreaShops();
+  });
+  function missingAreaShops(report) {
+    if (!areaShopAccounts) { loadAreaShops(); return []; }
+    var keys = [areaNorm(report.source), areaNorm(report.areaLabel)].filter(Boolean);
+    var onSheet = {};
+    (report.entries || []).forEach(function (e) {
+      if (e.accountId) onSheet['id:' + e.accountId] = true;
+      onSheet['n:' + shopNorm(e.accountName || e.retailerName)] = true;
+    });
+    return areaShopAccounts.filter(function (a) {
+      return keys.indexOf(areaNorm(a.area)) >= 0 && !onSheet['id:' + a.id] && !onSheet['n:' + shopNorm(a.name)];
+    }).map(function (a) { return a.name; }).sort(function (x, y) { return x.localeCompare(y); });
+  }
+  function saleForEntry(reportSales, idx) {
+    for (var i = 0; i < reportSales.length; i++) {
+      if (reportSales[i].entryIndex === idx) return reportSales[i];
+    }
+    return reportSales.some(function (s) { return s.entryIndex != null; }) ? null : reportSales[idx];
+  }
+  function unrecordedRow(num, name) {
+    return '<tr class="sheet-row-unrecorded" style="color:#9a8f88;font-style:italic;"><td>' + num + '</td><td class="loc-cell">' + esc(name) +
+      '</td><td colspan="6" style="text-align:center;">Not recorded</td></tr>';
+  }
+
   function renderRouteSheets(container, reports, allSales, searchQ, onRowClick) {
     if (!container) return;
     var api = salesApi();
@@ -218,8 +276,13 @@
         .filter(function (s) { return s.reportId === report.id; })
         .sort(function (a, b) { return a.seq - b.seq; });
 
+      var lineNo = 0;
+      var recordedCount = 0;
+      var unrecorded = [];
       entries.forEach(function (entry, idx) {
-        var sale = reportSales[idx];
+        if (!isRecorded(entry)) { unrecorded.push(entry.accountName || entry.retailerName); return; }
+        recordedCount++;
+        var sale = saleForEntry(reportSales, idx);
         var saleId = sale ? sale.id : '';
         var click = saleId && onRowClick
           ? ' class="sheet-row-clickable" data-sale-id="' + esc(saleId) + '"'
@@ -227,9 +290,12 @@
 
         rows +=
           '<tr' + click + '>' +
-          '<td>' + (idx + 1) + '</td>' +
+          '<td>' + (++lineNo) + '</td>' +
           manualRowCells(entry, api) +
           '</tr>';
+      });
+      unrecorded.concat(missingAreaShops(report)).forEach(function (name) {
+        rows += unrecordedRow(++lineNo, name);
       });
 
       if (!rows) {
@@ -242,6 +308,7 @@
         '<span class="sheet-brand">Kreezby Philippines</span>' +
         '<span class="sheet-meta"><strong>AREA:</strong> ' + esc(report.areaLabel) + '</span>' +
         '<span class="sheet-meta"><strong>DATE:</strong> ' + esc(report.reportDate) + '</span>' +
+        '<span class="sheet-meta"><strong>RECORDED:</strong> ' + recordedCount + ' of ' + lineNo + ' shops</span>' +
         '<button type="button" class="btn-call-to-action sheet-edit-btn" data-edit-report="' + esc(report.id) + '" style="margin-left:auto;font-size:11px;">Edit sheet</button>' +
         '<button type="button" class="btn-call-to-action sheet-delete-btn" data-delete-report="' + esc(report.id) + '" style="font-size:11px;background:#fff;color:#b91c1c;border:1px solid #fca5a5;">Delete sheet</button>' +
         '</div>' +
@@ -883,7 +950,8 @@
         .sort(function (a, b) { return a.seq - b.seq; });
       var rows = '';
       (report.entries || []).forEach(function (entry, idx) {
-        var sale = sales[idx];
+        if (!isRecorded(entry)) return;
+        var sale = saleForEntry(sales, idx);
         var selected = sale && sale.id === saleId ? ' sheet-row-selected' : '';
         rows +=
           '<tr class="' + (sale ? 'sheet-row-clickable' + selected : '') + '"' +

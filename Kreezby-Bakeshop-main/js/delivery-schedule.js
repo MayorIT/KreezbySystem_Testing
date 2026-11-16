@@ -6,7 +6,7 @@
 (function () {
     'use strict';
 
-    if (window.KreezbyDeliverySchedule && window.KreezbyDeliverySchedule.version === '20261020sched') {
+    if (window.KreezbyDeliverySchedule && window.KreezbyDeliverySchedule.version === '20261116area') {
         window.KreezbyDeliverySchedule.boot();
         return;
     }
@@ -146,9 +146,35 @@
         document.head.appendChild(style);
     }
 
+    // Delivery areas from the 2026 retailer list. A schedule is set for a whole area.
+    var AREA_LIST = ['Lucena', 'Batangas', 'Sto. Tomas', 'Lipa', 'Tagaytay', 'Citimart'];
+
+    // Plus areas added in Settings and areas retailer shops were moved to.
+    function areaList() {
+        var out = AREA_LIST.slice();
+        var seen = {};
+        function key(v) { return String(v || '').toLowerCase().replace(/\bsanto\b/g, 'sto').replace(/[^a-z0-9]+/g, ''); }
+        out.forEach(function (n) { seen[key(n)] = true; });
+        function take(name) {
+            var label = String(name || '').trim();
+            if (!label || seen[key(label)]) return;
+            seen[key(label)] = true;
+            out.push(label);
+        }
+        try { (JSON.parse(localStorage.getItem('kreezby_areas_v1') || '[]') || []).forEach(function (r) { take(r && r.name); }); } catch (e) { /* none */ }
+        try { ((JSON.parse(localStorage.getItem('kreezby_maintenance_users') || '{}') || {}).retailers || []).forEach(function (u) { take(u && u.area); }); } catch (e) { /* none */ }
+        return out;
+    }
+
+    // One row per area and date (older per-store rows of the same area and date show once).
     function scheduleRows(rows) {
+        var seen = {};
         return rows.filter(function (row) {
-            return row && row.id && row.stop;
+            if (!row || !row.id || !row.area || !row.date) return false;
+            var key = row.area + '|' + row.date;
+            if (seen[key]) return false;
+            seen[key] = true;
+            return true;
         }).sort(function (a, b) {
             return String(a.date || '').localeCompare(String(b.date || ''))
                 || String(a.area || '').localeCompare(String(b.area || ''))
@@ -171,30 +197,27 @@
 
     function render(host) {
         if (!host) return;
-        if (host.getAttribute('data-schedule-version') === '20261020sched' && host.querySelector('form.delivery-schedule__form')) return;
-        host.setAttribute('data-schedule-version', '20261020sched');
+        if (host.getAttribute('data-schedule-version') === '20261116area' && host.querySelector('form.delivery-schedule__form')) return;
+        host.setAttribute('data-schedule-version', '20261116area');
         ensureStyles();
         var poShell = !!(host.closest && host.closest('#delivery-schedule-master'));
         var rows = readRows();
-        var areas = areaCatalog();
-        var firstArea = areas[0] ? areas[0].name : '';
-        var areaOptions = areas.map(function (area) {
-            return '<option value="' + esc(area.name) + '">' + esc(area.name) + '</option>';
+        var areaOptions = areaList().map(function (name) {
+            return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
         }).join('');
         host.innerHTML = ''
             + '<div class="delivery-schedule">'
             + '<form class="delivery-schedule__form">'
             + '<label>Area<select name="area" required>' + areaOptions + '</select></label>'
-            + '<label>Store<select name="stop" required>' + storeOptions(firstArea) + '</select></label>'
             + '<label>Date<input name="date" type="date" required value="' + esc(todayStamp()) + '"></label>'
             + '<button class="delivery-schedule__save' + (poShell ? ' btn-call-to-action' : '') + '" type="submit">Set schedule</button>'
             + '<p class="delivery-schedule__note" hidden></p>'
             + '</form>'
             + '<div class="delivery-schedule__bar">'
-            + '<h4>Retailer schedules</h4>'
-            + '<span class="delivery-schedule__hint">Click a code to delete that retailer.</span>'
+            + '<h4>Area schedules</h4>'
+            + '<span class="delivery-schedule__hint">Click an area to delete that schedule.</span>'
             + '<label>Area <select class="delivery-schedule__filter"><option value="">Every area</option>' + areaOptions + '</select></label>'
-            + '<label>Search <input class="delivery-schedule__search" type="search" placeholder="Store"></label>'
+            + '<label>Search <input class="delivery-schedule__search" type="search" placeholder="Area or date"></label>'
             + '</div>'
             + '<div class="delivery-schedule__confirm" hidden>'
             + '<span class="delivery-schedule__confirm-text"></span>'
@@ -209,13 +232,11 @@
         var search = host.querySelector('.delivery-schedule__search');
         var confirmBox = host.querySelector('.delivery-schedule__confirm');
         var confirmText = host.querySelector('.delivery-schedule__confirm-text');
-        var areaSelect = host.querySelector('[name="area"]');
-        var stopSelect = host.querySelector('[name="stop"]');
         var note = host.querySelector('.delivery-schedule__note');
         var pendingId = '';
 
         function codeButton(row) {
-            return '<button type="button" class="delivery-schedule__date" data-id="' + esc(row.id) + '">' + esc(row.id) + '</button>';
+            return '<button type="button" class="delivery-schedule__date" data-id="' + esc(row.id) + '">' + esc(row.area) + '</button>';
         }
 
         function rowById(id) {
@@ -225,26 +246,19 @@
             return null;
         }
 
-        areaSelect.addEventListener('change', function () {
-            stopSelect.innerHTML = storeOptions(areaSelect.value);
-        });
-
         function paintPo(visible) {
             if (!visible.length) {
-                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="5">No retailer schedules for this filter.</td></tr></tbody></table></div>';
+                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="2">No area schedules for this filter.</td></tr></tbody></table></div>';
                 return;
             }
             var body = visible.map(function (row, index) {
                 return '<tr>'
-                    + '<td class="po-col-num">' + (index + 1) + '</td>'
-                    + '<td>' + codeButton(row) + '</td>'
                     + '<td>' + esc(row.date || '') + '</td>'
-                    + '<td>' + esc(row.area) + '</td>'
-                    + '<td>' + esc(row.stop) + '</td>'
+                    + '<td>' + codeButton(row) + '</td>'
                     + '</tr>';
             }).join('');
             list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><thead><tr>'
-                + '<th class="po-col-num">#</th><th>Code</th><th>Date</th><th>Area</th><th>Retailer</th>'
+                + '<th>Date</th><th>Area</th>'
                 + '</tr></thead><tbody>' + body + '</tbody></table></div>';
         }
 
@@ -265,12 +279,12 @@
             var visible = scheduleRows(rows).filter(function (row) {
                 if (chosen && row.area !== chosen) return false;
                 if (!query) return true;
-                return (row.id + ' ' + row.stop + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
+                return (row.area + ' ' + row.date).toLowerCase().indexOf(query) >= 0;
             });
             var count = document.getElementById('delivery-schedule-count');
             if (count) count.textContent = visible.length ? String(visible.length) : '';
             var summary = document.getElementById('delivery-schedule-summary');
-            if (summary) summary.textContent = visible.length ? ('Showing ' + visible.length + (visible.length === 1 ? ' retailer schedule' : ' retailer schedules')) : 'No retailer schedules';
+            if (summary) summary.textContent = visible.length ? ('Showing ' + visible.length + (visible.length === 1 ? ' area schedule' : ' area schedules')) : 'No area schedules';
             if (poShell) {
                 paintPo(visible);
                 markPending();
@@ -286,7 +300,7 @@
                 groups[row.area].push(row);
             });
             if (!order.length) {
-                list.innerHTML = '<p>No retailer schedules for this area.</p>';
+                list.innerHTML = '<p>No schedules for this area.</p>';
                 markPending();
                 return;
             }
@@ -294,14 +308,12 @@
                 var stops = groups[area].map(function (row) {
                     return '<tr>'
                         + '<td>' + codeButton(row) + '</td>'
-                        + '<td>' + esc(row.date || '') + '</td>'
-                        + '<td>' + esc(row.stop) + '</td>'
                         + '</tr>';
                 }).join('');
                 return '<section class="delivery-area">'
                     + '<div class="delivery-area__head"><span>' + esc(area) + '</span><span>' + groups[area].length + ' schedules</span></div>'
                     + '<table class="delivery-stop-table"><thead><tr>'
-                    + '<th>Code</th><th>Date</th><th>Retailer</th>'
+                    + '<th>Date</th>'
                     + '</tr></thead><tbody>' + stops + '</tbody></table></section>';
             }).join('');
             markPending();
@@ -311,31 +323,21 @@
             event.preventDefault();
             var data = new FormData(event.currentTarget);
             var area = String(data.get('area') || '');
-            var stop = String(data.get('stop') || '').trim();
+            var date = String(data.get('date') || '');
             var created = {
                 id: 'sched-' + Date.now(),
                 area: area,
-                date: String(data.get('date') || ''),
-                stop: stop
+                date: date
             };
-            var existingIndex = -1;
-            rows.forEach(function (row, index) {
-                if (existingIndex >= 0 || !row) return;
-                if (String(row.stop || '').toLowerCase() === stop.toLowerCase() && row.area === area) existingIndex = index;
-            });
-            if (existingIndex >= 0) {
-                created.id = rows[existingIndex].id;
-                rows[existingIndex] = created;
-            } else {
-                rows.push(created);
-            }
+            var already = rows.some(function (row) { return row && row.area === area && row.date === date; });
+            if (!already) rows.push(created);
             writeRows(rows);
             if (filter.value && filter.value !== area) filter.value = '';
             if (search.value) search.value = '';
             paint();
             if (note) {
                 note.hidden = false;
-                note.textContent = stop + ' is scheduled on ' + created.date + '.';
+                note.textContent = area + ' is scheduled on ' + date + '.';
             }
         });
         filter.addEventListener('change', paint);
@@ -347,7 +349,7 @@
             var row = rowById(id);
             if (!row) return;
             pendingId = id;
-            confirmText.textContent = 'Delete ' + row.id + ' · ' + row.stop + '? This removes only that retailer.';
+            confirmText.textContent = 'Delete the ' + row.area + ' schedule on ' + row.date + '?';
             confirmBox.hidden = false;
             list.querySelectorAll('.delivery-schedule__date').forEach(function (item) {
                 item.classList.toggle('is-pending', item.getAttribute('data-id') === id);
@@ -367,17 +369,18 @@
                 confirmBox.hidden = true;
                 return;
             }
-            var stop = row.stop;
+            var area = row.area;
             var date = row.date;
-            rememberRemoved([row.id]);
-            rows = rows.filter(function (item) { return !item || item.id !== row.id; });
+            var same = function (item) { return item && item.area === area && item.date === date; };
+            rememberRemoved(rows.filter(same).map(function (item) { return item.id; }));
+            rows = rows.filter(function (item) { return item && !same(item); });
             writeRows(rows);
             pendingId = '';
             confirmBox.hidden = true;
             paint();
             if (note) {
                 note.hidden = false;
-                note.textContent = 'Removed ' + stop + ' scheduled on ' + date + '.';
+                note.textContent = 'Removed the ' + area + ' schedule on ' + date + '.';
             }
         });
         paint();
@@ -424,5 +427,5 @@
     else boot();
     document.addEventListener('content:replaced', boot);
     document.addEventListener('kreezby:page-load', boot);
-    window.KreezbyDeliverySchedule = { boot: boot, version: '20261020sched' };
+    window.KreezbyDeliverySchedule = { boot: boot, version: '20261116area' };
 })();

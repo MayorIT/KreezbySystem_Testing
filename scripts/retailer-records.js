@@ -108,7 +108,7 @@ async function sheetsStamp(db) {
   const accounts = await db.collection("retailer_accounts").countDocuments({});
   const mapped = await db.collection("retailer_name_map").countDocuments({}).catch(() => 0);
   const at = latest[0] && latest[0].updatedAt ? new Date(latest[0].updatedAt).getTime() : 0;
-  return [count, at, accounts, mapped, 3].join(":");
+  return [count, at, accounts, mapped, 4].join(":");
 }
 
 async function syncRetailerSales(db) {
@@ -122,6 +122,9 @@ async function syncRetailerSales(db) {
   accounts.forEach((acc) => { byAccount[String(acc._id)] = []; });
   sheets.forEach((sheet) => {
     (sheet.entries || []).forEach((entry) => {
+      // Only shops with a number entered count as a delivery.
+      const recorded = FIELDS.some((f) => f !== "notes" && entry[f] !== undefined && entry[f] !== null && String(entry[f]).trim() !== "");
+      if (!recorded) return;
       const id = accountForEntry(map, sheet, entry);
       if (!id || !byAccount[id]) return;
       const row = {

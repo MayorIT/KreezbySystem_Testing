@@ -107,6 +107,7 @@
             }
             state.salesError = '';
             if (body.account && body.account.name) state.accountName = String(body.account.name);
+            if (body.account && body.account.area) state.accountArea = String(body.account.area);
             if (body.account && body.account.id) {
                 state.accountId = String(body.account.id);
                 state.seenStamp = myStamp();
@@ -198,9 +199,13 @@
         try { rows = JSON.parse(localStorage.getItem('kreezby_delivery_schedule_v5') || '[]') || []; } catch (e) { rows = []; }
         try { (JSON.parse(localStorage.getItem('kreezby_delivery_schedule_removed_v5') || '[]') || []).forEach(function (id) { removed[id] = true; }); } catch (e) { /* none */ }
         var names = [cleanStore(state.accountName), cleanStore(storeName())].filter(Boolean);
+        var area = cleanStore(String(state.accountArea || '').replace(/\bsanto\b/i, 'Sto'));
         var today = iso(new Date());
         var mine = (Array.isArray(rows) ? rows : []).filter(function (row) {
-            return row && !removed[row.id] && parseDay(row.date) && names.indexOf(cleanStore(row.stop)) >= 0;
+            if (!row || removed[row.id] || !parseDay(row.date)) return false;
+            // Schedules are set per area; older ones were per store.
+            if (row.stop) return names.indexOf(cleanStore(row.stop)) >= 0;
+            return !!area && cleanStore(row.area) === area;
         }).map(function (row) { return parseDay(row.date); }).sort();
         var upcoming = mine.filter(function (d) { return d >= today; });
         return upcoming[0] || null;
@@ -212,7 +217,7 @@
         if (planned) {
             valueNode.textContent = shortDay(planned);
             noteNode.className = 'ops-trend flat';
-            noteNode.textContent = planned === iso(new Date()) ? 'Scheduled for today' : 'Scheduled by Kreezby Bakeshop';
+            noteNode.textContent = planned === iso(new Date()) ? 'Scheduled for today' : 'Scheduled for your area by Kreezby Bakeshop';
             return;
         }
         if (!state.salesLoaded) {

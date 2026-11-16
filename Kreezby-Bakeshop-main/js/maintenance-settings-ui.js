@@ -84,7 +84,9 @@
 
     // ---- Areas (Settings > Areas) ---------------------------------------------------------
     var AREAS_KEY = 'kreezby_areas_v1';
-    var BASE_AREAS = ['Batangas', 'Bauan', 'Citimart', 'Lipa', 'Lucena', 'Manila', 'Rosario', 'Sto. Tomas', 'Tagaytay'];
+    // Delivery routes from the 2026 retailer list. A shop can be moved to another area (or to an
+    // area added here) from its account: Retailers > select the shop > Area > Save.
+    var BASE_AREAS = ['Lucena', 'Batangas', 'Sto. Tomas', 'Lipa', 'Tagaytay', 'Citimart'];
 
     function savedAreas() {
         try {
