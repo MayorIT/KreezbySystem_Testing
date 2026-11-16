@@ -302,7 +302,133 @@ function dropRetired(key, stored) {
   return stored;
 }
 
+// Retailer list 2026 (UPDATED_Retailer_List_2026.xlsx): area of every retailer shop and its
+// usual pieces per delivery. Applied once: account areas in MongoDB and in the shared account
+// list are set to these areas, so Settings and the Retailer Delivery POS list them correctly.
+const RETAILER_LIST_2026 = [
+  ["Lucena", "Chick'N J Ibaan", 10],
+  ["Batangas", "SIDC Main", 15],
+  ["Sto. Tomas", "Kubo sa Halamanan Malarayat", 15],
+  ["Lipa", "SIDC Mahabang Parang", 20],
+  ["Tagaytay", "HMM Muzon", 10],
+  ["Citimart", "Citimart Caedo", 30],
+  ["Lucena", "SIDC IBAAN", 15],
+  ["Batangas", "SIDC Soro-Soro Ilaya", 20],
+  ["Sto. Tomas", "LBN Marawoy", 15],
+  ["Lipa", "SIDC San Jose", 10],
+  ["Tagaytay", "SIDC Bauan", 10],
+  ["Citimart", "Citimart Nuciti", 25],
+  ["Lucena", "Balkonahe", 6],
+  ["Batangas", "3M", 5],
+  ["Sto. Tomas", "Kubo sa Halamanan Marawoy", 10],
+  ["Lipa", "Banay-banay Eatery", 20],
+  ["Tagaytay", "SIDC Sta. Teresita", 10],
+  ["Citimart", "Citimart Baystar/Baymall", 45],
+  ["Lucena", "Citimart Rosario", 25],
+  ["Batangas", "Jhorjhanes Balagtas", 30],
+  ["Sto. Tomas", "Lucias Cafe Lipa", 20],
+  ["Lipa", "AA Lomi Lipa", 10],
+  ["Tagaytay", "AA Lomi Taal", 30],
+  ["Citimart", "Citimart Shop on/ Rizal Ave", 25],
+  ["Lucena", "Chick'N J Namunga", 10],
+  ["Batangas", "Wanam sa Bukid Balagtas", 15],
+  ["Sto. Tomas", "Citimart Tanauan", 20],
+  ["Lipa", "Butch Lipa", 35],
+  ["Tagaytay", "Citimart Lemery", 25],
+  ["Citimart", "Citimart Bauan", 50],
+  ["Lucena", "SIDC Tiaong", 10],
+  ["Batangas", "AA Lomi Balagtas", 40],
+  ["Sto. Tomas", "Lucias Cafe Sto Tomas", 20],
+  ["Lipa", "Shell Select Tambo", 10],
+  ["Tagaytay", "Jaytees Acienda", 30],
+  ["Citimart", "Dyan's", 5],
+  ["Lucena", "Mr.Fields Coffe+", 15],
+  ["Batangas", "Butch Alangilan", 35],
+  ["Sto. Tomas", "JMA", 30],
+  ["Lipa", "Shell Select Balintawak", 20],
+  ["Tagaytay", "RSM Silvinas", 5],
+  ["Citimart", "Ofels", 10],
+  ["Lucena", "Bangihan", 10],
+  ["Batangas", "Gracias Pasalubong", 15],
+  ["Sto. Tomas", "Rose & Grace", 50],
+  ["Lipa", "Lipa Grill Lipa", 50],
+  ["Tagaytay", "Pamana", 15],
+  ["Citimart", "Jorjhanes Sta. Rita", 10],
+  ["Lucena", "Girasoles", 10],
+  ["Batangas", "Shell Select Kumintang Ibaba", 10],
+  ["Sto. Tomas", "D'Vinias", 5],
+  ["Lipa", "Lipa Grill San Felipe", 25],
+  ["Tagaytay", "Jaytees Main", 50],
+  ["Lucena", "Shell Select Sariaya", 20],
+  ["Batangas", "SIDC Tulo", 20],
+  ["Sto. Tomas", "Tita Chu", 10],
+  ["Lipa", "AA Lomi Padre Garcia", 30],
+  ["Tagaytay", "Balinsasayaw Tagaytay", 15],
+  ["Lucena", "Kope Right Sariaya", 20],
+  ["Batangas", "SIDC Libjo", 30],
+  ["Sto. Tomas", "Laong Laan", 10],
+  ["Lipa", "Chick'N J Padre Garcia", 10],
+  ["Tagaytay", "Green Ats", 10],
+  ["Lucena", "Kope Right Lucena", 10],
+  ["Batangas", "SIDC Pallocan", 10],
+  ["Sto. Tomas", "Avilles", 10],
+  ["Lipa", "Ben & Cha", 10],
+  ["Tagaytay", "Jaytees 9th", 20],
+  ["Lucena", "Shell Select Domoit", 20],
+  ["Batangas", "Wanam sa Bukid Gulod", 20],
+  ["Lucena", "SIDC San Juan", 10],
+  ["Batangas", "Wanam sa Bukid Palengke", 10],
+  ["Lucena", "Chick'N J Baybayin", 10],
+  ["Batangas", "AA San Pascual", 275],
+  ["Lucena", "Matteos Liquiwan", 20],
+  ["Lucena", "Yummies", 15],
+  ["Lucena", "Hang Out", 15]
+];
+
+function retailerKey(name) {
+  return String(name || "").toLowerCase().replace(/&/g, " and ").replace(/'/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+async function applyRetailerList2026() {
+  const db = client.db(DB_NAME);
+  const marker = "retailer_list_2026_applied";
+  if (await collection().findOne({ _id: marker })) return;
+  const byName = new Map(RETAILER_LIST_2026.map(([area, name, pcs]) => [retailerKey(name), { area, pcs }]));
+  const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1 } }).toArray();
+  const ops = [];
+  accounts.forEach((acc) => {
+    const hit = byName.get(retailerKey(acc.name));
+    if (!hit) return;
+    ops.push({ updateOne: { filter: { _id: acc._id }, update: { $set: { area: hit.area, usualPcs: hit.pcs } } } });
+  });
+  if (ops.length) await db.collection("retailer_accounts").bulkWrite(ops, { ordered: false });
+  // The shared account list (Settings) carries the same areas.
+  const row = await collection().findOne({ _id: "kreezby_maintenance_users" });
+  if (row && typeof row.value === "string") {
+    try {
+      const users = JSON.parse(row.value);
+      let changed = false;
+      (users.retailers || []).forEach((u) => {
+        const hit = u && byName.get(retailerKey(u.name));
+        if (!hit) return;
+        if (u.area !== hit.area) { u.area = hit.area; changed = true; }
+        if (u.usualPcs !== hit.pcs) { u.usualPcs = hit.pcs; changed = true; }
+      });
+      if (changed) await persistUsersState(users);
+    } catch (error) { /* leave the shared list as it is */ }
+  }
+  // Rebuild each retailer's sales document so it shows the new area.
+  await db.collection("retailer_sales").deleteOne({ _id: "_meta" }).catch(() => {});
+  await collection().updateOne({ _id: marker }, { $set: { at: new Date(), shops: ops.length } }, { upsert: true });
+  console.log("Retailer list 2026 applied to " + ops.length + " shops.");
+}
+
 async function runOneTimeReset() {
+  try {
+    await applyRetailerList2026();
+  } catch (error) {
+    console.error("Retailer list 2026 could not be applied: " + error.message);
+  }
   try {
     const reset = require("./scripts/reset-data.js");
     const log = (line) => console.log("[reset] " + line);
@@ -835,11 +961,19 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Tiny "has anything changed?" check so browsers can poll every couple of seconds cheaply.
+// Every open page asks this every 1.5 s, so it only reads state_meta. The slower checks
+// (records added or deleted straight in MongoDB, deleted accounts) run at most every 10 s.
+let lastSlowVersionCheck = 0;
 app.get("/api/state-version", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
     const row = await collection().findOne({ _id: "state_meta" });
     if (row && row.value) stateVersion = Number(row.value) || stateVersion;
+    if (Date.now() - lastSlowVersionCheck < 10000) {
+      res.json({ ok: true, version: Number(stateVersion) || 0 });
+      return;
+    }
+    lastSlowVersionCheck = Date.now();
     // A document added or deleted straight in MongoDB does not touch state_meta, so notice it by
     // the document count and raise the version: every open page then reloads the shared data.
     const docCount = await collection().countDocuments({ _id: { $not: { $regex: "^(kreezbyPresence_|state_meta$)" } } });
@@ -941,6 +1075,39 @@ app.get("/api/sales-list", async (req, res) => {
   }
 });
 
+// After a route sheet is saved or deleted: note which retailer accounts it touches, so each of
+// those retailer portals reloads its own Sales List right away (other retailers are left alone).
+const RETAILER_STAMP_KEY = "kreezbyRetailerSalesStamp";
+async function announceRetailerSales(db, sheets) {
+  try {
+    const copies = (sheets || []).filter(Boolean).map((sheet) => ({
+      ...sheet,
+      id: String(sheet.id || sheet._id || ""),
+      entries: (sheet.entries || []).map((e) => ({ ...e })),
+    }));
+    await retailerRecords.tagSheets(db, copies);
+    const ids = new Set();
+    copies.forEach((sheet) => (sheet.entries || []).forEach((e) => { if (e && e.accountId) ids.add(String(e.accountId)); }));
+    if (!ids.size) return;
+    let stamp = {};
+    const current = await collection().findOne({ _id: RETAILER_STAMP_KEY });
+    try { stamp = JSON.parse((current && current.value) || cache[RETAILER_STAMP_KEY] || "{}") || {}; } catch (error) { stamp = {}; }
+    if (typeof stamp !== "object" || Array.isArray(stamp)) stamp = {};
+    const at = Date.now();
+    ids.forEach((id) => { stamp[id] = at; });
+    const value = JSON.stringify(stamp);
+    cache[RETAILER_STAMP_KEY] = value;
+    cacheTouched[RETAILER_STAMP_KEY] = at;
+    stateVersion = at;
+    await collection().bulkWrite([
+      { updateOne: { filter: { _id: RETAILER_STAMP_KEY }, update: { $set: { value, updatedAt: new Date() } }, upsert: true } },
+      { updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(stateVersion) } }, upsert: true } },
+    ], { ordered: false });
+  } catch (error) {
+    console.error("retailer stamp: " + error.message);
+  }
+}
+
 // Admin / staff save a route sheet (new or edited) straight into sales_route_sheets.
 app.post("/api/route-sheets", async (req, res) => {
   if (!databaseReady(res)) return;
@@ -963,6 +1130,7 @@ app.post("/api/route-sheets", async (req, res) => {
     // Refresh each shop's own record in retailer_sales.
     try { await retailerRecords.syncRetailerSales(db); } catch (syncError) { console.error("retailer_sales: " + syncError.message); }
     const saved = await col.findOne({ _id: doc.id });
+    await announceRetailerSales(db, [existing, saved]);
     await retailerRecords.tagSheets(db, [saved]);
     const report = { ...saved, id: doc.id };
     delete report._id;
@@ -1000,6 +1168,7 @@ app.post("/api/route-sheets/delete", async (req, res) => {
     );
     await col.deleteOne({ _id: id });
     try { await retailerRecords.syncRetailerSales(db); } catch (syncError) { console.error("retailer_sales: " + syncError.message); }
+    await announceRetailerSales(db, [doc]);
     res.json({ ok: true, id });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
@@ -1162,12 +1331,12 @@ app.get("/api/retailer-records", async (req, res) => {
     const db = client.db(DB_NAME);
     if (!accountId) {
       // Admin/staff without an account: list the retailer accounts and how many rows each has.
-      const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1 } }).sort({ name: 1 }).toArray();
+      const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1, usualPcs: 1 } }).sort({ name: 1 }).toArray();
       const reports = await salesListCollection().find({ _id: { $ne: "_meta" }, isTestData: { $ne: true } }).toArray();
       await retailerRecords.tagSheets(db, reports);
       const counts = {};
       reports.forEach((sheet) => (sheet.entries || []).forEach((e) => { if (e.accountId) counts[e.accountId] = (counts[e.accountId] || 0) + 1; }));
-      res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", rows: counts[String(a._id)] || 0 })) });
+      res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", usualPcs: Number(a.usualPcs) || 0, rows: counts[String(a._id)] || 0 })) });
       return;
     }
     const account = await db.collection("retailer_accounts").findOne({ _id: accountId }, { projection: { name: 1, area: 1 } });
@@ -1361,6 +1530,10 @@ app.post("/api/customer-orders", async (req, res) => {
       res.status(400).json({ ok: false, error: "order with orderNumber required" });
       return;
     }
+    // Merge into the latest lists in MongoDB, so an order placed on another server instance
+    // a moment ago is never written over.
+    const fresh = await collection().find({ _id: { $in: ["kreezbyOrders", "kreezbyCustomerReceipts", "kreezbyOwnerReceipts"] } }).toArray();
+    fresh.forEach((doc) => { if (typeof doc.value === "string") cache[doc._id] = doc.value; });
     const items = { kreezbyOrders: mergeByField(cache.kreezbyOrders, order, "orderNumber") };
     if (receipt && typeof receipt === "object" && receipt.receiptNumber) {
       items.kreezbyCustomerReceipts = mergeByField(cache.kreezbyCustomerReceipts, receipt, "receiptNumber");
@@ -1378,6 +1551,83 @@ app.post("/api/customer-orders", async (req, res) => {
     await syncCustomerOrderDocs([order]);
     await mirrorSaved(items);
     res.json({ ok: true, orderNumber: customerOrderId(order) });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// A customer asks for a refund on a delivered order. The request is added to Order Errors
+// (Customer Returns) and the order is marked, both in one save so neither list is overwritten.
+app.post("/api/customer-refund", async (req, res) => {
+  if (!databaseReady(res)) return;
+  try {
+    const orderNumber = String((req.body && req.body.orderNumber) || "").trim();
+    const reason = String((req.body && req.body.reason) || "").trim().slice(0, 500);
+    if (!orderNumber || !reason) {
+      res.status(400).json({ ok: false, error: "Add the reason for the refund." });
+      return;
+    }
+    // Read the latest copies from MongoDB (this server's cache can be a moment behind).
+    const fresh = await collection().find({ _id: { $in: ["kreezbyOrders", "kreezby-bo-orders-v1"] } }).toArray();
+    fresh.forEach((doc) => { if (typeof doc.value === "string") cache[doc._id] = doc.value; });
+    let orders = [];
+    try { orders = JSON.parse(cache.kreezbyOrders || "[]"); } catch (error) { orders = []; }
+    if (!Array.isArray(orders)) orders = [];
+    const order = orders.find((o) => o && String(o.orderNumber || "") === orderNumber);
+    if (!order) { res.status(404).json({ ok: false, error: "Order not found." }); return; }
+    if (String(order.status || "") !== "Completed") {
+      res.status(400).json({ ok: false, error: "A refund can be requested once the order is delivered." });
+      return;
+    }
+    if (order.refundRequest && order.refundRequest.code) {
+      res.status(409).json({ ok: false, error: "A refund was already requested for this order.", refundRequest: order.refundRequest });
+      return;
+    }
+    let returns = {};
+    try { returns = JSON.parse(cache["kreezby-bo-orders-v1"] || "{}") || {}; } catch (error) { returns = {}; }
+    if (typeof returns !== "object" || Array.isArray(returns)) returns = {};
+    const nowIso = new Date().toISOString();
+    const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    const code = "RF-" + orderNumber;
+    const shipping = order.shippingInfo || {};
+    const items = Object.values(order.items || {}).map((it) => {
+      const qty = Number(it && it.qty) || 0;
+      const cost = Number(it && it.cost) || 0;
+      return { name: (it && it.name) || "Item", unit: "pcs", ordered: qty, received: qty, backOrder: qty, cost, total: Math.round(cost * qty * 100) / 100 };
+    });
+    returns[code] = {
+      code,
+      poCode: order.poCode || orderNumber,
+      orderNumber,
+      dateCreated: today,
+      requestedAt: nowIso,
+      entity: shipping.fullName || order.customerName || "Customer",
+      entityType: "customer",
+      accountType: "Regular Customer",
+      customerId: order.customerId || "",
+      customerEmail: order.customerEmail || shipping.email || "",
+      supplier: "Kreezby Bakeshop",
+      expectedDelivery: "",
+      status: "PENDING",
+      statusClass: "pending",
+      source: "customer-refund",
+      remarks: "Refund request: " + reason,
+      items,
+    };
+    order.refundRequest = { code, reason, requestedAt: nowIso, status: "PENDING", statusClass: "pending" };
+    const saved = { kreezbyOrders: JSON.stringify(orders), "kreezby-bo-orders-v1": JSON.stringify(returns) };
+    const now = new Date();
+    const ops = Object.entries(saved).map(([key, value]) => {
+      cache[key] = value;
+      cacheTouched[key] = Date.now();
+      return { updateOne: { filter: { _id: key }, update: { $set: { value, updatedAt: now } }, upsert: true } };
+    });
+    stateVersion = Date.now();
+    ops.push({ updateOne: { filter: { _id: "state_meta" }, update: { $set: { value: String(stateVersion) } }, upsert: true } });
+    await collection().bulkWrite(ops, { ordered: false });
+    await syncCustomerOrderDocs([order]);
+    await mirrorSaved(saved);
+    res.json({ ok: true, refundRequest: order.refundRequest, record: returns[code] });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }

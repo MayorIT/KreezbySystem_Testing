@@ -240,10 +240,15 @@
           wrap.innerHTML = '<p class="kz-rr-empty">' + esc(messageFor(data, 'Could not load your deliveries.')) + '</p>';
           return;
         }
+        if (data.account && data.account.id && !(state.account && state.account.id)) {
+          state.account = data.account;
+          seenStamp = myStamp();
+        }
         var sig = JSON.stringify([data.account, data.sales]);
         if (sig === state.sig) return;
         state.sig = sig;
         state.account = data.account || { name: 'Your store', area: '' };
+        seenStamp = myStamp();
         state.byDate = {};
         (data.sales || []).forEach(function (r) {
           if (!r.reportDate) return;
@@ -271,6 +276,25 @@
     }
 
     load();
+    // When the head admin or an admin changes a route sheet with this store on it, the server
+    // marks this account; reload this store's records right away (other stores are not touched).
+    var seenStamp = null;
+    function myStamp() {
+      try {
+        var all = JSON.parse(localStorage.getItem('kreezbyRetailerSalesStamp') || '{}') || {};
+        var id = state.account && state.account.id;
+        return id ? (all[id] || 0) : JSON.stringify(all);
+      } catch (e) { return 0; }
+    }
+    seenStamp = myStamp();
+    document.addEventListener('kreezby:remote-state', function (event) {
+      var keys = (event && event.detail && event.detail.keys) || [];
+      if (keys.indexOf('kreezbyRetailerSalesStamp') === -1 || !document.body.contains(box)) return;
+      var now = myStamp();
+      if (now === seenStamp) return;
+      seenStamp = now;
+      load();
+    });
     setInterval(function () { if (!document.hidden && document.body.contains(box)) load(); }, 30000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden && document.body.contains(box)) load(); });
   }

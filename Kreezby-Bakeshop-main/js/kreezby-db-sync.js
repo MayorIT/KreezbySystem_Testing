@@ -942,7 +942,7 @@
     if (Date.now() - pageOpenedAt < 3000) return;
     if (!livePageAllowed()) return;
     var relevant = keys.filter(function (k) {
-      return !SELF_HANDLED[k] && !ignoredHere(k) && !/^(kreezbyNotification|kreezbyBrowserAlert|kreezbyAlert|kreezbyBadgeSeen|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_|kreezbyHelpQueue|kreezby_data_dictionary|kreezby_stock_snapshots|kreezbyPortalSeedVersion|kreezby_users_seed_version|kreezbyDockedSidebar|kreezby_(admin|staff)_pos_nav)/.test(k);
+      return !SELF_HANDLED[k] && !ignoredHere(k) && !/^(kreezbyNotification|kreezbyBrowserAlert|kreezbyAlert|kreezbyBadgeSeen|kreezby_maintenance_users|kreezby_login|kreezbyCart|kreezbyCustomer|kreezbyPresence_|kreezbyTeamChat_|kreezbyHelpQueue|kreezby_data_dictionary|kreezby_stock_snapshots|kreezbyPortalSeedVersion|kreezby_users_seed_version|kreezbyDockedSidebar|kreezbyRetailerSalesStamp|kreezby_(admin|staff)_pos_nav)/.test(k);
     });
     if (!relevant.length) return;
     if (liveRefreshTimer) return;
@@ -1208,18 +1208,25 @@
   var lastStateVersion = null;
   var lastFullPull = Date.now();
   var versionPollBusy = false;
+  var lastHiddenPoll = 0;
   function pollStateVersion() {
-    if (document.hidden || versionPollBusy) return;
+    if (versionPollBusy) return;
+    // A tab in the background still checks every 8 seconds, so new orders and notifications
+    // (and desktop alerts) arrive without switching back to the tab.
+    if (document.hidden) {
+      if (Date.now() - lastHiddenPoll < 8000) return;
+      lastHiddenPoll = Date.now();
+    }
     // Full download only once a minute (catches records deleted straight in the database);
     // everything else arrives as small change-only pulls.
-    if (Date.now() - lastFullPull > 60000) {
+    if (!document.hidden && Date.now() - lastFullPull > 60000) {
       lastFullPull = Date.now();
       pull(false);
     }
     var xhr = new XMLHttpRequest();
     versionPollBusy = true;
     xhr.open("GET", "/api/state-version?t=" + Date.now(), true);
-    xhr.timeout = 8000;
+    xhr.timeout = 6000;
     xhr.onloadend = function () { versionPollBusy = false; };
     xhr.onload = function () {
       if (xhr.status !== 200) return;
@@ -1235,7 +1242,9 @@
     };
     xhr.send();
   }
-  setInterval(pollStateVersion, 2000);
+  setInterval(pollStateVersion, 1500);
+  window.addEventListener("focus", pollStateVersion);
+  window.addEventListener("online", pollStateVersion);
   // Coming back to the tab: check at once instead of waiting for the next tick.
   document.addEventListener("visibilitychange", function () { if (!document.hidden) pollStateVersion(); });
   // Customers and retailers have no task permissions: only staff/admin pages keep checking.

@@ -187,9 +187,6 @@
             + '<label>Area<select name="area" required>' + areaOptions + '</select></label>'
             + '<label>Store<select name="stop" required>' + storeOptions(firstArea) + '</select></label>'
             + '<label>Date<input name="date" type="date" required value="' + esc(todayStamp()) + '"></label>'
-            + '<label>Pouches<input name="qty" type="number" min="1" required value="24"></label>'
-            + '<label>Product<input name="product" readonly value="' + esc(PRODUCT) + ' pouches"></label>'
-            + '<label>Payment<select name="payment" required>' + paymentOptions() + '</select></label>'
             + '<button class="delivery-schedule__save' + (poShell ? ' btn-call-to-action' : '') + '" type="submit">Set schedule</button>'
             + '<p class="delivery-schedule__note" hidden></p>'
             + '</form>'
@@ -234,7 +231,7 @@
 
         function paintPo(visible) {
             if (!visible.length) {
-                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="7">No retailer schedules for this filter.</td></tr></tbody></table></div>';
+                list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><tbody><tr class="po-empty-row"><td colspan="5">No retailer schedules for this filter.</td></tr></tbody></table></div>';
                 return;
             }
             var body = visible.map(function (row, index) {
@@ -244,12 +241,10 @@
                     + '<td>' + esc(row.date || '') + '</td>'
                     + '<td>' + esc(row.area) + '</td>'
                     + '<td>' + esc(row.stop) + '</td>'
-                    + '<td>' + esc(row.detail) + '</td>'
-                    + '<td>' + esc(row.payment || '') + '</td>'
                     + '</tr>';
             }).join('');
             list.innerHTML = '<div class="po-table-scroll-wrap"><table class="data-display-table delivery-stop-table"><thead><tr>'
-                + '<th class="po-col-num">#</th><th>Code</th><th>Date</th><th>Area</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                + '<th class="po-col-num">#</th><th>Code</th><th>Date</th><th>Area</th><th>Retailer</th>'
                 + '</tr></thead><tbody>' + body + '</tbody></table></div>';
         }
 
@@ -270,7 +265,7 @@
             var visible = scheduleRows(rows).filter(function (row) {
                 if (chosen && row.area !== chosen) return false;
                 if (!query) return true;
-                return (row.id + ' ' + row.stop + ' ' + row.detail + ' ' + row.payment + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
+                return (row.id + ' ' + row.stop + ' ' + row.area).toLowerCase().indexOf(query) >= 0;
             });
             var count = document.getElementById('delivery-schedule-count');
             if (count) count.textContent = visible.length ? String(visible.length) : '';
@@ -301,14 +296,12 @@
                         + '<td>' + codeButton(row) + '</td>'
                         + '<td>' + esc(row.date || '') + '</td>'
                         + '<td>' + esc(row.stop) + '</td>'
-                        + '<td>' + esc(row.detail) + '</td>'
-                        + '<td>' + esc(row.payment || '') + '</td>'
                         + '</tr>';
                 }).join('');
                 return '<section class="delivery-area">'
                     + '<div class="delivery-area__head"><span>' + esc(area) + '</span><span>' + groups[area].length + ' schedules</span></div>'
                     + '<table class="delivery-stop-table"><thead><tr>'
-                    + '<th>Code</th><th>Date</th><th>Retailer</th><th>Order</th><th>Payment</th>'
+                    + '<th>Code</th><th>Date</th><th>Retailer</th>'
                     + '</tr></thead><tbody>' + stops + '</tbody></table></section>';
             }).join('');
             markPending();
@@ -317,16 +310,13 @@
         host.querySelector('form').addEventListener('submit', function (event) {
             event.preventDefault();
             var data = new FormData(event.currentTarget);
-            var qty = String(data.get('qty') || '').trim();
             var area = String(data.get('area') || '');
             var stop = String(data.get('stop') || '').trim();
             var created = {
                 id: 'sched-' + Date.now(),
                 area: area,
                 date: String(data.get('date') || ''),
-                stop: stop,
-                detail: qty + ' pouches ' + PRODUCT,
-                payment: String(data.get('payment') || 'Cash')
+                stop: stop
             };
             var existingIndex = -1;
             rows.forEach(function (row, index) {

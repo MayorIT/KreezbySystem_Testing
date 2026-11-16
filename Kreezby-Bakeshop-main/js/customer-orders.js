@@ -730,7 +730,8 @@
             (order.poCode ? '<div class="order-detail-info-row"><span>PO Code</span><span>' + order.poCode + '</span></div>' : '') +
             '<div class="order-detail-info-row"><span>Order Date</span><span>' + formatDate(order.date) + '</span></div>' +
             '</section>' +
-            renderReviewSection(order);
+            renderReviewSection(order) +
+            renderRefundSection(order);
         if (detailView) detailView.dataset.reviewRating = '5';
     }
 
@@ -797,6 +798,72 @@
             '</form>' +
             '</section>'
         );
+    }
+
+    // Refund for a delivered order. The request goes to Order Errors > Customer Returns.
+    var REFUND_LABELS = { pending: 'Pending review', partial: 'Partly refunded', received: 'Refunded', cancelled: 'Declined' };
+
+    function refundRecord(order) {
+        var req = order && order.refundRequest;
+        if (!req || !req.code) return null;
+        var rec = null;
+        try { rec = (JSON.parse(localStorage.getItem('kreezby-bo-orders-v1') || '{}') || {})[req.code] || null; } catch (e) { rec = null; }
+        return { code: req.code, reason: req.reason || '', requestedAt: req.requestedAt || '', statusClass: (rec && rec.statusClass) || req.statusClass || 'pending' };
+    }
+
+    function renderRefundSection(order) {
+        if (!order || order.status !== 'Completed' || isCancelled(order)) return '';
+        var ref = refundRecord(order);
+        if (ref) {
+            return '<section class="order-detail-section order-refund-box">' +
+                '<h3 class="order-detail-section-title">Refund request</h3>' +
+                '<div class="order-detail-info-row"><span>Status</span><span>' + escapeHtml(REFUND_LABELS[ref.statusClass] || 'Pending review') + '</span></div>' +
+                (ref.requestedAt ? '<div class="order-detail-info-row"><span>Requested</span><span>' + escapeHtml(formatDate(ref.requestedAt)) + '</span></div>' : '') +
+                '<div class="order-detail-info-row"><span>Reason</span><span>' + escapeHtml(ref.reason) + '</span></div>' +
+                '</section>';
+        }
+        return '<section class="order-detail-section order-refund-box">' +
+            '<button type="button" class="order-cancel-btn" data-refund-open>Request refund</button>' +
+            '<form id="order-refund-form" class="review-form-box" hidden>' +
+            '<textarea class="review-feedback-input" name="reason" required maxlength="500" placeholder="Why do you want a refund? (e.g. damaged or wrong items)"></textarea>' +
+            '<div class="review-action-row">' +
+            '<button type="submit" class="btn-action-primary">Send refund request</button>' +
+            '<button type="button" class="order-cancel-btn" data-refund-close>Cancel</button>' +
+            '<p class="review-submit-notice" hidden></p>' +
+            '</div></form></section>';
+    }
+
+    function submitRefund(form) {
+        var orderNumber = currentDetailOrder;
+        var field = form.querySelector('textarea');
+        var notice = form.querySelector('.review-submit-notice');
+        var reason = field ? field.value.trim() : '';
+        function say(text) { if (notice) { notice.hidden = false; notice.classList.add('is-error'); notice.textContent = text; } }
+        if (!orderNumber || !reason) { say('Add the reason for the refund.'); return; }
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+        fetch('/api/customer-refund', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderNumber: orderNumber, reason: reason })
+        }).then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (body) { return { ok: res.ok && body.ok, body: body }; });
+        }).then(function (out) {
+            var req = out.body && out.body.refundRequest;
+            if (!out.ok && !req) {
+                if (btn) { btn.disabled = false; btn.textContent = 'Send refund request'; }
+                say((out.body && out.body.error) || 'Could not send the refund request. Try again.');
+                return;
+            }
+            var all = loadAllOrders();
+            all.forEach(function (o) { if (o && o.orderNumber === orderNumber) o.refundRequest = req; });
+            try { localStorage.setItem('kreezbyOrders', JSON.stringify(all)); } catch (e) { /* optional */ }
+            showOrderDetail(orderNumber);
+        }).catch(function () {
+            if (btn) { btn.disabled = false; btn.textContent = 'Send refund request'; }
+            say('Could not reach the server. Try again.');
+        });
     }
 
     function saveCustomerReview(orderNumber, review) {
@@ -901,6 +968,16 @@
             detailView.addEventListener('click', function (event) {
                 var cancelBtn = event.target.closest('[data-cancel-order]');
                 if (cancelBtn) { cancelOrder(cancelBtn.getAttribute('data-cancel-order')); return; }
+                var refundOpen = event.target.closest('[data-refund-open]');
+                var refundClose = event.target.closest('[data-refund-close]');
+                if (refundOpen || refundClose) {
+                    var refundForm = detailView.querySelector('#order-refund-form');
+                    var openBtn = detailView.querySelector('[data-refund-open]');
+                    if (refundForm) refundForm.hidden = !!refundClose;
+                    if (openBtn) openBtn.hidden = !refundClose;
+                    if (refundOpen && refundForm) { var ta = refundForm.querySelector('textarea'); if (ta) ta.focus(); }
+                    return;
+                }
                 var star = event.target.closest('.review-star-btn');
                 if (!star) return;
                 var value = Number(star.getAttribute('data-star')) || 5;
@@ -910,6 +987,11 @@
                 });
             });
             detailView.addEventListener('submit', function (event) {
+                if (event.target && event.target.id === 'order-refund-form') {
+                    event.preventDefault();
+                    submitRefund(event.target);
+                    return;
+                }
                 if (!event.target || event.target.id !== 'order-review-form') return;
                 event.preventDefault();
                 submitOrderReview(event.target);
@@ -967,10 +1049,17 @@
     });
     document.addEventListener('kreezby:remote-state', function (event) {
         var keys = (event && event.detail && event.detail.keys) || [];
-        if (keys.indexOf('kreezbyOrders') === -1 && keys.indexOf('kreezbyCustomerReceipts') === -1) return;
+        if (keys.indexOf('kreezbyOrders') === -1 && keys.indexOf('kreezbyCustomerReceipts') === -1 && keys.indexOf('kreezby-bo-orders-v1') === -1) return;
+        if (document.getElementById('order-refund-form') && !document.getElementById('order-refund-form').hidden) return;
         if (currentDetailOrder) showOrderDetail(currentDetailOrder);
         else renderOrders(currentFilter || 'all');
         updateOrdersTriggerState();
+    });
+    // Refund status changes made in Order Errors show here right away.
+    document.addEventListener('kreezby:bo-orders-sync', function () {
+        if (!currentDetailOrder) return;
+        if (document.getElementById('order-refund-form') && !document.getElementById('order-refund-form').hidden) return;
+        showOrderDetail(currentDetailOrder);
     });
     document.addEventListener('kreezby-orders-updated', function () {
         if (currentDetailOrder) showOrderDetail(currentDetailOrder);

@@ -79,6 +79,13 @@
 
     /* ---------- data ---------- */
 
+    function myStamp() {
+        try {
+            var all = JSON.parse(localStorage.getItem('kreezbyRetailerSalesStamp') || '{}') || {};
+            return state.accountId ? (all[state.accountId] || 0) : 0;
+        } catch (e) { return 0; }
+    }
+
     function loadSales() {
         var token = session().token || '';
         if (!token) {
@@ -99,6 +106,11 @@
                 return;
             }
             state.salesError = '';
+            if (body.account && body.account.name) state.accountName = String(body.account.name);
+            if (body.account && body.account.id) {
+                state.accountId = String(body.account.id);
+                state.seenStamp = myStamp();
+            }
             state.sales = (body.sales || []).filter(function (r) { return parseDay(r.reportDate); });
         }).catch(function () {
             state.salesLoaded = true;
@@ -175,8 +187,34 @@
     }
 
     // Possible next delivery: 2 weeks after the store's latest delivery on the route sheets.
+    // Delivery Schedule set by the head admin or an admin (Set schedule) for this store.
+    function cleanStore(name) {
+        return String(name || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+
+    function scheduledDelivery() {
+        var rows = [];
+        var removed = {};
+        try { rows = JSON.parse(localStorage.getItem('kreezby_delivery_schedule_v5') || '[]') || []; } catch (e) { rows = []; }
+        try { (JSON.parse(localStorage.getItem('kreezby_delivery_schedule_removed_v5') || '[]') || []).forEach(function (id) { removed[id] = true; }); } catch (e) { /* none */ }
+        var names = [cleanStore(state.accountName), cleanStore(storeName())].filter(Boolean);
+        var today = iso(new Date());
+        var mine = (Array.isArray(rows) ? rows : []).filter(function (row) {
+            return row && !removed[row.id] && parseDay(row.date) && names.indexOf(cleanStore(row.stop)) >= 0;
+        }).map(function (row) { return parseDay(row.date); }).sort();
+        var upcoming = mine.filter(function (d) { return d >= today; });
+        return upcoming[0] || null;
+    }
+
     function paintNextDelivery(valueNode, noteNode) {
         if (!valueNode || !noteNode) return;
+        var planned = scheduledDelivery();
+        if (planned) {
+            valueNode.textContent = shortDay(planned);
+            noteNode.className = 'ops-trend flat';
+            noteNode.textContent = planned === iso(new Date()) ? 'Scheduled for today' : 'Scheduled by Kreezby Bakeshop';
+            return;
+        }
         if (!state.salesLoaded) {
             valueNode.textContent = '…';
             noteNode.textContent = 'Checking your deliveries';
@@ -275,6 +313,18 @@
         loadSales().then(function () {
             if (!hasSavedRange()) loadRange();
             paint(root);
+        });
+        // Sales list changes by the head admin or an admin for this store show right away.
+        document.addEventListener('kreezby:remote-state', function (event) {
+            var keys = (event && event.detail && event.detail.keys) || [];
+            if ((keys.indexOf('kreezby_delivery_schedule_v5') >= 0 || keys.indexOf('kreezby_delivery_schedule_removed_v5') >= 0) && document.body.contains(root)) {
+                paintNextDelivery(root.querySelector('[data-kpi="next"]'), root.querySelector('[data-trend="next"]'));
+            }
+            if (keys.indexOf('kreezbyRetailerSalesStamp') === -1 || !document.body.contains(root)) return;
+            var now = myStamp();
+            if (state.accountId && now === state.seenStamp) return;
+            state.seenStamp = now;
+            loadSales().then(function () { paint(root); });
         });
         var timer = setInterval(function () {
             if (!document.body.contains(root)) { clearInterval(timer); return; }

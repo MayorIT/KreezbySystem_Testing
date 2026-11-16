@@ -10,16 +10,15 @@
 (function () {
     'use strict';
 
+    // Delivery routes from the 2026 retailer list. (Older Bauan, Manila and Rosario route sheets
+    // stay in the Sales List; their shops now belong to these routes.)
     var AREAS = [
-        { value: 'batangas', label: 'Batangas' },
-        { value: 'bauan', label: 'Bauan' },
-        { value: 'citimart', label: 'Citimart' },
-        { value: 'lipa', label: 'Lipa' },
         { value: 'lucena', label: 'Lucena' },
-        { value: 'manila', label: 'Manila' },
-        { value: 'rosario', label: 'Rosario' },
+        { value: 'batangas', label: 'Batangas' },
         { value: 'stotomas', label: 'Sto. Tomas' },
-        { value: 'tagaytay', label: 'Tagaytay' }
+        { value: 'lipa', label: 'Lipa' },
+        { value: 'tagaytay', label: 'Tagaytay' },
+        { value: 'citimart', label: 'Citimart' }
     ];
     var KEEP_FIELDS = ['notes', 'accountReceivable', 'cons', 'cod', 'staff', 'check', 'f', 'po', 'replaced', 'expired', 'collected'];
     var EXPIRED_NOTE = /(^|;\s*)Expired: \d+(\.\d+)? pcs/;
@@ -95,7 +94,7 @@
         if (accountsPromise) return accountsPromise;
         accountsPromise = request('/api/retailer-records').then(function (data) {
             accounts = (data.accounts || []).map(function (a) {
-                return { id: a.id, name: a.name, area: a.area || '', source: areaValueFromLabel(a.area) };
+                return { id: a.id, name: a.name, area: a.area || '', source: areaValueFromLabel(a.area), usualPcs: Number(a.usualPcs) || 0 };
             });
             return accounts;
         }).catch(function () {
@@ -320,33 +319,27 @@
 
     function field(root, name) { return root.querySelector('[data-f="' + name + '"]'); }
 
+    // The shop's usual order from the 2026 retailer list, shown as a hint in Ordered.
+    function showUsualPcs(root) {
+        var pick = field(root, 'shopPick');
+        var ordered = field(root, 'ordered');
+        if (!pick || !ordered) return;
+        var opt = pick.options[pick.selectedIndex];
+        var usual = opt ? Number(opt.getAttribute('data-usual')) || 0 : 0;
+        ordered.placeholder = usual ? 'Usual: ' + usual : '0';
+    }
+
     function setStatus(root, text, kind) {
         var el = root.querySelector('[data-status]');
         el.textContent = text || '';
         el.className = 'dpos-status' + (kind ? ' ' + kind : '');
     }
 
-    // The shops under an area: retailer accounts in that area, plus every shop already on
-    // that area's route sheets. Choosing an area lists them and picks the first one.
+    // The shops under an area: the retailer accounts in that area (the 2026 retailer list).
+    // Shops that only appear on old route sheets are not offered for new deliveries.
     function shopsForArea(area) {
-        var byKey = {};
-        accounts.forEach(function (a) {
-            if (a.source === area) byKey[a.id] = { id: a.id, name: a.name };
-        });
-        sheets.forEach(function (sheet) {
-            if (sheet.source !== area) return;
-            (sheet.entries || []).forEach(function (e) {
-                if (e.accountId) {
-                    var acct = accounts.filter(function (a) { return a.id === e.accountId; })[0];
-                    byKey[e.accountId] = { id: e.accountId, name: (acct && acct.name) || e.accountName || e.retailerName };
-                } else if (e.retailerName) {
-                    var k = 'name:' + cleanName(e.retailerName);
-                    var dup = Object.keys(byKey).some(function (id) { return cleanName(byKey[id].name) === cleanName(e.retailerName); });
-                    if (!dup) byKey[k] = { id: '', name: e.retailerName };
-                }
-            });
-        });
-        return Object.keys(byKey).map(function (k) { return byKey[k]; })
+        return accounts.filter(function (a) { return a.source === area; })
+            .map(function (a) { return { id: a.id, name: a.name, usualPcs: a.usualPcs || 0 }; })
             .sort(function (x, y) { return x.name.localeCompare(y.name); });
     }
 
@@ -361,12 +354,13 @@
         }
         pick.disabled = false;
         pick.innerHTML = list.map(function (shop, i) {
-            return '<option value="' + i + '" data-id="' + esc(shop.id) + '">' + esc(shop.name) + '</option>';
+            return '<option value="' + i + '" data-id="' + esc(shop.id) + '" data-usual="' + (shop.usualPcs || '') + '">' + esc(shop.name) + '</option>';
         }).join('');
         var want = cleanName(keepName || '');
         var idx = 0;
         if (want) list.forEach(function (shop, i) { if (cleanName(shop.name) === want) idx = i; });
         pick.value = String(idx);
+        showUsualPcs(root);
     }
 
     function shopFromInput(root) {
@@ -610,6 +604,7 @@
         field(root, 'area').addEventListener('change', function () { fillShops(root); renderList(root); resetCollected(); });
         field(root, 'terms').addEventListener('change', function () { if (field(root, 'collected')) field(root, 'collected').dataset.manual = ''; applyTerms(root); });
         field(root, 'shopPick').addEventListener('change', resetCollected);
+        field(root, 'shopPick').addEventListener('change', function () { showUsualPcs(root); });
         ['ordered', 'pulled'].forEach(function (n) {
             field(root, n).addEventListener('input', function () { updateCollection(root); });
         });
