@@ -7,7 +7,7 @@
     var STATUS_STEPS = ['Processing', 'Shipped', 'Completed'];
     var STEPPER_META = {
         Processing: { title: 'Order Processing', desc: 'Your order is being prepared at Kreezby.' },
-        Shipped: { title: 'Shipped', desc: 'Your order is on the way!' },
+        Shipped: { title: 'Shipping', desc: 'Your order is on the way!' },
         Completed: { title: 'Delivered', desc: 'Order delivered. Enjoy your crinkles!' }
     };
     var currentFilter = 'all';
@@ -370,9 +370,20 @@
         return name;
     }
 
-    function statusBadge(status) {
+    // Same names the shop uses in Sales and Order Tracking: Processing, Shipping, Delivered.
+    function filterWord(filter) {
+        return { shipped: 'shipping', completed: 'delivered' }[filter] || filter;
+    }
+
+    function statusText(status, order) {
+        if (status === 'Shipped') return 'Shipping';
+        if (status === 'Completed') return order && isPickupOrder(order) ? 'Picked up' : 'Delivered';
+        return status || 'Unknown';
+    }
+
+    function statusBadge(status, order) {
         var key = String(status || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        return '<span class="order-status-pill order-status-pill--' + key + '">' + escapeHtml(status || 'Unknown') + '</span>';
+        return '<span class="order-status-pill order-status-pill--' + key + '">' + escapeHtml(statusText(status, order)) + '</span>';
     }
 
     function orderListNote(order) {
@@ -515,7 +526,7 @@
             '<span class="order-list-number">' + escapeHtml(order.orderNumber) + '</span>' +
             '<span class="order-list-date">' + escapeHtml(dateStr) + '</span>' +
             '</div>' +
-            statusBadge(order.status) +
+            statusBadge(order.status, order) +
             '</div>' +
             '<div class="order-list-card-body">' +
             '<div class="order-list-thumb">' +
@@ -561,9 +572,9 @@
                     ? filtered.length + (filtered.length === 1 ? ' order is waiting for a rating.' : ' orders are waiting for a rating.')
                     : 'Nothing is waiting for a review.';
             } else if (!filtered.length) {
-                summary.textContent = 'No ' + currentFilter + ' orders right now.';
+                summary.textContent = 'No ' + filterWord(currentFilter) + ' orders right now.';
             } else {
-                summary.textContent = filtered.length + ' ' + currentFilter + (filtered.length === 1 ? ' order' : ' orders');
+                summary.textContent = filtered.length + ' ' + filterWord(currentFilter) + (filtered.length === 1 ? ' order' : ' orders');
             }
         }
 
@@ -653,7 +664,7 @@
 
         detailView.innerHTML =
             '<div class="order-detail-status-banner">' +
-            statusBadge(order.status) +
+            statusBadge(order.status, order) +
             '<p class="order-detail-status-msg">' + statusMessage(order) + '</p>' +
             renderStepper(order) +
             renderTrackingBlock(order) +

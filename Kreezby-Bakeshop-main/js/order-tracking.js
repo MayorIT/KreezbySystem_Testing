@@ -19,6 +19,19 @@
     }
     var JNT_TRACK_BASE = 'https://www.jtexpress.ph/track-and-trace?billCodes=';
     var STATUSES = ['Processing', 'Shipped', 'Completed'];
+    // Stored values stay Processing / Shipped / Completed (sales totals depend on them);
+    // what people see is Processing / Shipping / Delivered (Picked up for pick-up orders).
+    function statusLabel(status, order) {
+        if (status === 'Shipped') return 'Shipping';
+        if (status === 'Completed') return order && isPickupOrder(order) ? 'Picked up' : 'Delivered';
+        return status || 'Processing';
+    }
+    function statusOptions(order) {
+        var pickup = isPickupOrder(order);
+        return STATUSES.filter(function (s) { return !(pickup && s === 'Shipped'); }).map(function (s) {
+            return '<option value="' + s + '"' + ((order.status || 'Processing') === s ? ' selected' : '') + '>' + statusLabel(s, order) + '</option>';
+        }).join('');
+    }
 
     function loadOrders() {
         try {
@@ -546,7 +559,7 @@
                 '<td>' + formatShortDate(order.date) + '</td>' +
                 '<td><a href="#" class="po-code-link" data-ot-open="' + escapeHtml(order.orderNumber) + '">' + escapeHtml(order.orderNumber) + '</a></td>' +
                 '<td class="ot-who"><strong>' + who + '</strong>' + (meta ? '<br>' + meta : '') + '</td>' +
-                '<td class="ot-status"><span class="status-pill-badge ' + poStatusClass(order.status) + '">' + escapeHtml(order.status || 'Processing') + '</span><br>' + paymentPill(order) + '</td>' +
+                '<td class="ot-status"><span class="status-pill-badge ' + poStatusClass(order.status) + '">' + escapeHtml(statusLabel(order.status, order)) + '</span><br>' + paymentPill(order) + '</td>' +
                 '<td>' + tracking + '</td>' +
                 '<td class="ot-action"><button type="button" class="action-trigger-btn" data-ot-open="' + escapeHtml(order.orderNumber) + '">View</button></td>' +
                 '</tr>';
@@ -588,7 +601,7 @@
                 '<td>' + escapeHtml(customerName(order) || '—') + '</td>' +
                 '<td>' + formatDate(order.date) + '</td>' +
                 '<td><span class="order-tracking-status-pill ' + statusClass(order.status) + '">' +
-                    escapeHtml(order.status || 'Processing') + '</span><br>' + paymentPill(order) + '</td>' +
+                    escapeHtml(statusLabel(order.status, order)) + '</span><br>' + paymentPill(order) + '</td>' +
                 '<td>' + tracking + '</td>' +
                 '<td>' + escapeHtml(carrierOf(order)) + '</td>' +
                 '</tr>'
@@ -645,7 +658,9 @@
             '</div>' +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-status">Order status</label>' +
-                '<input type="text" id="ot-status" readonly class="order-tracking-readonly-field" value="' + escapeHtml(order.status || 'Processing') + '">' +
+                (order.status === 'Cancelled'
+                    ? '<input type="text" id="ot-status" readonly class="order-tracking-readonly-field" value="Cancelled">'
+                    : '<select id="ot-status">' + statusOptions(order) + '</select>') +
             '</div>' +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-carrier">' + (pickup ? 'Fulfillment' : 'Courier') + '</label>' +
@@ -657,7 +672,7 @@
                 '<input type="text" id="ot-tracking" placeholder="e.g. JT1234567890123" value="' + escapeHtml(order.trackingNumber || '') + '">' +
             '</div>') +
             '<div class="order-tracking-form-actions">' +
-                (pickup ? '' : '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save tracking</button>') +
+                (order.status === 'Cancelled' ? '' : '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save</button>') +
                 (trackUrl
                     ? '<a class="order-tracking-btn order-tracking-btn-link" href="' + trackUrl + '" target="_blank" rel="noopener noreferrer">Track on J&amp;T</a>'
                     : '') +
@@ -713,27 +728,40 @@
 
         var tracking = trackingEl ? trackingEl.value.trim() : '';
         var pickup = isPickupOrder(order);
-        if (pickup) return;
-        var nextStatus = order.status || 'Processing';
+        if (order.status === 'Cancelled') return;
+        var chosen = statusEl && statusEl.tagName === 'SELECT' ? statusEl.value : (order.status || 'Processing');
+        var nextStatus = STATUSES.indexOf(chosen) >= 0 ? chosen : 'Processing';
+        if (pickup && nextStatus === 'Shipped') nextStatus = 'Processing';
         var payKey = paymentInfo(order).key;
         var onlineMethod = /paymongo|gcash/i.test(String(order.paymentMethod || ''));
-        if (tracking && onlineMethod && payKey !== 'paid') {
-            showToast(root, 'This order is not paid yet (' + paymentInfo(order).label + '). Add the tracking ID once payment is received.');
+        var unpaidOnline = onlineMethod && payKey !== 'paid';
+        if (!pickup) {
+            // Adding a tracking ID to an order still marked Processing means it is now shipping.
+            if (tracking && nextStatus === 'Processing') nextStatus = 'Shipped';
+            if (nextStatus !== 'Processing' && !tracking) {
+                showToast(root, 'Enter the J&T tracking ID before marking this order ' + statusLabel(nextStatus, order) + '.');
+                return;
+            }
+        }
+        if (unpaidOnline && (nextStatus !== 'Processing' || tracking)) {
+            showToast(root, 'This order is not paid yet (' + paymentInfo(order).label + '). Update it once payment is received.');
             return;
         }
-        if (tracking && nextStatus === 'Processing') nextStatus = 'Shipped';
-        if (!tracking && nextStatus === 'Shipped') nextStatus = 'Processing';
 
         order.status = nextStatus;
-        order.trackingNumber = tracking;
-        order.carrier = CARRIER;
+        if (!pickup) {
+            order.trackingNumber = tracking;
+            order.carrier = CARRIER;
+        }
         order.statusUpdatedAt = new Date().toISOString();
 
-        if (nextStatus === 'Shipped' && tracking && !order.shippedAt) {
+        if (nextStatus === 'Shipped' && !order.shippedAt) {
             order.shippedAt = order.statusUpdatedAt;
         }
         if (nextStatus === 'Completed') {
             order.completedAt = order.statusUpdatedAt;
+        } else if (order.completedAt) {
+            delete order.completedAt;
         }
 
         orders[idx] = order;
@@ -741,7 +769,7 @@
         mirrorPurchaseOrder(order);
         renderTable(root, orderNumber);
         renderDetail(root, orderNumber);
-        showToast(root, 'Saved tracking for ' + orderNumber + '.');
+        showToast(root, orderNumber + ' is now ' + statusLabel(order.status, order) + '.');
     }
 
     function closeCreateModal() {
@@ -798,7 +826,7 @@
                     '<select id="ot-create-status">' +
                         STATUSES.map(function (s) {
                             var sel = s === 'Processing' ? ' selected' : '';
-                            return '<option value="' + s + '"' + sel + '>' + s + '</option>';
+                            return '<option value="' + s + '"' + sel + '>' + statusLabel(s) + '</option>';
                         }).join('') +
                     '</select>' +
                 '</div>' +
@@ -892,7 +920,7 @@
             return;
         }
         if ((status === 'Shipped' || status === 'Completed') && !tracking.trim()) {
-            showToast(root, 'Enter a J&T tracking ID before marking the order ' + status + '.');
+            showToast(root, 'Enter a J&T tracking ID before marking the order ' + statusLabel(status) + '.');
             return;
         }
         var existingForPo = orderForPo(poCode);

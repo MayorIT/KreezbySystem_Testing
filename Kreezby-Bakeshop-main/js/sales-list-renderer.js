@@ -1203,6 +1203,13 @@
     return 'Unpaid';
   }
 
+  // Order status as people see it (stored values stay Processing / Shipped / Completed).
+  function orderStatusLabel(status, pickup) {
+    if (status === 'Shipped') return 'Shipping';
+    if (status === 'Completed') return pickup ? 'Picked up' : 'Delivered';
+    return status || 'Processing';
+  }
+
   var CUSTOMER_FILTER_IDS = ['sales-customer-channel', 'sales-customer-status', 'sales-customer-payment', 'sales-customer-fulfil', 'sales-customer-from', 'sales-customer-to'];
 
   function ensureCustomerFilters() {
@@ -1303,9 +1310,84 @@
     var sheetHost = document.getElementById('bauan-detail-sheet-host');
     if (sheetHost) {
       sheetHost.innerHTML = '<div class="po-detail-hero"><p class="po-detail-kicker">Customer</p><h4>' +
-        esc(row.customer || 'Customer') + '</h4></div>';
+        esc(row.customer || 'Customer') + '</h4></div>' + orderStatusControl(row);
+      var saveBtn = sheetHost.querySelector('[data-order-status-save]');
+      if (saveBtn) saveBtn.addEventListener('click', function () { saveOrderStatus(row); });
     }
     window.switchToDetailedSalesTransactionInspector();
+  }
+
+  // Online customer orders: change the status here (same as in Order Tracking).
+  function orderStatusControl(row) {
+    if (row.channel !== 'online' || !row.orderNumber || !row.rawStatus || row.rawStatus === 'Cancelled') return '';
+    if (String(row.key || '').indexOf('local-') !== 0) return '';
+    var pickup = row.fulfil === 'pickup';
+    var opts = ['Processing', 'Shipped', 'Completed'].filter(function (st) { return !(pickup && st === 'Shipped'); });
+    return '<div class="sales-order-status" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px;padding:12px;border:1px solid #eadfce;border-radius:12px;background:#fffaf3;">'
+      + '<label style="display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#5d4037;">Order status'
+      + '<select data-order-status-select style="min-width:170px;padding:8px 10px;border:1px solid #d7ccc8;border-radius:8px;font-size:14px;">'
+      + opts.map(function (st) {
+        return '<option value="' + st + '"' + (st === row.rawStatus ? ' selected' : '') + '>' + orderStatusLabel(st, pickup) + '</option>';
+      }).join('')
+      + '</select></label>'
+      + '<button type="button" data-order-status-save style="height:38px;padding:0 18px;border:0;border-radius:999px;background:#5d4037;color:#fff;font-weight:700;cursor:pointer;">Save status</button>'
+      + '<span data-order-status-note style="font-size:12.5px;color:#6d4c41;"></span>'
+      + '</div>';
+  }
+
+  function saveOrderStatus(row) {
+    var host = document.getElementById('bauan-detail-sheet-host');
+    var select = host && host.querySelector('[data-order-status-select]');
+    var note = host && host.querySelector('[data-order-status-note]');
+    function say(text) { if (note) note.textContent = text; }
+    if (!select) return;
+    var orders = [];
+    try { orders = JSON.parse(localStorage.getItem('kreezbyOrders') || '[]'); } catch (e) { orders = []; }
+    var idx = -1;
+    orders.forEach(function (o, i) { if (o && o.orderNumber === row.orderNumber) idx = i; });
+    if (idx < 0) { say('This order could not be found.'); return; }
+    var order = orders[idx];
+    var pickup = order.fulfillment === 'pickup';
+    var next = select.value;
+    if (pickup && next === 'Shipped') next = 'Processing';
+    var online = /paymongo|gcash/i.test(String(order.paymentMethod || ''));
+    if (next !== 'Processing' && online && paymentBucket(order) !== 'Paid') {
+      say('This order is not paid yet. Update it once payment is received.');
+      return;
+    }
+    if (next !== 'Processing' && !pickup && !order.trackingNumber) {
+      say('Add the J&T tracking ID in Order Tracking first, then mark it ' + orderStatusLabel(next, pickup) + '.');
+      return;
+    }
+    var now = new Date().toISOString();
+    order.status = next;
+    order.statusUpdatedAt = now;
+    if (next === 'Shipped' && !order.shippedAt) order.shippedAt = now;
+    if (next === 'Completed') order.completedAt = now;
+    else if (order.completedAt) delete order.completedAt;
+    orders[idx] = order;
+    localStorage.setItem('kreezbyOrders', JSON.stringify(orders));
+    // Keep the linked order record (Order Tracking) on the same status.
+    try {
+      var store = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}') || {};
+      var changed = false;
+      Object.keys(store).forEach(function (code) {
+        var po = store[code];
+        if (!po) return;
+        if (code === order.orderNumber || po.shopOrderNumber === order.orderNumber || (order.poCode && code === order.poCode)) {
+          po.status = next;
+          po.statusUpdatedAt = now;
+          changed = true;
+        }
+      });
+      if (changed) localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(store));
+    } catch (e2) { /* the order itself is saved */ }
+    renderCustomerSales();
+    var fresh = null;
+    customerCache.forEach(function (item) { if (item.orderNumber === order.orderNumber && String(item.key).indexOf('local-') === 0) fresh = item; });
+    if (fresh) showCustomerSale(fresh.key);
+    var again = document.querySelector('#bauan-detail-sheet-host [data-order-status-note]');
+    if (again) again.textContent = 'Saved: ' + orderStatusLabel(next, pickup) + '.';
   }
 
   // Walk-in POS sales (customers served at the shop). Online orders are never taken from here:
@@ -1373,9 +1455,10 @@
       }).join(', ');
       var customer = order.accountName || ship.fullName || order.poEntity || 'Customer';
       var invoice = order.receiptNumber || order.orderNumber || '';
-      var status = order.status || 'Processing';
-      var statusClass = status.toLowerCase() === 'completed' ? 'received'
-        : status.toLowerCase() === 'shipped' ? 'shipped' : 'pending';
+      var rawStatus = order.status || 'Processing';
+      var status = orderStatusLabel(rawStatus, order.fulfillment === 'pickup');
+      var statusClass = rawStatus.toLowerCase() === 'completed' ? 'received'
+        : rawStatus.toLowerCase() === 'shipped' ? 'shipped' : 'pending';
       var dateLabel = '';
       try {
         dateLabel = new Date(order.date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -1384,6 +1467,7 @@
       return {
         key: key,
         channel: 'online',
+        rawStatus: rawStatus,
         sortAt: String(order.date || ''),
         statusText: status,
         pay: paymentBucket(order),
