@@ -732,11 +732,23 @@
             + '<label>Retailer price per pouch (₱)<br><input name="retailerPrice" type="number" min="1" step="0.01" required value="' + currentRetailerPrice().toFixed(2) + '"></label>'
             + '<button type="submit">Save retailer price</button>'
             + '<button type="button" data-item-cancel="1">Cancel</button>'
-            + '<p style="flex-basis:100%;margin:0;font-size:12px;">Used for retailer delivery collections. Customer prices do not change.</p>'
-            + '</form>';
+            + '<p style="flex-basis:100%;margin:0;font-size:12px;">Default for every retailer shop, used for delivery collections. Customer prices do not change. A shop with a different price is set in Retailers › select the shop.</p>'
+            + '</form>' + customPriceList();
         var input = box.querySelector('input[name="retailerPrice"]');
         if (input) input.focus();
         if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+    }
+
+    // Shops that have their own retailer price (set on the shop in Retailers).
+    function customPriceList() {
+        var users = (window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.getUsers()) || {};
+        var shops = (users.retailers || []).filter(function (u) { return Number(u.retailerPrice) > 0; })
+            .sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); });
+        if (!shops.length) return '<p style="margin:10px 0 0;font-size:12px;">No shop has its own price; all use the default.</p>';
+        return '<p style="margin:12px 0 6px;font-weight:700;">Shops with their own price</p><table class="data-display-table"><thead><tr><th>Shop</th><th>Area</th><th>Price per pouch</th></tr></thead><tbody>'
+            + shops.map(function (u) {
+                return '<tr><td>' + esc(u.name) + '</td><td>' + esc(u.area || '—') + '</td><td>₱' + Number(u.retailerPrice).toFixed(2) + '</td></tr>';
+            }).join('') + '</tbody></table>';
     }
 
     function saveRetailerPrice(form) {
@@ -796,12 +808,20 @@
             + (user.address ? '<p>Address: ' + esc(user.address) + '</p>' : '')
             + '<p>Status: ' + (on ? 'Active' : 'Deactivated') + (locked ? ' · This account stays active.' : '') + '</p>'
             + (user.area ? '<p>Area: ' + esc(user.area) + '</p>' : '')
+            + (bucket === 'retailers' ? '<p>Retailer price: ' + (Number(user.retailerPrice) > 0
+                ? '₱' + Number(user.retailerPrice).toFixed(2) + ' per pouch (this shop only)'
+                : '₱' + currentRetailerPrice().toFixed(2) + ' per pouch (default)') + '</p>' : '')
             + (bucket === 'customers' ? '<p>Customer accounts are for monitoring only.</p>' : (manage ? '' : '<p>Only an authorized account can change this.</p>'))
             + (bucket === 'retailers' && manage
                 ? '<form id="maint-edit-retailer" data-kreezby-native="1" data-retailer-id="' + esc(user.id) + '" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:8px;">'
+                    + '<label>Shop name<br><input name="name" required maxlength="80" value="' + esc(user.name || '') + '"></label>'
                     + phoneInput(window.KreezbyMaintenanceSettings.normalizePhone ? KreezbyMaintenanceSettings.normalizePhone(user.phone || user.contact) : '', true)
+                    + '<label>Email<br><input name="email" type="email" maxlength="120" value="' + esc(user.email || '') + '" placeholder="optional"></label>'
+                    + '<label>Address<br><input name="address" maxlength="160" value="' + esc(user.address || '') + '" placeholder="optional"></label>'
                     + areaPicker(user.area, true)
+                    + '<label>Retailer price per pouch (₱)<br><input name="retailerPrice" type="number" min="1" step="0.01" value="' + (Number(user.retailerPrice) > 0 ? Number(user.retailerPrice).toFixed(2) : '') + '" placeholder="Default ' + currentRetailerPrice().toFixed(2) + '"></label>'
                     + '<button type="submit">Save</button></form>'
+                    + '<p style="font-size:12px;color:#7a6558;margin:6px 0 0;">Leave the retailer price empty to use the default price for every shop.</p>'
                 : '');
     }
 
@@ -884,8 +904,12 @@
                     ev.preventDefault();
                     var retailerId = editForm.getAttribute('data-retailer-id');
                     var saved = KreezbyMaintenanceSettings.updateRetailerDetails(retailerId, {
+                        name: editForm.elements.name && editForm.elements.name.value,
                         phone: editForm.elements.contact && editForm.elements.contact.value,
-                        area: editForm.elements.area && editForm.elements.area.value
+                        email: editForm.elements.email ? editForm.elements.email.value : null,
+                        address: editForm.elements.address ? editForm.elements.address.value : null,
+                        area: editForm.elements.area && editForm.elements.area.value,
+                        retailerPrice: editForm.elements.retailerPrice ? editForm.elements.retailerPrice.value : null
                     });
                     if (saved.ok) {
                         renderDirectory(currentDirectory);

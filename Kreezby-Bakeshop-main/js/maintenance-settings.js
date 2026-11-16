@@ -477,7 +477,8 @@
         return '';
     }
 
-    // Change a retailer's phone number and area; saved to the shared list and the database.
+    // Change a retailer's details (name, phone, email, address, area) and the shop's own retailer
+    // price; saved to the shared list and the database.
     function updateRetailerDetails(id, fields) {
         var users = getUsers();
         var list = users.retailers || [];
@@ -490,6 +491,26 @@
         if (!phone) return { ok: false, message: 'Enter a valid mobile number, e.g. 09171234567.' };
         var area = String((fields && fields.area) || '').trim();
         if (!area) return { ok: false, message: 'Choose the retailer\'s area.' };
+        if (fields && fields.name != null) {
+            var name = String(fields.name).trim();
+            if (!name) return { ok: false, message: 'Enter the shop name.' };
+            user.name = name;
+        }
+        if (fields && fields.email != null) {
+            var email = String(fields.email).trim();
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, message: 'Enter a valid email address.' };
+            if (email) user.email = email; else delete user.email;
+        }
+        if (fields && fields.address != null) {
+            var address = String(fields.address).trim();
+            if (address) user.address = address; else delete user.address;
+        }
+        if (fields && fields.retailerPrice != null) {
+            var priceText = String(fields.retailerPrice).trim();
+            var price = Number(priceText);
+            if (priceText && !(price > 0)) return { ok: false, message: 'The retailer price must be more than 0, or leave it empty for the default price.' };
+            user.retailerPrice = priceText ? Math.round(price * 100) / 100 : null;
+        }
         user.phone = phone;
         user.contact = phone;
         user.area = area;

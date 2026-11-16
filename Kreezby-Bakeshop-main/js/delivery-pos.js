@@ -107,7 +107,7 @@
         if (accountsPromise) return accountsPromise;
         accountsPromise = request('/api/retailer-records').then(function (data) {
             accounts = (data.accounts || []).map(function (a) {
-                return { id: a.id, name: a.name, area: a.area || '', source: areaForAccount(a.area), usualPcs: Number(a.usualPcs) || 0 };
+                return { id: a.id, name: a.name, area: a.area || '', source: areaForAccount(a.area), usualPcs: Number(a.usualPcs) || 0, price: Number(a.retailerPrice) || 0 };
             });
             return accounts;
         }).catch(function () {
@@ -178,6 +178,18 @@
             '.dpos-table tr[data-shop]{cursor:pointer}.dpos-table tr[data-shop]:hover td{background:#fffaf0}' +
             '.dpos-table tr.dpos-unrecorded td{color:#9a8f88;font-style:italic}' +
             '.dpos-empty{color:#8d6e63;padding:14px 0}' +
+            '.dpos-grid.dpos-grid-2{grid-template-columns:repeat(2,minmax(0,260px))}' +
+            '.dpos-sheet-wrap{overflow-x:auto;border:1px solid #efe6df;border-radius:12px;margin-bottom:14px}' +
+            '.dpos-sheet{min-width:980px}.dpos-sheet td{padding:6px 8px;vertical-align:middle}.dpos-sheet th{padding:9px 8px}' +
+            '.dpos-sheet input,.dpos-sheet select{width:100%;box-sizing:border-box;padding:7px 8px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;background:#fff;color:#2b241f}' +
+            '.dpos-sheet input[type=number]{width:84px;text-align:right}.dpos-sheet input[data-k=collected]{width:104px}' +
+            '.dpos-sheet input:focus,.dpos-sheet select:focus{outline:2px solid #ffca28;border-color:#ffca28}' +
+            '.dpos-sheet input:disabled{background:#f5f1ee;color:#b0a7a1}' +
+            '.dpos-sheet .dpos-num{color:#9a8f88;width:32px}.dpos-sheet .dpos-shop{font-weight:700;color:#3d2c2a;min-width:180px}' +
+            '.dpos-sheet tr.dpos-row-on td{background:#fffbea}' +
+            '.dpos-sheet .dpos-price{display:block;font-weight:600;font-size:11px;color:#8d6e63}' +
+            '.dpos-sheet tbody tr:hover td{background:#fffaf0}' +
+            '@media (max-width:560px){.dpos-grid.dpos-grid-2{grid-template-columns:1fr}}' +
             '@media (max-width:1100px){.dpos-grid.six{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
             '@media (max-width:900px){.dpos-grid,.dpos-grid.four,.dpos-grid.five,.dpos-grid.six{grid-template-columns:1fr 1fr}}' +
             '@media (max-width:560px){.dpos-grid,.dpos-grid.four,.dpos-grid.five,.dpos-grid.six{grid-template-columns:1fr}}';
@@ -197,46 +209,21 @@
     function formHtml() {
         var full = canRecordMoney();
         return '<h3>Retailer Delivery</h3>' +
-            '<p class="dpos-sub">For retailer shops only. It is saved to that day\'s route sheet and shows on the <strong>Retailer</strong> sales list right away. Walk-in customers are recorded in the Walk-in POS.</p>' +
-            '<div class="dpos-grid">' +
+            '<p class="dpos-sub">Every shop of the area is listed. Type the numbers for the shops delivered to, then press <strong>Save delivery</strong>. Only shops with a number are recorded; they show on the <strong>Retailer</strong> sales list right away.' +
+            (full ? ' Collected fills in by itself (COD: today\'s delivery; Consignment: the last delivery) and can be changed.' : '') + '</p>' +
+            '<div class="dpos-grid dpos-grid-2">' +
                 '<label class="dpos-field">Delivery date<input type="date" data-f="date"></label>' +
                 '<label class="dpos-field">Area<select data-f="area">' + AREAS.map(function (a) {
                     return '<option value="' + a.value + '">' + esc(a.label) + '</option>';
                 }).join('') + '</select></label>' +
-                '<label class="dpos-field">Shop<select data-f="shopPick"><option value="">Loading shops…</option></select></label>' +
             '</div>' +
-            '<div class="dpos-grid" style="grid-template-columns:1fr">' +
-                '<label class="dpos-field">Terms <small>COD: collected on the same delivery · Consignment: collected on the next delivery for the last one · Check: paid by check, no collection shown</small><select data-f="terms"><option value="cod">COD</option><option value="cons">Consignment</option><option value="check">Check</option></select></label>' +
-            '</div>' +
-            '<div class="dpos-grid ' + (full ? 'six' : 'four') + '">' +
-                '<label class="dpos-field">Ordered <small data-terms-hint>pcs · COD</small><input type="number" min="0" step="1" inputmode="numeric" data-f="ordered" placeholder="0"></label>' +
-                '<label class="dpos-field">Staff <small>pcs · Staff column</small><input type="number" min="0" step="1" inputmode="numeric" data-f="staff" placeholder="0"></label>' +
-                '<label class="dpos-field">Pulled out <small>pcs · P.O</small><input type="number" min="0" step="1" inputmode="numeric" data-f="pulled" placeholder="0"></label>' +
-                '<label class="dpos-field">Replaced <small>pcs · given back for pulled-out</small><input type="number" min="0" step="1" inputmode="numeric" data-f="replaced" placeholder="0"></label>' +
-                (full
-                    ? '<label class="dpos-field">Expired <small>pcs</small><input type="number" min="0" step="1" inputmode="numeric" data-f="expired" placeholder="0"></label>' +
-                      '<label class="dpos-field" data-collected-wrap>Collected <small>₱ · auto, you can change it</small><input type="number" min="0" step="0.01" inputmode="decimal" data-f="collected" placeholder="0.00"></label>'
-                    : '') +
-            '</div>' +
-            '<div class="dpos-grid" style="grid-template-columns:1fr">' +
-                '<label class="dpos-field">Reason / notes <small>optional — why it was pulled out' + (full ? ' or expired' : ' or replaced') + '</small><input type="text" data-f="notes" maxlength="100" placeholder="e.g. damaged pouches, near expiry, slow sales"></label>' +
-            '</div>' +
+            '<div class="dpos-list"><h4 data-list-title>Shops</h4><div data-list><p class="dpos-empty">Loading shops…</p></div></div>' +
             '<div class="dpos-actions">' +
                 '<button type="button" class="dpos-save" data-act="save">Save delivery</button>' +
                 '<button type="button" class="dpos-clear" data-act="clear">Clear</button>' +
                 '<span class="dpos-status" data-status></span>' +
-            '</div>' +
-            '<div class="dpos-list"><h4 data-list-title>Deliveries on this date</h4><div data-list></div></div>';
+            '</div>';
     }
-
-    // COD shops pay cash on delivery (Ordered → COD, Collected counts).
-    // Consignment shops pay later: each delivery's Collected pays for the LAST delivery,
-    //   (last delivery − today's pull-out) × price. The first delivery collects nothing.
-    // Check shops pay by check (Ordered → Check, no collection is shown).
-    // COD example: 20 delivered, 4 pulled out → (20 − 4) × 140 = 2,240.
-    // Consignment example: wk1 20 → 0 · wk2 20, 4 pulled out → (20 − 4) × 140 = 2,240 · wk3 20 → 20 × 140 = 2,800.
-    var TERM_LABELS = { cod: 'COD', cons: 'Consignment', check: 'Check' };
-    var TERM_KEYS = ['cons', 'cod', 'check'];
 
     function readTerms(value) {
         return value === 'cod' || value === 'check' ? value : 'cons';
@@ -353,7 +340,7 @@
     // Shops that only appear on old route sheets are not offered for new deliveries.
     function shopsForArea(area) {
         return accounts.filter(function (a) { return a.source === area; })
-            .map(function (a) { return { id: a.id, name: a.name, usualPcs: a.usualPcs || 0 }; })
+            .map(function (a) { return { id: a.id, name: a.name, usualPcs: a.usualPcs || 0, price: a.price || 0 }; })
             .sort(function (x, y) { return x.name.localeCompare(y.name); });
     }
 
@@ -390,115 +377,195 @@
         return !!e && NUMBER_FIELDS.some(function (f) { return e[f] !== undefined && e[f] !== null && String(e[f]).trim() !== ''; });
     }
 
+    function cleanNotes(text) {
+        return String(text || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
+    }
+
+    // The shop's most recent delivery before this date (any area sheet it appears on).
+    function lastDeliveryFor(date, shop) {
+        if (!date || !shop.name) return null;
+        var best = null;
+        sheets.forEach(function (sheet) {
+            if (!sheet.reportDate || sheet.reportDate >= date) return;
+            (sheet.entries || []).forEach(function (e) {
+                if (!sameShop(e, shop)) return;
+                var qty = deliveredQty(e);
+                if (!qty) return;
+                if (!best || sheet.reportDate > best.date) best = { date: sheet.reportDate, qty: qty };
+            });
+        });
+        return best;
+    }
+
+    // Collected for one row (same rule as before): COD = (ordered − pulled out) × price;
+    // Consignment = (last delivery − pulled out) × price; Check = nothing.
+    function rowCollection(root, tr) {
+        var terms = readTerms(rowInput(tr, 'terms').value);
+        var price = Number(tr.getAttribute('data-price')) || retailerPrice();
+        var pulled = num(rowInput(tr, 'pulled').value);
+        if (terms === 'cod') return { amount: Math.max(0, num(rowInput(tr, 'ordered').value) - pulled) * price, forDate: '' };
+        if (terms === 'cons') {
+            var last = lastDeliveryFor(field(root, 'date').value, rowShop(tr));
+            if (!last) return { amount: 0, forDate: '' };
+            return { amount: Math.max(0, last.qty - pulled) * price, forDate: last.date };
+        }
+        return { amount: 0, forDate: '' };
+    }
+
+    function rowInput(tr, key) { return tr.querySelector('[data-k="' + key + '"]'); }
+    function rowShop(tr) { return { name: tr.getAttribute('data-name') || '', accountId: tr.getAttribute('data-id') || '' }; }
+
+    function updateRowCollected(root, tr) {
+        var input = rowInput(tr, 'collected');
+        if (!input) return;
+        var terms = readTerms(rowInput(tr, 'terms').value);
+        input.disabled = terms === 'check';
+        if (terms === 'check') { input.value = ''; input.dataset.manual = ''; return; }
+        if (input.dataset.manual === '1') return;
+        var hasQty = rowInput(tr, 'ordered').value !== '' || rowInput(tr, 'pulled').value !== '';
+        var c = hasQty ? rowCollection(root, tr) : { amount: 0 };
+        input.value = c.amount ? String(Math.round(c.amount * 100) / 100) : '';
+    }
+
+    function markRow(tr) {
+        var any = Array.prototype.some.call(tr.querySelectorAll('input[type="number"]'), function (i) { return i.value !== ''; });
+        tr.classList.toggle('dpos-row-on', any);
+    }
+
+    function updateCount(root) {
+        var rows = root.querySelectorAll('tr[data-row]');
+        var on = root.querySelectorAll('tr[data-row].dpos-row-on').length;
+        root.querySelector('[data-list-title]').textContent = 'Shops · ' + areaLabel(field(root, 'area').value) + ' · ' +
+            (field(root, 'date').value || '—') + ' · ' + on + ' of ' + rows.length + ' recorded';
+    }
+
+    function numInput(key, value, placeholder) {
+        return '<input type="number" min="0" step="' + (key === 'collected' ? '0.01' : '1') + '" inputmode="' + (key === 'collected' ? 'decimal' : 'numeric') +
+            '" data-k="' + key + '" value="' + (value == null ? '' : esc(value)) + '" placeholder="' + esc(placeholder || '') + '">';
+    }
+
+    // Every shop of the area as an input row, filled in from the saved sheet for this date.
     function renderList(root) {
         var date = field(root, 'date').value;
         var area = field(root, 'area').value;
         var sheet = findSheet(date, area);
-        var host = root.querySelector('[data-list]');
         var saved = sheet ? (sheet.entries || []) : [];
-        // Every shop of the area is listed; shops without numbers are "Not recorded".
-        var entries = saved.filter(isRecorded);
-        shopsForArea(area).forEach(function (shop) {
+        var full = canRecordMoney();
+        var rows = shopsForArea(area).map(function (shop) {
             var s = { name: shop.name, accountId: shop.id };
-            if (!entries.some(function (e) { return sameShop(e, s); })) entries.push({ retailerName: shop.name, accountId: shop.id, notRecorded: true });
+            var e = saved.filter(function (x) { return sameShop(x, s); })[0] || null;
+            return { name: shop.name, id: shop.id, usual: shop.usualPcs || 0, price: shop.price || 0, entry: e };
         });
         saved.forEach(function (e) {
-            if (isRecorded(e)) return;
-            var s = { name: e.accountName || e.retailerName, accountId: e.accountId };
-            if (!entries.some(function (x) { return sameShop(x, s); })) entries.push({ retailerName: e.accountName || e.retailerName, accountId: e.accountId, notRecorded: true });
+            var name = e.accountName || e.retailerName;
+            if (rows.some(function (r) { return sameShop(e, { name: r.name, accountId: r.id }); })) return;
+            rows.push({ name: name, id: e.accountId || '', usual: 0, entry: e });
         });
-        var recorded = entries.filter(function (e) { return !e.notRecorded; }).length;
-        root.querySelector('[data-list-title]').textContent = 'Deliveries on ' + (date || '—') + ' · ' + areaLabel(area) +
-            ' · ' + recorded + ' of ' + entries.length + ' shops recorded';
-        if (!entries.length) {
-            host.innerHTML = '<p class="dpos-empty">No shops under this area yet.</p>';
+        var host = root.querySelector('[data-list]');
+        if (!rows.length) {
+            host.innerHTML = '<p class="dpos-empty">No shops under ' + esc(areaLabel(area)) + ' yet. Move or add shops in Settings › Retailers.</p>';
+            updateCount(root);
             return;
         }
-        var full = canRecordMoney();
-        host.innerHTML = '<div style="overflow-x:auto"><table class="dpos-table"><thead><tr><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Staff</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
-            (full ? '<th class="n">Expired</th><th class="n">Collected</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
-            entries.map(function (e, i) {
-                if (e.notRecorded) {
-                    return '<tr data-shop="' + i + '" class="dpos-unrecorded" title="Click to record this shop"><td>' + esc(e.retailerName) + '</td><td>Not recorded</td>' +
-                        '<td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td>' + (full ? '<td class="n">—</td><td class="n">—</td>' : '') + '<td></td></tr>';
-                }
-                return '<tr data-shop="' + i + '" title="Click to edit"><td>' + esc(e.accountName || e.retailerName) + '</td><td>' + TERM_LABELS[entryTerms(e)] + '</td><td class="n">' + (orderedOf(e) != null ? esc(orderedOf(e)) : '—') +
-                    '</td><td class="n">' + (e.staff != null ? esc(e.staff) : '—') +
-                    '</td><td class="n">' + (e.po != null ? esc(e.po) : '—') + '</td><td class="n">' + (e.replaced != null ? esc(e.replaced) : '—') + '</td>' +
-                    (full ? '<td class="n">' + (e.expired != null ? esc(e.expired) : '—') + '</td><td class="n">' + (num(e.collected) ? peso(e.collected) : '—') + '</td>' : '') +
-                    '<td>' + esc(full ? (e.notes || '') : String(e.notes || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim()) + '</td></tr>';
+        host.innerHTML = '<div class="dpos-sheet-wrap"><table class="dpos-table dpos-sheet"><thead><tr><th>#</th><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Staff</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
+            (full ? '<th class="n">Expired</th><th class="n">Collected ₱</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
+            rows.map(function (r, i) {
+                var e = r.entry && isRecorded(r.entry) ? r.entry : null;
+                var terms = e ? entryTerms(e) : 'cons';
+                var collected = e && terms !== 'check' && e.collected != null ? e.collected : '';
+                return '<tr data-row="' + i + '" data-name="' + esc(r.name) + '" data-id="' + esc(r.id) + '" data-price="' + (r.price || '') + '">' +
+                    '<td class="dpos-num">' + (i + 1) + '</td>' +
+                    '<td class="dpos-shop">' + esc(r.name) + (full && r.price ? '<small class="dpos-price">' + peso(r.price) + ' / pouch</small>' : '') + '</td>' +
+                    '<td><select data-k="terms">' + ['cons', 'cod', 'check'].map(function (t) {
+                        return '<option value="' + t + '"' + (t === terms ? ' selected' : '') + '>' + TERM_LABELS[t] + '</option>';
+                    }).join('') + '</select></td>' +
+                    '<td class="n">' + numInput('ordered', e ? orderedOf(e) : '', r.usual ? String(r.usual) : '') + '</td>' +
+                    '<td class="n">' + numInput('staff', e ? e.staff : '') + '</td>' +
+                    '<td class="n">' + numInput('pulled', e ? e.po : '') + '</td>' +
+                    '<td class="n">' + numInput('replaced', e ? e.replaced : '') + '</td>' +
+                    (full ? '<td class="n">' + numInput('expired', e ? e.expired : '') + '</td>' +
+                        '<td class="n">' + numInput('collected', collected) + '</td>' : '') +
+                    '<td><input type="text" maxlength="100" data-k="notes" value="' + esc(e ? cleanNotes(e.notes) : '') + '" placeholder="Reason / notes"></td>' +
+                    '</tr>';
             }).join('') + '</tbody></table></div>';
-        host.querySelectorAll('tr[data-shop]').forEach(function (tr) {
-            tr.addEventListener('click', function () {
-                var e = entries[Number(tr.getAttribute('data-shop'))];
-                if (e.notRecorded) {
-                    clearForm(root);
-                    fillShops(root, e.retailerName || '');
-                    updateCollection(root);
-                    setStatus(root, 'Recording ' + e.retailerName + ' — enter the numbers and save.', '');
-                    var first = field(root, 'ordered');
-                    if (first) first.focus();
-                    return;
-                }
-                fillShops(root, e.accountName || e.retailerName || '');
-                field(root, 'terms').value = entryTerms(e);
-                applyTerms(root);
-                field(root, 'ordered').value = orderedOf(e) != null ? orderedOf(e) : '';
-                field(root, 'staff').value = e.staff != null ? e.staff : '';
-                field(root, 'pulled').value = e.po != null ? e.po : '';
-                field(root, 'replaced').value = e.replaced != null ? e.replaced : '';
-                if (field(root, 'expired')) field(root, 'expired').value = e.expired != null ? e.expired : '';
-                if (field(root, 'collected')) {
-                    field(root, 'collected').value = (entryTerms(e) !== 'check' && e.collected != null) ? e.collected : '';
-                    field(root, 'collected').dataset.manual = (entryTerms(e) !== 'check' && e.collected != null) ? '1' : '';
-                }
-                field(root, 'notes').value = String(e.notes || '').replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
-                updateCollection(root);
-                setStatus(root, 'Editing ' + (e.accountName || e.retailerName) + ' — change the numbers and save.', '');
-            });
+        host.querySelectorAll('tr[data-row]').forEach(function (tr) {
+            var collected = rowInput(tr, 'collected');
+            if (collected && collected.value !== '') collected.dataset.manual = '1';
+            if (collected) collected.disabled = readTerms(rowInput(tr, 'terms').value) === 'check';
+            markRow(tr);
         });
+        updateCount(root);
     }
 
     function refresh(root) {
         return loadSheets().then(function () {
-            fillShops(root, shopFromInput(root).name);
             renderList(root);
-            updateCollection(root);
         }).catch(function (err) {
-            root.querySelector('[data-list]').innerHTML = '<p class="dpos-empty">' + esc(err.message) + '</p>';
+            setStatus(root, (err && err.message) || 'Could not load the route sheets.', 'err');
         });
     }
 
     function clearForm(root) {
-        ['ordered', 'staff', 'pulled', 'replaced', 'expired', 'collected', 'notes'].forEach(function (n) { if (field(root, n)) field(root, n).value = ''; });
-        if (field(root, 'collected')) field(root, 'collected').dataset.manual = '';
-        updateCollection(root);
+        root.querySelectorAll('tr[data-row]').forEach(function (tr) {
+            tr.querySelectorAll('input').forEach(function (i) { i.value = ''; i.dataset.manual = ''; });
+            markRow(tr);
+        });
+        updateCount(root);
+    }
+
+    // Builds the sheet entry for one row, or null when no number was entered (not recorded).
+    function entryFromRow(root, tr, oldEntry, full) {
+        var v = function (k) { var i = rowInput(tr, k); return i ? String(i.value).trim() : ''; };
+        var terms = readTerms(v('terms'));
+        var ordered = v('ordered'), staffQty = v('staff'), pulled = v('pulled'), replaced = v('replaced');
+        var expired = full ? v('expired') : '';
+        var collected = full && terms !== 'check' ? v('collected') : '';
+        var shown = [ordered, staffQty, pulled, replaced, expired, collected];
+        if (shown.some(function (x) { return x !== '' && num(x) < 0; })) throw new Error('Numbers cannot be negative (' + rowShop(tr).name + ').');
+        var hiddenKept = !full && oldEntry && (num(oldEntry.expired) > 0 || num(oldEntry.collected) > 0);
+        if (shown.every(function (x) { return x === ''; }) && !hiddenKept) return null;
+
+        var shop = rowShop(tr);
+        var entry = oldEntry ? rawEntry(oldEntry) : { retailerName: shop.name };
+        if (shop.accountId) entry.accountId = shop.accountId;
+        function put(key, value) {
+            if (value === '') delete entry[key];
+            else entry[key] = num(value);
+        }
+        TERM_KEYS.forEach(function (k) { if (k !== terms) delete entry[k]; });
+        put(terms, ordered);
+        put('staff', staffQty);
+        put('po', pulled);
+        put('replaced', replaced);
+        if (full) {
+            put('expired', expired);
+            if (terms === 'check') delete entry.collected;
+            else put('collected', collected);
+        }
+        var notes = [];
+        var reason = v('notes');
+        if (reason) notes.push(reason);
+        var expiredQty = full ? num(expired) : num(entry.expired);
+        if (expiredQty > 0) notes.push('Expired: ' + expiredQty + ' pcs');
+        if (full && terms === 'cons' && num(collected) > 0) {
+            var c = rowCollection(root, tr);
+            if (c.forDate) notes.push('Collection for ' + c.forDate + ' delivery');
+        } else if (!full && oldEntry && oldEntry.notes) {
+            var keptCollect = String(oldEntry.notes).match(COLLECT_NOTE);
+            if (keptCollect) notes.push(keptCollect[0].replace(/^;\s*/, ''));
+        }
+        if (notes.length) entry.notes = notes.join('; ');
+        else delete entry.notes;
+        return entry;
     }
 
     function save(root) {
         var date = field(root, 'date').value;
         var area = field(root, 'area').value;
-        var shop = shopFromInput(root);
-        var ordered = field(root, 'ordered').value;
-        var pulled = field(root, 'pulled').value;
-        var staffQty = field(root, 'staff').value;
-        var replaced = field(root, 'replaced').value;
-        var full = canRecordMoney();
-        var expired = full ? field(root, 'expired').value : '';
-        var terms = readTerms(field(root, 'terms').value);
-        var collected = full && terms !== 'check' ? field(root, 'collected').value : '';
-        var collection = full ? computeCollection(root) : { forDate: '' };
-        var reason = field(root, 'notes').value.trim();
         if (!date) return setStatus(root, 'Choose the delivery date.', 'err');
-        if (!shop.name) return setStatus(root, 'Pick the shop.', 'err');
-        if ([ordered, staffQty, pulled, replaced, expired, collected].every(function (v) { return v === ''; })) {
-            return setStatus(root, full
-                ? 'Enter at least one number (ordered, staff, pulled out, replaced, expired or collected).'
-                : 'Enter at least one number (ordered, staff, pulled out or replaced).', 'err');
-        }
-        if ([ordered, staffQty, pulled, replaced, expired, collected].some(function (v) { return v !== '' && num(v) < 0; })) {
-            return setStatus(root, 'Numbers cannot be negative.', 'err');
-        }
+        var full = canRecordMoney();
+        var trs = Array.prototype.slice.call(root.querySelectorAll('tr[data-row]'));
+        if (!trs.length) return setStatus(root, 'There are no shops under this area.', 'err');
 
         var btn = root.querySelector('[data-act="save"]');
         btn.disabled = true;
@@ -508,53 +575,19 @@
         loadSheets().then(function () {
             var sheet = findSheet(date, area);
             var original = sheet ? (sheet.entries || []) : [];
-            var entries = original.map(rawEntry);
-            var idx = -1;
-            original.forEach(function (e, i) { if (idx < 0 && sameShop(e, shop)) idx = i; });
-            var entry = idx >= 0 ? entries[idx] : { retailerName: shop.name };
-            if (shop.accountId) entry.accountId = shop.accountId;
-
-            function put(key, value) {
-                if (value === '') delete entry[key];
-                else entry[key] = num(value);
-            }
-            put(terms, ordered);
-            // A delivery is under one terms column only (Cons, COD, Staff or Check).
-            if (ordered !== '') TERM_KEYS.forEach(function (k) { if (k !== terms) delete entry[k]; });
-            put('staff', staffQty);
-            put('po', pulled);
-            put('replaced', replaced);
-            // Staff never change Expired or Collected: the saved values stay as they are.
-            if (full) put('expired', expired);
-            if (!full) {
-                // nothing to change for Collected
-            } else if (terms === 'cod' || terms === 'cons') {
-                // COD: today's delivery. Consignment: pays for the last delivery (see computeCollection).
-                put('collected', collected);
-            } else if (!num(entry.cod)) {
-                // Check: no collection, so it must not appear in the POS / sales list.
-                delete entry.collected;
-            }
-
-            var notes = [];
-            if (reason) notes.push(reason);
-            else if (entry.notes) {
-                var kept = String(entry.notes).replace(EXPIRED_NOTE, '').replace(COLLECT_NOTE, '').replace(/^;\s*/, '').trim();
-                if (kept) notes.push(kept);
-            }
-            if (full && num(expired) > 0) notes.push('Expired: ' + num(expired) + ' pcs');
-            else if (!full && num(entry.expired) > 0) notes.push('Expired: ' + num(entry.expired) + ' pcs');
-            if (!full && entry.notes) {
-                var keptCollect = String(entry.notes).match(COLLECT_NOTE);
-                if (keptCollect) notes.push(keptCollect[0].replace(/^;\s*/, ''));
-            }
-            if (terms === 'cons' && collection.forDate && num(collected) > 0) notes.push('Collection for ' + collection.forDate + ' delivery');
-            if (notes.length) entry.notes = notes.join('; ');
-            else delete entry.notes;
-
-            if (idx >= 0) entries[idx] = entry;
-            else entries.push(entry);
-
+            var used = {};
+            var entries = [];
+            trs.forEach(function (tr) {
+                var shop = rowShop(tr);
+                var idx = -1;
+                original.forEach(function (e, i) { if (idx < 0 && !used[i] && sameShop(e, shop)) idx = i; });
+                if (idx >= 0) used[idx] = true;
+                var entry = entryFromRow(root, tr, idx >= 0 ? original[idx] : null, full);
+                if (entry) entries.push(entry);
+            });
+            // Rows on the sheet that are not shops of this area stay as they are.
+            original.forEach(function (e, i) { if (!used[i] && isRecorded(e)) entries.push(rawEntry(e)); });
+            if (!entries.length && !sheet) throw new Error('Enter numbers for at least one shop.');
             var report = {
                 id: sheet ? sheet.id : ('pos-' + area + '-' + date.replace(/-/g, '') + '-' + Date.now()),
                 reportDate: date,
@@ -564,13 +597,11 @@
                 totalExpense: sheet ? (Number(sheet.totalExpense) || 0) : 0
             };
             return request('/api/route-sheets', report).then(function () {
-                // The Sales List keeps a copy in this browser tab; drop it so it reloads.
                 window.__kreezbySalesListRequest = null;
                 if (window.KreezbySales && typeof window.KreezbySales.reloadFromServer === 'function') {
                     window.KreezbySales.reloadFromServer().catch(function () {});
                 }
-                setStatus(root, 'Saved ' + shop.name + ' to the ' + areaLabel(area) + ' route sheet for ' + date + '.', 'ok');
-                clearForm(root);
+                setStatus(root, 'Saved ' + entries.length + ' shop' + (entries.length === 1 ? '' : 's') + ' to the ' + areaLabel(area) + ' route sheet for ' + date + '.', 'ok');
                 return refresh(root);
             });
         }).catch(function (err) {
@@ -634,9 +665,7 @@
                         var keepArea = field(root, 'area').value;
                         field(root, 'area').innerHTML = AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
                         field(root, 'area').value = keepArea;
-                        fillShops(root);
                         renderList(root);
-                        updateCollection(root);
                     });
                 } else {
                     refresh(root);
@@ -654,33 +683,37 @@
         document.addEventListener('kreezby:remote-state', function (event) {
             var keys = (event && event.detail && event.detail.keys) || [];
             if (keys.indexOf('kreezby_maintenance_users') === -1 || !root.dataset.loaded || !document.body.contains(root)) return;
+            if (root.querySelector('tr[data-row].dpos-row-on')) return; // keep numbers being typed
             var keepArea = field(root, 'area').value;
-            var keepShop = shopFromInput(root).name;
             accountsPromise = null;
             loadAccounts().then(function () {
                 field(root, 'area').innerHTML = areaOptionsHtml();
                 field(root, 'area').value = keepArea;
-                fillShops(root, keepShop);
                 renderList(root);
             });
         });
 
-        // Staff pages have no Collected field.
-        function resetCollected() { if (field(root, 'collected')) field(root, 'collected').dataset.manual = ''; updateCollection(root); }
-        field(root, 'area').addEventListener('change', function () { fillShops(root); renderList(root); resetCollected(); });
-        field(root, 'terms').addEventListener('change', function () { if (field(root, 'collected')) field(root, 'collected').dataset.manual = ''; applyTerms(root); });
-        field(root, 'shopPick').addEventListener('change', resetCollected);
-        field(root, 'shopPick').addEventListener('change', function () { showUsualPcs(root); });
-        ['ordered', 'pulled'].forEach(function (n) {
-            field(root, n).addEventListener('input', function () { updateCollection(root); });
+        field(root, 'area').addEventListener('change', function () { setStatus(root, '', ''); renderList(root); });
+        field(root, 'date').addEventListener('change', function () { setStatus(root, '', ''); renderList(root); });
+        var list = root.querySelector('[data-list]');
+        list.addEventListener('input', function (e) {
+            var tr = e.target.closest('tr[data-row]');
+            if (!tr) return;
+            var k = e.target.getAttribute('data-k');
+            if (k === 'collected') e.target.dataset.manual = e.target.value === '' ? '' : '1';
+            if (k === 'ordered' || k === 'pulled') updateRowCollected(root, tr);
+            markRow(tr);
+            updateCount(root);
         });
-        if (field(root, 'collected')) {
-            field(root, 'collected').addEventListener('input', function () {
-                field(root, 'collected').dataset.manual = field(root, 'collected').value === '' ? '' : '1';
-            });
-        }
-        applyTerms(root);
-        field(root, 'date').addEventListener('change', function () { renderList(root); resetCollected(); });
+        list.addEventListener('change', function (e) {
+            var tr = e.target.closest('tr[data-row]');
+            if (!tr || e.target.getAttribute('data-k') !== 'terms') return;
+            var c = rowInput(tr, 'collected');
+            if (c) c.dataset.manual = '';
+            updateRowCollected(root, tr);
+            markRow(tr);
+            updateCount(root);
+        });
         root.querySelector('[data-act="save"]').addEventListener('click', function () { save(root); });
         root.querySelector('[data-act="clear"]').addEventListener('click', function () { clearForm(root); setStatus(root, '', ''); });
 

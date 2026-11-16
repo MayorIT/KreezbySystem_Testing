@@ -714,6 +714,11 @@ function sanitizeAccountInput(bucket, input) {
   if (src.birthday) doc.birthday = String(src.birthday).slice(0, 10);
   if (src.address) doc.address = String(src.address).trim();
   if (src.area) doc.area = String(src.area).trim();
+  // A retailer shop's own price per pouch (empty = the default retailer price).
+  if (bucket === "retailers" && Object.prototype.hasOwnProperty.call(src, "retailerPrice")) {
+    const price = Number(src.retailerPrice);
+    doc.retailerPrice = Number.isFinite(price) && price > 0 ? Math.round(price * 100) / 100 : null;
+  }
   if (password) doc.temporaryPassword = password;
   return doc;
 }
@@ -784,6 +789,9 @@ async function upsertAccountRecord(bucket, input) {
   );
   let users = {};
   try {
+    // The latest shared account list (this server's copy can be a moment behind).
+    const latest = await collection().findOne({ _id: "kreezby_maintenance_users" });
+    if (latest && typeof latest.value === "string") cache.kreezby_maintenance_users = latest.value;
     users = JSON.parse(cache.kreezby_maintenance_users || "{}");
   } catch (error) {
     users = {};
@@ -1331,12 +1339,12 @@ app.get("/api/retailer-records", async (req, res) => {
     const db = client.db(DB_NAME);
     if (!accountId) {
       // Admin/staff without an account: list the retailer accounts and how many rows each has.
-      const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1, usualPcs: 1 } }).sort({ name: 1 }).toArray();
+      const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1, usualPcs: 1, retailerPrice: 1 } }).sort({ name: 1 }).toArray();
       const reports = await salesListCollection().find({ _id: { $ne: "_meta" }, isTestData: { $ne: true } }).toArray();
       await retailerRecords.tagSheets(db, reports);
       const counts = {};
       reports.forEach((sheet) => (sheet.entries || []).forEach((e) => { if (e.accountId) counts[e.accountId] = (counts[e.accountId] || 0) + 1; }));
-      res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", usualPcs: Number(a.usualPcs) || 0, rows: counts[String(a._id)] || 0 })) });
+      res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", usualPcs: Number(a.usualPcs) || 0, retailerPrice: Number(a.retailerPrice) || 0, rows: counts[String(a._id)] || 0 })) });
       return;
     }
     const account = await db.collection("retailer_accounts").findOne({ _id: accountId }, { projection: { name: 1, area: 1 } });
