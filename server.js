@@ -2921,8 +2921,53 @@ app.post("/api/paymongo/webhook", async (req, res) => {
   res.json({ ok: true });
 });
 
+// Home page for people and for Google: the Search Console verification tag, then straight to the
+// welcome page. robots.txt and sitemap.xml are answered here too (the site's files are served from
+// Kreezby-Bakeshop-main, so files at the project root are not reachable on their own).
+const SITE_URL = "https://kreezby-system-testing.vercel.app";
+const PUBLIC_PAGES = [
+  ["/Kreezby-Bakeshop-main/auth/start.html", "1.0"],
+  ["/Kreezby-Bakeshop-main/customer/customer_guest.html", "0.9"],
+  ["/Kreezby-Bakeshop-main/customer/menu-guest.html", "0.9"],
+  ["/Kreezby-Bakeshop-main/customer/become-a-partner.html", "0.7"],
+  ["/Kreezby-Bakeshop-main/auth/log_in.html", "0.5"],
+];
 app.get("/", (req, res) => {
-  res.redirect("/auth/start.html");
+  res.setHeader("Cache-Control", "no-cache");
+  res.type("html").send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google-site-verification" content="fuReu5tTEWqNmiekVmdZPqAgK0ivA4BjDrH6M5cZjXc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreezby Bakeshop — Chocolate Crinkles</title>
+  <meta name="description" content="Kreezby Bakeshop — home of Kreezby Chocolate Crinkles. Order crinkles online for delivery or pick-up, or become a Kreezby retail partner.">
+  <link rel="canonical" href="${SITE_URL}/Kreezby-Bakeshop-main/auth/start.html">
+  <meta http-equiv="refresh" content="0; url=/auth/start.html">
+</head>
+<body>
+  <p><a href="/auth/start.html">Open Kreezby Bakeshop</a></p>
+</body>
+</html>`);
+});
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send([
+    "# Kreezby Bakeshop: the public shop pages can be searched; staff, admin and retailer portals cannot.",
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    ...["admin", "head_admin", "staff", "retailer", "data"].flatMap((d) => [`Disallow: /${d}/`, `Disallow: /Kreezby-Bakeshop-main/${d}/`]),
+    ...["checkout-customer.html", "inbox-customer.html", "report_issue-customer.html"].flatMap((f) => [`Disallow: /customer/${f}`, `Disallow: /Kreezby-Bakeshop-main/customer/${f}`]),
+    "",
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    "",
+  ].join("\n"));
+});
+app.get("/sitemap.xml", (req, res) => {
+  const day = new Date().toISOString().slice(0, 10);
+  res.type("application/xml").send('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    PUBLIC_PAGES.map(([p, pr]) => `  <url><loc>${SITE_URL}${p}</loc><lastmod>${day}</lastmod><priority>${pr}</priority></url>`).join("\n") +
+    "\n</urlset>\n");
 });
 
 const staticOptions = {
