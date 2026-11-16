@@ -98,9 +98,9 @@
     return t;
   }
 
-  // TOTALS row: one grand total of everything delivered (Cons + COD + Staff + Check), no other numbers.
+  // TOTALS row: one grand total of everything delivered (Cons + COD + Staff + Check + Replaced).
   function sheetGrandTotal(t) {
-    return (Number(t.cons) || 0) + (Number(t.cod) || 0) + (Number(t.staff) || 0) + (Number(t.check) || 0);
+    return (Number(t.cons) || 0) + (Number(t.cod) || 0) + (Number(t.staff) || 0) + (Number(t.check) || 0) + (Number(t.replaced) || 0);
   }
 
   function sheetTotalsRow(t) {
