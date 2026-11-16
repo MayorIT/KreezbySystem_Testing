@@ -43,6 +43,7 @@
             role: entry.role || 'User',
             submittedBy: entry.submittedBy || entry.fullName || 'Unknown',
             accountId: entry.accountId || '',
+            accountName: entry.accountName || '',
             contact: entry.contact || entry.email || '',
             issueType: entry.issueType || 'Other',
             reference: entry.reference || entry.orderNumber || entry.affectedArea || entry.branch || '—',
@@ -159,8 +160,15 @@
             var nameInput = form.querySelector('[name="fullName"]');
             var storeInput = form.querySelector('[name="storeName"]');
             var contactInput = form.querySelector('[name="email"]') || form.querySelector('[name="contact"]');
+            // Staff type their own name (filled in to start with); the signed-in account is
+            // still saved with the report. Other forms keep the account name locked.
+            var typesOwnName = form.hasAttribute('data-own-name');
             [nameInput, storeInput].forEach(function (input) {
                 if (!input) return;
+                if (input === nameInput && typesOwnName) {
+                    if (!input.value) input.value = reporter.name;
+                    return;
+                }
                 input.value = reporter.name;
                 input.readOnly = true;
                 input.title = 'Filled from the account you are signed in with.';
@@ -181,7 +189,9 @@
         // Whoever is signed in is the reporter, whatever was typed in the form.
         var reporter = currentReporter();
         if (reporter && entry && typeof entry === 'object') {
-            entry.submittedBy = reporter.name;
+            // The account that really sent it is always kept; a typed name is shown next to it.
+            entry.accountName = reporter.name;
+            if (!entry.ownName || !String(entry.submittedBy || '').trim()) entry.submittedBy = reporter.name;
             entry.accountId = reporter.accountId;
             if (!entry.role || entry.role === 'User') entry.role = reporter.role;
             if (reporter.contact) entry.contact = reporter.contact;

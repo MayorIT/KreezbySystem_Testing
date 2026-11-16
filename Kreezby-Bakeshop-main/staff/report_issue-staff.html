@@ -39,7 +39,7 @@
             <p>Submit tickets for inventory, order processing, or store operations issues.</p>
         </div>
         <div class="report-body">
-            <form class="report-form" onsubmit="submitIssue(event, 'Staff');">
+            <form class="report-form" data-own-name onsubmit="submitIssue(event, 'Staff');">
                 <div class="form-grid">
                     <div class="form-row">
                         <label for="staff-name">Full Name</label>
@@ -48,10 +48,6 @@
                     <div class="form-row">
                         <label for="staff-email">Email Address</label>
                         <input id="staff-email" name="email" type="email" placeholder="you@kreezby.com" required>
-                    </div>
-                    <div class="form-row">
-                        <label for="staff-branch">Branch / Store</label>
-                        <input id="staff-branch" name="branch" type="text" placeholder="Makati / BGC / Retail Store" required>
                     </div>
                     <div class="form-row">
                         <label for="staff-role">Staff Role</label>
@@ -104,10 +100,11 @@ function submitIssue(event, role) {
     if (window.KreezbyIssueReports) {
         KreezbyIssueReports.add({
             role: role,
-            submittedBy: (form.fullName && form.fullName.value) || '',
+            submittedBy: (form.fullName && form.fullName.value.trim()) || '',
+            ownName: true,
             contact: (form.email && form.email.value) || '',
             issueType: (form.issueType && form.issueType.value) || 'Other',
-            reference: (form.branch && form.branch.value) || '',
+            reference: '',
             description: (form.description && form.description.value) || '',
             notes: (form.steps && form.steps.value) || '',
             attachmentName: file ? file.name : '',

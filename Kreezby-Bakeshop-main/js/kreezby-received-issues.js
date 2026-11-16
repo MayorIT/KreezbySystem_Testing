@@ -111,9 +111,10 @@
                 '<span class="support-card-kicker">' + escapeHtml(row.id) + '</span>' +
                 '<h3>' + escapeHtml(row.issueType) + '</h3>' +
                 '<p><strong>' + escapeHtml(row.submittedBy) + '</strong> · ' + escapeHtml(row.role) + '</p>' +
+                (row.accountName && row.accountName !== row.submittedBy ? '<p>Sent from account: ' + escapeHtml(row.accountName) + '</p>' : '') +
                 '<p>' + escapeHtml(row.contact) + '</p>' +
                 '<p>Priority: ' + escapeHtml(row.priority) + '</p>' +
-                '<p>Reference: ' + escapeHtml(row.reference) + '</p>' +
+                (row.reference && row.reference !== '—' ? '<p>Reference: ' + escapeHtml(row.reference) + '</p>' : '') +
                 '<p>' + escapeHtml(row.description) + '</p>' +
                 (row.notes ? '<p>' + escapeHtml(row.notes) + '</p>' : '') +
                 '<p>Received ' + escapeHtml(KreezbyIssueReports.formatReceived(row.submittedAt)) + '</p>' +
