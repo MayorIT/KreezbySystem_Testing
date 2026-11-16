@@ -225,6 +225,9 @@
             '</div>';
     }
 
+    var TERM_LABELS = { cod: 'COD', cons: 'Consignment', check: 'Check' };
+    var TERM_KEYS = ['cons', 'cod', 'check'];
+
     function readTerms(value) {
         return value === 'cod' || value === 'check' ? value : 'cons';
     }

@@ -2942,11 +2942,10 @@ app.get("/", (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kreezby Bakeshop — Chocolate Crinkles</title>
   <meta name="description" content="Kreezby Bakeshop — home of Kreezby Chocolate Crinkles. Order crinkles online for delivery or pick-up, or become a Kreezby retail partner.">
-  <link rel="canonical" href="${SITE_URL}/Kreezby-Bakeshop-main/auth/start.html">
-  <meta http-equiv="refresh" content="0; url=/auth/start.html">
 </head>
 <body>
   <p><a href="/auth/start.html">Open Kreezby Bakeshop</a></p>
+  <script>location.replace("/auth/start.html");</script>
 </body>
 </html>`);
 });
