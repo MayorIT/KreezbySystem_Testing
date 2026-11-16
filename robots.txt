@@ -1,0 +1,14 @@
+# Kreezby Bakeshop: the public shop pages can be searched; staff, admin and retailer portals cannot.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /Kreezby-Bakeshop-main/admin/
+Disallow: /Kreezby-Bakeshop-main/head_admin/
+Disallow: /Kreezby-Bakeshop-main/staff/
+Disallow: /Kreezby-Bakeshop-main/retailer/
+Disallow: /Kreezby-Bakeshop-main/data/
+Disallow: /Kreezby-Bakeshop-main/customer/checkout-customer.html
+Disallow: /Kreezby-Bakeshop-main/customer/inbox-customer.html
+Disallow: /Kreezby-Bakeshop-main/customer/report_issue-customer.html
+
+Sitemap: https://kreezby-system-testing.vercel.app/sitemap.xml
