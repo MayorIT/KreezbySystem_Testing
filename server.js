@@ -1059,7 +1059,10 @@ app.get("/api/sales-list", async (req, res) => {
   try {
     const col = salesListCollection();
     const meta = await col.findOne({ _id: "_meta" }) || {};
-    const reports = await col.find({ _id: { $ne: "_meta" } }).sort({ reportDate: 1, _id: 1 }).toArray();
+    // ?from=YYYY-MM-DD (Retailer Delivery): only sheets from that date on, so it loads quickly.
+    const from = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.from || "")) ? String(req.query.from) : "";
+    const filter = from ? { _id: { $ne: "_meta" }, reportDate: { $gte: from } } : { _id: { $ne: "_meta" } };
+    const reports = await col.find(filter).sort({ reportDate: 1, _id: 1 }).toArray();
     await retailerRecords.tagSheets(client.db(DB_NAME), reports);
     const dailyReports = reports.map((doc) => {
       const report = { ...doc, id: doc.id || String(doc._id) };
@@ -1340,6 +1343,11 @@ app.get("/api/retailer-records", async (req, res) => {
     if (!accountId) {
       // Admin/staff without an account: list the retailer accounts and how many rows each has.
       const accounts = await db.collection("retailer_accounts").find({}, { projection: { name: 1, area: 1, usualPcs: 1, retailerPrice: 1 } }).sort({ name: 1 }).toArray();
+      // ?lite=1 (Retailer Delivery): just the shops, without reading every route sheet for row counts.
+      if (req.query.lite) {
+        res.json({ ok: true, accounts: accounts.map((a) => ({ id: String(a._id), name: a.name || String(a._id), area: a.area || "", usualPcs: Number(a.usualPcs) || 0, retailerPrice: Number(a.retailerPrice) || 0 })) });
+        return;
+      }
       const reports = await salesListCollection().find({ _id: { $ne: "_meta" }, isTestData: { $ne: true } }).toArray();
       await retailerRecords.tagSheets(db, reports);
       const counts = {};

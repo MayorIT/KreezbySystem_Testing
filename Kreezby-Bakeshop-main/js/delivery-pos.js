@@ -103,12 +103,28 @@
         return value;
     }
 
+    // The shop list is kept in this browser too, so Retailer Delivery shows the shops at once and
+    // then updates from the server.
+    var SHOPS_CACHE = 'kz-dpos-shops';
+    function mapAccounts(list) {
+        return (list || []).map(function (a) {
+            return { id: a.id, name: a.name, area: a.area || '', source: areaForAccount(a.area), usualPcs: Number(a.usualPcs) || 0, price: Number(a.retailerPrice) || 0 };
+        });
+    }
+    function cachedAccounts() {
+        if (accounts.length) return accounts;
+        try {
+            var saved = JSON.parse(localStorage.getItem(SHOPS_CACHE) || '[]');
+            if (Array.isArray(saved) && saved.length) accounts = mapAccounts(saved);
+        } catch (e) { /* no copy yet */ }
+        return accounts;
+    }
+
     function loadAccounts() {
         if (accountsPromise) return accountsPromise;
-        accountsPromise = request('/api/retailer-records').then(function (data) {
-            accounts = (data.accounts || []).map(function (a) {
-                return { id: a.id, name: a.name, area: a.area || '', source: areaForAccount(a.area), usualPcs: Number(a.usualPcs) || 0, price: Number(a.retailerPrice) || 0 };
-            });
+        accountsPromise = request('/api/retailer-records?lite=1').then(function (data) {
+            accounts = mapAccounts(data.accounts);
+            try { localStorage.setItem(SHOPS_CACHE, JSON.stringify(data.accounts || [])); } catch (e) { /* optional */ }
             return accounts;
         }).catch(function () {
             accountsPromise = null;
@@ -117,11 +133,24 @@
         return accountsPromise;
     }
 
-    function loadSheets() {
-        return request('/api/sales-list').then(function (data) {
+    // Only recent route sheets are needed: the chosen date's sheet and each shop's last delivery
+    // (for consignment collections), so sheets from 120 days before the date are loaded.
+    var sheetsFrom = '';
+    function windowStart(date) {
+        var d = /^\d{4}-\d{2}-\d{2}$/.test(date || '') ? new Date(date + 'T00:00:00') : new Date();
+        d.setDate(d.getDate() - 120);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function loadSheets(date) {
+        var from = windowStart(date);
+        return request('/api/sales-list?from=' + from).then(function (data) {
             sheets = (data.dailyReports || []).filter(function (s) { return !s.isTestData; });
+            sheetsFrom = from;
             return sheets;
         });
+    }
+    function sheetsCover(date) {
+        return !!sheetsFrom && windowStart(date) >= sheetsFrom;
     }
 
     function findSheet(date, source) {
@@ -501,7 +530,8 @@
     }
 
     function refresh(root) {
-        return loadSheets().then(function () {
+        return loadSheets(field(root, 'date').value).then(function () {
+            root.dataset.dirty = '';
             renderList(root);
         }).catch(function (err) {
             setStatus(root, (err && err.message) || 'Could not load the route sheets.', 'err');
@@ -509,6 +539,7 @@
     }
 
     function clearForm(root) {
+        root.dataset.dirty = '';
         root.querySelectorAll('tr[data-row]').forEach(function (tr) {
             tr.querySelectorAll('input').forEach(function (i) { i.value = ''; i.dataset.manual = ''; });
             markRow(tr);
@@ -575,7 +606,7 @@
         btn.textContent = 'Saving…';
         setStatus(root, '', '');
 
-        loadSheets().then(function () {
+        loadSheets(date).then(function () {
             var sheet = findSheet(date, area);
             var original = sheet ? (sheet.entries || []) : [];
             var used = {};
@@ -664,17 +695,31 @@
                 // Shops and route sheets are only fetched once Retailer Delivery is opened.
                 if (!root.dataset.loaded) {
                     root.dataset.loaded = '1';
-                    Promise.all([loadAccounts(), loadSheets().catch(function () { return []; })]).then(function () {
-                        var keepArea = field(root, 'area').value;
-                        field(root, 'area').innerHTML = AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
-                        field(root, 'area').value = keepArea;
-                        renderList(root);
+                    // Shops show at once (saved copy or the preload below); saved numbers fill in
+                    // as soon as the route sheets arrive.
+                    paintAreas();
+                    if (accounts.length) renderList(root);
+                    preload.then(function () {
+                        paintAreas();
+                        if (root.dataset.dirty !== '1') renderList(root);
                     });
-                } else {
+                } else if (root.dataset.dirty !== '1') {
                     refresh(root);
                 }
             }
         }
+        function paintAreas() {
+            var keepArea = field(root, 'area').value;
+            field(root, 'area').innerHTML = AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
+            field(root, 'area').value = keepArea || (AREAS[0] && AREAS[0].value) || '';
+        }
+        // Load shops and recent route sheets as soon as the POS page opens, before the
+        // Retailer Delivery tab is clicked.
+        cachedAccounts();
+        var preload = Promise.all([
+            loadAccounts(),
+            loadSheets(field(root, 'date').value).catch(function () { return []; })
+        ]);
         switcher.addEventListener('click', function (e) {
             var b = e.target.closest('button[data-mode]');
             if (b) show(b.getAttribute('data-mode'));
@@ -696,13 +741,20 @@
             });
         });
 
-        field(root, 'area').addEventListener('change', function () { setStatus(root, '', ''); renderList(root); });
-        field(root, 'date').addEventListener('change', function () { setStatus(root, '', ''); renderList(root); });
+        field(root, 'area').addEventListener('change', function () { setStatus(root, '', ''); root.dataset.dirty = ''; renderList(root); });
+        field(root, 'date').addEventListener('change', function () {
+            setStatus(root, '', '');
+            root.dataset.dirty = '';
+            renderList(root);
+            // A date further back than the loaded sheets: fetch that window too.
+            if (!sheetsCover(field(root, 'date').value)) refresh(root);
+        });
         var list = root.querySelector('[data-list]');
         list.addEventListener('input', function (e) {
             var tr = e.target.closest('tr[data-row]');
             if (!tr) return;
             var k = e.target.getAttribute('data-k');
+            root.dataset.dirty = '1';
             if (k === 'collected') e.target.dataset.manual = e.target.value === '' ? '' : '1';
             if (k === 'ordered' || k === 'pulled') updateRowCollected(root, tr);
             markRow(tr);
