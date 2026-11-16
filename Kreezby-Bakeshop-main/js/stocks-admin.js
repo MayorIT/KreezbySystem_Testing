@@ -170,7 +170,11 @@
         var query = searchBox ? String(searchBox.value || '').toLowerCase().trim() : '';
         return catalog().filter(function (item) {
             var isArchived = archived.indexOf(item.name) >= 0 || archived.indexOf(item.code) >= 0;
-            if (viewMode === 'archive' ? !isArchived : isArchived) return false;
+            if (viewMode === 'archive') {
+                if (!isArchived && !hasExpiredStock(item)) return false;
+            } else if (isArchived || !hasActiveStock(item)) {
+                return false;
+            }
             if (type !== 'all' && item.type !== type) return false;
             if (!query) return true;
             var hay = (item.code + ' ' + item.name + ' ' + item.unit + ' ' + typeLabel(item.type)).toLowerCase();
@@ -274,7 +278,7 @@
             // selling price and the alert level, never the quantity.
             '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>' +
             '<div class="action-popup-item" data-action="view" data-stock="' + esc(item.code) + '">View History</div>' +
-            (viewMode === 'archive'
+            (viewMode === 'archive' && manuallyArchived(item)
                 ? '<div class="action-popup-item" data-action="retrieve" data-stock="' + esc(item.code) + '">Retrieve</div>'
                 : '') +
             '</div></div>';
@@ -298,27 +302,64 @@
             '</div>';
     }
 
+    // Expired stock moves to the Archive by itself: a batch (or material) whose expiry date
+    // has passed is listed under Archive, not on the active list. Nothing is deleted.
+    function todayIso() {
+        var d = new Date();
+        var m = d.getMonth() + 1, day = d.getDate();
+        return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+    }
+
+    function isExpired(dateStr) {
+        var d = String(dateStr || '').slice(0, 10);
+        return /^\d{4}-\d{2}-\d{2}$/.test(d) && d < todayIso();
+    }
+
     // One table line per batch: the newest batch is "New stock", older batches are "Old stock".
     // Raw and packaging materials stay on one line with their expiry date.
-    function stockLines(item, qty) {
+    function allStockLines(item, qty) {
         var dict = window.KreezbyDictionary;
         if (item.type === 'finished-product' && dict && typeof dict.productBatches === 'function') {
             var split = dict.productBatches(item.name);
             var lines = [];
             split.batches.slice().reverse().forEach(function (b) {
                 if (!(b.remaining > 0)) return;
-                lines.push({ tag: b.is_new ? 'New stock' : 'Old stock', batch: b.batch_number, produced: b.production_date, expires: b.expiration_date, qty: b.remaining });
+                lines.push({ tag: b.is_new ? 'New stock' : 'Old stock', batch: b.batch_number, produced: b.production_date, expires: b.expiration_date, qty: b.remaining, expired: isExpired(b.expiration_date) });
             });
-            if (split.earlier > 0) lines.push({ tag: lines.length ? 'Old stock' : '', batch: '', produced: '', expires: '', qty: split.earlier });
+            if (split.earlier > 0) lines.push({ tag: lines.length ? 'Old stock' : '', batch: '', produced: '', expires: '', qty: split.earlier, expired: false });
             if (lines.length) return lines;
-            return [{ tag: '', batch: '', produced: '', expires: '', qty: qty }];
+            return [{ tag: '', batch: '', produced: '', expires: '', qty: qty, expired: false }];
         }
         var expires = '';
         if (dict && typeof dict.materialByName === 'function') {
             var material = dict.materialByName(item.name);
             if (material && material.expiration_date) expires = material.expiration_date;
         }
-        return [{ tag: '', batch: '', produced: '', expires: expires, qty: qty }];
+        return [{ tag: '', batch: '', produced: '', expires: expires, qty: qty, expired: qty > 0 && isExpired(expires) }];
+    }
+
+    function manuallyArchived(item, archived) {
+        archived = archived || archivedNames();
+        return archived.indexOf(item.name) >= 0 || archived.indexOf(item.code) >= 0;
+    }
+
+    // Lines shown for an item in the open view (active list or Archive).
+    function stockLines(item, qty) {
+        var lines = allStockLines(item, qty);
+        if (viewMode === 'archive') {
+            if (manuallyArchived(item)) return lines;
+            return lines.filter(function (line) { return line.expired; });
+        }
+        return lines.filter(function (line) { return !line.expired; });
+    }
+
+    function hasExpiredStock(item) {
+        return allStockLines(item, liveQty(item)).some(function (line) { return line.expired; });
+    }
+
+    function hasActiveStock(item) {
+        var lines = allStockLines(item, liveQty(item));
+        return lines.some(function (line) { return !line.expired; });
     }
 
     function render() {
@@ -329,7 +370,7 @@
         if (!info.rows.length) {
             body.innerHTML = '<tr class="po-empty-row"><td colspan="10">' +
                 (viewMode === 'archive'
-                    ? 'No archived items. Use Action, then Archive Item, on the active list.'
+                    ? 'No archived items. Stock moves here by itself once its expiry date has passed.'
                     : 'No stock items match this filter.') +
                 '</td></tr>';
         } else {
@@ -338,7 +379,9 @@
                 var low = qty <= lowLimit(item.type);
                 return stockLines(item, qty).map(function (line, lineIndex) {
                     var first = lineIndex === 0;
-                    var tag = line.tag ? ' <span class="status-pill-badge ' + (line.tag === 'New stock' ? 'received' : 'pending') + '" style="font-size:10px;padding:1px 7px;margin-left:4px;">' + line.tag + '</span>' : '';
+                    var tag = line.expired
+                        ? ' <span class="status-pill-badge" style="font-size:10px;padding:1px 7px;margin-left:4px;background:#ffebee;color:#c62828;">Expired</span>'
+                        : (line.tag ? ' <span class="status-pill-badge ' + (line.tag === 'New stock' ? 'received' : 'pending') + '" style="font-size:10px;padding:1px 7px;margin-left:4px;">' + line.tag + '</span>' : '');
                     var sub = line.batch ? '<div style="font-size:11px;color:#7a6558;margin-top:2px;">Batch ' + esc(line.batch) + '</div>' : '';
                     return '<tr class="stock-row' + (first ? '' : ' stock-batch-row') + '" data-stock-type="' + esc(item.type) + '" data-stock="' + esc(item.code) + '">' +
                         '<td class="po-col-num">' + (first ? (info.start + index) : '') + '</td>' +
@@ -565,9 +608,9 @@
     function syncArchiveChrome() {
         var title = document.querySelector('#stocks-master-list-panel-view .po-list-toolbar-title h3');
         var host = document.getElementById('stocks-record-host');
+        var archived = archivedNames();
         var archivedCount = catalog().filter(function (item) {
-            var archived = archivedNames();
-            return archived.indexOf(item.name) >= 0 || archived.indexOf(item.code) >= 0;
+            return manuallyArchived(item, archived) || hasExpiredStock(item);
         }).length;
         if (title) title.textContent = viewMode === 'archive' ? 'Archived Stocks' : 'List of Stocks';
         if (host) host.hidden = viewMode === 'archive';
