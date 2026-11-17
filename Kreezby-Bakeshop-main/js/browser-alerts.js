@@ -394,8 +394,51 @@
         }, 8000);
     }
 
+    // Expired stock: head admin and admin get one notification per expired batch (or material),
+    // sent automatically by whichever head admin, admin or staff page notices it first. The id is
+    // the same on every device and the "already notified" list is shared, so it is sent once.
+    var EXPIRY_NOTIFIED_KEY = 'kreezby_expiry_notified_v1';
+    function notifyExpired() {
+        var dict = window.KreezbyDictionary;
+        if (!dict || typeof dict.alerts !== 'function' || !window.KreezbyNotifications) return;
+        var list;
+        try { list = dict.alerts(); } catch (e) { return; }
+        var notified = readJson(EXPIRY_NOTIFIED_KEY, {});
+        if (!notified || typeof notified !== 'object' || Array.isArray(notified)) notified = {};
+        var stored = readJson(NOTES_KEY, []);
+        var storedIds = {};
+        (Array.isArray(stored) ? stored : []).forEach(function (n) { if (n && n.id) storedIds[n.id] = true; });
+        var changed = false;
+        (list || []).forEach(function (alert) {
+            if (!alert || alert.alert_type !== 'expired' || !alert.message) return;
+            // Raw and packaging materials have no expiry date on the Inventory, so they are not reported as expired.
+            if (/^(RM|PKG)-/i.test(String(alert.reference_id || ''))) return;
+            var msg = String(alert.message);
+            var dateMatch = msg.match(/expired on (\d{4}-\d{2}-\d{2})/);
+            var batchMatch = msg.match(/ batch (\S+) \(/);
+            var key = String(alert.reference_id || '') + '|' + (batchMatch ? batchMatch[1] : '') + '|' + (dateMatch ? dateMatch[1] : '');
+            var id = 'expired-' + key.replace(/[^A-Za-z0-9|.-]+/g, '_');
+            if (notified[key] || storedIds[id]) {
+                if (!notified[key]) { notified[key] = new Date().toISOString(); changed = true; }
+                return;
+            }
+            var name = msg.split(/ batch | \(| expired on /)[0];
+            window.KreezbyNotifications.push({
+                id: id,
+                title: name + ' has expired',
+                description: msg.replace(/ and cannot be sold\.$/, '.') + ' It was moved to Inventory › Expired and cannot be sold.',
+                source: 'alert',
+                audiences: ['head', 'admin']
+            });
+            notified[key] = new Date().toISOString();
+            changed = true;
+        });
+        if (changed) writeJson(EXPIRY_NOTIFIED_KEY, notified);
+    }
+
     function scanStock() {
         if (!allowedRole()) return;
+        try { notifyExpired(); } catch (e) { /* stock alerts below still run */ }
         var active = readJson(ACTIVE_KEY, {});
         if (!active || typeof active !== 'object') active = {};
         // Last stock count seen per item. A notification is sent only when an item

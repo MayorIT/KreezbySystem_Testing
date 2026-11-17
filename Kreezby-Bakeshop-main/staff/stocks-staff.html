@@ -7,21 +7,20 @@
 
 <script src="../js/kreezby-db-sync.js?v=20261027stock1"></script>
     <meta charset="UTF-8">
-        <meta name="view-transition" content="same-origin">
-    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="../css/shared/kreezby-turbo-nav.css">
     <title>Kreezby Bakeshop - Stocks Inventory (Staff)</title>
-    <link rel="stylesheet" href="../css/pages/staff/stocks-staff.css">
-    <link rel="stylesheet" href="../css/pages/staff/stocks-staff-polish.css?v=20261022b">
-
+    <link rel="stylesheet" href="../css/pages/admin/stocks-admin.css">
     <link rel="stylesheet" href="../css/shared/expandable-nav-tabs.css">
+    <link rel="stylesheet" href="../css/shared/order-tabbed-layout.css">
+    <link rel="stylesheet" id="po-theme-sheet" href="../css/pages/admin/po-theme.css?v=20261010palette">
     <link rel="stylesheet" href="../css/shared/portal-shell-layout.css">
     <link rel="stylesheet" href="../css/shared/admin-icon-sidebar.css?v=20260927active">
+
 </head>
-<body>
+<body class="po-admin-page" data-kreezby-portal="staff-stocks">
 <script>try{if(localStorage.getItem('kreezbySidebarCollapsed')==='1')document.body.classList.add('sidebar-collapsed');}catch(e){}</script>
-
-
 
     <header class="top-navbar-node">
         <div class="brand-logo-panel"><img src="../assets/logo/kreezby-logo.png" alt="Kreezby logo"></div>
@@ -40,662 +39,127 @@
     </header>
 
     <div class="core-viewport-wrapper">
-
         <aside class="dark-sidebar-panel" aria-label="Staff navigation"></aside>
 
         <turbo-frame id="kreezby-main-content" class="kreezby-turbo-main">
         <main class="workspace-view-canvas">
 
-            <div id="stocks-staff-master-block">
-                <div class="stk-summary" aria-label="Stock summary">
-                    <div class="stk-card"><span class="stk-card__icon" aria-hidden="true">📦</span><div><p class="stk-card__label">Total items</p><p class="stk-card__value" id="stk-total">0</p></div></div>
-                    <div class="stk-card stk-card--warn"><span class="stk-card__icon" aria-hidden="true">⚠️</span><div><p class="stk-card__label">Low stock</p><p class="stk-card__value" id="stk-low">0</p></div></div>
-                </div>
-                <div class="dashboard-split-layout">
-
-            <div class="panel-data-card">
-                <div class="panel-card-title-bar">
-                    <h3>List of Stocks</h3>
-                </div>
-                <div class="card-body-padded">
-                    
-                    <div class="datatable-filters-line">
-                        <div>
-                            Show 
-                            <select id="entries-per-page">
-                                <option value="10">10</option>
-                                <option value="25" selected>25</option>
-                                <option value="50">50</option>
-                            </select> 
-                            entries
-                            &nbsp;|&nbsp;
-                            Stock Type:
-                            <select id="stock-type-filter" onchange="filterStockType()">
-                                <option value="all">All Types</option>
-                                <option value="finished-product">Finished Product</option>
-                                <option value="raw-material">Raw Material</option>
-                                <option value="packaging-material">Packaging Material</option>
-                            </select>
+            <div id="stocks-master-list-panel-view">
+                <div class="panel-data-card po-tabbed-card">
+                    <div class="po-list-toolbar">
+                        <div class="po-list-toolbar-title">
+                            <h3>List of Stocks</h3>
+                            <span class="po-list-count" id="stocks-list-count"></span>
                         </div>
-                        <div>
-                            Search: <input type="text" id="stock-search-input" placeholder="Filter item name or code..." oninput="filterStockType()">
+                        <div class="po-list-toolbar-tools">
+                            <div class="stocks-view-switch" id="stocks-view-switch">
+                                <button type="button" class="stocks-view-btn is-active" data-stocks-view="active">Active</button>
+                                <button type="button" class="stocks-view-btn" data-stocks-view="expired">Expired</button>
+                                <button type="button" class="stocks-view-btn" data-stocks-view="archive">Archive</button>
+                            </div>
+                            <label class="po-page-size">Show
+                                <select id="stocks-page-size">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <label class="po-page-size">Type
+                                <select id="stocks-type-filter">
+                                    <option value="all">All types</option>
+                                    <option value="finished-product">Finished product</option>
+                                    <option value="raw-material">Raw material</option>
+                                    <option value="packaging-material">Packaging</option>
+                                </select>
+                            </label>
+                            <div class="search-field-wrap">
+                                <input type="text" id="stocks-search-input" placeholder="Item name or stock type...">
+                            </div>
                         </div>
                     </div>
-
-                    <table class="data-display-table">
-                        <thead>
-                            <tr style="background-color: #e4c9a3; color: #4e342e;">
-                                <th style="width: 50px;">#</th>
-                                <th>Item Code</th>
-                                <th>Stock Type</th>
-                                <th>Item Name</th>
-                                <th>Produced</th>
-                                <th>Expires</th>
-                                <th>Unit / Packaging</th>
-                                <th style="text-align: right;">In Stock Qty</th>
-                                <th style="text-align: right;">Cost Per Unit</th>
-                                <th style="text-align: center; width: 100px;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stocks-table-body">
-                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-cho-p chocolate crinkles pouch">
-                                <td>1</td>
-                                <td><strong>CRK-CHO-P</strong></td>
-                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
-                                <td>Chocolate Crinkles</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Pouches</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱165.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-1')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-1">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Chocolate Crinkles')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-alm-p choco-almond crinkles pouch">
-                                <td>2</td>
-                                <td><strong>CRK-ALM-P</strong></td>
-                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
-                                <td>Choco-Almond Crinkles</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Pouches</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱165.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-2')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-2">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Choco-Almond Crinkles')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-lem-p lemon crinkles pouch">
-                                <td>3</td>
-                                <td><strong>CRK-LEM-P</strong></td>
-                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
-                                <td>Lemon Crinkles</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Pouches</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱165.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-3')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-3">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Lemon Crinkles')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-but-p choco butternut crinkles pouch">
-                                <td>4</td>
-                                <td><strong>CRK-BUT-P</strong></td>
-                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
-                                <td>Choco Butternut Crinkles</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Pouches</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱200.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-4')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-4">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Choco Butternut Crinkles')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="finished-product" data-search="crk-mng-p mango crinkles pouch">
-                                <td>5</td>
-                                <td><strong>CRK-MNG-P</strong></td>
-                                <td><span class="stock-type-badge finished-product">Finished Product</span></td>
-                                <td>Mango Crinkles</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Pouches</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱165.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-5')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-5">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Mango Crinkles')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                                                        <tr class="stock-row" data-stock-type="raw-material" data-search="rm-wfl-01 wheat flour">
-                                <td>6</td>
-                                <td><strong>RM-WFL-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Wheat Flour</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱48.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-6')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-6">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Wheat Flour')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-wsg-01 white sugar">
-                                <td>7</td>
-                                <td><strong>RM-WSG-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>White Sugar</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱42.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-7')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-7">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'White Sugar')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-oil-01 vegetable oil">
-                                <td>8</td>
-                                <td><strong>RM-OIL-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Vegetable Oil</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱95.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-8')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-8">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Vegetable Oil')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-egg-01 egg">
-                                <td>9</td>
-                                <td><strong>RM-EGG-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Egg</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱9.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-9')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-9">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Egg')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-coc-01 cocoa">
-                                <td>10</td>
-                                <td><strong>RM-COC-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Cocoa</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱180.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-10')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-10">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Cocoa')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-bkp-01 baking powder">
-                                <td>11</td>
-                                <td><strong>RM-BKP-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Baking Powder</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱35.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-11')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-11">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Baking Powder')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-slt-01 salt">
-                                <td>12</td>
-                                <td><strong>RM-SLT-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Salt</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱18.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-12')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-12">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Salt')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-cfs-01 confectioner sugar">
-                                <td>13</td>
-                                <td><strong>RM-CFS-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Confectioner Sugar</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱55.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-13')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-13">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Confectioner Sugar')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="raw-material" data-search="rm-psb-01 potassium sorbate">
-                                <td>14</td>
-                                <td><strong>RM-PSB-01</strong></td>
-                                <td><span class="stock-type-badge raw-material">Raw Material</span></td>
-                                <td>Potassium Sorbate</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱220.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-14')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-14">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Potassium Sorbate')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-sup-01 stand up pouch">
-                                <td>15</td>
-                                <td><strong>PKG-SUP-01</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stand up pouch</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text high-stock">0</td>
-                                <td style="text-align: right;">₱12.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-15')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-15">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stand up pouch')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-cho stickers chocolate">
-                                <td>16</td>
-                                <td><strong>PKG-STK-CHO</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Chocolate)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-16')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-16">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Chocolate)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-alm stickers choco-almond">
-                                <td>17</td>
-                                <td><strong>PKG-STK-ALM</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Choco-Almond)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-17')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-17">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Choco-Almond)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-csh stickers choco-cashew">
-                                <td>18</td>
-                                <td><strong>PKG-STK-CSH</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Choco-Cashew)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-18')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-18">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Choco-Cashew)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-str stickers strawberry">
-                                <td>19</td>
-                                <td><strong>PKG-STK-STR</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Strawberry)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-19')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-19">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Strawberry)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-rvl stickers red velvet">
-                                <td>20</td>
-                                <td><strong>PKG-STK-RVL</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Red Velvet)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-20')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-20">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Red Velvet)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-lem stickers lemon">
-                                <td>21</td>
-                                <td><strong>PKG-STK-LEM</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Lemon)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-21')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-21">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Lemon)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-mel stickers melon">
-                                <td>22</td>
-                                <td><strong>PKG-STK-MEL</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Melon)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-22')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-22">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Melon)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-pan stickers pandan">
-                                <td>23</td>
-                                <td><strong>PKG-STK-PAN</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Pandan)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-23')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-23">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Pandan)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-ube stickers ube">
-                                <td>24</td>
-                                <td><strong>PKG-STK-UBE</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Ube)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-24')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-24">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Ube)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-mng stickers mango">
-                                <td>25</td>
-                                <td><strong>PKG-STK-MNG</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Mango)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-25')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-25">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Mango)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-but stickers choco butternut">
-                                <td>26</td>
-                                <td><strong>PKG-STK-BUT</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Choco Butternut)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-26')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-26">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Choco Butternut)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="stock-row" data-stock-type="packaging-material" data-search="pkg-stk-ast stickers assorted">
-                                <td>27</td>
-                                <td><strong>PKG-STK-AST</strong></td>
-                                <td><span class="stock-type-badge packaging-material">Packaging Material</span></td>
-                                <td>Stickers (Assorted)</td>
-                                <td class="dict-produced">—</td>
-                                <td class="dict-expires">—</td>
-                                <td>Quantity</td>
-                                <td style="text-align: right;" class="inventory-count-text low-warning">0</td>
-                                <td style="text-align: right;">₱3.00</td>
-                                <td style="text-align: center;">
-                                    <div class="action-menu-relative-container">
-                                        <button class="action-trigger-btn" onclick="toggleActionPopupMenu(event, 'pop-27')">Action ▾</button>
-                                        <div class="action-popup-menu" id="pop-27">
-                                            <div class="action-popup-item" onclick="handleStockAction('view', 'Stickers (Assorted)')">View History</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-</tbody>
-                    </table>
-                    <script>
-                    (function () {
-                        // Finished products show their selling price per pouch: the price head admin / admin saved,
-                        // else ₱165 (₱200 for Choco Butternut). Stock value is shown on the Stocks pages, not here.
-                        var saved = {};
-                        try { saved = (JSON.parse(localStorage.getItem('kreezby_data_dictionary_v1') || '{}') || {}).product_prices || {}; } catch (e) { saved = {}; }
-                        var peso = function (n) { return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
-                        document.querySelectorAll('#stocks-table-body .stock-row[data-stock-type="finished-product"]').forEach(function (row) {
-                            var cells = row.querySelectorAll('td');
-                            var code = String((cells[1] || {}).textContent || '').trim();
-                            var id = code === 'CRK-BUT-P' ? 'CRK-BUT-J' : (code === 'CRK-MNG-P' ? 'CRK-MNG-J' : code);
-                            var price = Number(saved[id]) > 0 ? Number(saved[id]) : (id === 'CRK-BUT-J' ? 200 : 165);
-                            if (cells[8]) cells[8].textContent = peso(price);
-                        });
-                        var rows = document.querySelectorAll('#stocks-table-body .stock-row');
-                        var low = 0;
-                        rows.forEach(function (row) {
-                            if (row.querySelector('.low-warning')) low += 1;
-                        });
-                        var set = function (id, text) { var el = document.getElementById(id); if (el) el.textContent = text; };
-                        set('stk-total', String(rows.length));
-                        set('stk-low', String(low));
-                    })();
-                    </script>
-
+                    <div class="card-body-padded po-list-body">
+                        <div id="stocks-record-host"></div>
+                        <div class="po-table-scroll-wrap">
+                            <table class="data-display-table" id="stocks-orders-table">
+                                <thead>
+                                    <tr>
+                                        <th class="po-col-num">#</th>
+                                        <th class="po-col-type">Stock Type</th>
+                                        <th class="po-col-name">Item Name</th>
+                                        <th class="po-col-date">Produced</th>
+                                        <th class="po-col-date">Expires</th>
+                                        <th class="po-col-unit">Unit</th>
+                                        <th class="po-col-qty">In Stock</th>
+                                        <th class="po-col-cost">Cost</th>
+                                        <th class="po-col-action">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stocks-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="datatable-footer-line" id="stocks-list-footer"></div>
+                    </div>
                 </div>
             </div>
 
+            <div id="stocks-details-panel" class="po-details-shell" style="display: none;">
+                <div class="panel-data-card po-details-card">
+                    <div class="po-details-topbar">
+                        <div>
+                            <p class="po-details-kicker">Stock</p>
+                            <h3 id="stocks-details-title">Details</h3>
+                        </div>
+                        <button class="po-details-back" id="stocks-details-back-btn" type="button">Back to list</button>
+                    </div>
+                    <div class="po-details-scroll">
+                        <div id="stocks-details-content"></div>
+                    </div>
                 </div>
             </div>
 
         </main>
+        <script>
+        (function () {
+            document.body.classList.add('po-admin-page');
+            var theme = document.getElementById('po-theme-sheet');
+            if (!theme) {
+                theme = document.createElement('link');
+                theme.id = 'po-theme-sheet';
+                theme.rel = 'stylesheet';
+                theme.setAttribute('data-po-owned', '1');
+                document.head.appendChild(theme);
+            }
+            theme.disabled = false;
+            if (theme.href.indexOf('20261008fix') < 0) theme.href = '../css/pages/admin/po-theme.css?v=20261010palette';
+            function start() {
+                if (window.StocksAdmin && window.StocksAdmin.bind) window.StocksAdmin.bind();
+            }
+            if (window.StocksAdmin && window.StocksAdmin.bind) {
+                start();
+                return;
+            }
+            var existing = document.getElementById('kreezby-stocks-frame-script');
+            if (existing) {
+                existing.addEventListener('load', start, { once: true });
+                return;
+            }
+            var script = document.createElement('script');
+            script.id = 'kreezby-stocks-frame-script';
+            script.src = '../js/stocks-admin.js?v=20261117cols';
+            script.onload = start;
+            document.body.appendChild(script);
+        })();
+        </script>
         </turbo-frame>
     </div>
 
-    <script>
-        function toggleActionPopupMenu(event, popupElementId) {
-            // Prevent event from bubbling up and closing immediately
-            event.stopPropagation();
-            
-            // Close all active dropdown elements first
-            const activeMenus = document.querySelectorAll('.action-popup-menu');
-            activeMenus.forEach(menu => {
-                if(menu.id !== popupElementId) {
-                    menu.classList.remove('active');
-                }
-            });
-
-            // Toggle target element state
-            const targetMenu = document.getElementById(popupElementId);
-            targetMenu.classList.toggle('active');
-            targetMenu.style.removeProperty('display');
-        }
-
-        // Close popup menus instantly when user clicks anywhere outside options frame surfaces
-        window.addEventListener('click', function() {
-            const activeMenus = document.querySelectorAll('.action-popup-menu');
-            activeMenus.forEach(menu => {
-                menu.classList.remove('active');
-            });
-        });
-
-        function filterStockType() {
-            const typeFilter = document.getElementById('stock-type-filter').value;
-            const searchQuery = (document.getElementById('stock-search-input').value || '').toLowerCase().trim();
-            const rows = document.querySelectorAll('#stocks-table-body .stock-row');
-
-            let visibleIndex = 0;
-            rows.forEach((row) => {
-                const matchesType = typeFilter === 'all' || row.dataset.stockType === typeFilter;
-                const matchesSearch = !searchQuery || (row.dataset.search || '').includes(searchQuery);
-                const visible = matchesType && matchesSearch;
-                row.style.display = visible ? '' : 'none';
-                if (visible) {
-                    visibleIndex += 1;
-                    row.querySelector('td').textContent = String(visibleIndex);
-                }
-            });
-        }
-    </script>
+    <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
+    <script src="../js/kreezby-data-dictionary.js?v=20261027stock1"></script>
+    <script src="../js/stocks-admin.js?v=20261117cols"></script>
+    <script src="../js/action-menu.js?v=20260924c"></script>
     <script src="../js/staff-permissions.js?v=20261022menu4"></script>
-        <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
-        <script src="../js/staff-sidebar.js?v=20261022menu4"></script>
-<script src="../js/sidebar-toggle.js?v=20261005one"></script>
+    <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
+    <script src="../js/staff-sidebar.js?v=20261022menu4"></script>
+    <script src="../js/sidebar-toggle.js?v=20261005one"></script>
 </body>
 </html>

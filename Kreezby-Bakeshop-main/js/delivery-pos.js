@@ -174,54 +174,87 @@
     }
 
     function injectStyle() {
-        if (document.getElementById('kz-dpos-style')) return;
+        var old = document.getElementById('kz-dpos-style');
+        if (old && old.getAttribute('data-v') === '20261117layout') return;
+        if (old) old.parentNode.removeChild(old);
         var s = document.createElement('style');
         s.id = 'kz-dpos-style';
+        s.setAttribute('data-v', '20261117layout');
         s.textContent =
             '.dpos-switch{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}' +
-            '.dpos-switch button{border:1px solid #e0d6ce;background:#fff;color:#5d4037;border-radius:999px;padding:9px 18px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}' +
+            '.dpos-switch button{border:1px solid #e0d6ce;background:#fff;color:#5d4037;border-radius:999px;padding:9px 18px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}' +
             '.dpos-switch button.is-active{background:#ffca28;border-color:#ffca28;color:#3d2c2a}' +
-            '#delivery-pos{padding:20px 22px}' +
-            '#delivery-pos h3{margin:0;font-size:18px;color:#3d2c2a}' +
-            '#delivery-pos .dpos-sub{margin:4px 0 18px;color:#8a817c;font-size:13px}' +
-            '.dpos-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:14px}' +
-            '.dpos-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}' +
-            '.dpos-grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}' +
-            '.dpos-grid.six{grid-template-columns:repeat(6,minmax(0,1fr))}' +
-            '.dpos-calc{margin:-4px 0 14px;padding:9px 12px;border-radius:10px;background:#fff8e1;color:#5d4037;font-size:13px;font-weight:600}' +
-            '.dpos-calc[hidden]{display:none}' +
-            '.dpos-field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#5d4037;text-transform:uppercase;letter-spacing:.03em}' +
-            '.dpos-field small{font-weight:600;text-transform:none;letter-spacing:0;color:#9a918b}' +
-            '.dpos-field input,.dpos-field select{padding:10px 12px;border:1px solid #d7ccc8;border-radius:10px;font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:#2b241f;background:#fff}' +
-            '.dpos-field input:focus,.dpos-field select:focus{outline:2px solid #ffca28;border-color:#ffca28}' +
-            '.dpos-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 22px}' +
-            '.dpos-save{background:#3d2c2a;color:#fff;border:none;border-radius:10px;padding:11px 22px;font:inherit;font-weight:700;cursor:pointer}' +
-            '.dpos-save[disabled]{opacity:.6;cursor:wait}' +
-            '.dpos-clear{background:#fff;border:1px solid #d7ccc8;border-radius:10px;padding:10px 16px;font:inherit;cursor:pointer;color:#5d4037}' +
-            '.dpos-status{font-size:13px;font-weight:600}.dpos-status.ok{color:#2e7d32}.dpos-status.err{color:#c62828}' +
-            '.dpos-list h4{margin:0 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#3e2723}' +
-            '.dpos-table{width:100%;border-collapse:collapse;font-size:14px}' +
-            '.dpos-table th,.dpos-table td{padding:9px 12px;border-bottom:1px solid #efe6df;text-align:left}' +
-            '.dpos-table th{background:#fbf6f2;color:#5d4037;font-size:12px;text-transform:uppercase;letter-spacing:.03em}' +
-            '.dpos-table .n{text-align:right;white-space:nowrap}' +
-            '.dpos-table tr[data-shop]{cursor:pointer}.dpos-table tr[data-shop]:hover td{background:#fffaf0}' +
-            '.dpos-table tr.dpos-unrecorded td{color:#9a8f88;font-style:italic}' +
-            '.dpos-empty{color:#8d6e63;padding:14px 0}' +
-            '.dpos-grid.dpos-grid-2{grid-template-columns:repeat(2,minmax(0,260px))}' +
-            '.dpos-sheet-wrap{overflow-x:auto;border:1px solid #efe6df;border-radius:12px;margin-bottom:14px}' +
-            '.dpos-sheet{min-width:980px}.dpos-sheet td{padding:6px 8px;vertical-align:middle}.dpos-sheet th{padding:9px 8px}' +
-            '.dpos-sheet input,.dpos-sheet select{width:100%;box-sizing:border-box;padding:7px 8px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;background:#fff;color:#2b241f}' +
-            '.dpos-sheet input[type=number]{width:84px;text-align:right}.dpos-sheet input[data-k=collected]{width:104px}' +
-            '.dpos-sheet input:focus,.dpos-sheet select:focus{outline:2px solid #ffca28;border-color:#ffca28}' +
-            '.dpos-sheet input:disabled{background:#f5f1ee;color:#b0a7a1}' +
-            '.dpos-sheet .dpos-num{color:#9a8f88;width:32px}.dpos-sheet .dpos-shop{font-weight:700;color:#3d2c2a;min-width:180px}' +
-            '.dpos-sheet tr.dpos-row-on td{background:#fffbea}' +
-            '.dpos-sheet .dpos-price{display:block;font-weight:600;font-size:11px;color:#8d6e63}' +
-            '.dpos-sheet tbody tr:hover td{background:#fffaf0}' +
-            '@media (max-width:560px){.dpos-grid.dpos-grid-2{grid-template-columns:1fr}}' +
-            '@media (max-width:1100px){.dpos-grid.six{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
-            '@media (max-width:900px){.dpos-grid,.dpos-grid.four,.dpos-grid.five,.dpos-grid.six{grid-template-columns:1fr 1fr}}' +
-            '@media (max-width:560px){.dpos-grid,.dpos-grid.four,.dpos-grid.five,.dpos-grid.six{grid-template-columns:1fr}}';
+            '#delivery-pos{padding:22px 24px;min-width:0;box-sizing:border-box}' +
+            '#delivery-pos *{box-sizing:border-box}' +
+            /* Header */
+            '#delivery-pos .dpos-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}' +
+            '#delivery-pos h3{margin:0;font-size:20px;line-height:1.25;color:#3d2c2a}' +
+            '#delivery-pos .dpos-sub{margin:6px 0 0;max-width:760px;color:#7d726c;font-size:13px;line-height:1.55}' +
+            /* Toolbar: date, area, recorded count */
+            '#delivery-pos .dpos-toolbar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:14px 16px;margin-bottom:16px;border:1px solid #efe6df;border-radius:14px;background:#fffaf4}' +
+            '#delivery-pos .dpos-field{display:flex;flex-direction:column;gap:6px;width:220px;max-width:100%;font-size:12px;font-weight:700;color:#5d4037;text-transform:uppercase;letter-spacing:.04em}' +
+            '#delivery-pos .dpos-field input,#delivery-pos .dpos-field select{width:100%;height:42px;padding:0 12px;border:1px solid #d7ccc8;border-radius:10px;font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:#2b241f;background:#fff}' +
+            '#delivery-pos .dpos-field input:focus,#delivery-pos .dpos-field select:focus{outline:2px solid #ffca28;border-color:#ffca28}' +
+            '#delivery-pos .dpos-recorded{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding:6px 14px;border-radius:12px;background:#fff;border:1px solid #efe6df;min-width:150px}' +
+            '#delivery-pos .dpos-recorded strong{font-size:20px;line-height:1.1;color:#3d2c2a}' +
+            '#delivery-pos .dpos-recorded span{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;white-space:nowrap}' +
+            '#delivery-pos .dpos-list h4{margin:0 0 10px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#3e2723;line-height:1.4}' +
+            '#delivery-pos .dpos-empty{color:#8d6e63;padding:18px;border:1px dashed #e0d6ce;border-radius:12px;text-align:center;margin:0}' +
+            /* Sheet: fixed column widths so nothing is squeezed; scrolls sideways when the screen is narrow */
+            '#delivery-pos .dpos-sheet-wrap{overflow-x:auto;border:1px solid #efe6df;border-radius:14px;margin-bottom:16px;background:#fff;-webkit-overflow-scrolling:touch}' +
+            '#delivery-pos table.dpos-sheet{width:100%;border:0!important;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:14px;margin:0}' +
+            '#delivery-pos .dpos-sheet th,#delivery-pos .dpos-sheet td{padding:10px 8px;border:0!important;border-bottom:1px solid #f1e9e3!important;text-align:left;vertical-align:middle;background:#fff}' +
+            '#delivery-pos .dpos-sheet tbody tr:last-child td{border-bottom:0!important}' +
+            '#delivery-pos .dpos-sheet thead th{position:sticky;top:0;z-index:2;background:#fbf6f2;color:#5d4037;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+            '#delivery-pos .dpos-sheet thead tr.dpos-group th{padding:8px 8px 4px;border-bottom:0!important;font-size:10.5px;color:#a1887f;text-align:center}' +
+            '#delivery-pos .dpos-sheet thead tr.dpos-group th.dpos-g{border-bottom:2px solid #f3dca4!important}' +
+            '#delivery-pos .dpos-sheet .n{text-align:center}' +
+            '#delivery-pos .dpos-sheet .dpos-num{color:#9a8f88;text-align:center;font-variant-numeric:tabular-nums}' +
+            '#delivery-pos .dpos-sheet .dpos-shop{font-weight:700;color:#3d2c2a;line-height:1.35;overflow-wrap:anywhere}' +
+            '#delivery-pos .dpos-sheet .dpos-price{display:block;margin-top:2px;font-weight:600;font-size:11.5px;color:#8d6e63}' +
+            /* Keep # and Shop visible while scrolling sideways */
+            '#delivery-pos .dpos-sheet .dpos-stick1{position:sticky;left:0;z-index:1}' +
+            '#delivery-pos .dpos-sheet .dpos-stick2{position:sticky;left:44px;z-index:1;box-shadow:1px 0 0 #efe6df}' +
+            '#delivery-pos .dpos-sheet thead .dpos-stick1,#delivery-pos .dpos-sheet thead .dpos-stick2{z-index:3}' +
+            '#delivery-pos .dpos-sheet input,#delivery-pos .dpos-sheet select{display:block;width:100%;min-width:0;height:38px;margin:0;padding:0 8px;border:1px solid #d7ccc8;border-radius:9px;font:inherit;font-size:14px;background:#fff;color:#2b241f}' +
+            '#delivery-pos .dpos-sheet select{padding-right:4px;text-overflow:ellipsis}' +
+            '#delivery-pos .dpos-sheet input[type=number]{text-align:center;font-variant-numeric:tabular-nums;-moz-appearance:textfield}' +
+            '#delivery-pos .dpos-sheet input[type=number]::-webkit-outer-spin-button,#delivery-pos .dpos-sheet input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}' +
+            '#delivery-pos .dpos-sheet input:focus,#delivery-pos .dpos-sheet select:focus{outline:2px solid #ffca28;border-color:#ffca28}' +
+            '#delivery-pos .dpos-sheet input:disabled{background:#f5f1ee;color:#b0a7a1;border-color:#ece5e1}' +
+            '#delivery-pos .dpos-sheet tbody tr:hover td{background:#fffaf0}' +
+            '#delivery-pos .dpos-sheet tbody tr.dpos-row-on td{background:#fff8dc}' +
+            '#delivery-pos .dpos-sheet tbody tr.dpos-row-on td.dpos-stick1{box-shadow:inset 3px 0 0 #ffca28}' +
+            /* Actions */
+            '#delivery-pos .dpos-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0;padding-top:4px}' +
+            '#delivery-pos .dpos-save{height:44px;background:#3d2c2a;color:#fff;border:none;border-radius:10px;padding:0 24px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}' +
+            '#delivery-pos .dpos-save[disabled]{opacity:.6;cursor:wait}' +
+            '#delivery-pos .dpos-clear{height:44px;background:#fff;border:1px solid #d7ccc8;border-radius:10px;padding:0 18px;font:inherit;font-weight:600;cursor:pointer;color:#5d4037;white-space:nowrap}' +
+            '#delivery-pos .dpos-status{flex:1 1 240px;font-size:13px;font-weight:600;line-height:1.45}#delivery-pos .dpos-status.ok{color:#2e7d32}#delivery-pos .dpos-status.err{color:#c62828}' +
+            /* Phone: each shop becomes its own card instead of a squeezed table row */
+            '@media (max-width:720px){' +
+                '#delivery-pos{padding:16px 14px}' +
+                '#delivery-pos h3{font-size:18px}' +
+                '#delivery-pos .dpos-toolbar{padding:12px;gap:10px}' +
+                '#delivery-pos .dpos-field{width:calc(50% - 5px)}' +
+                '#delivery-pos .dpos-recorded{margin-left:0;width:100%;flex-direction:row;justify-content:space-between;align-items:center}' +
+                '#delivery-pos .dpos-sheet-wrap{overflow:visible;border:0!important;box-shadow:none!important;background:transparent;border-radius:0}' +
+                '#delivery-pos table.dpos-sheet,#delivery-pos .dpos-sheet tbody{display:block;width:100%!important;min-width:0!important}' +
+                '#delivery-pos .dpos-sheet colgroup,#delivery-pos .dpos-sheet thead{display:none}' +
+                '#delivery-pos .dpos-sheet tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;padding:14px;margin-bottom:12px;border:1px solid #efe6df;border-radius:14px;background:#fff}' +
+                '#delivery-pos .dpos-sheet tbody tr.dpos-row-on{border-color:#ffca28;background:#fffbea}' +
+                '#delivery-pos .dpos-sheet tbody td,#delivery-pos .dpos-sheet tbody tr.dpos-row-on td,#delivery-pos .dpos-sheet tbody tr:hover td{display:block;position:static;padding:0;border:0!important;background:transparent;box-shadow:none;text-align:left}' +
+                '#delivery-pos .dpos-sheet tbody td[data-label]::before{content:attr(data-label);display:block;margin-bottom:4px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63}' +
+                '#delivery-pos .dpos-sheet td.dpos-num{display:none}' +
+                '#delivery-pos .dpos-sheet tbody td.dpos-stick2,#delivery-pos .dpos-sheet tbody td.n{box-shadow:none!important;text-align:left}' +
+                '#delivery-pos table.dpos-sheet{border:0!important;box-shadow:none!important;outline:0!important}' +
+                '#delivery-pos .dpos-sheet td.dpos-shop{grid-column:1 / -1;font-size:15px;padding-bottom:8px;border-bottom:1px solid #f1e9e3!important}' +
+                '#delivery-pos .dpos-sheet td.dpos-terms,#delivery-pos .dpos-sheet td.dpos-notes{grid-column:1 / -1}' +
+                '#delivery-pos .dpos-sheet input,#delivery-pos .dpos-sheet select{height:42px;font-size:16px}' +
+                '#delivery-pos .dpos-actions{position:sticky;bottom:0;z-index:4;margin:0 -14px -16px;padding:12px 14px;background:#fff;border-top:1px solid #efe6df}' +
+                '#delivery-pos .dpos-save{flex:1 1 auto}' +
+            '}' +
+            '@media (max-width:420px){#delivery-pos .dpos-field{width:100%}}';
         document.head.appendChild(s);
     }
 
@@ -237,14 +270,17 @@
 
     function formHtml() {
         var full = canRecordMoney();
-        return '<h3>Retailer Delivery</h3>' +
-            '<p class="dpos-sub">Every shop of the area is listed. Type the numbers for the shops delivered to, then press <strong>Save delivery</strong>. Only shops with a number are recorded; they show on the <strong>Retailer</strong> sales list right away.' +
-            (full ? ' Collected fills in by itself (COD: today\'s delivery; Consignment: the last delivery) and can be changed.' : '') + '</p>' +
-            '<div class="dpos-grid dpos-grid-2">' +
+        return '<div class="dpos-head"><div>' +
+                '<h3>Retailer Delivery</h3>' +
+                '<p class="dpos-sub">Every shop of the area is listed. Type the numbers for the shops delivered to, then press <strong>Save delivery</strong>. Only shops with a number are recorded; they show on the <strong>Retailer</strong> sales list right away.' +
+                (full ? ' Collected fills in by itself (COD: today\'s delivery; Consignment: the last delivery) and can be changed.' : '') + '</p>' +
+            '</div></div>' +
+            '<div class="dpos-toolbar">' +
                 '<label class="dpos-field">Delivery date<input type="date" data-f="date"></label>' +
                 '<label class="dpos-field">Area<select data-f="area">' + AREAS.map(function (a) {
                     return '<option value="' + a.value + '">' + esc(a.label) + '</option>';
                 }).join('') + '</select></label>' +
+                '<div class="dpos-recorded" aria-live="polite"><span>Shops recorded</span><strong data-recorded>0 of 0</strong></div>' +
             '</div>' +
             '<div class="dpos-list"><h4 data-list-title>Shops</h4><div data-list><p class="dpos-empty">Loading shops…</p></div></div>' +
             '<div class="dpos-actions">' +
@@ -467,8 +503,9 @@
     function updateCount(root) {
         var rows = root.querySelectorAll('tr[data-row]');
         var on = root.querySelectorAll('tr[data-row].dpos-row-on').length;
-        root.querySelector('[data-list-title]').textContent = 'Shops · ' + areaLabel(field(root, 'area').value) + ' · ' +
-            (field(root, 'date').value || '—') + ' · ' + on + ' of ' + rows.length + ' recorded';
+        root.querySelector('[data-list-title]').textContent = 'Shops · ' + areaLabel(field(root, 'area').value) + ' · ' + (field(root, 'date').value || '—');
+        var rec = root.querySelector('[data-recorded]');
+        if (rec) rec.textContent = on + ' of ' + rows.length;
     }
 
     function numInput(key, value, placeholder) {
@@ -499,25 +536,35 @@
             updateCount(root);
             return;
         }
-        host.innerHTML = '<div class="dpos-sheet-wrap"><table class="dpos-table dpos-sheet"><thead><tr><th>#</th><th>Shop</th><th>Terms</th><th class="n">Ordered</th><th class="n">Staff</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
-            (full ? '<th class="n">Expired</th><th class="n">Collected ₱</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
+        // Fixed column widths (px) so the terms, numbers and notes are never squeezed.
+        var cols = [44, 230, 148, 96, 96, 108, 104].concat(full ? [96, 132] : []).concat([220]);
+        var tableWidth = cols.reduce(function (t, w) { return t + w; }, 0);
+        var qtyCount = full ? 5 : 4;
+        host.innerHTML = '<div class="dpos-sheet-wrap"><table class="dpos-table dpos-sheet" style="min-width:' + tableWidth + 'px">' +
+            '<colgroup>' + cols.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('') + '</colgroup>' +
+            '<thead><tr class="dpos-group"><th class="dpos-stick1"></th><th class="dpos-stick2"></th><th></th>' +
+                '<th class="dpos-g" colspan="' + qtyCount + '">Quantity (pcs)</th>' +
+                (full ? '<th class="dpos-g">Payment</th>' : '') + '<th></th></tr>' +
+            '<tr><th class="dpos-stick1 n">#</th><th class="dpos-stick2">Shop</th><th>Terms</th>' +
+                '<th class="n">Ordered</th><th class="n">Staff</th><th class="n">Pulled out</th><th class="n">Replaced</th>' +
+                (full ? '<th class="n">Expired</th><th class="n">Collected (₱)</th>' : '') + '<th>Notes</th></tr></thead><tbody>' +
             rows.map(function (r, i) {
                 var e = r.entry && isRecorded(r.entry) ? r.entry : null;
                 var terms = e ? entryTerms(e) : 'cons';
                 var collected = e && terms !== 'check' && e.collected != null ? e.collected : '';
                 return '<tr data-row="' + i + '" data-name="' + esc(r.name) + '" data-id="' + esc(r.id) + '" data-price="' + (r.price || '') + '">' +
-                    '<td class="dpos-num">' + (i + 1) + '</td>' +
-                    '<td class="dpos-shop">' + esc(r.name) + (full && r.price ? '<small class="dpos-price">' + peso(r.price) + ' / pouch</small>' : '') + '</td>' +
-                    '<td><select data-k="terms">' + ['cons', 'cod', 'check'].map(function (t) {
+                    '<td class="dpos-num dpos-stick1">' + (i + 1) + '</td>' +
+                    '<td class="dpos-shop dpos-stick2">' + esc(r.name) + (full && r.price ? '<small class="dpos-price">' + peso(r.price) + ' / pouch</small>' : '') + '</td>' +
+                    '<td class="dpos-terms" data-label="Terms"><select data-k="terms" aria-label="Terms">' + ['cons', 'cod', 'check'].map(function (t) {
                         return '<option value="' + t + '"' + (t === terms ? ' selected' : '') + '>' + TERM_LABELS[t] + '</option>';
                     }).join('') + '</select></td>' +
-                    '<td class="n">' + numInput('ordered', e ? orderedOf(e) : '', r.usual ? String(r.usual) : '') + '</td>' +
-                    '<td class="n">' + numInput('staff', e ? e.staff : '') + '</td>' +
-                    '<td class="n">' + numInput('pulled', e ? e.po : '') + '</td>' +
-                    '<td class="n">' + numInput('replaced', e ? e.replaced : '') + '</td>' +
-                    (full ? '<td class="n">' + numInput('expired', e ? e.expired : '') + '</td>' +
-                        '<td class="n">' + numInput('collected', collected) + '</td>' : '') +
-                    '<td><input type="text" maxlength="100" data-k="notes" value="' + esc(e ? cleanNotes(e.notes) : '') + '" placeholder="Reason / notes"></td>' +
+                    '<td class="n" data-label="Ordered">' + numInput('ordered', e ? orderedOf(e) : '', r.usual ? String(r.usual) : '') + '</td>' +
+                    '<td class="n" data-label="Staff">' + numInput('staff', e ? e.staff : '') + '</td>' +
+                    '<td class="n" data-label="Pulled out">' + numInput('pulled', e ? e.po : '') + '</td>' +
+                    '<td class="n" data-label="Replaced">' + numInput('replaced', e ? e.replaced : '') + '</td>' +
+                    (full ? '<td class="n" data-label="Expired">' + numInput('expired', e ? e.expired : '') + '</td>' +
+                        '<td class="n" data-label="Collected (₱)">' + numInput('collected', collected) + '</td>' : '') +
+                    '<td class="dpos-notes" data-label="Notes"><input type="text" maxlength="100" data-k="notes" value="' + esc(e ? cleanNotes(e.notes) : '') + '" placeholder="Reason / notes" aria-label="Notes"></td>' +
                     '</tr>';
             }).join('') + '</tbody></table></div>';
         host.querySelectorAll('tr[data-row]').forEach(function (tr) {

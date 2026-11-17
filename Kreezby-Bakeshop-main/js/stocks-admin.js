@@ -171,13 +171,16 @@
         return catalog().filter(function (item) {
             var isArchived = archived.indexOf(item.name) >= 0 || archived.indexOf(item.code) >= 0;
             if (viewMode === 'archive') {
-                if (!isArchived && !hasExpiredStock(item)) return false;
+                // Archive: items put away by hand. Expired stock has its own Expired list.
+                if (!isArchived) return false;
+            } else if (viewMode === 'expired') {
+                if (!hasExpiredStock(item)) return false;
             } else if (isArchived || !hasActiveStock(item)) {
                 return false;
             }
             if (type !== 'all' && item.type !== type) return false;
             if (!query) return true;
-            var hay = (item.code + ' ' + item.name + ' ' + item.unit + ' ' + typeLabel(item.type)).toLowerCase();
+            var hay = (item.name + ' ' + typeLabel(item.type)).toLowerCase();
             return hay.indexOf(query) >= 0;
         });
     }
@@ -269,6 +272,12 @@
         positionOpenMenu(menu, btn);
     }
 
+    // Staff see the stock and its history; Edit (price / alert level) and Retrieve are for head admin and admin.
+    function isStaffPage() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return path.indexOf('/staff/') >= 0 || path.indexOf('/staff_names/') >= 0;
+    }
+
     function buildMenu(item) {
         var menuId = 'stock-act-menu-' + item.code.replace(/[^a-zA-Z0-9-]/g, '');
         return '<div class="action-menu-relative-container" data-kreezby-page-menu>' +
@@ -276,9 +285,9 @@
             '<div class="action-popup-menu" id="' + menuId + '">' +
             // Stocks are add-only: no Adjust Stock or Archive (delete). Edit changes only the
             // selling price and the alert level, never the quantity.
-            '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>' +
+            (isStaffPage() ? '' : '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>') +
             '<div class="action-popup-item" data-action="view" data-stock="' + esc(item.code) + '">View History</div>' +
-            (viewMode === 'archive' && manuallyArchived(item)
+            (viewMode === 'archive' && manuallyArchived(item) && !isStaffPage()
                 ? '<div class="action-popup-item" data-action="retrieve" data-stock="' + esc(item.code) + '">Retrieve</div>'
                 : '') +
             '</div></div>';
@@ -290,7 +299,9 @@
         if (count) {
             count.textContent = viewMode === 'archive'
                 ? info.total + (info.total === 1 ? ' archived item' : ' archived items')
-                : info.total + (info.total === 1 ? ' item' : ' items');
+                : viewMode === 'expired'
+                    ? info.total + (info.total === 1 ? ' expired item' : ' expired items')
+                    : info.total + (info.total === 1 ? ' item' : ' items');
         }
         if (!footer) return;
         footer.innerHTML =
@@ -302,8 +313,8 @@
             '</div>';
     }
 
-    // Expired stock moves to the Archive by itself: a batch (or material) whose expiry date
-    // has passed is listed under Archive, not on the active list. Nothing is deleted.
+    // Expired stock moves to the Expired list by itself: a batch (or material) whose expiry date
+    // has passed is listed under Expired, never on the Active list. Nothing is deleted.
     function todayIso() {
         var d = new Date();
         var m = d.getMonth() + 1, day = d.getDate();
@@ -330,6 +341,8 @@
             if (lines.length) return lines;
             return [{ tag: '', batch: '', produced: '', expires: '', qty: qty, expired: false }];
         }
+        // Raw and packaging materials have no produced or expiry date on the Inventory, so they never expire here.
+        if (noDates(item)) return [{ tag: '', batch: '', produced: '', expires: '', qty: qty, expired: false }];
         var expires = '';
         if (dict && typeof dict.materialByName === 'function') {
             var material = dict.materialByName(item.name);
@@ -343,13 +356,11 @@
         return archived.indexOf(item.name) >= 0 || archived.indexOf(item.code) >= 0;
     }
 
-    // Lines shown for an item in the open view (active list or Archive).
+    // Lines shown for an item in the open view (Active, Expired or Archive).
     function stockLines(item, qty) {
         var lines = allStockLines(item, qty);
-        if (viewMode === 'archive') {
-            if (manuallyArchived(item)) return lines;
-            return lines.filter(function (line) { return line.expired; });
-        }
+        if (viewMode === 'archive') return lines;
+        if (viewMode === 'expired') return lines.filter(function (line) { return line.expired; });
         return lines.filter(function (line) { return !line.expired; });
     }
 
@@ -367,16 +378,20 @@
         if (!body || !document.getElementById('stocks-master-list-panel-view')) return;
         var info = pageSlice(visibleItems());
         syncArchiveChrome();
+        syncRawColumns();
         if (!info.rows.length) {
-            body.innerHTML = '<tr class="po-empty-row"><td colspan="10">' +
+            body.innerHTML = '<tr class="po-empty-row"><td colspan="9">' +
                 (viewMode === 'archive'
-                    ? 'No archived items. Stock moves here by itself once its expiry date has passed.'
-                    : 'No stock items match this filter.') +
+                    ? 'No archived items.'
+                    : viewMode === 'expired'
+                        ? 'No expired stock. A batch moves here by itself once its expiry date has passed.'
+                        : 'No stock items match this filter.') +
                 '</td></tr>';
         } else {
             body.innerHTML = info.rows.map(function (item, index) {
                 var qty = liveQty(item);
                 var low = qty <= lowLimit(item.type);
+                var raw = noDates(item);
                 return stockLines(item, qty).map(function (line, lineIndex) {
                     var first = lineIndex === 0;
                     var tag = line.expired
@@ -385,12 +400,11 @@
                     var sub = line.batch ? '<div style="font-size:11px;color:#7a6558;margin-top:2px;">Batch ' + esc(line.batch) + '</div>' : '';
                     return '<tr class="stock-row' + (first ? '' : ' stock-batch-row') + '" data-stock-type="' + esc(item.type) + '" data-stock="' + esc(item.code) + '">' +
                         '<td class="po-col-num">' + (first ? (info.start + index) : '') + '</td>' +
-                        '<td class="po-col-code">' + (first ? '<a href="#" class="po-code-link" data-stock="' + esc(item.code) + '">' + esc(item.code) + '</a>' : '') + '</td>' +
                         '<td class="po-col-type">' + (first ? '<span class="status-pill-badge stock-type-badge ' + esc(item.type) + '">' + esc(typeLabel(item.type)) + '</span>' : '') + '</td>' +
-                        '<td class="po-col-name">' + esc(item.name) + tag + sub + '</td>' +
-                        '<td class="po-col-date">' + esc(line.produced || '—') + '</td>' +
-                        '<td class="po-col-date">' + esc(line.expires || '—') + '</td>' +
-                        '<td class="po-col-unit">' + esc(displayUnit(item, line.qty)) + '</td>' +
+                        '<td class="po-col-name"><a href="#" class="stock-name-link" data-stock="' + esc(item.code) + '">' + esc(item.name) + '</a>' + tag + sub + '</td>' +
+                        '<td class="po-col-date">' + (raw ? '' : esc(line.produced || '—')) + '</td>' +
+                        '<td class="po-col-date">' + (raw ? '' : esc(line.expires || '—')) + '</td>' +
+                        '<td class="po-col-unit">' + (raw ? '' : esc(displayUnit(item, line.qty))) + '</td>' +
                         '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + line.qty + '</span></td>' +
                         '<td class="po-col-cost">' + peso(item.cost) + '</td>' +
                         '<td class="po-col-action">' + (first ? buildMenu(item) : '') + '</td>' +
@@ -399,6 +413,53 @@
             }).join('');
         }
         renderFooter(info);
+    }
+
+    // Raw materials and packaging have no Unit, Produced or Expires.
+    function noDates(item) {
+        return !!item && (item.type === 'raw-material' || item.type === 'packaging-material');
+    }
+
+    // Unit, Produced and Expires are hidden when the list shows only raw materials or only
+    // packaging, and left empty on those rows in the mixed list. Items are told apart by their
+    // stock type (no item code column).
+    function syncRawColumns() {
+        var oldStyle = document.getElementById('stocks-raw-cols-style');
+        if (oldStyle && oldStyle.getAttribute('data-v') !== '20261117cols') { oldStyle.parentNode.removeChild(oldStyle); oldStyle = null; }
+        if (!oldStyle) {
+            var T = 'body.po-admin-page #stocks-orders-table';
+            var st = document.createElement('style');
+            st.id = 'stocks-raw-cols-style';
+            st.setAttribute('data-v', '20261117cols');
+            st.textContent = '#stocks-orders-table.is-raw-only .po-col-date,#stocks-orders-table.is-raw-only .po-col-unit{display:none!important;}'
+                + '#stocks-orders-table .po-col-code{display:none!important;}'
+                + '#stocks-orders-table .stock-name-link{color:inherit;text-decoration:none;font-weight:inherit;}'
+                + '#stocks-orders-table .stock-name-link:hover{text-decoration:underline;text-underline-offset:2px;}'
+                // Desktop and tablet: fixed column widths so nothing is squeezed or wrapped mid-value;
+                // the list scrolls sideways instead when the screen is narrower than the table.
+                + '@media (min-width:901px){'
+                + 'body.po-admin-page #stocks-master-list-panel-view .po-table-scroll-wrap{overflow-x:auto!important;}'
+                + T + '{table-layout:fixed!important;width:100%!important;min-width:1000px;}'
+                + T + '.is-raw-only{min-width:700px;}'
+                + T + ' th,' + T + ' td{padding-left:12px!important;padding-right:12px!important;vertical-align:middle!important;}'
+                + T + ' th{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;}'
+                + T + ' .po-col-num{width:44px!important;text-align:center!important;}'
+                + T + ' .po-col-type{width:164px!important;text-align:left!important;white-space:nowrap!important;}'
+                + T + ' .po-col-type .status-pill-badge{white-space:nowrap;}'
+                + T + ' .po-col-name{width:auto!important;min-width:180px;text-align:left!important;line-height:1.35;overflow-wrap:anywhere;}'
+                + T + ' .po-col-date{width:112px!important;text-align:left!important;white-space:nowrap!important;font-variant-numeric:tabular-nums;}'
+                + T + ' .po-col-unit{width:96px!important;text-align:left!important;white-space:nowrap!important;}'
+                + T + ' .po-col-qty{width:92px!important;text-align:right!important;white-space:nowrap!important;font-variant-numeric:tabular-nums;}'
+                + T + ' .po-col-cost{width:108px!important;text-align:right!important;white-space:nowrap!important;font-variant-numeric:tabular-nums;}'
+                + T + ' .po-col-action{width:116px!important;text-align:center!important;}'
+                + T + ' td.po-col-name .status-pill-badge{white-space:nowrap;display:inline-flex;vertical-align:middle;}'
+                + '}';
+            document.head.appendChild(st);
+        }
+        var table = document.getElementById('stocks-orders-table');
+        var typeFilter = document.getElementById('stocks-type-filter');
+        var type = typeFilter ? typeFilter.value : 'all';
+        if (table) table.classList.toggle('is-raw-only', type === 'raw-material' || type === 'packaging-material');
     }
 
     function scrollStocksToTop() {
@@ -458,15 +519,15 @@
             content.innerHTML =
                 '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
                 '<div class="po-detail-facts">' +
-                '<div><span>Item code</span><strong>' + esc(item.code) + '</strong></div>' +
-                '<div><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>' +
+                '<div><span>Stock type</span><strong>' + esc(typeLabel(item.type)) + '</strong></div>' +
+                (noDates(item) ? '' : '<div><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>') +
                 '<div><span>In stock</span><strong>' + liveQty(item) + '</strong></div>' +
                 '</div>' +
                 '<h3 class="po-detail-subtitle">Movement history</h3>' +
                 '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Date</th><th>Type</th><th>Quantity</th><th>Balance</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>' +
                 lines + '</tbody></table></div>';
         }
-        showDetails(item.code);
+        showDetails(item.name);
     }
 
     function alertAt(code) {
@@ -583,7 +644,7 @@
                 });
             }
         }
-        showDetails(item.code);
+        showDetails(item.name);
     }
 
     function retrieveItem(code) {
@@ -598,27 +659,45 @@
     }
 
     function setViewMode(mode) {
-        viewMode = mode === 'archive' ? 'archive' : 'active';
+        viewMode = mode === 'archive' || mode === 'expired' ? mode : 'active';
         listPage = 1;
         closeAllMenus();
         render();
         scrollStocksToTop();
     }
 
+    // Adds the Expired button between Active and Archive when the page does not have it yet.
+    function ensureExpiredButton() {
+        var bar = document.getElementById('stocks-view-switch');
+        if (!bar || bar.querySelector('[data-stocks-view="expired"]')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'stocks-view-btn';
+        btn.setAttribute('data-stocks-view', 'expired');
+        btn.textContent = 'Expired';
+        var archiveBtn = bar.querySelector('[data-stocks-view="archive"]');
+        bar.insertBefore(btn, archiveBtn || null);
+    }
+
     function syncArchiveChrome() {
+        ensureExpiredButton();
         var title = document.querySelector('#stocks-master-list-panel-view .po-list-toolbar-title h3');
         var host = document.getElementById('stocks-record-host');
         var archived = archivedNames();
-        var archivedCount = catalog().filter(function (item) {
-            return manuallyArchived(item, archived) || hasExpiredStock(item);
-        }).length;
-        if (title) title.textContent = viewMode === 'archive' ? 'Archived Stocks' : 'List of Stocks';
-        if (host) host.hidden = viewMode === 'archive';
+        var list = catalog();
+        var archivedCount = list.filter(function (item) { return manuallyArchived(item, archived); }).length;
+        var expiredCount = list.filter(function (item) { return hasExpiredStock(item); }).length;
+        if (title) title.textContent = viewMode === 'archive' ? 'Archived Stocks' : viewMode === 'expired' ? 'Expired Stocks' : 'List of Stocks';
+        if (host) host.hidden = viewMode !== 'active';
         document.querySelectorAll('#stocks-view-switch [data-stocks-view]').forEach(function (btn) {
-            var on = btn.getAttribute('data-stocks-view') === viewMode;
+            var view = btn.getAttribute('data-stocks-view');
+            var on = view === viewMode;
             btn.classList.toggle('is-active', on);
-            if (btn.getAttribute('data-stocks-view') === 'archive') {
-                btn.textContent = archivedCount ? 'Archive (' + archivedCount + ')' : 'Archive';
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            if (view === 'archive') btn.textContent = archivedCount ? 'Archive (' + archivedCount + ')' : 'Archive';
+            if (view === 'expired') {
+                btn.textContent = expiredCount ? 'Expired (' + expiredCount + ')' : 'Expired';
+                btn.classList.toggle('has-expired', expiredCount > 0);
             }
         });
     }
@@ -662,7 +741,7 @@
             var code = actionItem.getAttribute('data-stock');
             var action = actionItem.getAttribute('data-action');
             closeAllMenus();
-            if (action === 'edit') openEdit(code);
+            if (action === 'edit' && !isStaffPage()) openEdit(code);
             else if (action === 'view') openHistory(code);
             else if (action === 'adjust' || action === 'archive') showToast('Stock can only be added (Add stock), not changed or deleted.');
             else if (action === 'retrieve') retrieveItem(code);

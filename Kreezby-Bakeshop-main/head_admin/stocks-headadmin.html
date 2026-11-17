@@ -50,6 +50,7 @@
                         <div class="po-list-toolbar-tools">
                             <div class="stocks-view-switch" id="stocks-view-switch">
                                 <button type="button" class="stocks-view-btn is-active" data-stocks-view="active">Active</button>
+                                <button type="button" class="stocks-view-btn" data-stocks-view="expired">Expired</button>
                                 <button type="button" class="stocks-view-btn" data-stocks-view="archive">Archive</button>
                             </div>
                             <label class="po-page-size">Show
@@ -68,7 +69,7 @@
                                 </select>
                             </label>
                             <div class="search-field-wrap">
-                                <input type="text" id="stocks-search-input" placeholder="Item name, code, or unit...">
+                                <input type="text" id="stocks-search-input" placeholder="Item name or stock type...">
                             </div>
                         </div>
                     </div>
@@ -79,7 +80,6 @@
                                 <thead>
                                     <tr>
                                         <th class="po-col-num">#</th>
-                                        <th class="po-col-code">Item Code</th>
                                         <th class="po-col-type">Stock Type</th>
                                         <th class="po-col-name">Item Name</th>
                                         <th class="po-col-date">Produced</th>
@@ -141,7 +141,7 @@
             }
             var script = document.createElement('script');
             script.id = 'kreezby-stocks-frame-script';
-            script.src = '../js/stocks-admin.js?v=20261025asst';
+            script.src = '../js/stocks-admin.js?v=20261117cols';
             script.onload = start;
             document.body.appendChild(script);
         })();
@@ -151,7 +151,7 @@
 
     <script src="../js/kreezby-seed-portal-data.js?v=20261014rm"></script>
     <script src="../js/kreezby-data-dictionary.js?v=20261027stock1"></script>
-    <script src="../js/stocks-admin.js?v=20261025asst"></script>
+    <script src="../js/stocks-admin.js?v=20261117cols"></script>
     <script src="../js/action-menu.js?v=20260924c"></script>
     <script src="../js/user-dropdown-nav.js?v=20261022menu5"></script>
     <script src="../js/admin-sidebar.js?v=20261022menu4"></script>
