@@ -1324,6 +1324,111 @@ app.post("/api/change-password", async (req, res) => {
   }
 });
 
+// ---- Session lock (screen lock after inactivity) ----
+// A signed-in page locks itself when nobody uses it; it opens again only with that account's
+// password, checked here. Too many wrong passwords block the account's unlock for a while,
+// and every lock, unlock and failed try is written to the security_log collection.
+const UNLOCK_MAX_TRIES = 5;
+const UNLOCK_BLOCK_MS = 15 * 60 * 1000;
+const unlockTries = new Map();
+
+async function writeSecurityLog(token, event, req, extra) {
+  try {
+    if (!mongoReady) return;
+    await client.db(DB_NAME).collection("security_log").insertOne(Object.assign({
+      at: new Date(),
+      event: String(event || "").slice(0, 40),
+      accountId: token ? String(token.id) : "",
+      bucket: token ? String(token.bucket) : "",
+      ip: String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "").split(",")[0].trim(),
+      userAgent: String(req.headers["user-agent"] || "").slice(0, 200),
+    }, extra || {}));
+  } catch (error) {
+    console.error("Security log: " + error.message);
+  }
+}
+
+// Same password rules as log in and change password.
+async function accountPasswordMatches(token, password) {
+  const db = client.db(DB_NAME);
+  const accounts = db.collection(ACCOUNT_COLLECTIONS[token.bucket]);
+  const doc = await accounts.findOne({ _id: token.id });
+  if (!doc) return { found: false, valid: false };
+  if (doc.active === false) return { found: true, valid: false, deactivated: true };
+  const squash = (v) => String(v == null ? "" : v).trim().toLowerCase().replace(/[\s._-]+/g, "");
+  const shared = await collection().find({ _id: { $in: ["kreezbyAuthCredentials", "kreezby_maintenance_users"] } }).toArray();
+  const parse = (id) => {
+    const row = shared.find((d) => d._id === id);
+    try { return row && typeof row.value === "string" ? JSON.parse(row.value) : null; } catch (e) { return null; }
+  };
+  const creds = parse("kreezbyAuthCredentials") || {};
+  const users = parse("kreezby_maintenance_users") || {};
+  const sameAccount = (row) => row && [row.id, row.user_id, row.username, row.email].some((v) => v != null && String(v) !== "" &&
+    [doc._id, doc.id, doc.user_id, doc.username, doc.email].some((w) => w != null && loginKey(w) === loginKey(v)));
+  const list = Array.isArray(users[token.bucket]) ? users[token.bucket] : [];
+  const appRow = list.find(sameAccount);
+  const keys = [doc.username, doc.name, doc.email, doc.id, doc._id, doc.contact].map(squash).filter(Boolean);
+  const credPasswords = keys.map((k) => creds[k] && creds[k].password).filter(Boolean);
+  let valid = [doc.temporaryPassword, doc.password, appRow && appRow.temporaryPassword, appRow && appRow.password]
+    .concat(credPasswords).some((p) => p && String(p) === password);
+  const anyStored = doc.temporaryPassword || doc.password || doc.password_hash || (appRow && (appRow.temporaryPassword || appRow.password)) || credPasswords.length;
+  if (!valid && !anyStored && password === "kreezby123") valid = true;
+  if (!valid && doc.password_hash) {
+    try { valid = await require("bcryptjs").compare(password, String(doc.password_hash)); } catch (e) { valid = false; }
+  }
+  return { found: true, valid };
+}
+
+app.post("/api/unlock-session", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token || !ACCOUNT_COLLECTIONS[token.bucket]) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Your sign-in has ended. Please log in again." });
+    return;
+  }
+  const key = token.bucket + ":" + token.id;
+  const now = Date.now();
+  const entry = unlockTries.get(key) || { count: 0, until: 0 };
+  if (entry.until > now) {
+    res.status(429).json({ ok: false, needLogin: true, error: "Too many wrong passwords. Please log in again." });
+    return;
+  }
+  const password = String((req.body && req.body.password) || "");
+  if (!password) return res.status(400).json({ ok: false, error: "Enter your password." });
+  try {
+    const result = await accountPasswordMatches(token, password);
+    if (!result.found || result.deactivated) {
+      await writeSecurityLog(token, "unlock_refused", req);
+      res.status(403).json({ ok: false, needLogin: true, error: result.deactivated ? "This account is deactivated." : "Account not found." });
+      return;
+    }
+    if (!result.valid) {
+      entry.count += 1;
+      const left = Math.max(0, UNLOCK_MAX_TRIES - entry.count);
+      if (!left) { entry.until = now + UNLOCK_BLOCK_MS; entry.count = 0; }
+      unlockTries.set(key, entry);
+      await writeSecurityLog(token, "unlock_failed", req, { triesLeft: left });
+      res.status(403).json({ ok: false, triesLeft: left, needLogin: !left, error: left ? "Wrong password." : "Too many wrong passwords. Please log in again." });
+      return;
+    }
+    unlockTries.delete(key);
+    await writeSecurityLog(token, "unlocked", req);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// The page reports when it locks itself or ends the sign-in, for the security log.
+app.post("/api/security-event", async (req, res) => {
+  const token = retailerRecords.readToken(req);
+  const allowed = ["locked", "locked_manual", "auto_logout", "logout_from_lock"];
+  const event = String((req.body && req.body.event) || "");
+  if (!token || allowed.indexOf(event) < 0) return res.status(400).json({ ok: false });
+  await writeSecurityLog(token, event, req, { minutesIdle: Number(req.body.minutesIdle) || 0 });
+  res.json({ ok: true });
+});
+
 app.get("/api/retailer-records", async (req, res) => {
   if (!databaseReady(res)) return;
   const token = retailerRecords.readToken(req);

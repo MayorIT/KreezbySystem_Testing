@@ -1311,3 +1311,15 @@
   script.src = "../js/browser-alerts.js?v=20261117pkg";
   document.head.appendChild(script);
 })();
+
+// Screen lock: a signed-in head admin, admin, staff or retailer page locks itself when it is
+// left unused, and opens again only with the account's password (js/kreezby-session-lock.js).
+(function () {
+  var path = location.pathname || "";
+  if (!/\/(admin|admin_names|staff|staff_names|head_admin|retailer)\//i.test(path)) return;
+  if (document.getElementById("kreezby-session-lock-script")) return;
+  var script = document.createElement("script");
+  script.id = "kreezby-session-lock-script";
+  script.src = "../js/kreezby-session-lock.js?v=20261117";
+  (document.head || document.documentElement).appendChild(script);
+})();
