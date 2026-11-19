@@ -185,7 +185,7 @@
             lucena: 'Lucena', manila: 'Manila', rosario: 'Rosario', stotomas: 'Sto. Tomas',
             tagaytay: 'Tagaytay', quezoncity: 'Quezon City', iloilocity: 'Iloilo City'
         };
-        var areaLabel = areaNames[area] || (area ? area.charAt(0).toUpperCase() + area.slice(1) : 'Batangas City');
+        var areaLabel = areaNames[area] || (area ? area.charAt(0).toUpperCase() + area.slice(1) : 'Batangas');
         modal.innerHTML = '<div class="form-modal-box">' +
             '<div class="modal-form-header"><h2 id="po-modal-title">Create New Purchase Order Request</h2>' +
             '<button type="button" style="background:none;border:none;font-size:16px;cursor:pointer;" id="po-modal-close-btn">✕</button></div>' +

@@ -1,5 +1,5 @@
 /**
- * Order Error / Returns portal — list view, details, action menus (localStorage).
+ * Back Order / Returns portal — list view, details, action menus (localStorage).
  */
 (function () {
     'use strict';
@@ -835,7 +835,7 @@
         theme.href = root + 'css/pages/admin/po-theme.css?v=20261008sls';
     }
 
-    // Retailer tab = Order Errors (P.O / R summary from the route sheets), drawn by order-error-summary.js.
+    // Retailer tab = Back Orders (P.O / R summary from the route sheets), drawn by order-error-summary.js.
     function ensureOrderErrorSummary() {
         if (!document.querySelector('[data-order-error]')) return;
         if (window.KreezbyOrderErrors) { window.KreezbyOrderErrors.boot(); return; }

@@ -2,7 +2,7 @@
  * Retailer dashboard — same look as the head admin / admin operations dashboard,
  * built from the retailer's own route-sheet rows (GET /api/retailer-records, own rows only):
  *  - Sales List Summary: deliveries and collections
- *  - Order Error: Pull Out (P.O) and Replace (R) per delivery
+ *  - Back Order: Pull Out (P.O) and Replace (R) per delivery
  *  - Next Delivery: 2 weeks after the latest delivery
  */
 (function () {

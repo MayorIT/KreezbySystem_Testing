@@ -1324,6 +1324,54 @@ app.post("/api/change-password", async (req, res) => {
   }
 });
 
+// ---- Move a retailer shop to another delivery area (head admin and admin) ----
+// Updates the shop's account (retailer_accounts) and the shared account list, so Retailer
+// Delivery, the Delivery Schedule and Settings show it under the new area right away.
+// Past deliveries stay on the route sheets of the area they were delivered in.
+app.post("/api/move-retailer", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = retailerRecords.readToken(req);
+  if (!token) return res.status(401).json({ ok: false, error: "Please log out and log in again, then try again." });
+  if (token.bucket !== "admins") return res.status(403).json({ ok: false, error: "Only head admin and admin can move a shop." });
+  const accountId = String((req.body && req.body.accountId) || "").trim();
+  const shopName = String((req.body && req.body.name) || "").trim();
+  const area = String((req.body && req.body.area) || "").trim().replace(/\s+/g, " ");
+  if (!accountId && !shopName) return res.status(400).json({ ok: false, error: "Choose the shop to move." });
+  if (!area || area.length > 60) return res.status(400).json({ ok: false, error: "Choose the area to move the shop to." });
+  if (loginKey(area).replace(/[^a-z0-9]+/g, "") === "batangascity") return res.status(400).json({ ok: false, error: "Batangas City is not a delivery area." });
+  try {
+    const db = client.db(DB_NAME);
+    const shops = db.collection("retailer_accounts");
+    let doc = accountId ? await shops.findOne({ _id: accountId }) : null;
+    if (!doc && shopName) {
+      const all = await shops.find({}, { projection: { name: 1, area: 1 } }).toArray();
+      doc = all.find((row) => retailerKey(row.name) === retailerKey(shopName)) || null;
+    }
+    if (!doc) return res.status(404).json({ ok: false, error: "Shop not found." });
+    const from = String(doc.area || "");
+    if (loginKey(from) === loginKey(area)) return res.status(400).json({ ok: false, error: doc.name + " is already in " + area + "." });
+    const now = new Date();
+    await shops.updateOne({ _id: doc._id }, { $set: { area, areaMovedAt: now, updatedAt: now } });
+
+    // The shared account list (Settings › Retailers and every portal's copy).
+    const latest = await collection().findOne({ _id: "kreezby_maintenance_users" });
+    let users = {};
+    try { users = latest && typeof latest.value === "string" ? JSON.parse(latest.value) : {}; } catch (e) { users = {}; }
+    const list = Array.isArray(users.retailers) ? users.retailers : [];
+    const ids = [doc._id, doc.id, doc.user_id, doc.username].filter((v) => v != null && String(v) !== "").map(loginKey);
+    const row = list.find((r) => r && [r.id, r.user_id, r.username].some((v) => v != null && ids.indexOf(loginKey(v)) >= 0)) ||
+      list.find((r) => r && retailerKey(r.name) === retailerKey(doc.name));
+    if (row) {
+      row.area = area;
+      await persistUsersState(users);
+    }
+    await writeSecurityLog(token, "shop_moved", req, { shop: String(doc.name || ""), fromArea: from, toArea: area });
+    res.json({ ok: true, id: String(doc._id), name: doc.name, from, to: area });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // ---- Session lock (screen lock after inactivity) ----
 // A signed-in page locks itself when nobody uses it; it opens again only with that account's
 // password, checked here. Too many wrong passwords block the account's unlock for a while,

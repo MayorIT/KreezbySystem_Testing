@@ -225,6 +225,17 @@
             '#delivery-pos .dpos-sheet tbody tr:hover td{background:#fffaf0}' +
             '#delivery-pos .dpos-sheet tbody tr.dpos-row-on td{background:#fff8dc}' +
             '#delivery-pos .dpos-sheet tbody tr.dpos-row-on td.dpos-stick1{box-shadow:inset 3px 0 0 #ffca28}' +
+            /* Move shop (head admin / admin) */
+            '#delivery-pos .dpos-move-open{align-self:flex-end;height:42px;padding:0 16px;border:1px solid #d7ccc8;border-radius:10px;background:#fff;color:#5d4037;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}' +
+            '#delivery-pos .dpos-move-open:hover,#delivery-pos .dpos-move-open.is-open{border-color:#ffca28;background:#fff8e1}' +
+            '#delivery-pos .dpos-move{margin:-6px 0 16px;padding:14px 16px;border:1px solid #f3dca4;border-radius:14px;background:#fffdf5}' +
+            '#delivery-pos .dpos-move[hidden]{display:none}' +
+            '#delivery-pos .dpos-move-head{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}' +
+            '#delivery-pos .dpos-move-head strong{font-size:14px;color:#3d2c2a}' +
+            '#delivery-pos .dpos-move-head span{font-size:12.5px;color:#7d726c;line-height:1.45}' +
+            '#delivery-pos .dpos-move-fields{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}' +
+            '#delivery-pos .dpos-move-fields .dpos-field{width:240px}' +
+            '#delivery-pos .dpos-move .dpos-status{margin:8px 0 0;min-height:0}' +
             /* Actions */
             '#delivery-pos .dpos-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0;padding-top:4px}' +
             '#delivery-pos .dpos-save{height:44px;background:#3d2c2a;color:#fff;border:none;border-radius:10px;padding:0 24px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}' +
@@ -238,6 +249,9 @@
                 '#delivery-pos .dpos-toolbar{padding:12px;gap:10px}' +
                 '#delivery-pos .dpos-field{width:calc(50% - 5px)}' +
                 '#delivery-pos .dpos-recorded{margin-left:0;width:100%;flex-direction:row;justify-content:space-between;align-items:center}' +
+                '#delivery-pos .dpos-move-open{width:100%}' +
+                '#delivery-pos .dpos-move-fields .dpos-field{width:100%}' +
+                '#delivery-pos .dpos-move-fields button{flex:1 1 auto}' +
                 '#delivery-pos .dpos-sheet-wrap{overflow:visible;border:0!important;box-shadow:none!important;background:transparent;border-radius:0}' +
                 '#delivery-pos table.dpos-sheet,#delivery-pos .dpos-sheet tbody{display:block;width:100%!important;min-width:0!important}' +
                 '#delivery-pos .dpos-sheet colgroup,#delivery-pos .dpos-sheet thead{display:none}' +
@@ -280,8 +294,19 @@
                 '<label class="dpos-field">Area<select data-f="area">' + AREAS.map(function (a) {
                     return '<option value="' + a.value + '">' + esc(a.label) + '</option>';
                 }).join('') + '</select></label>' +
+                (full ? '<button type="button" class="dpos-move-open" data-act="move-open">Move shop to another area</button>' : '') +
                 '<div class="dpos-recorded" aria-live="polite"><span>Shops recorded</span><strong data-recorded>0 of 0</strong></div>' +
             '</div>' +
+            (full ? '<div class="dpos-move" data-move hidden>' +
+                '<div class="dpos-move-head"><strong>Move a shop to another area</strong><span>The shop shows under its new area right away (Retailer Delivery, Delivery Schedule and Settings). Past deliveries stay in the area they were delivered in.</span></div>' +
+                '<div class="dpos-move-fields">' +
+                    '<label class="dpos-field">Shop<select data-move-shop></select></label>' +
+                    '<label class="dpos-field">Move to<select data-move-area></select></label>' +
+                    '<button type="button" class="dpos-save" data-act="move-save">Move shop</button>' +
+                    '<button type="button" class="dpos-clear" data-act="move-cancel">Cancel</button>' +
+                '</div>' +
+                '<p class="dpos-status" data-move-status></p>' +
+            '</div>' : '') +
             '<div class="dpos-list"><h4 data-list-title>Shops</h4><div data-list><p class="dpos-empty">Loading shops…</p></div></div>' +
             '<div class="dpos-actions">' +
                 '<button type="button" class="dpos-save" data-act="save">Save delivery</button>' +
@@ -749,6 +774,7 @@
                     preload.then(function () {
                         paintAreas();
                         if (root.dataset.dirty !== '1') renderList(root);
+                        if (movePanel && !movePanel.hidden) fillMove();
                     });
                 } else if (root.dataset.dirty !== '1') {
                     refresh(root);
@@ -788,7 +814,99 @@
             });
         });
 
-        field(root, 'area').addEventListener('change', function () { setStatus(root, '', ''); root.dataset.dirty = ''; renderList(root); });
+        // ---- Move a shop to another area (head admin and admin) ----
+        var movePanel = root.querySelector('[data-move]');
+        function moveStatus(text, kind) {
+            var el = root.querySelector('[data-move-status]');
+            if (!el) return;
+            el.textContent = text || '';
+            el.className = 'dpos-status' + (kind ? ' ' + kind : '');
+        }
+        // Delivery areas, plus areas added in Settings (not Batangas City: it is not a delivery area).
+        function moveAreaNames() {
+            var names = AREAS.map(function (a) { return a.label; });
+            var seen = {};
+            names.forEach(function (n) { seen[cleanName(n).replace(/\bsanto\b/g, 'sto').replace(/\s+/g, '')] = true; });
+            try {
+                (JSON.parse(localStorage.getItem('kreezby_areas_v1') || '[]') || []).forEach(function (r) {
+                    var label = String((r && r.name) || '').trim();
+                    var k = cleanName(label).replace(/\bsanto\b/g, 'sto').replace(/\s+/g, '');
+                    if (!label || seen[k] || k === 'batangascity') return;
+                    seen[k] = true;
+                    names.push(label);
+                });
+            } catch (e) { /* none */ }
+            return names;
+        }
+        function fillMove() {
+            if (!movePanel) return;
+            var area = field(root, 'area').value;
+            var shops = shopsForArea(area);
+            var shopSel = root.querySelector('[data-move-shop]');
+            var keep = shopSel.value;
+            shopSel.innerHTML = shops.length
+                ? shops.map(function (s) { return '<option value="' + esc(s.id) + '" data-name="' + esc(s.name) + '">' + esc(s.name) + '</option>'; }).join('')
+                : '<option value="">No shops under ' + esc(areaLabel(area)) + '</option>';
+            if (keep && shops.some(function (s) { return s.id === keep; })) shopSel.value = keep;
+            shopSel.disabled = !shops.length;
+            var here = cleanName(areaLabel(area));
+            root.querySelector('[data-move-area]').innerHTML = moveAreaNames().filter(function (n) { return cleanName(n) !== here; })
+                .map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('');
+            root.querySelector('[data-act="move-save"]').disabled = !shops.length;
+        }
+        function toggleMove(open) {
+            if (!movePanel) return;
+            movePanel.hidden = !open;
+            var btn = root.querySelector('[data-act="move-open"]');
+            if (btn) btn.classList.toggle('is-open', open);
+            moveStatus('', '');
+            if (open) fillMove();
+        }
+        if (movePanel) {
+            root.querySelector('[data-act="move-open"]').addEventListener('click', function () { toggleMove(movePanel.hidden); });
+            root.querySelector('[data-act="move-cancel"]').addEventListener('click', function () { toggleMove(false); });
+            root.querySelector('[data-act="move-save"]').addEventListener('click', function () {
+                var shopSel = root.querySelector('[data-move-shop]');
+                var opt = shopSel.options[shopSel.selectedIndex];
+                var toArea = root.querySelector('[data-move-area]').value;
+                if (!opt || !opt.value) return moveStatus('Choose the shop to move.', 'err');
+                if (!toArea) return moveStatus('Choose the area to move the shop to.', 'err');
+                var shopName = opt.getAttribute('data-name') || opt.textContent;
+                if (root.querySelector('tr[data-row].dpos-row-on') && !window.confirm('Numbers typed on this screen that are not saved yet will be cleared. Move ' + shopName + ' to ' + toArea + '?')) return;
+                var btn = this;
+                btn.disabled = true;
+                btn.textContent = 'Moving…';
+                moveStatus('', '');
+                request('/api/move-retailer', { accountId: opt.value, name: shopName, area: toArea }).then(function (data) {
+                    var toValue = areaForAccount(data.to || toArea);
+                    accounts.forEach(function (a) {
+                        if (a.id === opt.value || cleanName(a.name) === cleanName(shopName)) { a.area = data.to || toArea; a.source = toValue; }
+                    });
+                    try {
+                        var saved = JSON.parse(localStorage.getItem(SHOPS_CACHE) || '[]');
+                        if (Array.isArray(saved)) {
+                            saved.forEach(function (a) { if (a && (a.id === opt.value || cleanName(a.name) === cleanName(shopName))) a.area = data.to || toArea; });
+                            localStorage.setItem(SHOPS_CACHE, JSON.stringify(saved));
+                        }
+                    } catch (e) { /* optional */ }
+                    accountsPromise = null;
+                    var keepArea = field(root, 'area').value;
+                    field(root, 'area').innerHTML = AREAS.map(function (a) { return '<option value="' + a.value + '">' + esc(a.label) + '</option>'; }).join('');
+                    field(root, 'area').value = keepArea;
+                    root.dataset.dirty = '';
+                    renderList(root);
+                    fillMove();
+                    moveStatus(shopName + ' was moved from ' + (data.from || areaLabel(keepArea)) + ' to ' + (data.to || toArea) + '.', 'ok');
+                }).catch(function (err) {
+                    moveStatus((err && err.message) || 'Could not move the shop.', 'err');
+                }).then(function () {
+                    btn.disabled = false;
+                    btn.textContent = 'Move shop';
+                });
+            });
+        }
+
+        field(root, 'area').addEventListener('change', function () { setStatus(root, '', ''); root.dataset.dirty = ''; renderList(root); if (movePanel && !movePanel.hidden) { moveStatus('', ''); fillMove(); } });
         field(root, 'date').addEventListener('change', function () {
             setStatus(root, '', '');
             root.dataset.dirty = '';

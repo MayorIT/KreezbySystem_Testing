@@ -37,34 +37,14 @@
     ];
 
     var PRESETS = {
+        // Admin and staff inboxes show only real chats: customer help, retailers and the team.
         admin: {
-            contacts: [
-                { id: 'sidc', name: 'SIDC Batangas Hub', preview: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31', initials: 'S', online: true, unread: true },
-                { id: 'claire', name: 'Claire (Staff 1)', preview: 'Stock check is finished.', time: 'May 14', initials: 'C', online: true, archived: true }
-            ],
-            messages: {
-                sidc: [
-                    { type: 'incoming', text: 'Hello Admin, we have processed the weekly stock evaluation check.', time: '15:24' },
-                    { type: 'incoming', text: 'Are there any active back-order dispatch batches this afternoon?', time: '15:25' },
-                    { type: 'outgoing', text: 'Hello SIDC Team! Yes, the ingredient allocation is already in progress.', time: '15:30' },
-                    { type: 'outgoing', text: 'Weekly replenishment PO-SIDC-001 received.', time: '15:31' }
-                ]
-            }
+            contacts: [],
+            messages: {}
         },
         staff: {
-            contacts: [
-                { id: 'sidc', name: 'SIDC Retailer', preview: 'You: Next delivery inventory data is auto-synced...', time: '15:31', initials: 'S', online: true, channel: 'retailer', unread: true },
-                { id: 'r101', name: 'Retailer 101', preview: 'Stock reorder verification flag code updated...', time: 'Yesterday', initials: 'R', channel: 'retailer', unread: false },
-                { id: 'claire', name: 'Claire (Staff 1)', preview: 'Stock check is finished.', time: 'May 14', initials: 'C', online: true, channel: 'staff', archived: true }
-            ],
-            messages: {
-                sidc: [
-                    { type: 'incoming', text: 'Hello Staff, we have processed the weekly stock evaluation check.', time: '15:24' },
-                    { type: 'incoming', text: 'Are there any active back-order dispatch batches this afternoon?', time: '15:25' },
-                    { type: 'outgoing', text: 'Hello SIDC Team! Yes, allocation is already in progress.', time: '15:30' },
-                    { type: 'outgoing', text: 'Next delivery inventory data is auto-synced.', time: '15:31' }
-                ]
-            }
+            contacts: [],
+            messages: {}
         },
         // Retailers start with an empty inbox: they pick someone from the Kreezby team strip.
         retailer: {
@@ -147,6 +127,7 @@
                     '<div class="inbox-chat-search">' + SVG.search +
                         '<input type="text" id="inbox-search-input" placeholder="Search chats" aria-label="Search chats">' +
                     '</div>' +
+                    '<div class="inbox-category-tabs" id="inbox-category-tabs" role="tablist" aria-label="Show chats from" hidden></div>' +
                     '<p class="inbox-help-queue-summary" id="inbox-help-queue-summary" hidden></p>' +
                     '<div class="inbox-contact-scroll" id="inbox-contact-list">' +
                         '<p id="inbox-threads-empty" class="inbox-threads-empty" style="display:none;">No conversations available.</p>' +
@@ -575,6 +556,9 @@
         var activeId = null;
         var listFilter = 'all';
         var searchQuery = '';
+        // Head admin, admin and staff see customer, retailer and team chats in separate tabs.
+        var listCategory = 'all';
+        try { listCategory = sessionStorage.getItem('kzInboxCategory') || 'all'; } catch (e) { listCategory = 'all'; }
         var pendingFiles = [];
         var attachNoteTimer = 0;
         var MAX_ATTACH_BYTES = 12 * 1024 * 1024;
@@ -682,6 +666,80 @@
         var sendIcon = mount.querySelector('#inbox-compose-send');
         var hiddenSend = mount.querySelector('#inbox-send-btn');
 
+        function categoryTabsOn() { return role === 'admin' || role === 'staff'; }
+
+        // customers: Help Center chats from customers · retailers: retailer shops · team: staff and admins
+        function contactCategory(contact) {
+            if (!contact) return 'team';
+            if (contact.helpTicket || contact.channel === 'customer-help' || contact.channel === 'customer') return 'customers';
+            if (contact.channel === 'retailer' || /retail|wholesal/i.test(String(contact.role || ''))) return 'retailers';
+            return 'team';
+        }
+
+        var CATEGORY_TABS = [
+            { key: 'all', label: 'All' },
+            { key: 'customers', label: 'Customers' },
+            { key: 'retailers', label: 'Retailers' },
+            { key: 'team', label: 'Team' }
+        ];
+
+        // Each tab shows how many of its chats still have unread messages.
+        function paintCategoryTabs() {
+            var bar = mount.querySelector('#inbox-category-tabs');
+            if (!bar) return;
+            if (!categoryTabsOn()) { bar.hidden = true; return; }
+            bar.hidden = false;
+            var removed = readDeleted();
+            var unread = { all: 0, customers: 0, retailers: 0, team: 0 };
+            contacts.forEach(function (contact) {
+                var gone = removed[contact.id];
+                if (gone && !(contact.updatedAt && contact.updatedAt > gone)) return;
+                if (contact.helpResolved || contact.archived || !contact.unread) return;
+                unread.all += 1;
+                unread[contactCategory(contact)] += 1;
+            });
+            var markup = CATEGORY_TABS.map(function (tab) {
+                var on = tab.key === listCategory;
+                var n = unread[tab.key];
+                return '<button type="button" class="inbox-category-tab' + (on ? ' is-active' : '') + '" role="tab" aria-selected="' + (on ? 'true' : 'false') + '" data-category="' + tab.key + '"'
+                    + ' title="' + tab.label + (n ? ' · ' + n + ' unread' : '') + '">'
+                    + '<span>' + tab.label + '</span>'
+                    + (n ? '<span class="inbox-category-count">' + (n > 99 ? '99+' : n) + '</span>' : '')
+                    + '</button>';
+            }).join('');
+            if (bar.getAttribute('data-sig') !== markup) {
+                bar.setAttribute('data-sig', markup);
+                bar.innerHTML = markup;
+            }
+        }
+
+        if (!document.getElementById('kz-inbox-category-style')) {
+            var catStyle = document.createElement('style');
+            catStyle.id = 'kz-inbox-category-style';
+            catStyle.textContent =
+                '.inbox-category-tabs{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}' +
+                '.inbox-category-tabs[hidden]{display:none!important}' +
+                '.inbox-category-tabs::-webkit-scrollbar{display:none}' +
+                '.inbox-category-tab{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;height:32px;padding:0 12px;border:1px solid #e6dcd3;border-radius:999px;background:#fff;color:#5d4037;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}' +
+                '.inbox-category-tab:hover{border-color:#ffca28}' +
+                '.inbox-category-tab.is-active{background:#ffca28;border-color:#ffca28;color:#3d2c2a}' +
+                '.inbox-category-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#e53935;color:#fff;font-size:11px;font-weight:800;line-height:1;box-sizing:border-box}' +
+                '.inbox-messenger.is-dark .inbox-category-tab{background:#2a2a2a;border-color:#3a3a3a;color:#eee}' +
+                '.inbox-messenger.is-dark .inbox-category-tab.is-active{background:#ffca28;border-color:#ffca28;color:#3d2c2a}';
+            document.head.appendChild(catStyle);
+        }
+
+        mount.addEventListener('click', function (event) {
+            var tab = event.target.closest ? event.target.closest('.inbox-category-tab[data-category]') : null;
+            if (!tab || !mount.contains(tab)) return;
+            event.preventDefault();
+            listCategory = tab.getAttribute('data-category') || 'all';
+            try { sessionStorage.setItem('kzInboxCategory', listCategory); } catch (e) { /* ignore */ }
+            refreshContactList();
+            var shown = visibleContacts();
+            if (activeId && !shown.some(function (item) { return item.id === activeId; }) && typeof clearActive === 'function') clearActive();
+        });
+
         function visibleContacts() {
             var removed = readDeleted();
             return contacts.filter(function (contact) {
@@ -693,6 +751,7 @@
                 } else if (contact.helpResolved) {
                     return false;
                 }
+                if (categoryTabsOn() && listCategory !== 'all' && contactCategory(contact) !== listCategory) return false;
                 var archived = Boolean(contact.archived);
                 var unread = Boolean(contact.unread) && !archived;
                 if (listFilter === 'unread' && !unread) return false;
@@ -766,6 +825,7 @@
             var shown = visibleContacts();
             shown.forEach(function (contact) { contact.__payLock = isPaymentThread(contact, messages[contact.id]); });
             renderContacts(mount, shown, activeId);
+            paintCategoryTabs();
             var empty = mount.querySelector('#inbox-threads-empty');
             if (empty) {
                 empty.style.display = shown.length ? 'none' : '';
@@ -774,7 +834,9 @@
                         ? 'No chats match your search.'
                         : (listFilter === 'resolved'
                             ? 'No resolved customer chats.'
-                            : (listFilter === 'archive' ? 'No archived chats.' : (role === 'retailer' && listFilter === 'all' && !searchQuery ? 'No chats yet. Tap someone from the Kreezby team above to send a message.' : 'No conversations in this filter.')));
+                            : (listFilter === 'archive' ? 'No archived chats.' : (categoryTabsOn() && listCategory !== 'all' && listFilter === 'all'
+                                ? ({ customers: 'No customer chats yet.', retailers: 'No retailer chats yet.', team: 'No team chats yet.' })[listCategory]
+                                : null) || (role === 'retailer' && listFilter === 'all' && !searchQuery ? 'No chats yet. Tap someone from the Kreezby team above to send a message.' : 'No conversations in this filter.')));
                 }
             }
             bindContactClicks();
@@ -1634,6 +1696,7 @@
 
         function markTeamRead(peer) {
             try { localStorage.setItem(teamReadKey(peer), String(Date.now())); } catch (e) { /* ignore */ }
+            try { document.dispatchEvent(new CustomEvent('kreezby:inbox-read')); } catch (e2) { /* optional */ }
         }
 
         function teamReadAt(peer) {

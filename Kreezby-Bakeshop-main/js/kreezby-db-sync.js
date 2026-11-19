@@ -1308,7 +1308,7 @@
   if (document.getElementById("kreezby-browser-alerts-script")) return;
   var script = document.createElement("script");
   script.id = "kreezby-browser-alerts-script";
-  script.src = "../js/browser-alerts.js?v=20261117pkg";
+  script.src = "../js/browser-alerts.js?v=20261117alltypes";
   document.head.appendChild(script);
 })();
 
@@ -1321,5 +1321,16 @@
   var script = document.createElement("script");
   script.id = "kreezby-session-lock-script";
   script.src = "../js/kreezby-session-lock.js?v=20261117";
+  (document.head || document.documentElement).appendChild(script);
+})();
+
+// Inbox menu badge: number of chats with unread messages (customers, retailers, team).
+(function () {
+  var path = location.pathname || "";
+  if (!/\/(admin|admin_names|staff|staff_names|head_admin)\//i.test(path)) return;
+  if (document.getElementById("kreezby-inbox-badge-script")) return;
+  var script = document.createElement("script");
+  script.id = "kreezby-inbox-badge-script";
+  script.src = "../js/kreezby-inbox-badge.js?v=20261117";
   (document.head || document.documentElement).appendChild(script);
 })();

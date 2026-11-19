@@ -626,7 +626,7 @@
             }
         }
         function loadUi() {
-            loadScript(root + 'js/maintenance-settings-ui.js?v=20261018accounts', 'kreezby-maintenance-settings-ui-script', start);
+            loadScript(root + 'js/maintenance-settings-ui.js?v=20261117noarea', 'kreezby-maintenance-settings-ui-script', start);
         }
         function loadPerms() {
             if (window.KreezbyStaffPermissions) {

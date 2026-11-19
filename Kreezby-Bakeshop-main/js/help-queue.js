@@ -149,8 +149,19 @@
         });
     }
 
+    // Read markers are kept per account on this browser (not per tab), so a chat that was read
+    // stays read on every page and in new tabs, and the Inbox menu count stays right.
+    function seenKey() {
+        return 'kzHelpSeen:' + agentProfile().id;
+    }
+
     function seenMap() {
-        return readJson(sessionStorage, SEEN_KEY, {}) || {};
+        var map = readJson(localStorage, seenKey(), {}) || {};
+        var legacy = readJson(sessionStorage, SEEN_KEY, {}) || {};
+        Object.keys(legacy).forEach(function (id) {
+            if (Number(legacy[id]) > Number(map[id] || 0)) map[id] = legacy[id];
+        });
+        return map;
     }
 
     function isUnread(ticket) {
@@ -167,7 +178,8 @@
         var ticket = find(load(), ticketId);
         var map = seenMap();
         map[ticketId] = ticket ? Number(ticket.updatedAt || Date.now()) : Date.now();
-        try { sessionStorage.setItem(SEEN_KEY, JSON.stringify(map)); } catch (err) { /* ignore */ }
+        try { localStorage.setItem(seenKey(), JSON.stringify(map)); } catch (err) { /* ignore */ }
+        try { document.dispatchEvent(new CustomEvent('kreezby:inbox-read')); } catch (err2) { /* optional */ }
     }
 
     function pushMessage(ticket, message) {

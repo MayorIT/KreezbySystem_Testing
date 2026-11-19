@@ -1,5 +1,5 @@
 /**
- * Order Error — summary of Pull Out (P.O) and Replace (R) from the route sheets.
+ * Back Order — summary of Pull Out (P.O) and Replace (R) from the route sheets.
  *  - Retailer:  [data-order-error="retailer"]  its own deliveries (GET /api/retailer-records)
  *  - Head admin / admin / staff: [data-order-error="admin"]  every retailer (GET /api/sales-list)
  * Only delivery rows that have a P.O or R quantity are counted.
@@ -66,7 +66,7 @@
             '.kz-oe-h{margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3e2723}' +
             '.kz-oe-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}' +
             'main.workspace-canvas,main.workspace-view-canvas{overflow-y:auto!important;min-height:0}' +
-            // Inside a fixed-height tab (head admin / admin / staff Order Error page) the list scrolls on its own.
+            // Inside a fixed-height tab (head admin / admin / staff Back Order page) the list scrolls on its own.
             '.kz-oe-scroll{overflow-y:auto!important;min-height:0!important;-webkit-overflow-scrolling:touch}' +
             '.kz-oe-table{width:100%;border-collapse:collapse;font-size:14px}' +
             '.kz-oe-table th,.kz-oe-table td{padding:9px 12px;border-bottom:1px solid #efe6df;text-align:left;vertical-align:top}' +

@@ -13,16 +13,16 @@
     var viewMode = 'active';
 
     var SEED = [
-        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouches', qty: 0, cost: 120 },
-        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouches', qty: 0, cost: 125 },
-        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouches', qty: 0, cost: 120 },
-        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Pouches', qty: 0, cost: 150 },
-        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Pouches', qty: 0, cost: 150 },
-        { code: 'CRK-MEL-P', type: 'finished-product', name: 'Melon Crinkles', unit: 'Pouches', qty: 0, cost: 0 },
-        { code: 'CRK-STR-P', type: 'finished-product', name: 'Strawberry Crinkles', unit: 'Pouches', qty: 0, cost: 0 },
-        { code: 'CRK-CSH-P', type: 'finished-product', name: 'Choco-Cashew Crinkles', unit: 'Pouches', qty: 0, cost: 0 },
-        { code: 'CRK-AST-P', type: 'finished-product', name: 'Assorted Crinkles', unit: 'Pouches', qty: 0, cost: 0 },
-        { code: 'CKE-OAT-P', type: 'finished-product', name: 'Oatmeal Cookies', unit: 'Pouches', qty: 0, cost: 0 },
+        { code: 'CRK-CHO-P', type: 'finished-product', name: 'Chocolate Crinkles', unit: 'Pouch', qty: 0, cost: 120 },
+        { code: 'CRK-ALM-P', type: 'finished-product', name: 'Choco-Almond Crinkles', unit: 'Pouch', qty: 0, cost: 125 },
+        { code: 'CRK-LEM-P', type: 'finished-product', name: 'Lemon Crinkles', unit: 'Pouch', qty: 0, cost: 120 },
+        { code: 'CRK-BUT-J', type: 'finished-product', name: 'Choco Butternut Crinkles', unit: 'Pouch', qty: 0, cost: 150 },
+        { code: 'CRK-MNG-J', type: 'finished-product', name: 'Mango Crinkles', unit: 'Pouch', qty: 0, cost: 150 },
+        { code: 'CRK-MEL-P', type: 'finished-product', name: 'Melon Crinkles', unit: 'Pouch', qty: 0, cost: 0 },
+        { code: 'CRK-STR-P', type: 'finished-product', name: 'Strawberry Crinkles', unit: 'Pouch', qty: 0, cost: 0 },
+        { code: 'CRK-CSH-P', type: 'finished-product', name: 'Choco-Cashew Crinkles', unit: 'Pouch', qty: 0, cost: 0 },
+        { code: 'CRK-AST-P', type: 'finished-product', name: 'Assorted Crinkles', unit: 'Pouch', qty: 0, cost: 0 },
+        { code: 'CKE-OAT-P', type: 'finished-product', name: 'Oatmeal Cookies', unit: 'Pouch', qty: 0, cost: 0 },
         { code: 'RM-WFL-01', type: 'raw-material', name: 'Wheat Flour', unit: 'Quantity', qty: 0, cost: 48 },
         { code: 'RM-WSG-01', type: 'raw-material', name: 'White Sugar', unit: 'Quantity', qty: 0, cost: 42 },
         { code: 'RM-OIL-01', type: 'raw-material', name: 'Vegetable Oil', unit: 'Quantity', qty: 0, cost: 95 },
@@ -87,7 +87,7 @@
     }
 
     function displayUnit(item, qty) {
-        if (item && item.type === 'finished-product') return Number(qty) === 1 ? 'Pouch' : 'Pouches';
+        if (item && item.type === 'finished-product') return 'Pouch'; // one unit name, whatever the count
         return 'Quantity';
     }
 
@@ -283,13 +283,14 @@
         return '<div class="action-menu-relative-container" data-kreezby-page-menu>' +
             '<button type="button" class="action-trigger-btn" data-menu="' + menuId + '">Action ▾</button>' +
             '<div class="action-popup-menu" id="' + menuId + '">' +
-            // Stocks are add-only: no Adjust Stock or Archive (delete). Edit changes only the
-            // selling price and the alert level, never the quantity.
+            // Stocks are add-only: no Adjust Stock or delete. Edit changes only the selling price and
+            // the alert level, never the quantity. Archive puts an item away (nothing is deleted) and
+            // Retrieve brings it back; both are for head admin and admin.
             (isStaffPage() ? '' : '<div class="action-popup-item" data-action="edit" data-stock="' + esc(item.code) + '">Edit</div>') +
             '<div class="action-popup-item" data-action="view" data-stock="' + esc(item.code) + '">View History</div>' +
-            (viewMode === 'archive' && manuallyArchived(item) && !isStaffPage()
+            (isStaffPage() ? '' : (viewMode === 'archive' && manuallyArchived(item)
                 ? '<div class="action-popup-item" data-action="retrieve" data-stock="' + esc(item.code) + '">Retrieve</div>'
-                : '') +
+                : (viewMode !== 'archive' ? '<div class="action-popup-item" data-action="archive" data-stock="' + esc(item.code) + '">Archive</div>' : ''))) +
             '</div></div>';
     }
 
@@ -374,10 +375,12 @@
     }
 
     function render() {
+        if (window.__kzStocksViewMode) viewMode = window.__kzStocksViewMode;
         var body = document.getElementById('stocks-table-body');
         if (!body || !document.getElementById('stocks-master-list-panel-view')) return;
-        var info = pageSlice(visibleItems());
         syncArchiveChrome();
+        if (syncProductionView()) return;
+        var info = pageSlice(visibleItems());
         syncRawColumns();
         if (!info.rows.length) {
             body.innerHTML = '<tr class="po-empty-row"><td colspan="9">' +
@@ -405,7 +408,7 @@
                         '<td class="po-col-date">' + (raw ? '' : esc(line.produced || '—')) + '</td>' +
                         '<td class="po-col-date">' + (raw ? '' : esc(line.expires || '—')) + '</td>' +
                         '<td class="po-col-unit">' + (raw ? '' : esc(displayUnit(item, line.qty))) + '</td>' +
-                        '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + line.qty + '</span></td>' +
+                        '<td class="po-col-qty"><span class="inventory-count-text ' + (low ? 'low-warning' : 'high-stock') + '">' + line.qty + (raw && window.KreezbyProduction && window.KreezbyProduction.unitFor(item.code) ? ' ' + esc(window.KreezbyProduction.unitFor(item.code)) : '') + '</span></td>' +
                         '<td class="po-col-cost">' + peso(item.cost) + '</td>' +
                         '<td class="po-col-action">' + (first ? buildMenu(item) : '') + '</td>' +
                         '</tr>';
@@ -425,12 +428,12 @@
     // stock type (no item code column).
     function syncRawColumns() {
         var oldStyle = document.getElementById('stocks-raw-cols-style');
-        if (oldStyle && oldStyle.getAttribute('data-v') !== '20261117cols') { oldStyle.parentNode.removeChild(oldStyle); oldStyle = null; }
+        if (oldStyle && oldStyle.getAttribute('data-v') !== '20261117raw2') { oldStyle.parentNode.removeChild(oldStyle); oldStyle = null; }
         if (!oldStyle) {
             var T = 'body.po-admin-page #stocks-orders-table';
             var st = document.createElement('style');
             st.id = 'stocks-raw-cols-style';
-            st.setAttribute('data-v', '20261117cols');
+            st.setAttribute('data-v', '20261117raw2');
             st.textContent = '#stocks-orders-table.is-raw-only .po-col-date,#stocks-orders-table.is-raw-only .po-col-unit{display:none!important;}'
                 + '#stocks-orders-table .po-col-code{display:none!important;}'
                 + '#stocks-orders-table .stock-name-link{color:inherit;text-decoration:none;font-weight:inherit;}'
@@ -439,13 +442,13 @@
                 // the list scrolls sideways instead when the screen is narrower than the table.
                 + '@media (min-width:901px){'
                 + 'body.po-admin-page #stocks-master-list-panel-view .po-table-scroll-wrap{overflow-x:auto!important;}'
-                + T + '{table-layout:fixed!important;width:100%!important;min-width:1000px;}'
+                + T + '{table-layout:fixed!important;width:100%!important;min-width:1030px;}'
                 + T + '.is-raw-only{min-width:700px;}'
                 + T + ' th,' + T + ' td{padding-left:12px!important;padding-right:12px!important;vertical-align:middle!important;}'
                 + T + ' th{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;}'
                 + T + ' .po-col-num{width:44px!important;text-align:center!important;}'
-                + T + ' .po-col-type{width:164px!important;text-align:left!important;white-space:nowrap!important;}'
-                + T + ' .po-col-type .status-pill-badge{white-space:nowrap;}'
+                + T + ' .po-col-type{width:190px!important;text-align:left!important;white-space:nowrap!important;}'
+                + T + ' .po-col-type .status-pill-badge{white-space:nowrap;overflow:visible;text-overflow:clip;max-width:none;}'
                 + T + ' .po-col-name{width:auto!important;min-width:180px;text-align:left!important;line-height:1.35;overflow-wrap:anywhere;}'
                 + T + ' .po-col-date{width:112px!important;text-align:left!important;white-space:nowrap!important;font-variant-numeric:tabular-nums;}'
                 + T + ' .po-col-unit{width:96px!important;text-align:left!important;white-space:nowrap!important;}'
@@ -453,6 +456,14 @@
                 + T + ' .po-col-cost{width:108px!important;text-align:right!important;white-space:nowrap!important;font-variant-numeric:tabular-nums;}'
                 + T + ' .po-col-action{width:116px!important;text-align:center!important;}'
                 + T + ' td.po-col-name .status-pill-badge{white-space:nowrap;display:inline-flex;vertical-align:middle;}'
+                // Raw materials / packaging only (no Unit, Produced, Expires): spread the space over the
+                // remaining columns instead of giving it all to Item Name.
+                + T + '.is-raw-only .po-col-num{width:6%!important;}'
+                + T + '.is-raw-only .po-col-type{width:20%!important;}'
+                + T + '.is-raw-only .po-col-name{width:28%!important;}'
+                + T + '.is-raw-only .po-col-qty{width:14%!important;text-align:center!important;}'
+                + T + '.is-raw-only .po-col-cost{width:16%!important;text-align:center!important;}'
+                + T + '.is-raw-only .po-col-action{width:16%!important;}'
                 + '}';
             document.head.appendChild(st);
         }
@@ -579,7 +590,7 @@
         var price = priceEditable ? Number(dict.productPrice(item.name)) : 0;
         if (content) {
             ensureEditStyles();
-            var unit = String(item.unit || '').toLowerCase() === 'pouches' ? 'pouches' : 'units';
+            var unit = /^pouch/.test(String(item.unit || '').toLowerCase()) ? 'pouches' : 'units';
             var onHand = liveQty(item);
             var summary = '<div class="se-summary">'
                 + '<div class="se-stat"><span>On hand</span><strong>' + onHand + ' ' + unit + '</strong></div>'
@@ -605,6 +616,10 @@
                 '<form id="stocks-edit-form" class="se-form">' +
                 summary +
                 '<div class="se-grid">' + priceSection + alertSection + '</div>' +
+                (item.type === 'finished-product' && !isStaffPage()
+                    ? '<section class="se-section"><h5>Recipe per batch</h5><p class="se-hint">The raw materials one batch of ' + esc(item.name) + ' uses. They come off the Inventory automatically when a batch is prepared in Production.</p>'
+                        + '<button type="button" class="se-cancel" data-open-recipe="' + esc(item.code) + '">Open recipe in Production</button></section>'
+                    : '') +
                 '<div class="se-actions"><button type="button" class="se-cancel" id="stocks-edit-cancel">Cancel</button>' +
                 '<button class="btn-call-to-action se-save" type="submit">Save changes</button></div>' +
                 '</form>';
@@ -647,6 +662,19 @@
         showDetails(item.name);
     }
 
+    function archiveItem(code) {
+        if (isStaffPage()) return;
+        var item = findItem(code);
+        if (!item || manuallyArchived(item)) return;
+        var ok = window.confirm('Archive "' + item.name + '"?\n\nIt moves to the Archive list and leaves the active list. Its stock and history are kept, and you can bring it back with Retrieve.');
+        if (!ok) return;
+        var archived = archivedNames();
+        archived.push(item.name);
+        try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archived)); } catch (e) { /* ignore */ }
+        showToast('"' + item.name + '" was moved to the Archive.');
+        render();
+    }
+
     function retrieveItem(code) {
         var item = findItem(code);
         if (!item) return;
@@ -659,24 +687,77 @@
     }
 
     function setViewMode(mode) {
-        viewMode = mode === 'archive' || mode === 'expired' ? mode : 'active';
+        viewMode = mode === 'archive' || mode === 'expired' || mode === 'production' ? mode : 'active';
+        // The page can load this script twice (page + fast navigation); both copies follow one view.
+        window.__kzStocksViewMode = viewMode;
         listPage = 1;
         closeAllMenus();
         render();
         scrollStocksToTop();
     }
 
-    // Adds the Expired button between Active and Archive when the page does not have it yet.
+    // Adds the Expired button between Active and Archive, and Production after them, when the
+    // page does not have them yet.
     function ensureExpiredButton() {
         var bar = document.getElementById('stocks-view-switch');
-        if (!bar || bar.querySelector('[data-stocks-view="expired"]')) return;
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'stocks-view-btn';
-        btn.setAttribute('data-stocks-view', 'expired');
-        btn.textContent = 'Expired';
-        var archiveBtn = bar.querySelector('[data-stocks-view="archive"]');
-        bar.insertBefore(btn, archiveBtn || null);
+        if (!bar) return;
+        if (!bar.querySelector('[data-stocks-view="expired"]')) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'stocks-view-btn';
+            btn.setAttribute('data-stocks-view', 'expired');
+            btn.textContent = 'Expired';
+            var archiveBtn = bar.querySelector('[data-stocks-view="archive"]');
+            bar.insertBefore(btn, archiveBtn || null);
+        }
+        if (!bar.querySelector('[data-stocks-view="production"]')) {
+            var prod = document.createElement('button');
+            prod.type = 'button';
+            prod.className = 'stocks-view-btn';
+            prod.setAttribute('data-stocks-view', 'production');
+            prod.textContent = 'Production';
+            bar.appendChild(prod);
+        }
+    }
+
+    // Inventory > Production: prepare and finish batches (js/kreezby-production.js).
+    function syncProductionView() {
+        var panel = document.getElementById('stocks-master-list-panel-view');
+        if (!panel) return false;
+        var on = viewMode === 'production';
+        var body = panel.querySelector('.po-list-body') || panel;
+        var host = document.getElementById('stocks-production-host');
+        if (on && !host) {
+            host = document.createElement('div');
+            host.id = 'stocks-production-host';
+            body.insertBefore(host, body.firstChild);
+        }
+        ['.po-table-scroll-wrap', '#stocks-list-footer'].forEach(function (sel) {
+            var node = panel.querySelector(sel);
+            if (node) node.style.display = on ? 'none' : '';
+        });
+        ['stocks-page-size', 'stocks-type-filter', 'stocks-search-input'].forEach(function (id) {
+            var node = document.getElementById(id);
+            var wrap = node && (node.closest('label') || node.closest('.search-field-wrap'));
+            if (wrap) wrap.style.display = on ? 'none' : '';
+        });
+        if (host) host.hidden = !on;
+        if (on) {
+            var count = document.getElementById('stocks-list-count');
+            if (count) count.textContent = '';
+            if (window.KreezbyProduction) window.KreezbyProduction.mount(host);
+            else {
+                host.innerHTML = '<p class="kzp-lead">Loading Production…</p>';
+                if (!document.getElementById('kreezby-production-script')) {
+                    var s = document.createElement('script');
+                    s.id = 'kreezby-production-script';
+                    s.src = '../js/kreezby-production.js?v=20261117';
+                    s.onload = function () { if (viewMode === 'production' && window.KreezbyProduction) window.KreezbyProduction.mount(host); };
+                    document.head.appendChild(s);
+                }
+            }
+        }
+        return on;
     }
 
     function syncArchiveChrome() {
@@ -687,7 +768,7 @@
         var list = catalog();
         var archivedCount = list.filter(function (item) { return manuallyArchived(item, archived); }).length;
         var expiredCount = list.filter(function (item) { return hasExpiredStock(item); }).length;
-        if (title) title.textContent = viewMode === 'archive' ? 'Archived Stocks' : viewMode === 'expired' ? 'Expired Stocks' : 'List of Stocks';
+        if (title) title.textContent = viewMode === 'archive' ? 'Archived Stocks' : viewMode === 'expired' ? 'Expired Stocks' : viewMode === 'production' ? 'Production' : 'List of Stocks';
         if (host) host.hidden = viewMode !== 'active';
         document.querySelectorAll('#stocks-view-switch [data-stocks-view]').forEach(function (btn) {
             var view = btn.getAttribute('data-stocks-view');
@@ -727,6 +808,16 @@
             scrollStocksToTop();
             return;
         }
+        var recipeBtn = event.target.closest ? event.target.closest('[data-open-recipe]') : null;
+        if (recipeBtn) {
+            event.preventDefault();
+            var recipeCode = recipeBtn.getAttribute('data-open-recipe');
+            backToList();
+            setViewMode('production');
+            var openIt = function () { if (window.KreezbyProduction) window.KreezbyProduction.openRecipe(recipeCode); };
+            if (window.KreezbyProduction) openIt(); else setTimeout(openIt, 600);
+            return;
+        }
         var actionBtn = event.target.closest ? event.target.closest('#stocks-master-list-panel-view .action-trigger-btn[data-menu]') : null;
         if (actionBtn) {
             event.preventDefault();
@@ -743,7 +834,8 @@
             closeAllMenus();
             if (action === 'edit' && !isStaffPage()) openEdit(code);
             else if (action === 'view') openHistory(code);
-            else if (action === 'adjust' || action === 'archive') showToast('Stock can only be added (Add stock), not changed or deleted.');
+            else if (action === 'adjust') showToast('Stock can only be added (Add stock), not changed or deleted.');
+            else if (action === 'archive') archiveItem(code);
             else if (action === 'retrieve') retrieveItem(code);
             return;
         }

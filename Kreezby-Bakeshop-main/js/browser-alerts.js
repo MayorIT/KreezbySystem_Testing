@@ -178,7 +178,8 @@
         return NaN; // no real stock source on this page
     }
 
-    // The alert catalog plus any other flavor that has stock (Melon, Strawberry, ...).
+    // Every type of inventory: finished products (every flavor, including ones added later),
+    // raw materials and packaging materials (including materials added later in Inventory).
     function alertCatalog() {
         var list = CATALOG.slice();
         var dict = window.KreezbyDictionary;
@@ -188,7 +189,24 @@
                 list.push({ code: p.id, name: p.name, kind: 'finished', qty: 0, alert: null });
             });
         }
+        var saved = readJson('kreezby_data_dictionary_v1', {}) || {};
+        (Array.isArray(saved.materials_extra) ? saved.materials_extra : []).forEach(function (m) {
+            if (!m || !m.material_id || !m.name || catalogItem(m.material_id)) return;
+            if (list.some(function (x) { return x.code === m.material_id || String(x.name).toLowerCase() === String(m.name).toLowerCase(); })) return;
+            list.push({ code: m.material_id, name: m.name, kind: 'material', type: m.type || '', qty: 0, alert: 10 });
+        });
         return list;
+    }
+
+    // Finished product, Raw material or Packaging material, for the alarm list.
+    function stockTypeOf(code) {
+        var c = String(code || '');
+        var item = null;
+        alertCatalog().forEach(function (x) { if (x.code === c) item = x; });
+        if (item && item.kind === 'finished') return 'Finished product';
+        if ((item && /packag/i.test(item.type || '')) || /^PKG-/i.test(c)) return 'Packaging material';
+        if (item || /^RM-/i.test(c)) return 'Raw material';
+        return 'Finished product';
     }
 
     function stockRows() {
@@ -436,6 +454,260 @@
         if (changed) writeJson(EXPIRY_NOTIFIED_KEY, notified);
     }
 
+    // ---------- Stock alarm ----------
+    // Low stock, near expiry and expired stock do not only add a notification: a pop-up covers
+    // the page with a warning sound until someone acts on it (Acknowledge, Remind me later or
+    // View Alerts). New problems pop up right away; problems already acknowledged come back
+    // after ALARM_REPEAT_MS while they are still not fixed.
+    var ALARM_REPEAT_MS = 4 * 60 * 60 * 1000;   // reminds again after 4 hours
+    var ALARM_SNOOZE_MS = 30 * 60 * 1000;       // "Remind me later"
+    var alarmTitleTimer = null;
+    var alarmBaseTitle = '';
+    var audioCtx = null;
+    var pendingSound = false;
+
+    function alarmUserKey() {
+        try {
+            var s = JSON.parse(localStorage.getItem('kreezby_session') || '{}') || {};
+            return String(s.userId || s.id || s.identity || s.userName || s.email || 'me').toLowerCase().replace(/[^a-z0-9_-]+/g, '');
+        } catch (e) { return 'me'; }
+    }
+    // Per account on this browser ("kz" keys are not shared with other accounts or devices).
+    function alarmState() {
+        var st = readJson('kzStockAlarm:' + alarmUserKey(), null);
+        if (!st || typeof st !== 'object') st = { ack: {}, snoozeUntil: 0 };
+        if (!st.ack || typeof st.ack !== 'object') st.ack = {};
+        return st;
+    }
+    function saveAlarmState(st) { writeJson('kzStockAlarm:' + alarmUserKey(), st); }
+
+    function alarmItems() {
+        return liveAlertItems().filter(function (item) {
+            if (item.kind !== 'low' && item.kind !== 'near' && item.kind !== 'expired') return false;
+            // Raw and packaging materials have no expiry date on the Inventory.
+            if ((item.kind === 'near' || item.kind === 'expired') && /^(RM|PKG)-/i.test(String(item.code || ''))) return false;
+            return true;
+        }).map(function (item) {
+            var batch = (String(item.message).match(/ batch (\S+)/) || [])[1] || '';
+            var out = item.kind === 'low' && /out of stock/.test(item.message);
+            item.alarmKey = item.kind + '|' + item.code + '|' + batch + (out ? '|out' : '');
+            item.stockType = stockTypeOf(item.code);
+            return item;
+        });
+    }
+
+    function alarmLabel(item) {
+        if (item.kind === 'expired') return 'Expired';
+        if (item.kind === 'near') return 'Near expiry';
+        return /out of stock/.test(item.message) ? 'Out of stock' : 'Low stock';
+    }
+
+    function injectAlarmStyle() {
+        if (document.getElementById('kz-stock-alarm-style')) return;
+        var st = document.createElement('style');
+        st.id = 'kz-stock-alarm-style';
+        st.textContent = ''
+            + '#kz-stock-alarm{position:fixed;inset:0;z-index:2147482000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(43,30,26,.55);font-family:inherit;}'
+            + '#kz-stock-alarm[hidden]{display:none!important;}'
+            + '#kz-stock-alarm .kza-card{width:min(560px,100%);max-height:calc(100vh - 36px);display:flex;flex-direction:column;background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden;border-top:6px solid #c62828;animation:kzaPop .25s ease-out;}'
+            + '@keyframes kzaPop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}'
+            + '@keyframes kzaPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.45)}50%{box-shadow:0 0 0 12px rgba(198,40,40,0)}}'
+            + '#kz-stock-alarm .kza-head{display:flex;gap:14px;align-items:center;padding:20px 22px 12px;}'
+            + '#kz-stock-alarm .kza-icon{flex:0 0 48px;width:48px;height:48px;border-radius:50%;background:#c62828;color:#fff;display:grid;place-items:center;font-size:26px;font-weight:800;animation:kzaPulse 1.4s infinite;}'
+            + '#kz-stock-alarm h2{margin:0;font-size:20px;line-height:1.25;color:#3d2c2a;}'
+            + '#kz-stock-alarm .kza-sub{margin:3px 0 0;font-size:13px;color:#7d726c;line-height:1.45;}'
+            + '#kz-stock-alarm .kza-counts{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px 12px;}'
+            + '#kz-stock-alarm .kza-count{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;}'
+            + '#kz-stock-alarm .kza-typechip{background:#f5ede6;color:#5d4037;}'
+            + '#kz-stock-alarm .kza-list{list-style:none;margin:0;padding:0 22px;overflow:auto;flex:1 1 auto;}'
+            + '#kz-stock-alarm .kza-list li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #f1e9e3;font-size:13.5px;line-height:1.45;color:#3d2c2a;}'
+            + '#kz-stock-alarm .kza-tag{flex:0 0 auto;min-width:92px;text-align:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;}'
+            + '#kz-stock-alarm .kza-type{display:block;font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#8d6e63;margin-bottom:1px;}'
+            + '#kz-stock-alarm .kza-new{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#3d2c2a;color:#fff;font-size:10px;font-weight:800;vertical-align:middle;}'
+            + '#kz-stock-alarm .is-expired{background:#ffebee;color:#c62828;}'
+            + '#kz-stock-alarm .is-out{background:#c62828;color:#fff;}'
+            + '#kz-stock-alarm .is-low{background:#fff3e0;color:#e65100;}'
+            + '#kz-stock-alarm .is-near{background:#fff8e1;color:#8d6e00;}'
+            + '#kz-stock-alarm .kza-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:14px 22px 18px;border-top:1px solid #efe6df;background:#fffaf4;}'
+            + '#kz-stock-alarm .kza-actions button{height:42px;padding:0 16px;border-radius:10px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;}'
+            + '#kz-stock-alarm .kza-later{border:1px solid #d7ccc8;background:#fff;color:#5d4037;}'
+            + '#kz-stock-alarm .kza-view{border:1px solid #3d2c2a;background:#fff;color:#3d2c2a;}'
+            + '#kz-stock-alarm .kza-ack{border:0;background:#c62828;color:#fff;}'
+            + '#kz-stock-alarm .kza-sound{margin-right:auto;border:0!important;background:transparent!important;color:#8d6e63!important;font-size:12px!important;padding:0 4px!important;}'
+            + '@media (max-width:560px){#kz-stock-alarm .kza-actions button{flex:1 1 auto}#kz-stock-alarm .kza-sound{flex-basis:100%!important;order:9}}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+
+    function soundOn() { return readJson('kzStockAlarmSound', true) !== false; }
+
+    // A short warning beep made in the browser (no sound file). Browsers only allow sound after
+    // the person has clicked or typed on the page once; until then it plays on the next click.
+    function playAlarmSound() {
+        if (!soundOn()) return;
+        try {
+            var Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            audioCtx = audioCtx || new Ctx();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(function () {});
+                if (audioCtx.state === 'suspended') { pendingSound = true; return; }
+            }
+            pendingSound = false;
+            var t = audioCtx.currentTime;
+            [0, 0.28, 0.56].forEach(function (offset, i) {
+                var osc = audioCtx.createOscillator();
+                var gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = i === 2 ? 660 : 880;
+                gain.gain.setValueAtTime(0.0001, t + offset);
+                gain.gain.exponentialRampToValueAtTime(0.18, t + offset + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t + offset + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(t + offset);
+                osc.stop(t + offset + 0.24);
+            });
+        } catch (e) { /* sound is optional */ }
+        try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e2) { /* optional */ }
+    }
+    ['pointerdown', 'keydown', 'touchstart'].forEach(function (name) {
+        window.addEventListener(name, function () {
+            if (pendingSound && document.getElementById('kz-stock-alarm') && !document.getElementById('kz-stock-alarm').hidden) playAlarmSound();
+        }, true);
+    });
+
+    // The browser tab blinks while the alarm is open and the page is in the background.
+    function startTitleBlink(count) {
+        if (alarmTitleTimer) return;
+        alarmBaseTitle = document.title;
+        var on = false;
+        alarmTitleTimer = setInterval(function () {
+            on = !on;
+            document.title = on ? '⚠ ' + count + ' stock alert' + (count === 1 ? '' : 's') + '!' : alarmBaseTitle;
+        }, 1000);
+    }
+    function stopTitleBlink() {
+        if (!alarmTitleTimer) return;
+        clearInterval(alarmTitleTimer);
+        alarmTitleTimer = null;
+        if (alarmBaseTitle) document.title = alarmBaseTitle;
+    }
+
+    function hideAlarm() {
+        var box = document.getElementById('kz-stock-alarm');
+        if (box) box.hidden = true;
+        stopTitleBlink();
+    }
+
+    function showAlarm(items, fresh) {
+        injectAlarmStyle();
+        var box = document.getElementById('kz-stock-alarm');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'kz-stock-alarm';
+            box.setAttribute('role', 'alertdialog');
+            box.setAttribute('aria-modal', 'true');
+            box.setAttribute('aria-labelledby', 'kza-title');
+            document.body.appendChild(box);
+            box.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('button[data-kza]') : null;
+                if (!btn) return;
+                var act = btn.getAttribute('data-kza');
+                var st = alarmState();
+                var keys = String(box.getAttribute('data-keys') || '').split(',').filter(Boolean);
+                if (act === 'sound') {
+                    writeJson('kzStockAlarmSound', !soundOn());
+                    btn.textContent = soundOn() ? '🔊 Sound on' : '🔇 Sound off';
+                    if (soundOn()) playAlarmSound();
+                    return;
+                }
+                if (act === 'later') {
+                    st.snoozeUntil = Date.now() + ALARM_SNOOZE_MS;
+                } else {
+                    keys.forEach(function (k) { st.ack[k] = Date.now(); });
+                    st.snoozeUntil = 0;
+                }
+                saveAlarmState(st);
+                hideAlarm();
+                if (act === 'view') location.href = alertHref();
+            });
+        }
+        var counts = { expired: 0, out: 0, low: 0, near: 0 };
+        items.forEach(function (item) {
+            var label = alarmLabel(item);
+            if (label === 'Expired') counts.expired++;
+            else if (label === 'Out of stock') counts.out++;
+            else if (label === 'Low stock') counts.low++;
+            else counts.near++;
+        });
+        var order = { 'Expired': 0, 'Out of stock': 1, 'Low stock': 2, 'Near expiry': 3 };
+        var sorted = items.slice().sort(function (a, b) { return order[alarmLabel(a)] - order[alarmLabel(b)]; });
+        var cls = { 'Expired': 'is-expired', 'Out of stock': 'is-out', 'Low stock': 'is-low', 'Near expiry': 'is-near' };
+        var chips = [
+            counts.expired ? '<span class="kza-count is-expired">' + counts.expired + ' expired</span>' : '',
+            counts.out ? '<span class="kza-count is-out">' + counts.out + ' out of stock</span>' : '',
+            counts.low ? '<span class="kza-count is-low">' + counts.low + ' low stock</span>' : '',
+            counts.near ? '<span class="kza-count is-near">' + counts.near + ' near expiry</span>' : ''
+        ].join('');
+        var types = {};
+        items.forEach(function (item) { types[item.stockType] = (types[item.stockType] || 0) + 1; });
+        chips += ['Finished product', 'Raw material', 'Packaging material'].filter(function (t) { return types[t]; })
+            .map(function (t) { return '<span class="kza-count kza-typechip">' + types[t] + ' ' + t.toLowerCase() + (types[t] === 1 ? '' : 's') + '</span>'; }).join('');
+        box.setAttribute('data-keys', items.map(function (i) { return i.alarmKey; }).join(','));
+        box.innerHTML = '<div class="kza-card">'
+            + '<div class="kza-head"><div class="kza-icon" aria-hidden="true">!</div><div>'
+            + '<h2 id="kza-title">Stock alert: action needed</h2>'
+            + '<p class="kza-sub">' + (items.length === 1 ? 'This item needs' : 'These ' + items.length + ' items need') + ' attention now. Expired stock must not be sold; restock low items and use near-expiry stock first.</p>'
+            + '</div></div>'
+            + '<div class="kza-counts">' + chips + '</div>'
+            + '<ul class="kza-list">' + sorted.map(function (item) {
+                var label = alarmLabel(item);
+                var isNew = fresh.indexOf(item.alarmKey) >= 0;
+                return '<li><span class="kza-tag ' + cls[label] + '">' + label + '</span><span><span class="kza-type">' + escapeHtml(item.stockType || '') + '</span>' + escapeHtml(item.message) + (isNew ? '<span class="kza-new">NEW</span>' : '') + '</span></li>';
+            }).join('') + '</ul>'
+            + '<div class="kza-actions">'
+            + '<button type="button" class="kza-sound" data-kza="sound">' + (soundOn() ? '🔊 Sound on' : '🔇 Sound off') + '</button>'
+            + '<button type="button" class="kza-later" data-kza="later">Remind me in 30 min</button>'
+            + (/alert-(headadmin|admin|staff)\.html$/i.test(location.pathname || '') ? '' : '<button type="button" class="kza-view" data-kza="view">View Alerts</button>')
+            + '<button type="button" class="kza-ack" data-kza="ack">Acknowledge</button>'
+            + '</div></div>';
+        box.hidden = false;
+        var ack = box.querySelector('.kza-ack');
+        if (ack) setTimeout(function () { try { ack.focus(); } catch (e) { /* ignore */ } }, 30);
+        startTitleBlink(items.length);
+        playAlarmSound();
+    }
+
+    var alarmShownSig = '';
+    function checkAlarm() {
+        if (!allowedRole() || !document.body) return;
+        // The screen lock comes first; the alarm shows once the account is unlocked.
+        if (document.documentElement.classList.contains('kz-locked')) return;
+        var items = alarmItems();
+        var box = document.getElementById('kz-stock-alarm');
+        if (!items.length) { hideAlarm(); alarmShownSig = ''; return; }
+        var st = alarmState();
+        var now = Date.now();
+        var due = items.filter(function (i) { var at = st.ack[i.alarmKey]; return !at || now - at >= ALARM_REPEAT_MS; });
+        var fresh = items.filter(function (i) { return !st.ack[i.alarmKey]; }).map(function (i) { return i.alarmKey; });
+        var sig = items.map(function (i) { return i.alarmKey; }).sort().join(',');
+        if (box && !box.hidden) {
+            // Already open: refresh it if the list changed (sound again only for new problems).
+            if (sig !== alarmShownSig) {
+                var hadNew = fresh.some(function (k) { return String(box.getAttribute('data-keys') || '').split(',').indexOf(k) < 0; });
+                alarmShownSig = sig;
+                showAlarm(items, fresh);
+                if (!hadNew) { /* showAlarm played the sound; fine for an updated list */ }
+            }
+            return;
+        }
+        if (!due.length) return;
+        // "Remind me later" waits, unless something new came up.
+        if (st.snoozeUntil && now < st.snoozeUntil && !fresh.length) return;
+        alarmShownSig = sig;
+        showAlarm(items, fresh);
+    }
+
     function scanStock() {
         if (!allowedRole()) return;
         try { notifyExpired(); } catch (e) { /* stock alerts below still run */ }
@@ -476,6 +748,7 @@
         if (lastChanged) writeJson(LAST_QTY_KEY, last);
         renderLiveRows();
         renderThresholdBar();
+        try { checkAlarm(); } catch (e) { /* the alarm is optional */ }
     }
 
     function acknowledge(code) {
@@ -820,7 +1093,8 @@
         requestPermission: requestPermission,
         sendTest: sendTest,
         permission: function () { return window.Notification ? Notification.permission : 'unsupported'; },
-        scan: scanStock
+        scan: scanStock,
+        showAlarmNow: function () { var st = alarmState(); st.ack = {}; st.snoozeUntil = 0; saveAlarmState(st); checkAlarm(); }
     };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

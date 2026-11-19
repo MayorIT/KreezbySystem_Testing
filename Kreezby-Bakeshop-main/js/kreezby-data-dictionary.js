@@ -952,7 +952,7 @@
             var id = productId(name);
             if (!id || seen[id]) return;
             seen[id] = true;
-            list.push({ id: id, name: name, packaging: 'Pouches', price: prices[id] == null ? defaultPrice(id) : Number(prices[id]) });
+            list.push({ id: id, name: name, packaging: 'Pouch', price: prices[id] == null ? defaultPrice(id) : Number(prices[id]) });
         });
         return list;
     }
@@ -982,9 +982,11 @@
         var kind = String(movementType || '').toLowerCase();
         if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
         // Stock is never edited or deleted: it comes in (stock in) and raw/packaging materials go
-        // out only when used in production.
-        if (kind !== 'stock-in' && kind !== 'usage') { lastMovementError = 'Materials can only be added (stock in) or taken out when used in production.'; return null; }
-        if (kind === 'usage') costValue = null;
+        // out when used in production (recorded by Inventory > Production) or as waste / spoiled,
+        // which always needs a reason.
+        if (kind !== 'stock-in' && kind !== 'usage' && kind !== 'waste') { lastMovementError = 'Materials can only be added (stock in), used in production, or taken out as waste / spoiled.'; return null; }
+        if (kind === 'waste' && String(note || '').trim().length < 3) { lastMovementError = 'Type the reason for the waste / spoiled stock (e.g. "flour got wet").'; return null; }
+        if (kind === 'usage' || kind === 'waste') costValue = null;
         var qty = Math.abs(Number(quantity) || 0);
         if (!qty) { lastMovementError = 'Enter a quantity greater than zero.'; return null; }
         var material = ensureMaterial(materialName, materialKind);
@@ -1606,7 +1608,7 @@
                 + '<div class="fr-group" data-fr-group="material" hidden>'
                 + '<label class="fr-field"><span class="fr-label">' + stockFieldIcon('material') + '<span id="fr-material-label">Raw material</span></span>'
                 + '<input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list"></datalist></label>'
-                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="usage">Stock out (used in production)</option></select>')
+                + stockField('fr-move', 'Movement', 'move', '<select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="waste">Stock out (waste / spoiled)</option></select>')
                 + stockField('fr-qty', 'Quantity', 'qty', '<input id="fr-qty" type="number" min="1" value="1">')
                 + stockField('fr-unit-cost', 'Cost per unit (₱)', 'price', '<input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00">')
                 + stockField('fr-note', 'Note', 'note', '<input id="fr-note" type="text" placeholder="Supplier, batch or reason (optional)">')
@@ -1636,7 +1638,7 @@
                 + '<p style="margin:0 0 10px;color:#5d4037;">Type any raw material, then add the quantity received.</p>'
                 + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">'
                 + '<label>Raw material<br><input id="fr-material" type="text" list="fr-material-list" placeholder="Type a raw material"><datalist id="fr-material-list">' + materialOptions + '</datalist></label>'
-                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="usage">Stock out (used in production)</option></select></label>'
+                + '<label>Movement<br><select id="fr-move"><option value="stock-in">Stock in (received)</option><option value="waste">Stock out (waste / spoiled)</option></select></label>'
                 + '<label>Quantity<br><input id="fr-qty" type="number" min="1" value="1" style="width:90px;"></label>'
                 + '<label>Cost per unit (₱)<br><input id="fr-unit-cost" type="number" min="0" step="0.01" placeholder="0.00" style="width:110px;"></label>'
                 + '<label>Note<br><input id="fr-note" type="text" placeholder="Supplier, batch or reason"></label>'
@@ -1702,7 +1704,7 @@
             var next = name ? recordMaterialMovement(name, document.getElementById('fr-move').value, document.getElementById('fr-qty').value, (document.getElementById('fr-note') || {}).value, kind, costNode ? costNode.value : null) : null;
             document.getElementById('fr-stock-note').textContent = !name
                 ? (kind === 'packaging' ? 'Type a packaging material name.' : 'Type a raw material name.')
-                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : (document.getElementById('fr-move').value === 'usage' ? document.getElementById('fr-qty').value + ' used in production. ' : '') + name + ' now has ' + next + ' on hand.'
+                : (next == null ? (lastMovementError || 'Enter a quantity greater than zero.') : (document.getElementById('fr-move').value === 'waste' ? document.getElementById('fr-qty').value + ' recorded as waste / spoiled. ' : '') + name + ' now has ' + next + ' on hand.'
                     + (lastMovementCost != null && costNode && costNode.value !== '' ? ' Cost per unit: ₱' + Number(lastMovementCost).toFixed(2) + ', stock value ₱' + (Number(lastMovementCost) * next).toFixed(2) + '.' : '')
                     + ' Movement saved to the log below.');
             if (next != null) lastMovementCost = null;
@@ -1710,15 +1712,17 @@
         });
         fillProduct();
 
-        // Stock out (used in production) keeps the cost per unit, so its field is hidden.
+        // Stock out (waste / spoiled) keeps the cost per unit, so its field is hidden. Use in
+        // production is recorded automatically by Inventory > Production.
         var moveSelect = document.getElementById('fr-move');
         var syncMoveFields = function () {
             var costInput = document.getElementById('fr-unit-cost');
             var field = costInput && (costInput.closest('.fr-field') || costInput.closest('label'));
-            if (field) field.style.display = moveSelect && moveSelect.value === 'usage' ? 'none' : '';
+            var out = moveSelect && moveSelect.value !== 'stock-in';
+            if (field) field.style.display = out ? 'none' : '';
             var noteInput = document.getElementById('fr-note');
-            if (noteInput) noteInput.placeholder = moveSelect && moveSelect.value === 'usage'
-                ? 'Batch or product it was used for (optional)'
+            if (noteInput) noteInput.placeholder = out
+                ? 'Reason (required), e.g. flour got wet'
                 : 'Supplier, batch or reason (optional)';
         };
         if (moveSelect) moveSelect.addEventListener('change', syncMoveFields);
@@ -1739,9 +1743,9 @@
         var typeSelect = document.getElementById('fr-type');
         if (typeSelect) {
             var LEADS = {
-                product: 'Add a new batch with its produced and expiry dates' + (canEditPrice() ? ' (you can also set the selling price)' : '') + '. Stock can only be added; sales deduct finished goods automatically.',
-                raw: 'Type any raw material, then record stock received (stock in) or the amount used in production (stock out).',
-                packaging: 'Type any packaging material (pouches, stickers), then record stock received or used in production. Adding finished pouches also uses packaging automatically.'
+                product: 'Add a new batch with its produced and expiry dates' + (canEditPrice() ? ' (you can also set the selling price)' : '') + '. Stock can only be added; sales deduct finished goods automatically. To take the ingredients off automatically, use Production instead.',
+                raw: 'Type any raw material, then record stock received (stock in), or stock thrown away as waste / spoiled with its reason. Ingredients used in production come off automatically in Production.',
+                packaging: 'Type any packaging material (pouches, stickers), then record stock received, or waste / spoiled with its reason. Adding finished pouches uses packaging automatically.'
             };
             var applyType = function () {
                 var type = typeSelect.value;
@@ -1869,6 +1873,14 @@
             return id ? productStockMap()[id] : null;
         },
         materialByName: materialByName,
+        // Every raw and packaging material with its stock on hand (for Inventory > Production).
+        materials: function () {
+            var stock = materialStockMap();
+            return allMaterials().map(function (m) {
+                return { material_id: m.material_id, name: m.name, packaging: isPackaging(m), stock: Number(stock[m.material_id]) || 0 };
+            });
+        },
+        movementActor: movementActor,
         materialStock: function (name) {
             var material = materialByName(name);
             if (!material) return null;

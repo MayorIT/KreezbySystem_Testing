@@ -50,8 +50,8 @@
     }
 
     var SOURCE_TASKS = {
-        // Customer orders belong to Order Tracking and the Sales List, never to Order Error
-        // (Order Error is only the P.O / Replace records from the retailer route sheets).
+        // Customer orders belong to Order Tracking and the Sales List, never to Back Order
+        // (Back Order is only the P.O / Replace records from the retailer route sheets).
         order: ['ordertracking', 'saleslist', 'dailysales', 'inbox'],
         payment: ['ordertracking', 'saleslist', 'dailysales'],
         po: ['ordertracking'],

@@ -573,7 +573,7 @@
       return;
     }
     if (action === 'restock') {
-      toast('Opening order errors so you can restock "' + (context || 'this item') + '".', 'success');
+      toast('Opening back orders so you can restock "' + (context || 'this item') + '".', 'success');
       location.href = moduleFile('bo');
       return;
     }

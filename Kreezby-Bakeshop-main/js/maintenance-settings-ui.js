@@ -101,14 +101,22 @@
         return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     }
 
-    // Delivery areas, areas already on customer/retailer accounts, and areas added here.
+    // Not delivery areas or retailer locations (Batangas City is only part of customers' addresses).
+    var NOT_AREAS = { batangascity: true };
+    function isArea(name) {
+        var key = areaKey(name);
+        return !!key && !NOT_AREAS[key];
+    }
+
+    // Delivery areas, areas of retailer shops, and areas added here. A customer's own city
+    // (from their address) is not a delivery area, so customer accounts do not add areas.
     function allAreas() {
         var seen = {};
         var list = [];
         function take(name, source) {
             var label = String(name || '').trim();
             var key = areaKey(label);
-            if (!key || seen[key]) return;
+            if (!isArea(label) || seen[key]) return;
             seen[key] = true;
             list.push({ name: label, source: source });
         }
@@ -116,7 +124,7 @@
         savedAreas().forEach(function (row) { take(row && row.name, 'Added in Settings'); });
         if (window.KreezbyMaintenanceSettings) {
             var users = KreezbyMaintenanceSettings.getUsers();
-            (users.customers || []).concat(users.retailers || []).forEach(function (u) { take(u.area, 'From accounts'); });
+            (users.retailers || []).forEach(function (u) { take(u.area, 'From retailer accounts'); });
         }
         return list.sort(function (a, b) { return a.name.localeCompare(b.name); });
     }
@@ -125,6 +133,7 @@
         var label = String(name || '').trim().replace(/\s+/g, ' ');
         if (!label) return { ok: false, message: 'Type the area name first.' };
         if (label.length > 60) return { ok: false, message: 'Keep the area name under 60 characters.' };
+        if (!isArea(label)) return { ok: false, message: label + ' is not used as a delivery area.' };
         var exists = allAreas().some(function (a) { return areaKey(a.name) === areaKey(label); });
         if (exists) return { ok: false, message: label + ' is already on the list.' };
         var list = savedAreas();
@@ -511,7 +520,7 @@
     function areaPicker(selected, required) {
         var key = areaKey(selected || '');
         var names = allAreas().map(function (a) { return a.name; });
-        if (selected && !names.some(function (n) { return areaKey(n) === key; })) names.push(selected);
+        if (selected && isArea(selected) && !names.some(function (n) { return areaKey(n) === key; })) names.push(selected);
         return '<label>Area<br><select name="area"' + (required ? ' required' : '') + '><option value="">— choose —</option>' + names.map(function (n) {
             return '<option value="' + esc(n) + '"' + (key && areaKey(n) === key ? ' selected' : '') + '>' + esc(n) + '</option>';
         }).join('') + '</select></label>';
@@ -584,7 +593,7 @@
             allAreas().forEach(function (a) { seen[areaKey(a.name)] = true; names.push(a.name); });
             users.forEach(function (u) {
                 var label = String(u.area || '').trim();
-                if (label && !seen[areaKey(label)]) { seen[areaKey(label)] = true; names.push(label); }
+                if (isArea(label) && !seen[areaKey(label)]) { seen[areaKey(label)] = true; names.push(label); }
             });
             names.sort(function (a, b) { return a.localeCompare(b); });
             if (directoryArea && !seen[areaKey(directoryArea)]) directoryArea = '';

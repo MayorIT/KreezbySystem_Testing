@@ -182,7 +182,8 @@
         out.forEach(function (n) { seen[key(n)] = true; });
         function take(name) {
             var label = String(name || '').trim();
-            if (!label || seen[key(label)]) return;
+            // Batangas City is part of customers' addresses, not a delivery area.
+            if (!label || seen[key(label)] || key(label) === 'batangascity') return;
             seen[key(label)] = true;
             out.push(label);
         }

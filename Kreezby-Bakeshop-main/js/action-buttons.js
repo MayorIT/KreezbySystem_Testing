@@ -461,7 +461,7 @@
       return;
     }
     if (action === 'restock') {
-      toast('Opening order errors so you can restock "' + name + '".', 'success');
+      toast('Opening back orders so you can restock "' + name + '".', 'success');
       location.href = portalModuleFile('bo');
       return;
     }

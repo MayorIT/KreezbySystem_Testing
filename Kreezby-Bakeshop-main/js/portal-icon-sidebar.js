@@ -182,7 +182,7 @@
         if (!key) return [];
         var items = [
             { href: retailerDashboardHref(key), label: 'Dashboard', icon: 'home' },
-            { href: 'bo-' + key + '.html', label: 'Order Error', icon: 'layers' },
+            { href: 'bo-' + key + '.html', label: 'Back Order', icon: 'layers' },
             { href: 'saleslist-' + key + '.html', label: 'Sales List', icon: 'sales' },
             { href: 'alert-' + key + '.html', label: 'Alert', icon: 'bell' }
         ];
