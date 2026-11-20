@@ -1362,12 +1362,16 @@ async function sendOtp(fields, amount) {
     return { status: result.response ? result.response.status : 0, data: result.data || {} };
 }
 
-// Resolves with the server's proof, '' when email codes are not set up on the server, or null when cancelled.
+// Resolves with the server's proof, or null when the code was not verified (cancelled or not set up).
 function ensureOtp(fields, amount) {
     const saved = savedOtpPass();
     if (saved) return Promise.resolve(saved);
     return sendOtp(fields, amount).then(function (first) {
-        if (first.status === 503) return '';            // email codes not set up: pay as before
+        if (first.status === 503) {
+            // Email codes are not set up on the server: no payment without a verified code.
+            showCheckoutDialog(first.data.error || 'Email verification is not set up on the server yet, so online payment is paused. Please choose another payment method or contact the shop.', { type: 'warning', title: 'Verification needed' });
+            return null;
+        }
         if (first.status === 0) {
             setPaymongoStatus('The shop server is not running. Start it, then try again.');
             return null;
@@ -1499,7 +1503,7 @@ async function startPaymongo(walletOverride) {
         if (data.needOtp) {
             clearOtpPass();
             if (button) button.disabled = false;
-            setPaymongoStatus('Your verification expired. Tap pay again to get a new code.');
+            setPaymongoStatus(response && response.status === 503 ? (data.error || 'Online payment is paused.') : 'Your verification expired. Tap pay again to get a new code.');
             return;
         }
         if (!response) {

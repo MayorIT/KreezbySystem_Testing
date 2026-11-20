@@ -3120,7 +3120,7 @@ app.post("/api/otp/send", async (req, res) => {
   if (!token) return;
   const cfg = smtpConfig();
   if (!cfg) {
-    res.status(503).json({ ok: false, error: "Email verification is not set up yet (SMTP_USER / SMTP_PASS on the server)." });
+    res.status(503).json({ ok: false, error: "Email verification is not set up on the server yet (SMTP_USER and SMTP_PASS), so online payment is paused. Please choose another payment method or contact the shop." });
     return;
   }
   try {
@@ -3204,8 +3204,12 @@ app.post("/api/otp/verify", async (req, res) => {
 });
 
 app.post("/api/paymongo/e-wallet", async (req, res) => {
-  // Customers confirm the payment with the emailed code first (when email sending is set up).
-  if (req.body && req.body.audience === "customer" && smtpConfig()) {
+  // Customers always confirm the payment with the emailed code first.
+  if (req.body && req.body.audience === "customer") {
+    if (!smtpConfig()) {
+      res.status(503).json({ ok: false, needOtp: true, error: "Email verification is not set up yet (SMTP_USER / SMTP_PASS on the server), so online payment is paused." });
+      return;
+    }
     const token = requestToken(req);
     if (!token || token.bucket !== "customers") {
       res.status(401).json({ ok: false, needLogin: true, error: "Please log in to your customer account to pay online." });
