@@ -818,8 +818,6 @@
     //   Finished products: quantity × production cost per pouch = cost of the ingredients used in
     //     the latest finished production batch ÷ pouches it produced (or the recipe cost per pouch
     //     when no batch has been finished yet). Products with no production cost are not valued.
-    var VALUATION_NOTE = 'Stock value = quantity × unit cost. Raw and packaging materials use the weighted-average purchase cost; '
-        + 'finished products use the production cost per pouch (ingredient cost of the latest finished batch ÷ pouches produced). Selling prices are not used.';
 
     function finishedCostPerPouch(code) {
         var prod = readStore('kreezby_production_v1', {}) || {};
@@ -1219,7 +1217,6 @@
             + '<div class="sl-detail-hero-value">' + money(k.value) + '</div>'
 
             + '<div class="sl-detail-hero-caption">' + esc(k.caption) + '</div>'
-            + '<div class="sl-detail-hero-caption" style="font-size:12px;opacity:.9;margin-top:4px">' + esc(VALUATION_NOTE) + '</div>'
 
             + '<div class="sl-kpi-trend ' + (k.trendDir === 'down' ? 'sl-trend-down' : 'sl-trend-up') + '">' + (k.trendDir === 'down' ? '▼ ' : '▲ ') + esc(k.trend) + '</div>'
 

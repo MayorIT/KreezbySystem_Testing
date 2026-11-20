@@ -551,12 +551,13 @@
         }).join('') : '<tr class="po-empty-row"><td colspan="6">No movements yet.</td></tr>';
         var content = document.getElementById('stocks-details-content');
         if (content) {
+            ensureDetailStyles();
             content.innerHTML =
-                '<div class="po-detail-hero"><p class="po-detail-kicker">' + esc(typeLabel(item.type)) + '</p><h4>' + esc(item.name) + '</h4></div>' +
+                '<div class="po-detail-hero"><p class="po-detail-kicker">Item details</p><h4>' + esc(item.name) + '</h4></div>' +
                 '<div class="po-detail-facts">' +
-                '<div><span>Stock type</span><strong>' + esc(typeLabel(item.type)) + '</strong></div>' +
-                (noDates(item) ? '' : '<div><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>') +
-                '<div><span>In stock</span><strong>' + liveQty(item) + '</strong></div>' +
+                '<div class="po-detail-fact"><span>Stock type</span><strong>' + esc(typeLabel(item.type)) + '</strong></div>' +
+                (noDates(item) ? '' : '<div class="po-detail-fact"><span>Unit</span><strong>' + esc(displayUnit(item, liveQty(item))) + '</strong></div>') +
+                '<div class="po-detail-fact"><span>In stock</span><strong>' + liveQty(item) + '</strong></div>' +
                 '</div>' +
                 '<h3 class="po-detail-subtitle">Movement history</h3>' +
                 '<div class="po-detail-table-wrap"><table class="data-display-table"><thead><tr><th>Date</th><th>Type</th><th>Quantity</th><th>Balance</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>' +
@@ -570,6 +571,26 @@
         if (alerts && typeof alerts.thresholdFor === 'function') return alerts.thresholdFor(code);
         var item = findItem(code);
         return item ? lowLimit(item.type) : 0;
+    }
+
+    function ensureDetailStyles() {
+        if (document.getElementById('stocks-detail-style')) return;
+        var st = document.createElement('style');
+        st.id = 'stocks-detail-style';
+        st.textContent = ''
+            + '#stocks-details-content .po-detail-hero{display:flex;flex-direction:column;gap:4px;margin:4px 0 16px;}'
+            + '#stocks-details-content .po-detail-kicker{margin:0;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8d6e63;}'
+            + '#stocks-details-content .po-detail-hero h4{margin:0;font-size:20px;line-height:1.25;color:#3e2723;}'
+            + '#stocks-details-content .po-detail-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:0 0 22px;}'
+            + '#stocks-details-content .po-detail-fact{display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:#fffaf3;border:1px solid #eadfce;border-radius:12px;min-width:0;}'
+            + '#stocks-details-content .po-detail-fact span{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8d6e63;}'
+            + '#stocks-details-content .po-detail-fact strong{font-size:17px;line-height:1.3;color:#3e2723;overflow-wrap:anywhere;}'
+            + '#stocks-details-content .po-detail-subtitle{margin:0 0 10px;font-size:16px;color:#3e2723;}'
+            + '#stocks-details-content .po-detail-table-wrap{width:100%;overflow-x:auto;}'
+            + '#stocks-details-content .po-detail-table-wrap th,#stocks-details-content .po-detail-table-wrap td{padding:10px 12px;white-space:nowrap;text-align:left;vertical-align:top;}'
+            + '#stocks-details-content .po-detail-table-wrap td:last-child{white-space:normal;min-width:180px;}'
+            + '@media (max-width:600px){#stocks-details-content .po-detail-facts{grid-template-columns:1fr 1fr;gap:10px;}#stocks-details-content .po-detail-fact{padding:12px;}#stocks-details-content .po-detail-fact strong{font-size:15px;}}';
+        (document.head || document.documentElement).appendChild(st);
     }
 
     function ensureEditStyles() {
@@ -614,6 +635,7 @@
         var price = priceEditable ? Number(dict.productPrice(item.name)) : 0;
         if (content) {
             ensureEditStyles();
+            ensureDetailStyles();
             var unit = /^pouch/.test(String(item.unit || '').toLowerCase()) ? 'pouches' : 'units';
             var onHand = liveQty(item);
             var summary = '<div class="se-summary">'
