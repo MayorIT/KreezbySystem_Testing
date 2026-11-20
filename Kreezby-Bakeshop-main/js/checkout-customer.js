@@ -661,7 +661,7 @@ function resetPaymongoButton() {
     const button = document.getElementById('paymongo-pay-btn');
     if (button) {
         button.disabled = false;
-        setPaymongoButtonLabel('Show QR code');
+        setPaymongoButtonLabel(savedOtpPass() ? 'Show QR code' : 'Verify with email code');
     }
 }
 
@@ -916,6 +916,11 @@ function initCheckout() {
             Promise.resolve(startPaymongo(wallet)).finally(function () { appBtn.disabled = false; });
         });
     });
+    // Before the code is verified, the button asks for it; the QR comes after.
+    if (!savedOtpPass() && !paymongoTestUrl) {
+        setPaymongoButtonLabel('Verify with email code');
+        setPaymongoStatus('Step 1: verify the code we email you. Step 2: show the QR code and pay.');
+    }
     resumePaymongoReturn();
 }
 
@@ -1313,11 +1318,11 @@ async function paymongoFetch(path, options) {
 // ---- Email OTP before a QR Ph payment ------------------------------------------------------
 // A 6-digit code is emailed to the customer; the payment QR is made only after it is entered.
 // The proof from the server lasts 15 minutes, so a new QR within that time needs no new code.
-const OTP_PASS_KEY = 'kzCheckoutOtpPass';
+var OTP_PASS_KEY = 'kzCheckoutOtpPass';
 
 function savedOtpPass() {
     try {
-        const row = JSON.parse(sessionStorage.getItem(OTP_PASS_KEY) || 'null');
+        const row = JSON.parse(sessionStorage.getItem('kzCheckoutOtpPass') || 'null');
         if (row && row.pass && row.exp > Date.now() + 30000) return row.pass;
     } catch (e) { /* none saved */ }
     return '';
@@ -1472,11 +1477,18 @@ async function startPaymongo(walletOverride) {
     const wallet = walletOverride || selectedPaymongoWallet();
     const button = document.getElementById('paymongo-pay-btn');
     if (button) button.disabled = true;
-    setPaymongoStatus('Sending a verification code to your email…');
-    const otpPass = await ensureOtp(fields, amount);
-    if (otpPass === null) {
+    // Step 1: verify the emailed code. The QR code is only offered after that (step 2).
+    let otpPass = savedOtpPass();
+    if (!otpPass) {
+        setPaymongoStatus('Sending a verification code to your email…');
+        otpPass = await ensureOtp(fields, amount);
         if (button) button.disabled = false;
-        setPaymongoStatus('Payment not started. Verify the code from your email to continue.');
+        if (!otpPass) {
+            setPaymongoStatus('Verify the code sent to your email first. The QR code is shown after that.');
+            return;
+        }
+        setPaymongoButtonLabel('Show QR code');
+        setPaymongoStatus('Email verified. Tap Show QR code to get your payment QR.');
         return;
     }
     setPaymongoStatus(wallet === 'qrph' ? 'Creating the QR code…' : 'Opening the app…');
@@ -1502,6 +1514,7 @@ async function startPaymongo(walletOverride) {
         const data = result.data || {};
         if (data.needOtp) {
             clearOtpPass();
+            setPaymongoButtonLabel('Verify with email code');
             if (button) button.disabled = false;
             setPaymongoStatus(response && response.status === 503 ? (data.error || 'Online payment is paused.') : 'Your verification expired. Tap pay again to get a new code.');
             return;
