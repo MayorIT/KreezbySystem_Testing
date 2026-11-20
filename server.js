@@ -3126,8 +3126,11 @@ app.post("/api/otp/send", async (req, res) => {
   try {
     const db = client.db(DB_NAME);
     const account = await db.collection(ACCOUNT_COLLECTIONS.customers).findOne({ _id: token.id });
-    const typed = String((req.body && req.body.email) || "").trim();
-    const email = String((account && account.email) || "").trim() || typed;
+    // The code goes to the email typed at checkout ("Email for the receipt"); the account's
+    // email is used only when nothing valid was typed.
+    const valid = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    const typed = String((req.body && req.body.email) || "").trim().slice(0, 120);
+    const email = valid(typed) ? typed : String((account && account.email) || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       res.status(400).json({ ok: false, error: "Add a valid email address to receive the verification code." });
       return;
