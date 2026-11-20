@@ -1310,6 +1310,152 @@ async function paymongoFetch(path, options) {
     return { response: lastResponse, data: lastData };
 }
 
+// ---- Email OTP before a QR Ph payment ------------------------------------------------------
+// A 6-digit code is emailed to the customer; the payment QR is made only after it is entered.
+// The proof from the server lasts 15 minutes, so a new QR within that time needs no new code.
+const OTP_PASS_KEY = 'kzCheckoutOtpPass';
+
+function savedOtpPass() {
+    try {
+        const row = JSON.parse(sessionStorage.getItem(OTP_PASS_KEY) || 'null');
+        if (row && row.pass && row.exp > Date.now() + 30000) return row.pass;
+    } catch (e) { /* none saved */ }
+    return '';
+}
+
+function clearOtpPass() {
+    try { sessionStorage.removeItem(OTP_PASS_KEY); } catch (e) { /* ignore */ }
+}
+
+function ensureOtpStyle() {
+    if (document.getElementById('kz-otp-style')) return;
+    const st = document.createElement('style');
+    st.id = 'kz-otp-style';
+    st.textContent = ''
+        + '.kz-otp-overlay{position:fixed;inset:0;z-index:10050;background:rgba(43,33,24,.55);display:flex;align-items:center;justify-content:center;padding:16px}'
+        + '.kz-otp-box{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:22px 20px;box-shadow:0 18px 50px rgba(0,0,0,.25);color:#3e2723;font-family:inherit}'
+        + '.kz-otp-box h3{margin:0 0 6px;font-size:19px}'
+        + '.kz-otp-box p{margin:0 0 14px;font-size:14px;line-height:1.5;color:#6d4c41}'
+        + '.kz-otp-input{display:block;width:100%;box-sizing:border-box;height:56px;border:1.5px solid #d7ccc8;border-radius:12px;text-align:center;font-size:28px;font-weight:700;letter-spacing:.45em;padding-left:.45em;color:#3e2723;background:#fffaf3}'
+        + '.kz-otp-input:focus{outline:none;border-color:#5d4037;box-shadow:0 0 0 3px rgba(93,64,55,.15)}'
+        + '.kz-otp-msg{min-height:20px;margin:8px 0 0;font-size:13px;line-height:1.4}'
+        + '.kz-otp-msg.err{color:#b3261e}.kz-otp-msg.ok{color:#2e7d32}'
+        + '.kz-otp-actions{display:flex;gap:10px;margin-top:14px}'
+        + '.kz-otp-actions button{flex:1 1 0;height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer}'
+        + '.kz-otp-verify{border:0;background:#5d4037;color:#fff}.kz-otp-verify:disabled{opacity:.55;cursor:default}'
+        + '.kz-otp-cancel{border:1px solid #d7ccc8;background:#fff;color:#5d4037}'
+        + '.kz-otp-resend{display:block;margin:12px auto 0;border:0;background:none;color:#5d4037;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer}'
+        + '.kz-otp-resend:disabled{color:#a1887f;text-decoration:none;cursor:default}';
+    document.head.appendChild(st);
+}
+
+function otpHeaders() {
+    return { 'Content-Type': 'application/json' };
+}
+
+async function sendOtp(fields, amount) {
+    const result = await paymongoFetch('/api/otp/send', {
+        method: 'POST',
+        headers: otpHeaders(),
+        body: JSON.stringify({ email: fields.email, amount: amount })
+    });
+    return { status: result.response ? result.response.status : 0, data: result.data || {} };
+}
+
+// Resolves with the server's proof, '' when email codes are not set up on the server, or null when cancelled.
+function ensureOtp(fields, amount) {
+    const saved = savedOtpPass();
+    if (saved) return Promise.resolve(saved);
+    return sendOtp(fields, amount).then(function (first) {
+        if (first.status === 503) return '';            // email codes not set up: pay as before
+        if (first.status === 0) {
+            setPaymongoStatus('The shop server is not running. Start it, then try again.');
+            return null;
+        }
+        if (!first.data.ok && first.status !== 429) {
+            showCheckoutDialog(first.data.error || 'The verification code could not be sent.', { type: 'warning', title: 'Verification' });
+            return null;
+        }
+        return new Promise(function (resolve) {
+            ensureOtpStyle();
+            const overlay = document.createElement('div');
+            overlay.className = 'kz-otp-overlay';
+            overlay.innerHTML = '<div class="kz-otp-box" role="dialog" aria-modal="true" aria-labelledby="kz-otp-title">'
+                + '<h3 id="kz-otp-title">Verify your payment</h3>'
+                + '<p id="kz-otp-lead"></p>'
+                + '<input class="kz-otp-input" id="kz-otp-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6-digit code">'
+                + '<p class="kz-otp-msg" id="kz-otp-msg" role="status"></p>'
+                + '<div class="kz-otp-actions"><button type="button" class="kz-otp-cancel" id="kz-otp-cancel">Cancel</button>'
+                + '<button type="button" class="kz-otp-verify" id="kz-otp-verify" disabled>Verify</button></div>'
+                + '<button type="button" class="kz-otp-resend" id="kz-otp-resend" disabled>Send a new code</button>'
+                + '</div>';
+            document.body.appendChild(overlay);
+            const input = overlay.querySelector('#kz-otp-code');
+            const verifyBtn = overlay.querySelector('#kz-otp-verify');
+            const resendBtn = overlay.querySelector('#kz-otp-resend');
+            const msg = overlay.querySelector('#kz-otp-msg');
+            const lead = overlay.querySelector('#kz-otp-lead');
+            let timer = null;
+            function say(text, kind) { msg.textContent = text || ''; msg.className = 'kz-otp-msg' + (kind ? ' ' + kind : ''); }
+            function countdown(seconds) {
+                let left = Math.max(0, Number(seconds) || 0);
+                clearInterval(timer);
+                resendBtn.disabled = left > 0;
+                resendBtn.textContent = left > 0 ? 'Send a new code (' + left + 's)' : 'Send a new code';
+                timer = setInterval(function () {
+                    left -= 1;
+                    resendBtn.disabled = left > 0;
+                    resendBtn.textContent = left > 0 ? 'Send a new code (' + left + 's)' : 'Send a new code';
+                    if (left <= 0) clearInterval(timer);
+                }, 1000);
+            }
+            function close(value) {
+                clearInterval(timer);
+                overlay.remove();
+                resolve(value);
+            }
+            function sentText(data) {
+                lead.textContent = data.sentTo
+                    ? 'We sent a 6-digit code to ' + data.sentTo + '. Enter it to confirm your payment of ₱' + Number(amount).toFixed(2) + '. It works for 5 minutes.'
+                    : 'Enter the 6-digit code we emailed you. It works for 5 minutes.';
+            }
+            if (first.data.ok) { sentText(first.data); countdown(first.data.resendIn || 60); }
+            else { lead.textContent = 'A code was already sent to your email. Enter it below.'; countdown(first.data.retryIn || 60); }
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/\D/g, '').slice(0, 6);
+                verifyBtn.disabled = input.value.length !== 6;
+                if (input.value.length === 6) say('');
+            });
+            input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !verifyBtn.disabled) verifyBtn.click(); });
+            overlay.querySelector('#kz-otp-cancel').addEventListener('click', function () { close(null); });
+            resendBtn.addEventListener('click', function () {
+                resendBtn.disabled = true;
+                say('Sending a new code…');
+                sendOtp(fields, amount).then(function (r) {
+                    if (r.data.ok) { sentText(r.data); say('A new code was sent.', 'ok'); input.value = ''; verifyBtn.disabled = true; countdown(r.data.resendIn || 60); }
+                    else { say(r.data.error || 'The code could not be sent.', 'err'); countdown(r.data.retryIn || 0); }
+                });
+            });
+            verifyBtn.addEventListener('click', function () {
+                verifyBtn.disabled = true;
+                say('Checking…');
+                paymongoFetch('/api/otp/verify', { method: 'POST', headers: otpHeaders(), body: JSON.stringify({ code: input.value }) }).then(function (r) {
+                    const data = r.data || {};
+                    if (data.ok && data.otpPass) {
+                        try { sessionStorage.setItem(OTP_PASS_KEY, JSON.stringify({ pass: data.otpPass, exp: Date.now() + 14 * 60 * 1000 })); } catch (e) { /* kept in memory below */ }
+                        close(data.otpPass);
+                        return;
+                    }
+                    say(data.error || 'That code did not work.', 'err');
+                    if (data.locked || data.expired) { input.value = ''; resendBtn.disabled = false; resendBtn.textContent = 'Send a new code'; clearInterval(timer); }
+                    verifyBtn.disabled = input.value.length !== 6;
+                });
+            });
+            setTimeout(function () { input.focus(); }, 50);
+        });
+    });
+}
+
 async function startPaymongo(walletOverride) {
     if (!hasCartItems()) {
         showCheckoutDialog('Your cart is empty. Add items before paying with QR Ph.', { type: 'warning', title: 'Cart Empty' });
@@ -1322,6 +1468,13 @@ async function startPaymongo(walletOverride) {
     const wallet = walletOverride || selectedPaymongoWallet();
     const button = document.getElementById('paymongo-pay-btn');
     if (button) button.disabled = true;
+    setPaymongoStatus('Sending a verification code to your email…');
+    const otpPass = await ensureOtp(fields, amount);
+    if (otpPass === null) {
+        if (button) button.disabled = false;
+        setPaymongoStatus('Payment not started. Verify the code from your email to continue.');
+        return;
+    }
     setPaymongoStatus(wallet === 'qrph' ? 'Creating the QR code…' : 'Opening the app…');
     let showedQr = false;
     try {
@@ -1337,11 +1490,18 @@ async function startPaymongo(walletOverride) {
                 description: 'Kreezby customer order',
                 returnUrl: window.location.origin + window.location.pathname + '?paymongo=return',
                 reference: 'customer-checkout',
-                audience: 'customer'
+                audience: 'customer',
+                otpPass: otpPass || ''
             })
         });
         const response = result.response;
         const data = result.data || {};
+        if (data.needOtp) {
+            clearOtpPass();
+            if (button) button.disabled = false;
+            setPaymongoStatus('Your verification expired. Tap pay again to get a new code.');
+            return;
+        }
         if (!response) {
             setPaymongoStatus('The shop server is not running. Open http://localhost:3000 and try again.');
             return;

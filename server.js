@@ -2983,7 +2983,239 @@ async function scannableQr(text) {
 
 app.use("/api/paymongo", allowLocalPaymongo);
 
+// ---- Email OTP for QR Ph payments -----------------------------------------------------------
+// Before a customer's QR Ph / e-wallet payment is created, a 6-digit code is emailed to the
+// customer and must be entered at checkout. The email goes out through the shop's own Gmail
+// (free SMTP, no paid API): set SMTP_USER and SMTP_PASS (a Gmail App Password) in .env / Vercel.
+// Codes: hashed in otp_codes, valid 5 minutes, 5 wrong tries, resend after 60 s, 5 per hour.
+const tls = require("tls");
+const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_PASS_TTL_MS = 15 * 60 * 1000;
+const OTP_RESEND_MS = 60 * 1000;
+const OTP_MAX_TRIES = 5;
+const OTP_MAX_PER_HOUR = 5;
+
+function smtpConfig() {
+  const user = String(process.env.SMTP_USER || "").trim();
+  const pass = String(process.env.SMTP_PASS || "").replace(/\s+/g, "");
+  if (!user || !pass) return null;
+  return {
+    host: String(process.env.SMTP_HOST || "smtp.gmail.com").trim(),
+    port: Number(process.env.SMTP_PORT) || 465,
+    user,
+    pass,
+    from: String(process.env.SMTP_FROM || user).trim(),
+  };
+}
+
+function otpSecret() {
+  return String(process.env.OTP_SECRET || process.env.PAYMONGO_WEBHOOK_SECRET || process.env.MONGODB_URI || "kreezby-otp");
+}
+
+function otpHash(customerId, code) {
+  return crypto.createHmac("sha256", otpSecret()).update(String(customerId) + ":" + String(code)).digest("hex");
+}
+
+// Proof that this customer entered a correct code: signed, valid 15 minutes.
+function issueOtpPass(customerId) {
+  const body = Buffer.from(JSON.stringify({ id: String(customerId), exp: Date.now() + OTP_PASS_TTL_MS })).toString("base64url");
+  return body + "." + crypto.createHmac("sha256", otpSecret()).update("pass:" + body).digest("base64url");
+}
+
+function readOtpPass(text, customerId) {
+  const raw = String(text || "");
+  const dot = raw.lastIndexOf(".");
+  if (dot <= 0) return false;
+  const body = raw.slice(0, dot);
+  const given = Buffer.from(raw.slice(dot + 1));
+  const expected = Buffer.from(crypto.createHmac("sha256", otpSecret()).update("pass:" + body).digest("base64url"));
+  if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) return false;
+  try {
+    const p = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    return p && String(p.id) === String(customerId) && p.exp > Date.now();
+  } catch (error) {
+    return false;
+  }
+}
+
+function maskEmail(email) {
+  const [name, domain] = String(email || "").split("@");
+  if (!domain) return "";
+  return name.slice(0, 2) + "*".repeat(Math.max(1, name.length - 2)) + "@" + domain;
+}
+
+// Minimal SMTP client over TLS (port 465): AUTH LOGIN, one message, QUIT.
+function sendMail(cfg, message, connect) {
+  return new Promise((resolve, reject) => {
+    const socket = (connect || tls.connect)({ host: cfg.host, port: cfg.port, servername: cfg.host });
+    socket.setEncoding("utf8");
+    socket.setTimeout(15000, () => { socket.destroy(); reject(new Error("The email server did not answer.")); });
+    let buffer = "";
+    let waiting = null;
+    socket.on("data", (chunk) => {
+      buffer += chunk;
+      // A reply is complete when its last line is "NNN text" (not "NNN-text").
+      const lines = buffer.split("\r\n");
+      for (let i = 0; i < lines.length - 1; i++) {
+        if (/^\d{3} /.test(lines[i])) {
+          const code = Number(lines[i].slice(0, 3));
+          const text = lines.slice(0, i + 1).join("\n");
+          buffer = lines.slice(i + 1).join("\r\n");
+          const w = waiting;
+          waiting = null;
+          if (w) w(code, text);
+          return;
+        }
+      }
+    });
+    socket.on("error", (error) => reject(error));
+    const expect = (codes) => new Promise((ok, fail) => {
+      waiting = (code, text) => (codes.indexOf(code) >= 0 ? ok(text) : fail(new Error("Email server said: " + text.slice(0, 200))));
+    });
+    const send = (line, codes) => { const p = expect(codes); socket.write(line + "\r\n"); return p; };
+    const encodeHeader = (v) => "=?UTF-8?B?" + Buffer.from(String(v), "utf8").toString("base64") + "?=";
+    (async () => {
+      await expect([220]);
+      await send("EHLO kreezby.local", [250]);
+      await send("AUTH LOGIN", [334]);
+      await send(Buffer.from(cfg.user).toString("base64"), [334]);
+      await send(Buffer.from(cfg.pass).toString("base64"), [235]);
+      await send("MAIL FROM:<" + cfg.from + ">", [250]);
+      await send("RCPT TO:<" + message.to + ">", [250, 251]);
+      await send("DATA", [354]);
+      const body = Buffer.from(message.text, "utf8").toString("base64").replace(/.{76}/g, "$&\r\n");
+      const data = [
+        "From: " + encodeHeader("Kreezby Bakeshop") + " <" + cfg.from + ">",
+        "To: <" + message.to + ">",
+        "Subject: " + encodeHeader(message.subject),
+        "Date: " + new Date().toUTCString(),
+        "Message-ID: <" + crypto.randomBytes(12).toString("hex") + "@kreezby>",
+        "MIME-Version: 1.0",
+        "Content-Type: text/plain; charset=UTF-8",
+        "Content-Transfer-Encoding: base64",
+        "",
+        body,
+        ".",
+      ].join("\r\n");
+      await send(data, [250]);
+      socket.write("QUIT\r\n");
+      socket.end();
+      resolve(true);
+    })().catch((error) => { socket.destroy(); reject(error); });
+  });
+}
+
+function otpCustomer(req, res) {
+  const token = requestToken(req);
+  if (!token || token.bucket !== "customers") {
+    res.status(401).json({ ok: false, needLogin: true, error: "Please log in to your customer account to pay online." });
+    return null;
+  }
+  return token;
+}
+
+app.post("/api/otp/send", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = otpCustomer(req, res);
+  if (!token) return;
+  const cfg = smtpConfig();
+  if (!cfg) {
+    res.status(503).json({ ok: false, error: "Email verification is not set up yet (SMTP_USER / SMTP_PASS on the server)." });
+    return;
+  }
+  try {
+    const db = client.db(DB_NAME);
+    const account = await db.collection(ACCOUNT_COLLECTIONS.customers).findOne({ _id: token.id });
+    const typed = String((req.body && req.body.email) || "").trim();
+    const email = String((account && account.email) || "").trim() || typed;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      res.status(400).json({ ok: false, error: "Add a valid email address to receive the verification code." });
+      return;
+    }
+    const col = db.collection("otp_codes");
+    const now = Date.now();
+    const row = await col.findOne({ _id: String(token.id) });
+    if (row && row.sentAt && now - row.sentAt < OTP_RESEND_MS) {
+      res.status(429).json({ ok: false, error: "Please wait " + Math.ceil((OTP_RESEND_MS - (now - row.sentAt)) / 1000) + " seconds before asking for a new code.", retryIn: Math.ceil((OTP_RESEND_MS - (now - row.sentAt)) / 1000) });
+      return;
+    }
+    const hour = (row && row.hourStart && now - row.hourStart < 3600000) ? row : { hourStart: now, hourCount: 0 };
+    if (hour.hourCount >= OTP_MAX_PER_HOUR) {
+      res.status(429).json({ ok: false, error: "Too many codes were sent. Try again within the hour." });
+      return;
+    }
+    const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+    const amount = Number(req.body && req.body.amount);
+    await sendMail(cfg, {
+      to: email,
+      subject: "Kreezby Bakeshop payment code: " + code,
+      text: "Your Kreezby Bakeshop verification code is " + code + ".\r\n\r\n"
+        + (Number.isFinite(amount) && amount > 0 ? "It confirms your QR Ph payment of PHP " + amount.toFixed(2) + ".\r\n" : "")
+        + "The code works for 5 minutes. Do not share it with anyone; Kreezby staff will never ask for it.\r\n"
+        + "If you did not try to pay, ignore this email.",
+    });
+    await col.updateOne({ _id: String(token.id) }, {
+      $set: { codeHash: otpHash(token.id, code), sentAt: now, expiresAt: now + OTP_TTL_MS, tries: 0, email, hourStart: hour.hourStart, hourCount: hour.hourCount + 1 },
+    }, { upsert: true });
+    await writeSecurityLog(token, "otp_sent", req, { email: maskEmail(email) });
+    res.json({ ok: true, sentTo: maskEmail(email), expiresIn: OTP_TTL_MS / 1000, resendIn: OTP_RESEND_MS / 1000 });
+  } catch (error) {
+    await logError({ source: "server", message: "OTP email failed: " + error.message, where: "/api/otp/send" });
+    res.status(502).json({ ok: false, error: "The verification email could not be sent. Try again in a moment." });
+  }
+});
+
+app.post("/api/otp/verify", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = otpCustomer(req, res);
+  if (!token) return;
+  const code = String((req.body && req.body.code) || "").replace(/\D/g, "");
+  if (code.length !== 6) {
+    res.status(400).json({ ok: false, error: "Enter the 6-digit code from the email." });
+    return;
+  }
+  const col = client.db(DB_NAME).collection("otp_codes");
+  const row = await col.findOne({ _id: String(token.id) });
+  if (!row || !row.codeHash) {
+    res.status(400).json({ ok: false, error: "Ask for a code first." });
+    return;
+  }
+  if (Date.now() > row.expiresAt) {
+    res.status(400).json({ ok: false, expired: true, error: "This code has expired. Send a new one." });
+    return;
+  }
+  if ((row.tries || 0) >= OTP_MAX_TRIES) {
+    res.status(429).json({ ok: false, locked: true, error: "Too many wrong codes. Send a new one." });
+    return;
+  }
+  const given = Buffer.from(otpHash(token.id, code));
+  const expected = Buffer.from(String(row.codeHash));
+  if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
+    await col.updateOne({ _id: String(token.id) }, { $inc: { tries: 1 } });
+    const left = OTP_MAX_TRIES - (row.tries || 0) - 1;
+    await writeSecurityLog(token, "otp_wrong", req, { left });
+    res.status(400).json({ ok: false, error: left > 0 ? "Wrong code. " + left + " " + (left === 1 ? "try" : "tries") + " left." : "Wrong code. Send a new one.", locked: left <= 0 });
+    return;
+  }
+  // A code works once.
+  await col.updateOne({ _id: String(token.id) }, { $unset: { codeHash: "" }, $set: { verifiedAt: Date.now() } });
+  await writeSecurityLog(token, "otp_verified", req);
+  res.json({ ok: true, otpPass: issueOtpPass(token.id) });
+});
+
 app.post("/api/paymongo/e-wallet", async (req, res) => {
+  // Customers confirm the payment with the emailed code first (when email sending is set up).
+  if (req.body && req.body.audience === "customer" && smtpConfig()) {
+    const token = requestToken(req);
+    if (!token || token.bucket !== "customers") {
+      res.status(401).json({ ok: false, needLogin: true, error: "Please log in to your customer account to pay online." });
+      return;
+    }
+    if (!readOtpPass(req.get("x-kreezby-otp") || (req.body && req.body.otpPass), token.id)) {
+      res.status(403).json({ ok: false, needOtp: true, error: "Enter the verification code sent to your email first." });
+      return;
+    }
+  }
   if (!/^sk_(test|live)_/.test(paymongoSecret())) {
     res.status(503).json({
       ok: false,
