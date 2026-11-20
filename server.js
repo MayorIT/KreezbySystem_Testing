@@ -182,6 +182,8 @@ function isPlainObject(v) {
   return v && typeof v === "object" && !Array.isArray(v);
 }
 
+let mergeConflicts = [];
+
 function threeWayMerge(base, inc, cur, path, numericRule) {
   if (sameJson(inc, base)) return cur;
   if (sameJson(cur, base)) return inc;
@@ -233,9 +235,37 @@ function threeWayMerge(base, inc, cur, path, numericRule) {
     return result.concat(added);
   }
   if (numericRule && numericRule.test(path) && typeof inc === "number" && typeof cur === "number" && typeof base === "number") {
-    return Math.max(0, cur + (inc - base));
+    const next = cur + (inc - base);
+    // Two places took the same last pouches at the same moment: stock never goes below zero,
+    // and the shortfall is reported (stock_conflicts + a notification) so it can be checked.
+    if (next < 0) mergeConflicts.push({ path, stockBefore: cur, change: inc - base, short: -next });
+    return Math.max(0, next);
   }
   return inc;
+}
+
+async function reportStockConflicts(key, list) {
+  try {
+    await client.db(DB_NAME).collection("stock_conflicts").insertOne({ at: new Date(), key, conflicts: list });
+    const notes = JSON.parse(cache.kreezbyNotifications || "[]");
+    if (!Array.isArray(notes)) return;
+    const text = list.map((c) => c.path.split(".").pop() + ": " + c.short + " short").join(", ");
+    notes.unshift({
+      id: "n-stock-conflict-" + Date.now(),
+      title: "Stock conflict",
+      description: "Two transactions used the same stock at the same time (" + text + "). Stock was kept at 0. Check the Inventory history.",
+      timestamp: new Date().toISOString(),
+      read: false,
+      source: "stock",
+      audiences: ["head", "admin"],
+    });
+    const value = JSON.stringify(notes);
+    cache.kreezbyNotifications = value;
+    cacheTouched.kreezbyNotifications = Date.now();
+    await collection().updateOne({ _id: "kreezbyNotifications" }, { $set: { value, updatedAt: new Date() } }, { upsert: true });
+  } catch (error) {
+    console.error("Stock conflict report: " + error.message);
+  }
 }
 
 // Reads the current value, merges, and writes only if nobody changed it in between (retries).
@@ -244,6 +274,7 @@ async function saveStockKey(key, incoming, baseText) {
   let base = null;
   try { base = JSON.parse(baseText); } catch (e) { base = null; }
   for (let attempt = 0; attempt < 6; attempt++) {
+    mergeConflicts = [];
     const row = await col.findOne({ _id: key });
     const curText = row && typeof row.value === "string" ? row.value : null;
     let finalText = incoming;
@@ -256,7 +287,12 @@ async function saveStockKey(key, incoming, baseText) {
     const filter = curText == null ? { _id: key } : { _id: key, value: curText };
     try {
       const result = await col.updateOne(filter, { $set: { value: finalText, updatedAt: new Date() } }, { upsert: curText == null });
-      if (result.matchedCount || result.upsertedCount) { cache[key] = finalText; cacheTouched[key] = Date.now(); return finalText; }
+      if (result.matchedCount || result.upsertedCount) {
+        cache[key] = finalText;
+        cacheTouched[key] = Date.now();
+        if (mergeConflicts.length) await reportStockConflicts(key, mergeConflicts.slice());
+        return finalText;
+      }
     } catch (error) {
       if (!(error && error.code === 11000)) throw error;
     }
@@ -885,6 +921,20 @@ async function refreshCache() {
   cache = next;
 }
 
+// Browser security headers on every response.
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Content-Security-Policy", "frame-ancestors 'self'; object-src 'none'; base-uri 'self'");
+  if (req.secure || String(req.headers["x-forwarded-proto"] || "") === "https") {
+    res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+  }
+  next();
+});
+
 app.use(express.json({
   limit: "12mb",
   // Keep the exact bytes of PayMongo webhooks: their signature is checked against the raw body.
@@ -947,6 +997,119 @@ app.use("/api", (req, res, next) => {
     res.sendStatus(204);
     return;
   }
+  next();
+});
+
+// ---- Access rules for the API ----------------------------------------------------------------
+// Every page sends its session token (X-Kreezby-Token, signed by the server at sign-in).
+// - Without a token (guest pages, the sign-in page) only public data can be read, and only the
+//   partner-inquiry form and sign-in bookkeeping can be written.
+// - Passwords kept in the shared state are sent only to admin accounts; other accounts get the
+//   same data without them, and a save from those accounts keeps the stored passwords.
+// - An expired or forged token is refused (401) instead of being treated as a guest.
+const GUEST_WRITABLE_RE = /^(kreezby-partner-inquiries-v1|kreezby_login_history|kreezbyPresence_)/;
+const GUEST_HIDDEN_RE = /^(kreezby_maintenance_users|kreezbyAuthCredentials|kreezbyOrders|kreezby-po-orders-v1|kreezby-bo-orders-v1|kreezbyNotifications|kreezbyCustomerReceipts|kreezbyOwnerReceipts|kreezbyTeamChat_|kreezbyHelpQueue|kreezbyInbox|kreezbyChat|kreezbyIssue|kreezby-issue|kreezby-partner-inquiries|kreezby_security|kreezby_login_history|kreezbyPresence_|kreezby_staff_permissions|kreezby_admin_permissions|kreezby_delivery_schedule|kreezbyRetailer)/;
+const SECRET_FIELDS = ["password", "temporaryPassword", "password_hash"];
+// Customers and retailers also do not receive other people's contact details.
+const CONTACT_FIELDS = ["email", "phone", "contact", "contactNumber", "mobile", "address", "birthday"];
+
+function requestToken(req) {
+  if (req.__kzToken !== undefined) return req.__kzToken;
+  const raw = String((req.headers && req.headers["x-kreezby-token"]) || "").trim();
+  req.__kzTokenSent = !!raw;
+  req.__kzToken = raw ? retailerRecords.readToken(req) : null;
+  return req.__kzToken;
+}
+
+function stripSecrets(key, text, reader) {
+  if (key !== "kreezby_maintenance_users" && key !== "kreezbyAuthCredentials") return text;
+  try {
+    const data = JSON.parse(text);
+    if (key === "kreezbyAuthCredentials") {
+      const out = {};
+      Object.keys(data || {}).forEach((k) => { const row = Object.assign({}, data[k]); SECRET_FIELDS.forEach((f) => delete row[f]); out[k] = row; });
+      return JSON.stringify(out);
+    }
+    const outsider = reader && reader.bucket !== "admins" && reader.bucket !== "staff";
+    Object.keys(data || {}).forEach((bucket) => {
+      if (!Array.isArray(data[bucket])) return;
+      data[bucket] = data[bucket].map((row) => {
+        const copy = Object.assign({}, row);
+        SECRET_FIELDS.forEach((f) => delete copy[f]);
+        const own = reader && String(copy.id || copy.user_id || "") === String(reader.id);
+        if (outsider && !own) CONTACT_FIELDS.forEach((f) => delete copy[f]);
+        return copy;
+      });
+    });
+    return JSON.stringify(data);
+  } catch (error) {
+    return text;
+  }
+}
+
+// A save from an account that never received the passwords must not erase them.
+function restoreSecrets(key, incoming, writer) {
+  if ((key !== "kreezby_maintenance_users" && key !== "kreezbyAuthCredentials") || typeof cache[key] !== "string") return incoming;
+  try {
+    const next = JSON.parse(incoming);
+    const stored = JSON.parse(cache[key]);
+    if (key === "kreezbyAuthCredentials") {
+      Object.keys(next || {}).forEach((k) => {
+        const was = stored && stored[k];
+        if (!was) return;
+        SECRET_FIELDS.forEach((f) => { if (next[k] && next[k][f] === undefined && was[f] !== undefined) next[k][f] = was[f]; });
+      });
+      return JSON.stringify(next);
+    }
+    Object.keys(next || {}).forEach((bucket) => {
+      if (!Array.isArray(next[bucket]) || !Array.isArray(stored && stored[bucket])) return;
+      next[bucket].forEach((row) => {
+        if (!row) return;
+        const id = String(row.id || row.user_id || "");
+        const was = id && stored[bucket].find((r) => r && String(r.id || r.user_id || "") === id);
+        if (!was) return;
+        SECRET_FIELDS.forEach((f) => { if (row[f] === undefined && was[f] !== undefined) row[f] = was[f]; });
+        const outsider = !writer || (writer.bucket !== "admins" && writer.bucket !== "staff");
+        if (outsider && !(writer && String(writer.id) === id)) CONTACT_FIELDS.forEach((f) => { if (row[f] === undefined && was[f] !== undefined) row[f] = was[f]; });
+      });
+    });
+    return JSON.stringify(next);
+  } catch (error) {
+    return incoming;
+  }
+}
+
+function itemsForReader(req, items) {
+  const token = requestToken(req);
+  const out = {};
+  Object.keys(items || {}).forEach((key) => {
+    const value = items[key];
+    if (!token) { if (!GUEST_HIDDEN_RE.test(key)) out[key] = value; return; }
+    out[key] = token.bucket === "admins" ? value : stripSecrets(key, value, token);
+  });
+  return out;
+}
+
+app.use("/api", (req, res, next) => {
+  const token = requestToken(req);
+  if (req.__kzTokenSent && !token && !/^\/(login|health|paymongo\/webhook)/.test(req.path)) {
+    res.status(401).json({ ok: false, needLogin: true, error: "Your session has expired. Please log out and log in again." });
+    return;
+  }
+  const bucket = token ? token.bucket : "";
+  const staffOrAdmin = bucket === "admins" || bucket === "staff";
+  const deny = (status, error) => res.status(status).json({ ok: false, needLogin: status === 401, error });
+  // Shop permissions: read by every page, changed only by admins.
+  if (req.path === "/permissions" && req.method === "POST" && bucket !== "admins") return deny(bucket ? 403 : 401, "Only admins can change permissions.");
+  // Sales records: signed-in accounts only.
+  if (/^\/records\//.test(req.path) && !token) return deny(401, "Please log in.");
+  // Account records: staff and admins see every account; anyone else only their own.
+  if (req.path === "/accounts" && req.method === "GET" && !token) return deny(401, "Please log in.");
+  if (req.path === "/accounts" && req.method === "POST") {
+    const wanted = String((req.body && req.body.bucket) || "customers").trim();
+    if (wanted !== "customers" && bucket !== "admins") return deny(bucket ? 403 : 401, "Only admins can create or change staff, admin and retailer accounts.");
+  }
+  if (req.path === "/customer-orders" && req.method === "GET" && !token) return deny(401, "Please log in.");
   next();
 });
 
@@ -1016,7 +1179,7 @@ app.get("/api/state", async (req, res) => {
         items[doc._id] = doc.value;
         cache[doc._id] = doc.value;
       }
-      res.json({ items, partial: true, serverTime });
+      res.json({ items: itemsForReader(req, items), partial: true, serverTime });
     } catch (error) {
       res.status(503).json({ ok: false, error: error.message });
     }
@@ -1026,7 +1189,7 @@ app.get("/api/state", async (req, res) => {
     const serverTime = Date.now();
     await refreshCache();
     lastCacheRefresh = Date.now();
-    res.json({ items: cache, serverTime });
+    res.json({ items: itemsForReader(req, cache), serverTime });
   } catch (error) {
     res.status(503).json({ ok: false, error: error.message });
   }
@@ -1536,12 +1699,16 @@ app.get("/api/accounts", async (req, res) => {
     const db = client.db(DB_NAME);
     const accounts = {};
     try { await reconcileDeletedAccounts(true); } catch (error) { console.error("Account reconcile failed: " + error.message); }
+    const token = requestToken(req);
+    const everyone = token && (token.bucket === "admins" || token.bucket === "staff");
     for (const [bucket, collectionName] of Object.entries(ACCOUNT_COLLECTIONS)) {
       if (bucket === "wholesalers") continue;
-      const docs = await db.collection(collectionName).find({}).toArray();
+      if (!everyone && bucket !== token.bucket) continue;
+      const filter = everyone ? {} : { _id: token.id };
+      const docs = await db.collection(collectionName).find(filter).toArray();
       accounts[bucket] = docs.map(publicAccount);
     }
-    res.json({ ok: true, accounts });
+    res.json({ ok: true, accounts, onlyOwn: !everyone });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -1551,6 +1718,16 @@ app.post("/api/accounts", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
     const bucket = String((req.body && req.body.bucket) || "customers").trim();
+    const token = requestToken(req);
+    if (bucket === "customers" && (!token || token.bucket === "customers")) {
+      const acc = (req.body && req.body.account) || {};
+      const id = String(acc.id || acc.user_id || "").trim();
+      const existing = id ? await client.db(DB_NAME).collection(ACCOUNT_COLLECTIONS.customers).findOne({ _id: id }) : null;
+      if (existing && (!token || String(token.id) !== id)) {
+        res.status(403).json({ ok: false, error: "You can only change your own account." });
+        return;
+      }
+    }
     const result = await upsertAccountRecord(bucket, req.body && req.body.account);
     res.status(result.status).json(result.body);
   } catch (error) {
@@ -1560,6 +1737,30 @@ app.post("/api/accounts", async (req, res) => {
 
 function loginKey(value) {
   return String(value == null ? "" : value).trim().toLowerCase();
+}
+
+// ---- Sign-in protection: 5 wrong passwords for one account from one address pause it 15 minutes.
+const loginFailures = new Map();
+const LOGIN_MAX_FAILS = 5;
+const LOGIN_BLOCK_MS = 15 * 60 * 1000;
+function clientIp(req) {
+  return String((req.headers && req.headers["x-forwarded-for"]) || req.ip || "").split(",")[0].trim().slice(0, 64);
+}
+function loginFailureKey(req, identity) { return clientIp(req) + "|" + identity; }
+function loginBlockedFor(req, identity) {
+  const row = loginFailures.get(loginFailureKey(req, identity));
+  if (!row || !row.until) return 0;
+  const left = row.until - Date.now();
+  if (left <= 0) { loginFailures.delete(loginFailureKey(req, identity)); return 0; }
+  return left;
+}
+function noteLoginFailure(req, identity) {
+  const key = loginFailureKey(req, identity);
+  const row = loginFailures.get(key) || { count: 0, until: 0 };
+  row.count += 1;
+  if (row.count >= LOGIN_MAX_FAILS) { row.until = Date.now() + LOGIN_BLOCK_MS; row.count = 0; }
+  loginFailures.set(key, row);
+  return row.until ? 0 : LOGIN_MAX_FAILS - row.count;
 }
 
 app.post("/api/login", async (req, res) => {
@@ -1572,6 +1773,15 @@ app.post("/api/login", async (req, res) => {
     const password = String((req.body && req.body.password) || "");
     if (!identity || !password) {
       res.status(400).json({ ok: false, error: "identity and password required" });
+      return;
+    }
+    if (identity.length > 120 || password.length > 128) {
+      res.status(400).json({ ok: false, error: "Sign-in details are too long." });
+      return;
+    }
+    const blockedFor = loginBlockedFor(req, identity);
+    if (blockedFor > 0) {
+      res.status(429).json({ ok: false, error: "Too many wrong passwords. Try again in " + Math.ceil(blockedFor / 60000) + " minute(s)." });
       return;
     }
     const db = client.db(DB_NAME);
@@ -1624,10 +1834,12 @@ app.post("/api/login", async (req, res) => {
         }
       }
       if (!valid) {
-        const stored = ["temporaryPassword", "password", "password_hash"].filter((k) => doc[k]);
-        res.status(401).json({ ok: false, error: "Invalid password.", stored });
+        const left = noteLoginFailure(req, identity);
+        await writeSecurityLog({ id: String(doc._id), bucket }, left > 0 ? "login_failed" : "login_paused", req);
+        res.status(401).json({ ok: false, error: left > 0 ? "Invalid password. " + left + " " + (left === 1 ? "try" : "tries") + " left before this sign-in is paused for 15 minutes." : "Invalid password." });
         return;
       }
+      loginFailures.delete(loginFailureKey(req, identity));
       const key = [doc.username, doc.user_id, doc.id, doc._id].map(loginKey).join("|");
       const isHead = /(^|\|)(marcela_admin|admin-owner)(\||$)/.test(key) ||
         (!/(^|\|)(brent_admin|admin-ops|ailore_admin|ailore)(\||$)/.test(key) && loginKey(doc.role) === "owner");
@@ -1805,7 +2017,10 @@ app.post("/api/customer-refund", async (req, res) => {
 app.get("/api/customer-orders", async (req, res) => {
   if (!databaseReady(res)) return;
   try {
-    const records = await client.db(DB_NAME).collection("customer_orders").find({ inApp: { $ne: false } }).sort({ date: -1 }).toArray();
+    const token = requestToken(req);
+    const filter = { inApp: { $ne: false } };
+    if (token && token.bucket !== "admins" && token.bucket !== "staff") filter.customerId = String(token.id);
+    const records = await client.db(DB_NAME).collection("customer_orders").find(filter).sort({ date: -1 }).toArray();
     const orders = records.map((doc) => {
       const order = { ...doc, orderNumber: doc.orderNumber || String(doc._id) };
       delete order._id;
@@ -1947,6 +2162,13 @@ app.post("/api/state", async (req, res) => {
       return;
     }
 
+    const writer = requestToken(req);
+    const refused = [];
+    Object.keys(items).forEach((key) => {
+      if (!writer && !GUEST_WRITABLE_RE.test(key)) { refused.push(key); delete items[key]; return; }
+      if (typeof items[key] === "string" && (!writer || writer.bucket !== "admins")) items[key] = restoreSecrets(key, items[key], writer);
+    });
+    if (refused.length) await writeSecurityLog(null, "guest_write_refused", req, { keys: refused.slice(0, 20) });
     const ops = [];
     const bases = req.body && req.body.bases && typeof req.body.bases === "object" ? req.body.bases : {};
     const stockKeys = [];
@@ -2017,7 +2239,7 @@ app.post("/api/state", async (req, res) => {
       await syncCustomerOrderDocs(readCachedCustomerOrders());
     }
     await mirrorSaved(items);
-    res.json({ ok: true, merged });
+    res.json({ ok: true, merged: itemsForReader(req, merged), refused });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -2232,16 +2454,33 @@ const productRecommendationLastCall = new Map();
 function sanitizeProductRecommendation(input) {
   const source = input && typeof input === "object" ? input : {};
   const products = Array.isArray(source.products) ? source.products.slice(0, 12) : [];
-  return {
+  const nonNeg = (v) => { const n = insightNumber(v); return n == null || n < 0 ? 0 : n; };
+  const out = {
     asOf: cleanInsightText(source.asOf, 20),
     products: products.map((row) => ({
       name: cleanInsightText(row && row.name, 80),
-      finishedStock: insightNumber(row && row.finishedStock),
-      pendingOrders: insightNumber(row && row.pendingOrders),
-      pendingStillToCover: insightNumber(row && row.pendingStillToCover),
-      suggestedBake: insightNumber(row && row.suggestedBake),
+      finishedStock: nonNeg(row && row.finishedStock),
+      expiredStock: nonNeg(row && row.expiredStock),
+      pendingOrders: nonNeg(row && row.pendingOrders),
+      pendingStillToCover: nonNeg(row && row.pendingStillToCover),
+      retailerDeliveries: nonNeg(row && row.retailerDeliveries),
+      suggestedBake: nonNeg(row && row.suggestedBake),
+      packagingAvailable: row && row.packagingAvailable == null ? null : nonNeg(row.packagingAvailable),
+      packagingShort: nonNeg(row && row.packagingShort),
     })).filter((row) => row.name),
+    totalBake: nonNeg(source.totalBake),
+    dailyCapacity: nonNeg(source.dailyCapacity) || 25,
+    daysNeeded: nonNeg(source.daysNeeded),
   };
+  // The bake amounts are worked out again here, so a wrong number sent by a page is not used.
+  out.products.forEach((row) => {
+    const gap = row.pendingStillToCover + row.retailerDeliveries - row.finishedStock;
+    row.suggestedBake = gap > 0 ? Math.ceil(gap) : 0;
+    row.packagingShort = row.packagingAvailable != null && row.suggestedBake > row.packagingAvailable ? row.suggestedBake - row.packagingAvailable : 0;
+  });
+  out.totalBake = out.products.reduce((t, r) => t + r.suggestedBake, 0);
+  out.daysNeeded = out.totalBake ? Math.ceil(out.totalBake / out.dailyCapacity) : 0;
+  return out;
 }
 
 function productRecommendationAllowed(ip) {
@@ -2256,17 +2495,23 @@ function deterministicRecommendation(snapshot) {
   if (!snapshot.products.length) {
     return "There is not enough finished product or pending order data yet to recommend a bake.";
   }
-  return snapshot.products.map((row) => {
+  const lines = snapshot.products.map((row) => {
     const bake = Number(row.suggestedBake) || 0;
     if (bake > 0) {
-      return "Bake " + bake + " pouches of " + row.name + ". Finished stock is " + row.finishedStock + " and pending orders still to cover are " + (row.pendingStillToCover || 0) + ".";
+      return "Bake " + bake + " pouches of " + row.name + ". Good stock is " + row.finishedStock + ", customer orders still to cover are " + (row.pendingStillToCover || 0)
+        + (row.retailerDeliveries ? " and scheduled retailer deliveries need " + row.retailerDeliveries : "") + "."
+        + (row.packagingShort ? " Packaging is short by " + row.packagingShort + " pouches." : "");
     }
-    return row.name + " is covered. Finished stock is " + row.finishedStock + " and no extra pouches are needed for open orders.";
-  }).join(" ");
+    return row.name + " is covered. Good stock is " + row.finishedStock + " and no extra pouches are needed.";
+  });
+  if (snapshot.totalBake) lines.push("In total, bake " + snapshot.totalBake + " pouches, about " + snapshot.daysNeeded + " day(s) at " + snapshot.dailyCapacity + " pouches a day.");
+  return lines.join(" ");
 }
 
 function recommendationMatchesSnapshot(text, snapshot) {
   const body = String(text || "").toLowerCase();
+  // Every number GPT writes must be one of the given figures, and each bake amount must appear.
+  if (!insightNumbersMatch(text, snapshot)) return false;
   return snapshot.products.every((row) => {
     if (body.indexOf(String(row.name || "").toLowerCase()) < 0) return false;
     const bake = Number(row.suggestedBake) || 0;
@@ -2278,7 +2523,7 @@ function writeProductRecommendation(apiKey, snapshot) {
   return writeOwnerNote(
     apiKey,
     snapshot,
-    "You write a short production recommendation for the owner of Kreezby Bakeshop, a crinkles bakery. Base it only on available finished products and pending orders. Use 4 to 6 short sentences in simple everyday language. suggestedBake is the number of pouches to bake. It is open orders not yet taken from finished stock, minus finishedStock. When suggestedBake is above 0, name the product and say to bake that many pouches. When suggestedBake is 0, say that product is covered. Mention finishedStock or pendingOrders only to explain a bake amount, and use only numbers from the data. If pendingStillToCover is 0, open orders are already taken out of finished stock, so do not add pendingOrders again. Do not forecast future demand. Do not invent figures. Do not use business jargon."
+    "You write a short production recommendation for the owner of Kreezby Bakeshop, a crinkles bakery. The numbers were already calculated by the system with a fixed formula; you only explain them, you do not change them. Use 4 to 7 short sentences in simple everyday language. finishedStock is good (not expired) pouches; expiredStock is never counted. suggestedBake = pendingStillToCover + retailerDeliveries - finishedStock (0 when covered). When suggestedBake is above 0, name the product and say to bake that many pouches. When it is 0, say that product is covered. If packagingShort is above 0, say packaging is short by that many pouches. End with totalBake and daysNeeded at dailyCapacity pouches a day when totalBake is above 0. Use only numbers from the data, written exactly. Do not forecast future demand. Do not invent figures. Do not use business jargon."
   );
 }
 
@@ -3183,6 +3428,74 @@ app.post("/api/paymongo/webhook", async (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- Error monitoring --------------------------------------------------------------------------
+// Server errors and browser errors are kept in the error_log collection (newest first) so they can
+// be checked after the fact; head admin / admin read them at GET /api/error-log.
+async function logError(entry) {
+  try {
+    if (!mongoReady || !client) return;
+    await client.db(DB_NAME).collection("error_log").insertOne(Object.assign({ at: new Date() }, entry));
+  } catch (error) {
+    console.error("Error log: " + error.message);
+  }
+}
+
+const clientErrorCount = new Map();
+app.post("/api/client-error", async (req, res) => {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const row = clientErrorCount.get(ip) || { n: 0, since: now };
+  if (now - row.since > 60000) { row.n = 0; row.since = now; }
+  row.n += 1;
+  clientErrorCount.set(ip, row);
+  if (row.n <= 20) {
+    const b = req.body || {};
+    const token = requestToken(req);
+    await logError({
+      source: "browser",
+      message: String(b.message || "").slice(0, 500),
+      where: String(b.source || "").slice(0, 300) + (b.line ? ":" + Number(b.line) : ""),
+      page: String(b.page || "").slice(0, 300),
+      stack: String(b.stack || "").slice(0, 2000),
+      account: token ? String(token.id) : "",
+      bucket: token ? String(token.bucket) : "guest",
+      userAgent: String(req.headers["user-agent"] || "").slice(0, 200),
+    });
+  }
+  res.json({ ok: true });
+});
+
+app.get("/api/error-log", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = requestToken(req);
+  if (!token || token.bucket !== "admins") { res.status(token ? 403 : 401).json({ ok: false, error: "Only admins can read the error log." }); return; }
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+  const rows = await client.db(DB_NAME).collection("error_log").find({}).sort({ at: -1 }).limit(limit).toArray();
+  res.json({ ok: true, errors: rows });
+});
+
+// ---- Backup -----------------------------------------------------------------------------------
+// Head admin / admin download a full copy of the database as one JSON file (every collection).
+// It is restored with: node scripts/restore-db.js <file> --confirm
+app.get("/api/backup", async (req, res) => {
+  if (!databaseReady(res)) return;
+  const token = requestToken(req);
+  if (!token || token.bucket !== "admins") { res.status(token ? 403 : 401).json({ ok: false, error: "Only admins can download a backup." }); return; }
+  try {
+    const db = client.db(DB_NAME);
+    const cols = await db.listCollections({}, { nameOnly: true }).toArray();
+    const out = { database: DB_NAME, createdAt: new Date().toISOString(), collections: {} };
+    for (const c of cols) out.collections[c.name] = await db.collection(c.name).find({}).toArray();
+    await writeSecurityLog(token, "backup_downloaded", req, { collections: cols.length });
+    const stamp = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16).replace(/[-:T]/g, "");
+    res.setHeader("Content-Disposition", "attachment; filename=\"kreezby-backup-" + stamp + ".json\"");
+    res.type("application/json").send(JSON.stringify(out));
+  } catch (error) {
+    await logError({ source: "server", message: "Backup failed: " + error.message, where: "/api/backup" });
+    res.status(500).json({ ok: false, error: "The backup could not be made." });
+  }
+});
+
 app.get("/", (req, res) => {
   res.redirect("/auth/start.html");
 });
@@ -3197,6 +3510,22 @@ app.use(express.static(SITE_ROOT, staticOptions));
 // Vercel (vercel.json rewrites, old links, the root index.html) may ask for the same files
 // under /Kreezby-Bakeshop-main/... — serve them there too instead of "Cannot GET".
 app.use("/Kreezby-Bakeshop-main", express.static(SITE_ROOT, staticOptions));
+
+// Unknown API paths answer in JSON, and any error thrown in a route is logged and answered
+// without showing the server's internals.
+app.use("/api", (req, res) => {
+  res.status(404).json({ ok: false, error: "Unknown API address." });
+});
+app.use((err, req, res, next) => {
+  const status = err && (err.status || err.statusCode) >= 400 && (err.status || err.statusCode) < 500 ? (err.status || err.statusCode) : 500;
+  if (status >= 500) logError({ source: "server", message: String(err && err.message || err).slice(0, 500), where: req.method + " " + req.path, stack: String(err && err.stack || "").slice(0, 2000) });
+  if (res.headersSent) return next(err);
+  res.status(status).json({ ok: false, error: status === 400 ? "The request could not be read." : (status === 413 ? "The request is too large." : "Something went wrong on the server.") });
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection: " + (reason && reason.message ? reason.message : reason));
+  logError({ source: "server", message: "Unhandled rejection: " + String(reason && reason.message ? reason.message : reason).slice(0, 500) });
+});
 
 function listenOn(host) {
   const server = app.listen(PORT, host);

@@ -883,7 +883,7 @@
             + '<li><span class="ka-tag warn">Near expiry</span><span>A batch with stock left that expires within its expiry alert days (finished products: 3 days; raw materials: 7 days).</span></li>'
             + '<li><span class="ka-tag bad">Expired</span><span>A batch past its expiry date. Its pouches are held out of sales until head admin or admin disposes of them (recorded as waste).</span></li>'
             + '<li><span class="ka-tag info">Frequency</span><span>Stock is checked every time stock changes and when a page opens. The alarm pops up for new alerts; Acknowledge silences it for 4 hours, Remind me later for 30 minutes.</span></li>'
-            + '<li><span class="ka-tag ok">Resolution</span><span>A low-stock alert is resolved by itself once stock goes back above the alert line; an expired alert once the batch is disposed of. Resolved alerts are listed below.</span></li>'
+            + '<li><span class="ka-tag ok">Resolution</span><span>A low-stock alert is resolved by itself once stock goes back above the alert line; an expired alert once the batch is disposed of. Resolved alerts are listed under Recently resolved.</span></li>'
             + '</ul>';
         host.innerHTML = '<section class="ka-card" role="status">'
             + '<div class="ka-head"><h4>' + escapeHtml(title) + '</h4></div>'

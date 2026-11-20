@@ -4,6 +4,119 @@
  * Login session and sidebar layout stay on this browser only.
  */
 (function () {
+
+  // Installable app: the manifest and the service worker are added on every page.
+  (function installableApp() {
+    if (window.__kzPwa || location.protocol === "file:") return;
+    window.__kzPwa = true;
+    var path = location.pathname.replace(/\\/g, "/");
+    var match = path.match(/^(.*?\/)(admin|head_admin|staff|retailer|customer|auth|admin_names|staff_names)\//i);
+    var base = match ? match[1] : "/";
+    function addHead() {
+      var head = document.head || document.getElementsByTagName("head")[0];
+      if (!head) return;
+      if (!document.querySelector('link[rel="manifest"]')) {
+        var link = document.createElement("link");
+        link.rel = "manifest";
+        link.href = base + "manifest.webmanifest";
+        head.appendChild(link);
+      }
+      if (!document.querySelector('meta[name="theme-color"]')) {
+        var meta = document.createElement("meta");
+        meta.name = "theme-color";
+        meta.content = "#5d4037";
+        head.appendChild(meta);
+      }
+    }
+    addHead();
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register(base + "sw-alerts.js", { scope: base }).catch(function () { /* the site works without it */ });
+      });
+    }
+  })();
+
+  // Browser errors are reported to the server error log (at most 5 per page).
+  (function reportErrors() {
+    if (window.__kzErrReport) return;
+    window.__kzErrReport = true;
+    var sent = 0;
+    function send(message, source, line, stack) {
+      if (sent >= 5 || !window.fetch) return;
+      sent += 1;
+      try {
+        fetch("/api/client-error", { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+          body: JSON.stringify({ message: String(message || "").slice(0, 500), source: String(source || "").slice(0, 300), line: line || 0, stack: String(stack || "").slice(0, 2000), page: location.pathname }) }).catch(function () {});
+      } catch (e) { /* never break the page */ }
+    }
+    window.addEventListener("error", function (e) {
+      if (!e || !e.message) return; // resource load errors carry no message
+      send(e.message, e.filename, e.lineno, e.error && e.error.stack);
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      var r = e && e.reason;
+      send("Unhandled promise rejection: " + (r && r.message ? r.message : r), "", 0, r && r.stack);
+    });
+  })();
+
+  // Every request to this site's API carries the signed-in account's session token, so the
+  // server can check who is asking (guests get public data only).
+  (function attachSessionToken() {
+    if (window.__kzTokenPatched) return;
+    window.__kzTokenPatched = true;
+    function token() {
+      try { return (JSON.parse(localStorage.getItem("kreezby_session") || "{}") || {}).token || ""; } catch (e) { return ""; }
+    }
+    function isApi(url) {
+      var text = String(url || "");
+      if (/^\/api\//.test(text) || /^(\.\.\/)+api\//.test(text)) return true;
+      try {
+        var u = new URL(text, location.href);
+        if (u.pathname.indexOf("/api/") !== 0) return false;
+        // Same site, or the local server (port 3000) used when the pages run from Live Server.
+        return u.origin === location.origin || /^(localhost|127\.0\.0\.1)$/.test(u.hostname);
+      } catch (e) { return false; }
+    }
+    var open = XMLHttpRequest.prototype.open;
+    var send = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      this.__kzApi = isApi(url);
+      return open.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.send = function () {
+      if (this.__kzApi) {
+        var t = token();
+        if (t) {
+          try { this.setRequestHeader("X-Kreezby-Token", t); } catch (e) { /* already sent */ }
+          this.addEventListener("load", function () {
+            var text = "";
+            try { text = this.responseType === "" || this.responseType === "text" ? String(this.responseText || "") : ""; } catch (e) { text = ""; }
+            if (this.status === 401 && /session has expired/i.test(text) && window.__kzSessionExpired) window.__kzSessionExpired();
+          });
+        }
+      }
+      return send.apply(this, arguments);
+    };
+    if (window.fetch) {
+      var nativeFetch = window.fetch;
+      window.fetch = function (input, init) {
+        var url = typeof input === "string" ? input : (input && input.url) || "";
+        var t = isApi(url) ? token() : "";
+        if (t) {
+          init = Object.assign({}, init || {});
+          var h = new Headers(init.headers || (typeof input !== "string" && input && input.headers) || {});
+          if (!h.has("X-Kreezby-Token")) h.set("X-Kreezby-Token", t);
+          init.headers = h;
+        }
+        var p = nativeFetch.call(this, input, init);
+        if (t) p.then(function (res) {
+          if (!res || res.status !== 401 || !window.__kzSessionExpired) return;
+          res.clone().text().then(function (text) { if (/session has expired/i.test(text)) window.__kzSessionExpired(); }, function () {});
+        }, function () {});
+        return p;
+      };
+    }
+  })();
   "use strict";
 
   // "Remember me" on the login page.
@@ -574,6 +687,21 @@
     } catch (e) { /* the outbox is resent on the next page */ }
   }
 
+  // Saves are refused once the session token has expired: say so once, keep the changes waiting.
+  var expiredShown = false;
+  window.__kzSessionExpired = function () { sessionExpiredNotice(); };
+  function sessionExpiredNotice() {
+    if (expiredShown) return;
+    expiredShown = true;
+    try {
+      var bar = document.createElement("div");
+      bar.setAttribute("role", "alert");
+      bar.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:100000;background:#b3261e;color:#fff;padding:12px 18px;border-radius:12px;font:600 14px/1.4 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw";
+      bar.textContent = "Your session has expired. Log out and log in again so your changes can be saved.";
+      document.body.appendChild(bar);
+    } catch (e) { /* page without a body */ }
+  }
+
   function flush() {
     timer = null;
     var items = pending;
@@ -598,6 +726,7 @@
       xhr.timeout = 20000;
       xhr.onload = function () {
         var ok = xhr.status >= 200 && xhr.status < 300;
+        if (xhr.status === 401 && /session has expired/i.test(String(xhr.responseText || ""))) sessionExpiredNotice();
         if (ok) {
           outboxDone(items);
           var merged = {};

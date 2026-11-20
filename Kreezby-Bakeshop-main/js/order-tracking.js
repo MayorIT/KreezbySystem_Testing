@@ -661,12 +661,12 @@
                 '<input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(paymentInfo(order).label + (order.paidAt ? ' · ' + formatDate(order.paidAt) : '')) + '">' +
             '</div>' +
             (order.status === 'Cancelled'
-                ? '<div class="order-tracking-form-group"><label>Cancellation</label><input type="text" readonly class="order-tracking-readonly-field" value="' +
-                    escapeHtml((order.cancelledBy ? 'By ' + order.cancelledBy : 'Cancelled') + (order.cancelledAt ? ' · ' + formatDate(order.cancelledAt) : '') + (order.cancelReason ? ' · ' + order.cancelReason : '')) + '"></div>'
+                ? '<div class="order-tracking-form-group"><label>Cancellation</label><div class="order-tracking-readonly-field ot-wrap-field">' +
+                    escapeHtml((order.cancelledBy ? 'By ' + order.cancelledBy : 'Cancelled') + (order.cancelledAt ? ' · ' + formatDate(order.cancelledAt) : '') + (order.cancelReason ? ' · Reason: ' + order.cancelReason : '')) + '</div></div>'
                 : '') +
             (order.refund
-                ? '<div class="order-tracking-form-group"><label>Refund</label><input type="text" readonly class="order-tracking-readonly-field" value="' +
-                    escapeHtml(refundText(order)) + '"></div>'
+                ? '<div class="order-tracking-form-group"><label>Refund</label><div class="order-tracking-readonly-field ot-wrap-field">' +
+                    escapeHtml(refundText(order)) + '</div></div>'
                 : '') +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-status">Order status</label>' +
@@ -743,6 +743,16 @@
        Not paid yet -> payment "cancelled". Already paid -> "refund_pending" until the refund is recorded.
        Record refund: after returning the money in the PayMongo dashboard (or in cash), enter its reference.
        Cancelled and refunded orders are left out of sales totals. */
+    // Long read-only text (cancellation reason, refund details) wraps instead of being cut off.
+    (function wrapFieldStyle() {
+        if (document.getElementById('ot-wrap-field-style')) return;
+        var st = document.createElement('style');
+        st.id = 'ot-wrap-field-style';
+        st.textContent = '.ot-wrap-field{display:block;box-sizing:border-box;width:100%;min-height:44px;height:auto!important;padding:11px 14px;border:1px solid #d7dbe0;border-radius:12px;background:#e5e7eb;color:#4b5563;font-size:15px;line-height:1.45;white-space:normal;overflow-wrap:anywhere}'
+            + '@media (max-width:900px){.order-tracking-form-actions{display:flex;flex-wrap:wrap;gap:10px}.order-tracking-form-actions .order-tracking-btn{flex:1 1 auto}}';
+        (document.head || document.documentElement).appendChild(st);
+    })();
+
     function canManageCancel() {
         var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
         return path.indexOf('/staff/') < 0 && path.indexOf('/staff_names/') < 0;

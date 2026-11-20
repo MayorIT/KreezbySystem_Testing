@@ -1,0 +1,16 @@
+{
+  "name": "Kreezby Bakeshop",
+  "short_name": "Kreezby",
+  "description": "Kreezby Bakeshop inventory, orders and point of sale.",
+  "start_url": "auth/start.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fffaf3",
+  "theme_color": "#5d4037",
+  "icons": [
+    { "src": "assets/logo/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/logo/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/logo/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

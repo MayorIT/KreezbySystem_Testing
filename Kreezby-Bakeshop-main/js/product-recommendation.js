@@ -60,10 +60,11 @@
         }
         host.innerHTML = ''
             + '<table class="data-display-table product-recommendation-table">'
-            + '<thead><tr><th>#</th><th>Flavor</th><th>Good Stock</th><th>Expired (not counted)</th><th>Customer Orders to Cover</th><th>Retailer Deliveries (7 days)</th><th>Bake</th><th>Packaging</th></tr></thead><tbody>'
-            + products.map(function (row, index) {
+            + '<thead><tr><th>#</th><th>Flavor</th><th>Good Stock</th><th>Expired</th><th>Orders to Cover</th><th>Retailers (7 days)</th><th>Bake</th><th>Packaging</th></tr></thead><tbody>'
+            // Flavors to bake come first; covered ones follow.
+            + products.slice().sort(function (a, b) { return (Number(b.suggestedBake) || 0) - (Number(a.suggestedBake) || 0); }).map(function (row, index) {
                 var bake = Number(row.suggestedBake) || 0;
-                var pack = row.packagingAvailable == null ? '—' : (row.packagingShort ? 'Short by ' + esc(row.packagingShort) : 'Enough (' + esc(row.packagingAvailable) + ')');
+                var pack = bake <= 0 ? 'Not needed' : row.packagingAvailable == null ? '—' : (row.packagingShort ? 'Short by ' + esc(row.packagingShort) : 'Enough (' + esc(row.packagingAvailable) + ' on hand)');
                 return '<tr><td class="po-col-num">' + (index + 1) + '</td>'
                     + '<td class="sa-flavor"><strong>' + esc(row.name) + '</strong></td>'
                     + '<td class="sa-num">' + esc(row.finishedStock) + '</td>'
@@ -74,7 +75,7 @@
                     + '<td class="sa-num">' + pack + '</td></tr>';
             }).join('')
             + '</tbody></table>'
-            + '<p class="product-recommendation-note"><strong>Calculated by the system (formula, no AI):</strong> Bake = customer orders to cover + retailer deliveries in the next 7 days − good stock (0 when covered). '
+            + '<p class="product-recommendation-note" style="margin:12px 0 0;padding:10px 12px;border:1px solid #f0e4d2;border-radius:10px;background:#fffaf3;font-size:13px;line-height:1.5;color:#5d4037"><strong>Calculated by the system (formula, no AI):</strong> Bake = customer orders to cover + retailer deliveries in the next 7 days − good stock (0 when covered). '
             + 'Expired pouches are never counted. Packaging = stand up pouches and flavor stickers on hand. '
             + (snapshot.totalBake ? 'Total to bake: ' + esc(snapshot.totalBake) + ' pouches, about ' + esc(snapshot.daysNeeded) + ' day(s) at ' + esc(snapshot.dailyCapacity) + ' pouches a day (250 crinkles ÷ 10 per pouch). ' : '')
             + '<br><strong>Written by GPT-4o mini:</strong> the explanation above only. It cannot change these numbers or any record; if its text does not match the numbers, the system shows its own wording instead.</p>';

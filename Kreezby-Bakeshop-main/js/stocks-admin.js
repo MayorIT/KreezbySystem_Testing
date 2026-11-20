@@ -725,6 +725,15 @@
     function ensureExpiredButton() {
         var bar = document.getElementById('stocks-view-switch');
         if (!bar) return;
+        // Phone: the four views sit two per row with whole words (no "Expire / d").
+        if (!document.getElementById('stocks-view-phone-style')) {
+            var ps = document.createElement('style');
+            ps.id = 'stocks-view-phone-style';
+            ps.textContent = '@media (max-width:900px){#stocks-view-switch{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;border-radius:16px!important;padding:6px!important;height:auto!important}'
+                + '#stocks-view-switch .stocks-view-btn{width:100%!important;min-width:0!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;padding:9px 6px!important;font-size:14px!important;line-height:1.2!important;border-radius:12px!important}'
+                + '#stocks-table-body .kz-dispose-btn{width:100%;padding:9px 10px!important}}';
+            (document.head || document.documentElement).appendChild(ps);
+        }
         if (!bar.querySelector('[data-stocks-view="expired"]')) {
             var btn = document.createElement('button');
             btn.type = 'button';

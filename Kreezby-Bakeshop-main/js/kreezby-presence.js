@@ -47,10 +47,23 @@
         return readJson('kreezby_maintenance_users', {});
     }
 
+    // Head Admin is Marcela's account only (same rule as the server's sign-in). Every other admin
+    // account, e.g. Brent and Ailore, is shown as Admin even if an older record says otherwise.
+    function isHeadAccount(account) {
+        var keys = [account.id, account.user_id, account.username, account.name].map(function (v) {
+            return String(v || '').trim().toLowerCase().replace(/[\s.]+/g, '_');
+        });
+        if (keys.some(function (k) { return /^(admin-owner|marcela_admin|marcela-admin)$/.test(k); })) return true;
+        if (keys.some(function (k) { return /^(brent_admin|admin-ops|ailore_admin|ailore|admin-marketing)$/.test(k); })) return false;
+        return String(account.role || '').toLowerCase() === 'owner';
+    }
+
     function roleLabel(account, fallbackBucket) {
+        if (fallbackBucket === 'staff') return 'Staff';
+        if (fallbackBucket === 'admins') return isHeadAccount(account) ? 'Head Admin' : 'Admin';
         var type = String(account.accountType || '');
         if (PORTAL_TYPES[type]) return PORTAL_TYPES[type];
-        return fallbackBucket === 'staff' ? 'Staff' : 'Admin';
+        return 'Admin';
     }
 
     /** Staff + admin accounts that should appear in the strip. */

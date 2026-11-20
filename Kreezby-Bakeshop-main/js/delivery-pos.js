@@ -199,6 +199,17 @@
             '#delivery-pos .dpos-recorded strong{font-size:20px;line-height:1.1;color:#3d2c2a}' +
             '#delivery-pos .dpos-recorded span{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;white-space:nowrap}' +
             '#delivery-pos .dpos-ledger{margin-top:18px}' +
+            '#delivery-pos .dpos-ledger-help{margin:0 0 10px}' +
+            '#delivery-pos .dpos-ledger-sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}' +
+            '#delivery-pos .dpos-ledger-sum>div{background:#fffaf3;border:1px solid #f0e4d2;border-radius:12px;padding:10px 12px;min-width:0}' +
+            '#delivery-pos .dpos-ledger-sum span{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63}' +
+            '#delivery-pos .dpos-ledger-sum strong{display:block;font-size:17px;color:#3e2723;margin-top:2px;overflow-wrap:anywhere}' +
+            '@media (max-width:900px){#delivery-pos .dpos-ledger-sum{grid-template-columns:repeat(2,minmax(0,1fr))}#delivery-pos .dpos-ledger .dpos-sheet-wrap table{min-width:0!important}}' +
+            // Phone: each visit of a Statement is a small card with its own labels.
+            '@media (max-width:900px){#delivery-pos .dpos-ledger .dpos-ledger-detail>td{padding:6px 0 12px!important}' +
+                '#delivery-pos .dpos-ledger .dpos-ledger-detail table tbody td[data-label]::before{content:attr(data-label)!important;display:block!important;font-size:10px!important;font-weight:700!important;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63!important;margin:0 0 2px!important}' +
+                '#delivery-pos .dpos-ledger .dpos-ledger-detail table tbody td.kz-pc-title::before{display:none!important}}' +
+            '#delivery-pos .dpos-ledger-help summary{cursor:pointer;font-size:13px;font-weight:700;color:#6d4c41}' +
             '#delivery-pos .dpos-ledger table{border-collapse:collapse;font:inherit;font-size:13.5px;color:#3e2723;background:#fff}' +
             '#delivery-pos .dpos-ledger th{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:#6d4c41;background:#faf5f0;text-align:left;padding:9px 12px;border-bottom:1px solid #efe6df;white-space:nowrap}' +
             '#delivery-pos .dpos-ledger td{padding:9px 12px;border-bottom:1px solid #f3ece6;vertical-align:middle;white-space:nowrap}' +
@@ -679,14 +690,14 @@
             var key = String(shop.accountId || cleanName(shop.name));
             var html = '<tr>' +
                 '<td class="dpos-shop">' + esc(shop.name) + '<small class="dpos-price">' + peso(l.price) + ' / pouch · ' + l.rows.length + ' visit' + (l.rows.length === 1 ? '' : 's') + '</small></td>' +
-                '<td>' + esc(TERM_LABELS[last.terms]) + '</td>' +
-                '<td class="n">' + l.totals.delivered + '</td>' +
-                '<td class="n">' + l.totals.pulled + '</td>' +
-                '<td class="n">' + l.totals.sold + '</td>' +
-                '<td class="n">' + l.onConsignment + '</td>' +
-                '<td class="n">' + peso(l.totals.sales) + '</td>' +
-                '<td class="n">' + peso(l.totals.collected) + '</td>' +
-                '<td class="n"><strong style="color:' + (l.balance > 0.009 ? '#b3261e' : (l.balance < -0.009 ? '#1a56b0' : '#2e7d32')) + '">' + peso(l.balance) + '</strong></td>' +
+                '<td data-label="Terms">' + esc(TERM_LABELS[last.terms]) + '</td>' +
+                '<td class="n" data-label="Delivered">' + l.totals.delivered + '</td>' +
+                '<td class="n" data-label="Pulled out">' + l.totals.pulled + '</td>' +
+                '<td class="n" data-label="Sold">' + l.totals.sold + '</td>' +
+                '<td class="n" data-label="On consignment">' + l.onConsignment + '</td>' +
+                '<td class="n" data-label="Sales (₱)">' + peso(l.totals.sales) + '</td>' +
+                '<td class="n" data-label="Collected (₱)">' + peso(l.totals.collected) + '</td>' +
+                '<td class="n" data-label="Outstanding (₱)"><strong style="color:' + (l.balance > 0.009 ? '#b3261e' : (l.balance < -0.009 ? '#1a56b0' : '#2e7d32')) + '">' + peso(l.balance) + '</strong></td>' +
                 '<td><button type="button" class="dpos-clear" style="height:34px;padding:0 12px" data-ledger-open="' + esc(key) + '">' + (open === key ? 'Hide' : 'Statement') + '</button></td>' +
                 '</tr>';
             if (open === key) {
@@ -694,21 +705,23 @@
                     '<thead><tr><th>Date</th><th>Terms</th><th class="n">Delivered</th><th class="n">Replaced</th><th class="n">Pulled out</th><th class="n">Sold</th>' +
                     '<th class="n">Sales (₱)</th><th class="n">Collected (₱)</th><th class="n">Outstanding (₱)</th></tr></thead><tbody>' +
                     l.rows.map(function (r) {
-                        return '<tr><td>' + esc(r.date) + '</td><td>' + esc(TERM_LABELS[r.terms]) + '</td><td class="n">' + r.delivered + '</td><td class="n">' + r.replaced +
-                            '</td><td class="n">' + r.pulled + '</td><td class="n">' + r.sold + '</td><td class="n">' + peso(r.sales) + '</td><td class="n">' + peso(r.collected) +
-                            '</td><td class="n"><strong>' + peso(r.balance) + '</strong></td></tr>';
+                        return '<tr><td data-label="Date">' + esc(r.date) + '</td><td data-label="Terms">' + esc(TERM_LABELS[r.terms]) + '</td><td class="n" data-label="Delivered">' + r.delivered + '</td><td class="n" data-label="Replaced">' + r.replaced +
+                            '</td><td class="n" data-label="Pulled out">' + r.pulled + '</td><td class="n" data-label="Sold">' + r.sold + '</td><td class="n" data-label="Sales (₱)">' + peso(r.sales) + '</td><td class="n" data-label="Collected (₱)">' + peso(r.collected) +
+                            '</td><td class="n" data-label="Outstanding (₱)"><strong>' + peso(r.balance) + '</strong></td></tr>';
                     }).join('') + '</tbody></table></td></tr>';
             }
             return html;
         }).join('');
         host.innerHTML = '<h4>Shop balances · ' + esc(areaLabel(area)) + ' · ' + esc(sheetsFrom || '') + ' to ' + esc(date || '') + '</h4>' +
-            '<p class="dpos-sub" style="margin:0 0 10px">Sales = pouches sold × retailer price (COD and Check: on delivery; Consignment: at the next visit). ' +
-            'Collected = cash received (Check: the check given on delivery pays in full). Outstanding = Sales − Collected. On consignment = pouches still at the shop, billed at the next visit. Replaced = new pouches swapped for pouches the shop already paid for, so they are not charged again; enter them only under Replaced, not Pulled out. Staff pouches are not sales to the shop.</p>' +
+            '<details class="dpos-ledger-help"><summary>How these are worked out</summary><p class="dpos-sub" style="margin:6px 0 10px">Sales = pouches sold × retailer price (COD and Check: on delivery; Consignment: at the next visit). ' +
+            'Collected = cash received (Check: the check given on delivery pays in full). Outstanding = Sales − Collected. On consignment = pouches still at the shop, billed at the next visit. Replaced = new pouches swapped for pouches the shop already paid for, so they are not charged again; enter them only under Replaced, not Pulled out. Staff pouches are not sales to the shop.</p></details>' +
+            (body ? '<div class="dpos-ledger-sum">' +
+                [['Area sales', peso(sum.sales)], ['Collected', peso(sum.collected)], ['Outstanding', peso(sum.balance)], ['On consignment', sum.onCons + ' pcs']].map(function (t) {
+                    return '<div><span>' + esc(t[0]) + '</span><strong' + (t[0] === 'Outstanding' && sum.balance > 0.009 ? ' style="color:#b3261e"' : '') + '>' + esc(t[1]) + '</strong></div>';
+                }).join('') + '</div>' : '') +
             (body ? '<div class="dpos-sheet-wrap"><table class="dpos-table" style="min-width:1020px;width:100%">' +
                 '<thead><tr><th>Shop</th><th>Terms</th><th class="n">Delivered</th><th class="n">Pulled out</th><th class="n">Sold</th><th class="n">On consignment</th>' +
                 '<th class="n">Sales (₱)</th><th class="n">Collected (₱)</th><th class="n">Outstanding (₱)</th><th></th></tr></thead><tbody>' + body +
-                '<tr style="font-weight:800;border-top:2px solid #d7ccc8"><td colspan="5" style="text-align:right">Area total</td><td class="n">' + sum.onCons + '</td><td class="n">' + peso(sum.sales) +
-                '</td><td class="n">' + peso(sum.collected) + '</td><td class="n">' + peso(sum.balance) + '</td><td></td></tr>' +
                 '</tbody></table></div>'
                 : '<p class="dpos-empty">No deliveries recorded for these shops yet.</p>');
         host.querySelectorAll('[data-ledger-open]').forEach(function (btn) {
