@@ -2415,12 +2415,12 @@ function writeManagementInsight(apiKey, data) {
   return writeOwnerNote(
     apiKey,
     data,
-    "You write the Interpretation part of the Management Insight for the owner of Kreezby Bakeshop, a crinkles bakery that sells pouches. "
-      + "The data has sales totals for the last 7 and 30 days and the 30 days before, each flavor's stock and sales, alerts, and the business situations already found. "
-      + "Reply with JSON only, no markdown: {\"sales\":\"\",\"inventory\":\"\",\"demand\":\"\"}. "
-      + "sales: one or two short sentences on how many pouches sold and the sales value in the last 30 days, and whether that is more or less than the 30 days before. "
+    "You write the Management Insight for the owner of Kreezby Bakeshop, a crinkles bakery that sells pouches. "
+      + "The data has sales totals for the last 7 and 30 days and the 30 days before, each flavor's stock and sales, alerts, a production list (bakeFirst: flavors out of stock or running low; holdOff: flavors with enough stock; lowMaterials: how many raw or packaging materials are low), and the business situations already found. "
+      + "Reply with JSON only, no markdown: {\"sales\":\"\",\"inventory\":\"\",\"production\":\"\"}. "
+      + "sales: one or two short sentences on how many pouches sold and the sales value in the last 30 days, whether that is more or less than the 30 days before, and which flavor sold the most. "
       + "inventory: one or two short sentences on pouches in stock, flavors out of stock or running low, and expired or near-expiry batches. "
-      + "demand: one or two short sentences on which flavors customers buy most, and which are rising, falling or not selling. "
+      + "production: one or two short sentences on which flavors to bake first (from production.bakeFirst) and which do not need baking yet (from production.holdOff); if lowMaterials is above 0, say to restock the low materials before the next batch. Do not give bake quantities. "
       + "Use simple everyday words. Use only numbers that appear in the data, written exactly as given; write peso amounts with the peso sign. "
       + "Do not invent products, numbers or reasons. Do not forecast. Do not use business jargon. If there are no sales yet, say so plainly.",
     600
@@ -2439,14 +2439,14 @@ function parseInterpretation(text) {
   const result = {
     sales: cleanInsightText(parsed.sales, 600),
     inventory: cleanInsightText(parsed.inventory, 600),
-    demand: cleanInsightText(parsed.demand, 600),
+    production: cleanInsightText(parsed.production, 600),
   };
-  if (!result.sales || !result.inventory || !result.demand) return null;
+  if (!result.sales || !result.inventory || !result.production) return null;
   return result;
 }
 
 function interpretationText(item) {
-  return "Sales: " + item.sales + "\nInventory: " + item.inventory + "\nDemand: " + item.demand;
+  return "Sales: " + item.sales + "\nInventory: " + item.inventory + "\nProduction: " + item.production;
 }
 
 const productRecommendationLastCall = new Map();
@@ -2480,6 +2480,11 @@ function sanitizeProductRecommendation(input) {
   });
   out.totalBake = out.products.reduce((t, r) => t + r.suggestedBake, 0);
   out.daysNeeded = out.totalBake ? Math.ceil(out.totalBake / out.dailyCapacity) : 0;
+  out.totalGoodStock = out.products.reduce((t, r) => t + r.finishedStock, 0);
+  out.totalOrdersToCover = out.products.reduce((t, r) => t + r.pendingStillToCover, 0);
+  out.totalRetailerDeliveries = out.products.reduce((t, r) => t + r.retailerDeliveries, 0);
+  out.totalExpired = out.products.reduce((t, r) => t + r.expiredStock, 0);
+  out.retailerWindowDays = 7;
   return out;
 }
 
@@ -2491,21 +2496,52 @@ function productRecommendationAllowed(ip) {
   return true;
 }
 
-function deterministicRecommendation(snapshot) {
+function nameList(names) {
+  if (names.length <= 1) return names.join("");
+  return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+}
+
+// The system's own three short sections (used when GPT-4o mini cannot answer or its numbers do not match).
+function deterministicSections(snapshot) {
   if (!snapshot.products.length) {
-    return "There is not enough finished product or pending order data yet to recommend a bake.";
+    const none = "There is not enough finished product or pending order data yet to recommend a bake.";
+    return { bake: none, stock: none, packaging: none };
   }
-  const lines = snapshot.products.map((row) => {
-    const bake = Number(row.suggestedBake) || 0;
-    if (bake > 0) {
-      return "Bake " + bake + " pouches of " + row.name + ". Good stock is " + row.finishedStock + ", customer orders still to cover are " + (row.pendingStillToCover || 0)
-        + (row.retailerDeliveries ? " and scheduled retailer deliveries need " + row.retailerDeliveries : "") + "."
-        + (row.packagingShort ? " Packaging is short by " + row.packagingShort + " pouches." : "");
-    }
-    return row.name + " is covered. Good stock is " + row.finishedStock + " and no extra pouches are needed.";
-  });
-  if (snapshot.totalBake) lines.push("In total, bake " + snapshot.totalBake + " pouches, about " + snapshot.daysNeeded + " day(s) at " + snapshot.dailyCapacity + " pouches a day.");
-  return lines.join(" ");
+  const toBake = snapshot.products.filter((r) => r.suggestedBake > 0);
+  const covered = snapshot.products.filter((r) => !(r.suggestedBake > 0));
+  let bake;
+  if (toBake.length) {
+    bake = "Bake " + nameList(toBake.map((r) => r.suggestedBake + " pouches of " + r.name)) + "."
+      + (covered.length ? " " + nameList(covered.map((r) => r.name)) + (covered.length === 1 ? " is" : " are") + " covered." : "")
+      + " In total, bake " + snapshot.totalBake + " pouches, about " + snapshot.daysNeeded + " day(s) at " + snapshot.dailyCapacity + " pouches a day.";
+  } else {
+    bake = "No baking is needed right now. " + nameList(covered.map((r) => r.name)) + (covered.length === 1 ? " is" : " are") + " covered by good stock.";
+  }
+  const stock = "Good stock is " + snapshot.totalGoodStock + " pouches, with " + snapshot.totalOrdersToCover + " pouches of customer orders still to cover and "
+    + snapshot.totalRetailerDeliveries + " pouches for retailer deliveries in the next " + snapshot.retailerWindowDays + " days."
+    + (snapshot.totalExpired ? " " + snapshot.totalExpired + " expired pouches are not counted." : "");
+  const short = toBake.filter((r) => r.packagingShort > 0);
+  const packaging = short.length
+    ? "Packaging is short for " + nameList(short.map((r) => r.name + " by " + r.packagingShort + " pouches")) + ". Restock pouches and stickers before baking."
+    : toBake.length ? "There is enough packaging for the pouches to bake." : "No packaging is needed because nothing has to be baked.";
+  return { bake, stock, packaging };
+}
+
+function recommendationText(sections) {
+  return "What to bake: " + sections.bake + "\nStock and orders: " + sections.stock + "\nPackaging: " + sections.packaging;
+}
+
+function parseRecommendation(text) {
+  const raw = String(text || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim();
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch (error) { return null; }
+  if (!parsed || typeof parsed !== "object") return null;
+  const out = {
+    bake: cleanInsightText(parsed.bake, 700),
+    stock: cleanInsightText(parsed.stock, 500),
+    packaging: cleanInsightText(parsed.packaging, 500),
+  };
+  return out.bake && out.stock && out.packaging ? out : null;
 }
 
 function recommendationMatchesSnapshot(text, snapshot) {
@@ -2523,7 +2559,14 @@ function writeProductRecommendation(apiKey, snapshot) {
   return writeOwnerNote(
     apiKey,
     snapshot,
-    "You write a short production recommendation for the owner of Kreezby Bakeshop, a crinkles bakery. The numbers were already calculated by the system with a fixed formula; you only explain them, you do not change them. Use 4 to 7 short sentences in simple everyday language. finishedStock is good (not expired) pouches; expiredStock is never counted. suggestedBake = pendingStillToCover + retailerDeliveries - finishedStock (0 when covered). When suggestedBake is above 0, name the product and say to bake that many pouches. When it is 0, say that product is covered. If packagingShort is above 0, say packaging is short by that many pouches. End with totalBake and daysNeeded at dailyCapacity pouches a day when totalBake is above 0. Use only numbers from the data, written exactly. Do not forecast future demand. Do not invent figures. Do not use business jargon."
+    "You write a short production recommendation for the owner of Kreezby Bakeshop, a crinkles bakery. The numbers were already calculated by the system with a fixed formula; you only explain them, you do not change them. "
+      + "finishedStock is good (not expired) pouches; expiredStock is never counted. suggestedBake = pendingStillToCover + retailerDeliveries - finishedStock (0 when covered). "
+      + "Reply with JSON only, no markdown: {\"bake\":\"\",\"stock\":\"\",\"packaging\":\"\"}. "
+      + "bake: one to three short sentences. Name every product: for each with suggestedBake above 0 say to bake that many pouches; say which products are covered. When totalBake is above 0, end with totalBake and daysNeeded at dailyCapacity pouches a day. "
+      + "stock: one or two short sentences using totalGoodStock, totalOrdersToCover and totalRetailerDeliveries (retailer deliveries in the next retailerWindowDays days); mention totalExpired only if it is above 0, saying expired pouches are not counted. "
+      + "packaging: one short sentence. If any product has packagingShort above 0, name it and say packaging is short by that many pouches; otherwise say there is enough packaging (or that none is needed when totalBake is 0). "
+      + "Use simple everyday language. Use only numbers from the data, written exactly. Do not forecast future demand. Do not invent figures. Do not use business jargon.",
+    600
   );
 }
 
@@ -2547,7 +2590,7 @@ app.post("/api/management-insight", async (req, res) => {
   // instead of asking GPT-4o mini again (e.g. two accounts open the page right after a sale).
   if (trigger !== "manual") {
     const saved = await latestAiOutput("management-insight");
-    if (saved && saved.salesKey === salesKey && saved.shown) {
+    if (saved && saved.salesKey === salesKey && saved.shown && saved.shown.production) {
       res.json(Object.assign({ ok: true, interpretation: saved.shown, reused: true }, savedMeta(saved)));
       return;
     }
@@ -2604,11 +2647,8 @@ app.post("/api/product-recommendation", async (req, res) => {
 
   const snapshot = sanitizeProductRecommendation(req.body && req.body.snapshot);
   if (!snapshot.products.length) {
-    res.json({
-      ok: true,
-      recommendation: "There is not enough finished product or pending order data yet to recommend a bake.",
-      model: OPENAI_MODEL,
-    });
+    const sections = deterministicSections(snapshot);
+    res.json({ ok: true, recommendation: sections.bake, sections, model: OPENAI_MODEL });
     return;
   }
 
@@ -2618,8 +2658,8 @@ app.post("/api/product-recommendation", async (req, res) => {
   // Not a Refresh click: reuse the output already written for these same sales.
   if (trigger !== "manual") {
     const saved = await latestAiOutput("production-recommendation");
-    if (saved && saved.salesKey === salesKey && saved.shownOutput) {
-      res.json(Object.assign({ ok: true, recommendation: saved.shownOutput, reused: true }, savedMeta(saved)));
+    if (saved && saved.salesKey === salesKey && saved.shown && saved.shown.bake) {
+      res.json(Object.assign({ ok: true, recommendation: saved.shownOutput, sections: saved.shown, reused: true }, savedMeta(saved)));
       return;
     }
   }
@@ -2631,19 +2671,20 @@ app.post("/api/product-recommendation", async (req, res) => {
   }
 
   try {
-    const recommendation = await writeProductRecommendation(apiKey, snapshot);
-    const matches = recommendationMatchesSnapshot(recommendation, snapshot);
-    const safeRecommendation = matches
-      ? recommendation
-      : deterministicRecommendation(snapshot);
+    const reply = await writeProductRecommendation(apiKey, snapshot);
+    const parsed = parseRecommendation(reply);
+    const matches = !!parsed && recommendationMatchesSnapshot(recommendationText(parsed), snapshot);
+    const sections = matches ? parsed : deterministicSections(snapshot);
+    const shownText = recommendationText(sections);
     // Every GPT answer is kept word for word in the output history.
     const saved = mongoReady ? await Promise.race([
       logAiOutput({
         module: "production-recommendation",
         engine: OPENAI_MODEL,
         inputData: snapshot,
-        rawOutput: recommendation,
-        shownOutput: safeRecommendation,
+        rawOutput: parsed ? recommendationText(parsed) : reply,
+        shownOutput: shownText,
+        shown: sections,
         usedFallback: !matches,
         salesKey,
         trigger,
@@ -2651,13 +2692,16 @@ app.post("/api/product-recommendation", async (req, res) => {
       }),
       sleep(2000).then(() => null),
     ]) : null;
-    res.json(Object.assign({ ok: true, recommendation: safeRecommendation, model: OPENAI_MODEL, historyId: saved ? saved.id : null }, saved ? savedMeta(saved) : { createdAt: new Date() }));
+    res.json(Object.assign({ ok: true, recommendation: shownText, sections, usedFallback: !matches, model: OPENAI_MODEL, historyId: saved ? saved.id : null }, saved ? savedMeta(saved) : { createdAt: new Date() }));
   } catch (error) {
     const failure = openAiFailure(error, "production recommendation");
     if (failure.status !== 401 && failure.status !== 402) {
+      const sections = deterministicSections(snapshot);
       res.json({
         ok: true,
-        recommendation: deterministicRecommendation(snapshot),
+        recommendation: recommendationText(sections),
+        sections,
+        usedFallback: true,
         model: OPENAI_MODEL,
         error: failure.error,
       });

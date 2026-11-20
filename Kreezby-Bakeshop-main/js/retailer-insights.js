@@ -3,6 +3,7 @@
  * Reads every route sheet (GET /api/sales-list) and shows, per area and per shop:
  *   ordered (Cons + COD), pulled out (P.O), expired, collected, how often it is delivered,
  * then marks each shop as Fast / Steady / Slow and explains why stock was pulled out or expired.
+ * Shown as three short parts (Areas, Shops, What to do) and a simple shop list.
  * Reasons come from the numbers on the sheets plus any note written on the delivery.
  */
 (function () {
@@ -11,7 +12,7 @@
     var CYCLE_DAYS = 14;          // normal delivery cycle (2 weeks)
     var FAST_SELL = 0.9;          // ≥ 90% of what was delivered got sold
     var SLOW_SELL = 0.7;          // < 70% sold → slow
-    var state = { rows: [], loaded: false, error: '', page: 1, open: {} };
+    var state = { rows: [], loaded: false, error: '', limit: 10, open: {} };
 
     function esc(v) {
         return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
@@ -180,45 +181,31 @@
         s.textContent =
             '.ri-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:0 0 14px}' +
             '.ri-tools label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#5d4037;text-transform:uppercase;letter-spacing:.03em}' +
-            '.ri-tools select{min-width:180px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;text-transform:none}' +
-            '.ri-summary{background:linear-gradient(135deg,#fffaf0 0%,#fff 60%);border:1px solid #f3e3c3;border-left:5px solid #ffca28;border-radius:12px;padding:14px 16px;margin:0 0 16px;color:#3d2c2a;font-size:14px;line-height:1.55}' +
-            '.ri-summary strong{display:block;font-size:13px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}' +
-            '.ri-areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:0 0 18px}' +
-            '.ri-area{border:1px solid #efe6df;border-radius:12px;padding:12px 14px;background:#fff}' +
-            '.ri-area h5{margin:0 0 6px;font-size:15px;color:#3d2c2a;display:flex;justify-content:space-between;gap:8px;align-items:center}' +
-            '.ri-area p{margin:2px 0;font-size:12.5px;color:#6d625c}' +
-            '.ri-area b{color:#3d2c2a}' +
-            '.ri-h{margin:16px 0 8px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3e2723}' +
-            '.ri-table{width:100%;border-collapse:collapse;font-size:13.5px}' +
-            '.ri-table th,.ri-table td{padding:9px 10px;border-bottom:1px solid #efe6df;text-align:left;vertical-align:top}' +
-            '.ri-table th{background:#fbf6f2;color:#5d4037;font-size:12px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}' +
-            '.ri-table .n{text-align:right;white-space:nowrap}' +
-            '.ri-table ul{margin:0;padding-left:16px}.ri-table li{margin:0 0 3px}' +
+            '.ri-tools select,.ri-tools input{min-width:170px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px;text-transform:none;background:#fff}' +
+            '.ri-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:6px 18px;margin:0 0 18px}' +
+            '.ri-sec{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:1px solid #f1e7dc}' +
+            '.ri-sec:last-child{border-bottom:0}' +
+            '.ri-sec h4{margin:0;font-size:14px;font-weight:700;color:#5d4037;line-height:1.5}' +
+            '.ri-sec p{margin:0;font-size:14px;line-height:1.55;color:#3e2723}' +
+            '.ri-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}' +
+            '.ri-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12px;color:#5d4037;white-space:nowrap}' +
+            '.ri-chip.ok{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32}.ri-chip.warn{background:#fff3e0;border-color:#ffe0b2;color:#e65100}.ri-chip.bad{background:#ffebee;border-color:#ffcdd2;color:#c62828}.ri-chip.info{background:#e3f2fd;border-color:#bbdefb;color:#1565c0}' +
+            '.ri-h{margin:0 0 8px;font-size:14px;font-weight:700;color:#3e2723}' +
+            '.ri-list{display:grid;gap:8px}' +
+            '.ri-shop{border:1px solid #eadfce;border-radius:10px;background:#fff}' +
+            '.ri-shop summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 14px;cursor:pointer;list-style:none}' +
+            '.ri-shop summary::-webkit-details-marker{display:none}' +
+            '.ri-shop summary strong{display:block;font-size:14px;color:#3e2723}' +
+            '.ri-shop summary small{display:block;font-size:12px;color:#7a6558;margin-top:1px}' +
+            '.ri-rate{font-size:13px;font-weight:700;color:#5d4037;white-space:nowrap}' +
+            '.ri-shop[open] summary{border-bottom:1px solid #f1e7dc}' +
+            '.ri-shop ul{margin:0;padding:10px 14px 12px 32px;font-size:13px;line-height:1.55;color:#4e342e}' +
             '.ri-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}' +
-            '.ri-empty{text-align:center;padding:22px;color:#8d6e63}' +
-            '.ri-tools input{min-width:200px;padding:7px 10px;border:1px solid #d7ccc8;border-radius:8px;font:inherit;font-size:14px}' +
-            '.kz-rt-wrap{overflow-x:auto;border:1px solid #e3d9d2;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(62,39,35,.12)}' +
-            '.kz-rt{width:100%;border-collapse:collapse;font-size:14px;color:#3e2723}' +
-            '.kz-rt thead th{background:#5d4037;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:13px 12px;text-align:center;border-bottom:4px solid #f2b52d;border-right:1px solid #d9cfc8;white-space:nowrap}' +
-            '.kz-rt thead th:last-child{border-right:0}' +
-            '.kz-rt tbody td{padding:11px 12px;border-bottom:1px solid #efe6df;vertical-align:middle;background:#fff}' +
-            '.kz-rt .c{text-align:center;white-space:nowrap}' +
-            '.kz-rt .kz-rt-empty{text-align:center;padding:16px;color:#4e342e}' +
-            '.ri-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}' +
-            '.ri-split-col{min-width:0}' +
-            '.ri-split .kz-rt-wrap{height:440px;overflow:auto}' +
-            '.ri-split .kz-rt thead th{position:sticky;top:0;z-index:1;padding:10px 8px;font-size:10.5px}' +
-            '.ri-split .kz-rt td{padding:8px 8px;font-size:13px;line-height:1.3}' +
-            '.ri-split .kz-rt-view{padding:4px 10px}' +
-            '@media(max-width:1250px){.ri-split{grid-template-columns:minmax(0,1fr)}}' +
-            '.kz-rt-clear{align-self:flex-end;padding:8px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
-            '.kz-rt-view{padding:5px 14px;border:1px solid #5d4037;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;font-size:12px;cursor:pointer}' +
-            '.kz-rt-view:hover{background:#5d4037;color:#fff}' +
-            '.kz-rt tr.kz-rt-detail td{background:#fbf6f2;color:#5d4037;font-size:13px;line-height:1.6}' +
-            '.kz-rt-detail ul{margin:4px 0 0;padding-left:18px}' +
-            '.kz-rt-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#6d4c41}' +
-            '.kz-rt-foot button{padding:5px 12px;border:1px solid #d7ccc8;border-radius:6px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
-            '.kz-rt-foot button[disabled]{opacity:.45;cursor:default}';
+            '.ri-more{margin-top:10px;padding:7px 14px;border:1px solid #d7ccc8;border-radius:8px;background:#fff;color:#5d4037;font-weight:700;cursor:pointer}' +
+            '.ri-empty{text-align:center;padding:22px;color:#8d6e63;margin:0}' +
+            '@media(max-width:600px){.ri-card{padding:4px 14px}.ri-sec{grid-template-columns:minmax(0,1fr);gap:4px;padding:12px 0}.ri-chip{white-space:normal}' +
+            '.ri-tools label{flex:1 1 100%}.ri-tools select,.ri-tools input{width:100%;min-width:0}' +
+            '.ri-shop summary{grid-template-columns:minmax(0,1fr) auto;}.ri-rate{grid-column:1}}';
         document.head.appendChild(s);
     }
 
@@ -231,47 +218,68 @@
             d.setDate(d.getDate() - Number(days));
             from = iso(d);
         }
-        var shopEl = host.querySelector('[data-ri-shop]');
-        var shop = shopEl ? shopEl.value : '';
         return state.rows.filter(function (r) {
-            return (!from || r.date >= from) && (!area || r.area === area) && (!shop || String(r.shop).toLowerCase() === shop);
+            return (!from || r.date >= from) && (!area || r.area === area);
         });
     }
 
-    /* The Shop dropdown lists every shop of the chosen area, A to Z. */
-    function fillShopOptions(host) {
-        var el = host.querySelector('[data-ri-shop]');
-        if (!el) return;
-        var area = host.querySelector('[data-ri-area]').value;
-        var key = area + '|' + state.rows.length;
-        if (el.getAttribute('data-key') === key) return;
-        el.setAttribute('data-key', key);
-        var seen = {};
-        state.rows.forEach(function (r) {
-            if (area && r.area !== area) return;
-            var k = String(r.shop || '').toLowerCase();
-            if (k && !seen[k]) seen[k] = r.shop;
-        });
-        var prev = el.value;
-        el.innerHTML = '<option value="">All shops</option>' + Object.keys(seen).sort().map(function (k) {
-            return '<option value="' + esc(k) + '">' + esc(seen[k]) + '</option>';
-        }).join('');
-        if (prev && seen[prev]) el.value = prev;
+    function chip(label, cls) {
+        return '<span class="ri-chip' + (cls ? ' ' + cls : '') + '">' + esc(label) + '</span>';
     }
 
-    function summaryText(shops, areas) {
+    function section(label, sentence, chips) {
+        return '<section class="ri-sec"><h4>' + label + '</h4><div><p>' + esc(sentence) + '</p>'
+            + '<div class="ri-chips">' + chips.filter(Boolean).join('') + '</div></div></section>';
+    }
+
+    function names(list, max) {
+        var shown = list.slice(0, max).map(function (g) { return g.shop; });
+        var extra = list.length - shown.length;
+        var text = shown.length <= 1 ? shown.join('') : shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1];
+        return text + (extra > 0 ? ' (+' + extra + ' more)' : '');
+    }
+
+    // Three short parts, like the dashboard insight: Areas, Shops, What to do.
+    function summaryCard(shops, areas) {
+        var sold = areas.filter(function (a) { return a.ordered; });
+        var best = sold.slice().sort(function (a, b) { return b.sellRate - a.sellRate; })[0];
+        var worst = sold.slice().sort(function (a, b) { return b.returned - a.returned; })[0];
+        var areaText = !best ? 'No area has deliveries in this period yet.'
+            : best.area + ' sells best, with ' + pct(best.sellRate) + ' of deliveries sold.'
+              + (worst && worst !== best && worst.returned ? ' ' + worst.area + ' has the most stock coming back (' + pcs(worst.returned) + ' pulled out or expired).' : '');
+        var areaChips = sold.map(function (a) {
+            return chip(a.area + ' · ' + pct(a.sellRate) + ' sold', a.sellRate >= FAST_SELL ? 'ok' : a.sellRate < SLOW_SELL ? 'bad' : '');
+        });
+
         var fast = shops.filter(function (g) { return g.status === 'fast'; }).sort(function (a, b) { return b.sellRate - a.sellRate || b.sold - a.sold; });
         var slow = shops.filter(function (g) { return g.status === 'slow'; }).sort(function (a, b) { return a.sellRate - b.sellRate; });
-        var parts = [];
-        var bestArea = areas.slice().filter(function (a) { return a.ordered; }).sort(function (a, b) { return b.sellRate - a.sellRate; })[0];
-        var worstArea = areas.slice().filter(function (a) { return a.ordered; }).sort(function (a, b) { return a.sellRate - b.sellRate; })[0];
-        if (bestArea) parts.push(bestArea.area + ' sells best (' + pct(bestArea.sellRate) + ' of deliveries sold).');
-        if (worstArea && worstArea !== bestArea) parts.push(worstArea.area + ' has the most stock coming back (' + pcs(worstArea.returned) + ' pulled out or expired).');
-        if (fast.length) parts.push('Runs out fast: ' + fast.slice(0, 3).map(function (g) { return g.shop + ' (' + g.area + ')'; }).join(', ') + ' — deliver more to these shops.');
-        if (slow.length) parts.push('Slow sales: ' + slow.slice(0, 3).map(function (g) { return g.shop + ' (' + g.area + ')'; }).join(', ') + ' — ' + (slow[0].expired ? 'stock is expiring on the shelf' : 'stock is being pulled out') + ', so order less or deliver on a 2-week cycle.');
-        var expired = shops.reduce(function (s, g) { return s + g.expired; }, 0);
-        if (expired) parts.push(pcs(expired) + ' expired in this period.');
-        return parts.join(' ') || 'Not enough deliveries recorded yet to compare shops.';
+        var steady = shops.filter(function (g) { return g.status === 'steady'; });
+        var shopText = (fast.length ? names(fast, 3) + (fast.length === 1 ? ' runs' : ' run') + ' out fast. ' : 'No shop runs out fast yet. ')
+            + (slow.length ? names(slow, 3) + (slow.length === 1 ? ' has' : ' have') + ' slow sales.' : 'No shop has slow sales.');
+        var shopChips = [
+            chip(fast.length + ' runs out fast', fast.length ? 'ok' : ''),
+            chip(steady.length + ' steady', steady.length ? 'info' : ''),
+            chip(slow.length + ' slow', slow.length ? 'bad' : '')
+        ];
+
+        var expired = shops.reduce(function (t, g) { return t + g.expired; }, 0);
+        var po = shops.reduce(function (t, g) { return t + g.po; }, 0);
+        var todo = [];
+        if (fast.length) todo.push('Deliver more to ' + names(fast, 2) + '.');
+        if (slow.length) todo.push('Order less for ' + names(slow, 2) + (slow.some(function (g) { return g.interval > CYCLE_DAYS; }) ? ', or keep them on the 2-week delivery cycle' : '') + '.');
+        if (expired) todo.push('Check shelf stock: ' + pcs(expired) + ' expired in this period.');
+        if (!todo.length) todo.push('Keep the current orders. Every shop is selling steadily.');
+        var todoChips = [
+            po ? chip(pcs(po) + ' pulled out', 'warn') : '',
+            expired ? chip(pcs(expired) + ' expired', 'bad') : '',
+            (!po && !expired) ? chip('Nothing pulled out or expired', 'ok') : ''
+        ];
+
+        return '<div class="ri-card">'
+            + section('Areas', areaText, areaChips)
+            + section('Shops', shopText, shopChips)
+            + section('What to do', todo.join(' '), todoChips)
+            + '</div>';
     }
 
     function render(host) {
@@ -284,73 +292,44 @@
             body.innerHTML = '<p class="ri-empty">' + esc(state.error) + '</p>';
             return;
         }
-        fillShopOptions(host);
         var rows = filtered(host);
         if (!rows.length) {
             body.innerHTML = '<p class="ri-empty">No deliveries in this period.</p>';
             return;
         }
         var shops = group(rows, function (r) { return r.area + '|' + r.shop.toLowerCase(); }).filter(function (g) { return g.status !== 'none' || g.collected; });
-        var areas = group(rows, function (r) { return r.area; }).map(function (a) {
-            a.fastShops = shops.filter(function (g) { return g.area === a.area && g.status === 'fast'; }).length;
-            a.slowShops = shops.filter(function (g) { return g.area === a.area && g.status === 'slow'; }).length;
-            return a;
-        }).sort(function (a, b) { return b.sellRate - a.sellRate; });
+        var areas = group(rows, function (r) { return r.area; }).sort(function (a, b) { return b.sellRate - a.sellRate; });
         var order = { fast: 0, slow: 1, steady: 2, none: 3 };
         shops.sort(function (a, b) { return order[a.status] - order[b.status] || (a.status === 'slow' ? a.sellRate - b.sellRate : b.sellRate - a.sellRate); });
 
-        body.innerHTML =
-            '<div class="ri-split">' +
-              '<div class="ri-split-col"><h4 class="ri-h">By area</h4>' +
-                '<div class="kz-rt-wrap"><table class="kz-rt"><thead><tr><th>Area</th><th>Sold</th><th>Ordered (pcs)</th><th>P.O</th><th>Expired</th><th>Collected</th><th>Fast shops</th><th>Slow shops</th></tr></thead><tbody>' +
-                areas.map(function (a) {
-                    return '<tr><td><strong>' + esc(a.area) + '</strong></td><td class="c">' + pct(a.sellRate) + '</td><td class="c">' + pn(a.ordered) + '</td><td class="c">' + pn(a.po) +
-                        '</td><td class="c">' + pn(a.expired) + '</td><td class="c">' + peso(a.collected) + '</td><td class="c">' + a.fastShops + '</td><td class="c">' + a.slowShops + '</td></tr>';
-                }).join('') + '</tbody></table></div></div>' +
-              '<div class="ri-split-col"><h4 class="ri-h">By shop</h4><div data-ri-shops></div></div>' +
-            '</div>';
+        body.innerHTML = summaryCard(shops, areas)
+            + '<h4 class="ri-h">Shops</h4><div data-ri-shops></div>';
         state.shops = shops;
         renderShops(host);
     }
 
+    // One line per shop; open it to see why it is fast or slow.
     function renderShops(host) {
         var box = host.querySelector('[data-ri-shops]');
         if (!box) return;
         var q = String((host.querySelector('[data-ri-search]') || {}).value || '').toLowerCase().trim();
-        var size = parseInt((host.querySelector('[data-ri-size]') || {}).value, 10) || 10;
-        var stEl = host.querySelector('[data-ri-status]');
-        var st = stEl ? stEl.value : '';
         var list = (state.shops || []).filter(function (g) {
-            if (st && g.status !== st) return false;
-            return !q || [g.shop, g.area, (STATUS[g.status] || {}).label, g.last ? dateLabel(g.last) : ''].join(' ').toLowerCase().indexOf(q) >= 0;
+            return !q || [g.shop, g.area, (STATUS[g.status] || {}).label].join(' ').toLowerCase().indexOf(q) >= 0;
         });
-        var pages = Math.max(1, Math.ceil(list.length / size));
-        state.page = Math.min(Math.max(state.page || 1, 1), pages);
-        var start = (state.page - 1) * size;
-        var slice = list.slice(start, start + size);
-        var head = '<thead><tr><th>#</th><th>Shop</th><th>Area</th><th>Ordered</th><th>Pulled out</th><th>Expired</th><th>Status</th><th>Action</th></tr></thead>';
-        var tbody;
-        if (!slice.length) {
-            tbody = '<tr><td class="kz-rt-empty" colspan="8">' + (q ? 'No shops match this search.' : 'No shops to show yet.') + '</td></tr>';
-        } else {
-            tbody = slice.map(function (g, i) {
-                var n = start + i + 1;
-                var key = g.area + '|' + g.shop;
-                var open = !!state.open[key];
-                var main = '<tr><td class="c">' + n + '</td><td><strong>' + esc(g.shop) + '</strong></td><td>' + esc(g.area) +
-                    '</td><td class="c">' + pn(g.ordered) + '</td><td class="c">' + pn(g.po) + '</td><td class="c">' + pn(g.expired) +
-                    '</td><td class="c">' + pill(g.status) + '</td><td class="c"><button type="button" class="kz-rt-view" data-ri-view="' + esc(key) + '">' + (open ? 'Hide' : 'View') + '</button></td></tr>';
-                if (!open) return main;
-                return main + '<tr class="kz-rt-detail"><td colspan="8"><strong>' + esc(g.shop) + '</strong> · ' + esc(g.area) + ' · last delivery ' + esc(g.last ? dateLabel(g.last) : '—') +
-                    '<br>Sold ' + (g.ordered ? pct(g.sellRate) : '—') + ' of what was delivered · delivered ' + (g.interval ? 'about every ' + g.interval + ' days' : 'once so far') +
-                    '<ul>' + g.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></td></tr>';
-            }).join('');
+        if (!list.length) {
+            box.innerHTML = '<p class="ri-empty">' + (q ? 'No shops match this search.' : 'No shops to show yet.') + '</p>';
+            return;
         }
-        var shown = list.length ? (start + 1) + '–' + (start + slice.length) : '0';
-        box.innerHTML = '<div class="kz-rt-wrap"><table class="kz-rt">' + head + '<tbody>' + tbody + '</tbody></table></div>' +
-            '<div class="kz-rt-foot"><span>Showing ' + shown + ' of ' + list.length + '</span><span>' +
-            '<button type="button" data-ri-page="prev"' + (state.page <= 1 ? ' disabled' : '') + '>Prev</button> Page ' + state.page + ' of ' + pages + ' ' +
-            '<button type="button" data-ri-page="next"' + (state.page >= pages ? ' disabled' : '') + '>Next</button></span></div>';
+        var limit = state.limit || 10;
+        box.innerHTML = '<div class="ri-list">' + list.slice(0, limit).map(function (g) {
+            var key = g.area + '|' + g.shop;
+            return '<details class="ri-shop" data-ri-key="' + esc(key) + '"' + (state.open[key] ? ' open' : '') + '><summary>'
+                + '<span><strong>' + esc(g.shop) + '</strong><small>' + esc(g.area) + ' · last delivery ' + esc(g.last ? dateLabel(g.last) : '—') + '</small></span>'
+                + '<span class="ri-rate">' + (g.ordered ? pct(g.sellRate) + ' sold' : '—') + '</span>'
+                + pill(g.status) + '</summary>'
+                + '<ul>' + g.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></details>';
+        }).join('') + '</div>'
+            + (list.length > limit ? '<button type="button" class="ri-more" data-ri-more>Show ' + Math.min(10, list.length - limit) + ' more (' + (list.length - limit) + ' left)</button>' : '');
     }
 
     function mount(host) {
@@ -361,44 +340,28 @@
             '<div class="ri-tools">' +
                 '<label>Period<select data-ri-period><option value="30">Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option><option value="all" selected>All time</option></select></label>' +
                 '<label>Area<select data-ri-area><option value="">All areas</option></select></label>' +
-                '<label>Shop<select data-ri-shop><option value="">All shops</option></select></label>' +
-                '<label>Show<select data-ri-status><option value="">Every status</option><option value="fast">Runs out fast</option><option value="steady">Steady</option><option value="slow">Slow</option></select></label>' +
-                '<label>Entries<select data-ri-size><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>' +
-                '<label>Search<input type="search" data-ri-search placeholder="Shop, area, status…"></label>' +
-                '<button type="button" data-ri-clear class="kz-rt-clear">Clear filters</button>' +
+                '<label>Search shop<input type="search" data-ri-search placeholder="Shop or area…"></label>' +
             '</div>' +
             '<div data-ri-body></div>';
-        function fresh() { state.page = 1; state.open = {}; render(host); }
+        function fresh() { state.limit = 10; state.open = {}; render(host); }
         host.querySelector('[data-ri-period]').addEventListener('change', fresh);
         host.querySelector('[data-ri-area]').addEventListener('change', fresh);
-        host.querySelector('[data-ri-shop]').addEventListener('change', fresh);
-        host.querySelector('[data-ri-status]').addEventListener('change', function () { state.page = 1; renderShops(host); });
-        host.querySelector('[data-ri-clear]').addEventListener('click', function () {
-            host.querySelector('[data-ri-period]').value = 'all';
-            host.querySelector('[data-ri-area]').value = '';
-            host.querySelector('[data-ri-shop]').value = '';
-            host.querySelector('[data-ri-status]').value = '';
-            host.querySelector('[data-ri-size]').value = '10';
-            host.querySelector('[data-ri-search]').value = '';
-            fresh();
-        });
-        host.querySelector('[data-ri-size]').addEventListener('change', function () { state.page = 1; renderShops(host); });
         var riTimer = null;
         host.querySelector('[data-ri-search]').addEventListener('input', function () {
             clearTimeout(riTimer);
-            riTimer = setTimeout(function () { state.page = 1; renderShops(host); }, 120);
+            riTimer = setTimeout(function () { state.limit = 10; renderShops(host); }, 120);
         });
         host.addEventListener('click', function (e) {
-            var t = e.target.closest ? e.target.closest('[data-ri-view],[data-ri-page]') : null;
-            if (!t) return;
-            if (t.hasAttribute('data-ri-view')) {
-                var k = t.getAttribute('data-ri-view');
-                state.open[k] = !state.open[k];
-            } else {
-                state.page += t.getAttribute('data-ri-page') === 'next' ? 1 : -1;
-            }
+            var more = e.target.closest ? e.target.closest('[data-ri-more]') : null;
+            if (!more) return;
+            state.limit = (state.limit || 10) + 10;
             renderShops(host);
         });
+        // Remember which shops are open, so a re-draw keeps them open.
+        host.addEventListener('toggle', function (e) {
+            var d = e.target;
+            if (d && d.matches && d.matches('details[data-ri-key]')) state.open[d.getAttribute('data-ri-key')] = d.open;
+        }, true);
         render(host);
         // The route sheets are only fetched once the Retailer Insights tab is actually shown.
         var panel = host.closest('.insights-panel');

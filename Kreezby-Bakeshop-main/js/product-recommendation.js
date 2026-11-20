@@ -50,7 +50,45 @@
         return !panel.hidden;
     }
 
-    function renderTable(snapshot) {
+    function ensureStyle() {
+        if (document.getElementById('production-rec-style')) return;
+        var style = document.createElement('style');
+        style.id = 'production-rec-style';
+        style.textContent = ''
+            + '.pr-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:6px 18px;margin-top:12px;}'
+            + '.pr-sec{display:grid;grid-template-columns:140px minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:1px solid #f1e7dc;}'
+            + '.pr-sec:last-child{border-bottom:0;}'
+            + '.pr-sec h4{margin:0;font-size:14px;font-weight:700;color:#5d4037;line-height:1.5;}'
+            + '.pr-sec p{margin:0;font-size:14px;line-height:1.55;color:#3e2723;}'
+            + '.pr-sec p.pr-wait{color:#7a6558;font-size:13px;}'
+            + '.pr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}'
+            + '.pr-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12px;color:#5d4037;white-space:nowrap;}'
+            + '.pr-chip.ok{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32;}.pr-chip.warn{background:#fff3e0;border-color:#ffe0b2;color:#e65100;}.pr-chip.bad{background:#ffebee;border-color:#ffcdd2;color:#c62828;}'
+            + '.pr-note{margin:10px 2px 0;font-size:12px;line-height:1.5;color:#7a6558;}'
+            + '.pr-busy{opacity:.55;}'
+            + '#product-recommendation-body:empty{display:none;}'
+            + '@media (max-width:600px){.pr-card{padding:4px 14px;}.pr-sec{grid-template-columns:minmax(0,1fr);gap:4px;padding:12px 0;}.pr-chip{white-space:normal;}}';
+        document.head.appendChild(style);
+    }
+
+    function short(name) {
+        return String(name || '').replace(/\s*Crinkles$/i, '');
+    }
+
+    function chip(label, cls) {
+        return '<span class="pr-chip' + (cls ? ' ' + cls : '') + '">' + esc(label) + '</span>';
+    }
+
+    function section(label, sentence, chips) {
+        var text = sentence
+            ? '<p>' + esc(sentence) + '</p>'
+            : '<p class="pr-wait">' + (busy ? 'GPT-4o mini is writing this part…' : 'Loading the saved recommendation…') + '</p>';
+        return '<section class="pr-sec"><h4>' + label + '</h4><div>' + text
+            + '<div class="pr-chips">' + chips.filter(Boolean).join('') + '</div></div></section>';
+    }
+
+    // Sales, stock and packaging figures come from the system's formula; the sentences from GPT-4o mini.
+    function renderSections(snapshot) {
         var host = document.getElementById('product-recommendation-table');
         if (!host) return;
         var products = (snapshot && snapshot.products) || [];
@@ -58,27 +96,39 @@
             host.innerHTML = '';
             return;
         }
-        host.innerHTML = ''
-            + '<table class="data-display-table product-recommendation-table">'
-            + '<thead><tr><th>#</th><th>Flavor</th><th>Good Stock</th><th>Expired</th><th>Orders to Cover</th><th>Retailers (7 days)</th><th>Bake</th><th>Packaging</th></tr></thead><tbody>'
-            // Flavors to bake come first; covered ones follow.
-            + products.slice().sort(function (a, b) { return (Number(b.suggestedBake) || 0) - (Number(a.suggestedBake) || 0); }).map(function (row, index) {
-                var bake = Number(row.suggestedBake) || 0;
-                var pack = bake <= 0 ? 'Not needed' : row.packagingAvailable == null ? '—' : (row.packagingShort ? 'Short by ' + esc(row.packagingShort) : 'Enough (' + esc(row.packagingAvailable) + ' on hand)');
-                return '<tr><td class="po-col-num">' + (index + 1) + '</td>'
-                    + '<td class="sa-flavor"><strong>' + esc(row.name) + '</strong></td>'
-                    + '<td class="sa-num">' + esc(row.finishedStock) + '</td>'
-                    + '<td class="sa-num">' + esc(row.expiredStock || 0) + '</td>'
-                    + '<td class="sa-num">' + esc(row.pendingStillToCover || 0) + '</td>'
-                    + '<td class="sa-num">' + esc(row.retailerDeliveries || 0) + '</td>'
-                    + '<td class="sa-num">' + (bake > 0 ? ('Bake ' + esc(bake)) : 'Covered') + '</td>'
-                    + '<td class="sa-num">' + pack + '</td></tr>';
-            }).join('')
-            + '</tbody></table>'
-            + '<p class="product-recommendation-note" style="margin:12px 0 0;padding:10px 12px;border:1px solid #f0e4d2;border-radius:10px;background:#fffaf3;font-size:13px;line-height:1.5;color:#5d4037"><strong>Calculated by the system (formula, no AI):</strong> Bake = customer orders to cover + retailer deliveries in the next 7 days − good stock (0 when covered). '
-            + 'Expired pouches are never counted. Packaging = stand up pouches and flavor stickers on hand. '
-            + (snapshot.totalBake ? 'Total to bake: ' + esc(snapshot.totalBake) + ' pouches, about ' + esc(snapshot.daysNeeded) + ' day(s) at ' + esc(snapshot.dailyCapacity) + ' pouches a day (250 crinkles ÷ 10 per pouch). ' : '')
-            + '<br><strong>Written by GPT-4o mini:</strong> the explanation above only. It cannot change these numbers or any record; if its text does not match the numbers, the system shows its own wording instead.</p>';
+        ensureStyle();
+        var sum = function (key) { return products.reduce(function (t, r) { return t + (Number(r[key]) || 0); }, 0); };
+        var toBake = products.filter(function (r) { return Number(r.suggestedBake) > 0; })
+            .sort(function (a, b) { return (Number(b.suggestedBake) || 0) - (Number(a.suggestedBake) || 0); });
+        var covered = products.filter(function (r) { return !(Number(r.suggestedBake) > 0); });
+        var shortPack = toBake.filter(function (r) { return Number(r.packagingShort) > 0; });
+        var totalBake = Number(snapshot.totalBake) || toBake.reduce(function (t, r) { return t + Number(r.suggestedBake); }, 0);
+        var expired = sum('expiredStock');
+
+        var bakeChips = toBake.map(function (r) { return chip(short(r.name) + ': bake ' + r.suggestedBake, 'warn'); });
+        if (covered.length) bakeChips.push(chip('Covered: ' + covered.map(function (r) { return short(r.name); }).join(', '), 'ok'));
+        if (totalBake) bakeChips.push(chip('Total ' + totalBake + ' pouches · about ' + (snapshot.daysNeeded || 1) + ' day(s)'));
+
+        var stockChips = [
+            chip(sum('finishedStock') + ' good stock'),
+            chip(sum('pendingStillToCover') + ' orders to cover'),
+            chip(sum('retailerDeliveries') + ' for retailers (7 days)'),
+            expired ? chip(expired + ' expired, not counted', 'bad') : ''
+        ];
+
+        var packChips = shortPack.length
+            ? shortPack.map(function (r) { return chip(short(r.name) + ': short by ' + r.packagingShort, 'bad'); })
+            : [chip(totalBake ? 'Enough packaging' : 'Not needed', totalBake ? 'ok' : '')];
+
+        var text = saved.sections;
+        host.innerHTML = '<div class="pr-card' + (busy && text ? ' pr-busy' : '') + '">'
+            + section('What to bake', text ? text.bake : null, bakeChips)
+            + section('Stock and orders', text ? text.stock : null, stockChips)
+            + section('Packaging', text ? text.packaging : null, packChips)
+            + '</div>'
+            + (saved.error && text ? '<p class="pr-note">' + esc(saved.error) + ' The system\'s own wording is shown.</p>' : '')
+            + '<p class="pr-note">Bake amounts are calculated by the system: customer orders to cover + retailer deliveries in the next 7 days − good stock (expired pouches are never counted). '
+            + 'The sentences are written by GPT-4o mini from those numbers and checked against them. The AI cannot change any number or record.</p>';
     }
 
     function whenReady(done) {
@@ -120,12 +170,13 @@
     // ---------- saved recommendation ----------
     // Opening the page shows the last saved recommendation. A new one is written only on Refresh,
     // or when a new sale was recorded since the saved one.
-    var saved = { text: '', at: null, by: null, salesKey: '', error: '' };
+    var saved = { text: '', sections: null, at: null, by: null, salesKey: '', error: '' };
     var savedLoaded = false;
     var savedLoading = null;
     var busy = false;
     var busyTrigger = '';
     var checkTimer = null;
+    var failure = '';   // why the last request could not write a recommendation
 
     function stamp(date) {
         if (!date) return '';
@@ -157,14 +208,23 @@
 
     function show() {
         var dict = window.KreezbyDictionary;
-        if (dict && typeof dict.productRecommendationSnapshot === 'function') renderTable(dict.productRecommendationSnapshot());
-        if (saved.text) setBody(saved.error ? saved.text + ' ' + saved.error : saved.text);
+        var hasProducts = false;
+        if (dict && typeof dict.productRecommendationSnapshot === 'function') {
+            var snap = dict.productRecommendationSnapshot();
+            hasProducts = !!(snap && snap.products && snap.products.length);
+            renderSections(snap);
+        }
+        // The sentences sit inside the three sections; this line is only for status messages.
+        if (hasProducts) setBody(!saved.sections && failure ? failure : '');
         setBusy(busy);
         renderMeta();
     }
 
     function adopt(record, key) {
         saved.text = record.recommendation || record.shownOutput || '';
+        // An older saved recommendation is one paragraph with no sections; a new one is written for it.
+        var sec = record.sections || record.shown || null;
+        saved.sections = sec && sec.bake ? sec : null;
         saved.at = record.createdAt ? new Date(record.createdAt) : new Date();
         saved.by = record.generatedBy || null;
         saved.salesKey = record.salesKey || key || '';
@@ -203,7 +263,7 @@
                 return;
             }
             var snapshot = dict.productRecommendationSnapshot();
-            renderTable(snapshot);
+            renderSections(snapshot);
             if (!snapshot.products || !snapshot.products.length) {
                 setBody('There is not enough finished product or pending order data yet to recommend a bake.');
                 busy = false;
@@ -222,16 +282,19 @@
             }).then(function (data) {
                 if (id !== requestId) return;
                 if (data && data.recommendation) {
+                    failure = '';
                     adopt(data, key);
                     if (data.historyId && !data.reused) {
                         document.dispatchEvent(new CustomEvent('kreezby:ai-history-changed', { detail: { module: 'production-recommendation' } }));
                     }
                     return;
                 }
-                if (!saved.text) setBody((data && data.error) || 'The production recommendation could not be written just now.');
+                failure = (data && data.error) || 'The production recommendation could not be written just now.';
+                if (!saved.text) setBody(failure);
             }).catch(function () {
                 if (id !== requestId) return;
-                if (!saved.text) setBody('The production recommendation could not be written just now.');
+                failure = 'The production recommendation could not be written just now.';
+                if (!saved.text) setBody(failure);
             }).then(function () {
                 if (id !== requestId) return;
                 busy = false;
@@ -245,6 +308,7 @@
         if (!panelVisible() || !savedLoaded || busy) return;
         if (!saved.text) { generate('first'); return; }
         if (saved.salesKey !== currentSalesKey()) generate('new-sales');
+        else if (!saved.sections) generate('manual');
     }
 
     function scheduleCheck(delay) {

@@ -1,6 +1,6 @@
 /**
  * Management Insight (head admin, admin and staff · Insights > Management Insight).
- * Summarizes notable sales, inventory and demand conditions in simple language for the owner.
+ * Summarizes notable sales, inventory and production conditions in simple language for the owner.
  * Four parts, all worked out from the shop's own records (sales, stock, batches, alerts):
  *   1. Summary of sales performance
  *   2. Inventory conditions
@@ -28,36 +28,20 @@
             + '.mi-meta b{color:#3e2723;}'
             + '.mi-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;}'
             + '.mi-pill.ok{background:#e8f5e9;color:#2e7d32;}.mi-pill.busy{background:#fff3e0;color:#e65100;}.mi-pill.bad{background:#ffebee;color:#c62828;}'
-            + '.mi-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}'
-            + '.mi-row--wide{grid-template-columns:minmax(0,2fr) minmax(0,3fr);}'
-            + '.mi-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:14px 16px;min-width:0;}'
-            + '.mi-card h4{margin:0 0 10px;font-size:14px;color:#3e2723;display:flex;align-items:center;gap:8px;}'
-            + '.mi-num{display:inline-flex;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:#5d4037;color:#fff;font-size:12px;align-items:center;justify-content:center;}'
-            + '.mi-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}'
-            + '.mi-stat{background:#fffaf3;border:1px solid #f0e4d2;border-radius:10px;padding:8px 10px;min-width:0;}'
-            + '.mi-stat small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
-            + '.mi-stat strong{display:block;font-size:18px;line-height:1.25;color:#3e2723;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
-            + '.mi-stat em{display:block;font-style:normal;font-size:11px;color:#7a6558;margin-top:1px;}'
-            + '.mi-up{color:#2e7d32 !important;}.mi-down{color:#c62828 !important;}'
-            + '.mi-line{margin:8px 0 0;font-size:12px;color:#7a6558;line-height:1.4;}'
-            + '.mi-tag{display:inline-block;min-width:54px;text-align:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;}'
-            + '.mi-tag.ok{background:#e8f5e9;color:#2e7d32;}.mi-tag.warn{background:#fff3e0;color:#e65100;}.mi-tag.bad{background:#ffebee;color:#c62828;}.mi-tag.info{background:#e3f2fd;color:#1565c0;}'
-            + '.mi-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;}'
-            + '.mi-list li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:7px 10px;border-radius:9px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12.5px;line-height:1.4;color:#3e2723;}'
-            + '.mi-list li small{display:block;color:#7a6558;font-size:11.5px;margin-top:2px;}'
-            + '.mi-more{margin-top:6px;font-size:12px;color:#5d4037;}'
-            + '.mi-more summary{cursor:pointer;font-weight:700;}'
-            + '.mi-more .mi-list{margin-top:6px;}'
-            + '.mi-read{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;margin:0;font-size:13px;line-height:1.5;color:#3e2723;}'
-            + '.mi-read dt{font-weight:700;color:#5d4037;}'
-            + '.mi-read dd{margin:0;}'
-            + '.mi-do{margin:12px 0 0;padding:10px 12px 10px 30px;border-radius:10px;background:#fffaf3;border:1px solid #f0e4d2;font-size:13px;line-height:1.5;color:#3e2723;}'
-            + '.mi-do-title{margin:12px 0 0;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;}'
-            + '.mi-do-title + .mi-do{margin-top:6px;}'
-            + '.mi-empty{font-size:12.5px;color:#7a6558;margin:0;}'
+            + '.mi-card{background:#fff;border:1px solid #eadfce;border-radius:12px;padding:6px 18px;}'
+            + '.mi-sec{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:1px solid #f1e7dc;}'
+            + '.mi-sec:last-child{border-bottom:0;}'
+            + '.mi-sec h4{margin:0;font-size:14px;font-weight:700;color:#5d4037;line-height:1.5;}'
+            + '.mi-sec p{margin:0;font-size:14px;line-height:1.55;color:#3e2723;}'
+            + '.mi-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}'
+            + '.mi-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:#fffaf3;border:1px solid #f0e4d2;font-size:12px;color:#5d4037;white-space:nowrap;}'
+            + '.mi-chip b{color:#3e2723;}'
+            + '.mi-chip.ok{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32;}.mi-chip.warn{background:#fff3e0;border-color:#ffe0b2;color:#e65100;}.mi-chip.bad{background:#ffebee;border-color:#ffcdd2;color:#c62828;}'
+            + '.mi-chip.ok b,.mi-chip.warn b,.mi-chip.bad b{color:inherit;}'
+            + '.mi-note{margin:0 2px;font-size:12px;line-height:1.5;color:#7a6558;}'
+            + '.mi-empty{font-size:13px;color:#7a6558;margin:0;}'
             + '.mi-loading{opacity:.55;}'
-            + '@media (max-width:900px){.mi-row,.mi-row--wide{grid-template-columns:minmax(0,1fr);}}'
-            + '@media (max-width:600px){.mi-card{padding:12px;}.mi-stats{grid-template-columns:minmax(0,1fr);gap:6px;}.mi-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:10px;padding:7px 10px;}.mi-stat strong{grid-row:1 / span 2;grid-column:2;font-size:17px;margin:0;text-align:right;}.mi-stat em{grid-column:1;}.mi-read{grid-template-columns:minmax(0,1fr);gap:2px;}.mi-read dd{margin-bottom:8px;}}';
+            + '@media (max-width:600px){.mi-card{padding:4px 14px;}.mi-sec{grid-template-columns:minmax(0,1fr);gap:4px;padding:12px 0;}.mi-chip{white-space:normal;}}';
         document.head.appendChild(style);
     }
 
@@ -243,7 +227,18 @@
         return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
     }
 
-    // Owner summary in simple words: Sales, Inventory, Demand.
+    // Which flavors to bake first (out of stock or running low, best sellers first) and which can wait.
+    function productionPlan(data) {
+        var bakeFirst = data.items.filter(function (i) {
+            return (i.stock <= 0 && i.sold30 > 0) || (i.stock > 0 && i.daysCover != null && i.daysCover <= 7);
+        }).sort(function (a, b) { return b.sold30 - a.sold30 || a.name.localeCompare(b.name); });
+        var holdOff = data.items.filter(function (i) {
+            return i.stock > 0 && (i.sold30 === 0 || (i.daysCover != null && i.daysCover > 30));
+        }).sort(function (a, b) { return b.stock - a.stock; });
+        return { bakeFirst: bakeFirst, holdOff: holdOff };
+    }
+
+    // Owner summary in simple words: Sales, Inventory, Production.
     function interpretation(data, found) {
         var t = data.totals;
         var lines = [];
@@ -257,7 +252,9 @@
                 : change > 0 ? 'That is more than last month (up ' + change + '%).'
                 : change < 0 ? 'That is less than last month (down ' + Math.abs(change) + '%).'
                 : 'That is the same as last month.';
-            lines.push({ label: 'Sales', text: 'You sold ' + plural(t.sold30, 'pouch', 'pouches') + ' worth about ' + peso(t.revenue30) + ' in the last 30 days. ' + trend });
+            var topSeller = data.items.slice().sort(function (a, b) { return b.sold30 - a.sold30; })[0];
+            lines.push({ label: 'Sales', text: 'You sold ' + plural(t.sold30, 'pouch', 'pouches') + ' worth about ' + peso(t.revenue30) + ' in the last 30 days. ' + trend
+                + (topSeller && topSeller.sold30 > 0 ? ' ' + short(topSeller.name) + ' sold the most.' : '') });
         }
 
         // Inventory
@@ -271,20 +268,18 @@
         if (!out.length && !low.length && !data.expired.length && !data.nearExpiry.length) invParts.push('Stock levels are fine.');
         lines.push({ label: 'Inventory', text: invParts.join(' ') });
 
-        // Demand
-        var shifts = demandShifts(data);
-        var best = data.items.slice().sort(function (a, b) { return b.sold30 - a.sold30; })[0];
-        var demParts = [];
-        if (best && best.sold30 > 0) {
-            var share = t.sold30 ? Math.round(best.sold30 / t.sold30 * 100) : 0;
-            demParts.push('Customers buy ' + short(best.name) + ' the most (' + share + '% of pouches sold).');
+        // Production
+        var plan = productionPlan(data);
+        var prodParts = [];
+        if (!t.sold30 && !t.stock) {
+            prodParts.push('Record more sales before changing the production plan.');
+        } else {
+            if (plan.bakeFirst.length) prodParts.push('Bake ' + joinNames(plan.bakeFirst.slice(0, 3)) + ' first, since ' + (plan.bakeFirst.length === 1 ? 'it is' : 'they are') + ' out of stock or running low.');
+            if (plan.holdOff.length) prodParts.push('No need to bake ' + joinNames(plan.holdOff.slice(0, 3)) + ' for now; ' + (plan.holdOff.length === 1 ? 'it has' : 'they have') + ' enough stock.');
+            if (!plan.bakeFirst.length && !plan.holdOff.length) prodParts.push('No extra baking is needed right now; every flavor has enough stock.');
+            if (data.lowMaterials.length) prodParts.push('Restock the low raw or packaging materials before the next batch.');
         }
-        if (shifts.rising.length) demParts.push('More people are buying ' + joinNames(shifts.rising.slice(0, 2)) + '.');
-        if (shifts.falling.length) demParts.push('Fewer people are buying ' + joinNames(shifts.falling.slice(0, 2)) + '.');
-        var idle = data.items.filter(function (i) { return i.stock > 0 && i.sold30 === 0; });
-        if (idle.length) demParts.push(joinNames(idle.slice(0, 2)) + (idle.length === 1 ? ' has' : ' have') + ' stock but no buyers this month.');
-        if (!demParts.length) demParts.push('There are not enough sales yet to see what customers prefer.');
-        lines.push({ label: 'Demand', text: demParts.join(' ') });
+        lines.push({ label: 'Production', text: prodParts.join(' ') });
 
         return { lines: lines };
     }
@@ -314,70 +309,58 @@
         var topFound = found.slice().sort(function (a, b) { return priority[a.cls] - priority[b.cls]; });
         var best = ranked[0] && ranked[0].sold30 > 0 ? ranked[0] : null;
 
-        var trendTxt = change == null ? 'no earlier month'
-            : '<span class="' + (change >= 0 ? 'mi-up' : 'mi-down') + '">' + (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%</span> vs prev. 30 days';
+        var plan = productionPlan(data);
+        var text = currentReading(reading);
+        var loading = ai.status === 'loading' && ai.result ? ' class="mi-loading"' : '';
+        var outFlavors = ranked.filter(function (i) { return i.stock <= 0 && i.sold30 > 0; }).length;
+
+        var salesChips = [
+            chip(count(t.sold30) + ' pouches sold'),
+            chip(peso(t.revenue30)),
+            change == null ? '' : chip((change >= 0 ? '▲ ' : '▼ ') + Math.abs(change) + '% vs last month', change >= 0 ? 'ok' : 'bad'),
+            best ? chip('Top: ' + esc(short(best.name))) : ''
+        ];
+        var invChips = [
+            chip(count(t.stock) + ' pouches in stock'),
+            outFlavors ? chip(plural(outFlavors, 'flavor') + ' out of stock', 'bad') : '',
+            states.warn ? chip(plural(states.warn, 'flavor') + ' running low', 'warn') : '',
+            data.expired.length ? chip(plural(data.expired.length, 'batch', 'batches') + ' expired', 'bad') : '',
+            data.nearExpiry.length ? chip(plural(data.nearExpiry.length, 'batch', 'batches') + ' near expiry', 'warn') : '',
+            (!outFlavors && !states.warn && !data.expired.length && !data.nearExpiry.length) ? chip('Stock levels are fine', 'ok') : ''
+        ];
+        var prodChips = plan.bakeFirst.slice(0, 4).map(function (i) { return chip('Bake: ' + esc(short(i.name)), 'warn'); })
+            .concat(plan.holdOff.slice(0, 3).map(function (i) { return chip('Wait: ' + esc(short(i.name))); }));
+        if (data.lowMaterials.length) prodChips.push(chip(plural(data.lowMaterials.length, 'material') + ' low', 'warn'));
+        if (!prodChips.length) prodChips.push(chip('Nothing extra to bake', 'ok'));
 
         var html = '<div class="mi-wrap">' + metaHtml();
-
-        html += '<div class="mi-row">';
-        // 1. Summary of sales performance (last 30 days)
-        html += '<section class="mi-card"><h4><span class="mi-num">1</span>Summary of sales performance</h4>'
-            + '<div class="mi-stats">'
-            + stat('Pouches sold', count(t.sold30), trendTxt)
-            + stat('Sales value', peso(t.revenue30), 'last 30 days')
-            + stat('Top seller', best ? esc(short(best.name)) : '—', best ? count(best.sold30) + ' pouches' : 'no sales yet')
-            + '</div></section>';
-
-        // 2. Inventory conditions
-        html += '<section class="mi-card"><h4><span class="mi-num">2</span>Inventory conditions</h4>'
-            + '<div class="mi-stats">'
-            + stat('On hand', count(t.stock), 'pouches')
-            + stat('Out / Low', states.bad + ' / ' + states.warn, 'flavors')
-            + stat('Expired / Near', data.expired.length + ' / ' + data.nearExpiry.length, 'batches')
-            + '</div>'
-            + (data.lowMaterials.length ? '<p class="mi-line"><b>' + data.lowMaterials.length + '</b> raw/packaging ' + (data.lowMaterials.length === 1 ? 'material is' : 'materials are') + ' at the alert line.</p>' : '')
-            + '</section>';
+        html += '<div class="mi-card"' + loading + '>'
+            + section('Sales', text ? text.sales : null, salesChips)
+            + section('Inventory', text ? text.inventory : null, invChips)
+            + section('Production', text ? text.production : null, prodChips)
+            + '</div>';
+        if (ai.error && text) html += '<p class="mi-note">' + esc(ai.error) + ' The system\'s own summary is shown.</p>';
+        else if (ai.usedFallback && ai.result) html += '<p class="mi-note">GPT-4o mini\'s reply used figures that are not in the shop records, so the system\'s own summary is shown. Both are kept in View History.</p>';
+        html += '<p class="mi-note">Figures are calculated by the system from the shop\'s records (last 30 days). The sentences are written by GPT-4o mini from those figures and checked against them. The AI cannot change any record.</p>';
         html += '</div>';
 
-        html += '<div class="mi-row mi-row--wide">';
-        // 3. Identified business situations (most urgent first, 3 shown)
-        html += '<section class="mi-card"><h4><span class="mi-num">3</span>Identified business situations</h4>';
-        if (topFound.length) {
-            html += '<ul class="mi-list">' + topFound.slice(0, 3).map(situationItem).join('') + '</ul>';
-            if (topFound.length > 3) {
-                html += '<details class="mi-more"><summary>Show ' + (topFound.length - 3) + ' more</summary>'
-                    + '<ul class="mi-list">' + topFound.slice(3).map(situationItem).join('') + '</ul></details>';
-            }
-        } else {
-            html += '<p class="mi-empty">Nothing needs attention right now.</p>';
-        }
-        html += '</section>';
-
-        // 4. Interpretation (written by GPT-4o mini from the figures above)
-        html += '<section class="mi-card"><h4><span class="mi-num">4</span>Interpretation</h4>' + interpretationHtml(reading) + '</section>';
-        html += '</div>';
-        html += '<p class="mi-empty" style="margin:10px 2px 0;font-size:12px;line-height:1.5"><strong>Calculated by the system (no AI):</strong> parts 1 to 3: sales totals, stock levels, alerts and business situations, from the shop\'s own records. '
-            + '<strong>Written by GPT-4o mini:</strong> part 4 only, from those figures. Every number it writes is checked against the figures; if one does not match, or the AI service cannot be reached, '
-            + 'the system shows its own plain summary instead. The AI only writes text: it cannot change sales, stock or any other record.</p>';
-        html += '</div>';
-
-        // Keep the "Show more" list open if the user had opened it before a live update.
-        var wasOpen = !!body.querySelector('.mi-more[open]');
         body.innerHTML = html;
-        if (wasOpen) { var more = body.querySelector('.mi-more'); if (more) more.open = true; }
         lastInput = aiInput(data, ranked, states, topFound, change);
         lastReading = reading;
         setButton();
         return true;
     }
 
-    function stat(label, value, note) {
-        return '<div class="mi-stat"><small>' + label + '</small><strong>' + value + '</strong><em>' + note + '</em></div>';
+    function chip(label, cls) {
+        return '<span class="mi-chip' + (cls ? ' ' + cls : '') + '">' + label + '</span>';
     }
 
-    function situationItem(s) {
-        var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
-        return '<li><span class="mi-tag ' + s.cls + '">' + tag + '</span><span>' + esc(s.title) + '<small>' + esc(s.text) + '</small></span></li>';
+    function section(label, sentence, chips) {
+        var body = sentence
+            ? '<p>' + esc(sentence) + '</p>'
+            : '<p class="mi-empty">' + (ai.status === 'loading' ? 'GPT-4o mini is writing this part…' : 'Loading the saved insight…') + '</p>';
+        return '<section class="mi-sec"><h4>' + label + '</h4><div>' + body
+            + '<div class="mi-chips">' + chips.filter(Boolean).join('') + '</div></div></section>';
     }
 
     // ---------- 4. interpretation by GPT-4o mini ----------
@@ -417,6 +400,14 @@
                 nearExpiry: data.nearExpiry.map(function (a) { return a.message; }),
                 lowMaterials: data.lowMaterials.map(function (a) { return a.message; })
             },
+            production: (function () {
+                var plan = productionPlan(data);
+                return {
+                    bakeFirst: plan.bakeFirst.map(function (i) { return i.name; }),
+                    holdOff: plan.holdOff.map(function (i) { return i.name; }),
+                    lowMaterials: data.lowMaterials.length
+                };
+            })(),
             situations: found.map(function (s) {
                 var tag = s.cls === 'bad' ? 'Urgent' : s.cls === 'warn' ? 'Watch' : s.cls === 'ok' ? 'Good' : 'Note';
                 return { level: tag, title: s.title, detail: s.text };
@@ -436,7 +427,7 @@
         return who.name + (who.role ? ' (' + who.role + ')' : '');
     }
 
-    // One line above the four parts: when the interpretation was written, by whom, and whether
+    // One line above the insight: when the interpretation was written, by whom, and whether
     // it still matches the shop's sales.
     function metaHtml() {
         var parts = [];
@@ -450,17 +441,9 @@
         } else {
             parts.push('<span class="mi-pill busy">Loading saved insight…</span>');
         }
-        if (ai.at) parts.push('Interpretation written <b>' + esc(stamp(ai.at)) + '</b>' + (byLabel(ai.by) ? ' by <b>' + esc(byLabel(ai.by)) + '</b>' : ''));
+        if (ai.at) parts.push('Written <b>' + esc(stamp(ai.at)) + '</b>' + (byLabel(ai.by) ? ' by <b>' + esc(byLabel(ai.by)) + '</b>' : ''));
         parts.push('Figures cover the last 30 days');
         return '<div class="mi-meta">' + parts.join('<span aria-hidden="true">·</span>') + '</div>';
-    }
-
-    function readingHtml(r) {
-        return '<dl class="mi-read">'
-            + '<dt>Sales</dt><dd>' + esc(r.sales) + '</dd>'
-            + '<dt>Inventory</dt><dd>' + esc(r.inventory) + '</dd>'
-            + '<dt>Demand</dt><dd>' + esc(r.demand) + '</dd>'
-            + '</dl>';
     }
 
     // The system's own reading, used when GPT-4o mini cannot answer or its reply does not match the figures.
@@ -469,22 +452,22 @@
             var line = reading.lines.filter(function (l) { return l.label === label; })[0];
             return line ? line.text : '';
         };
-        return { sales: pick('Sales'), inventory: pick('Inventory'), demand: pick('Demand') };
+        return { sales: pick('Sales'), inventory: pick('Inventory'), production: pick('Production') };
     }
 
-    function interpretationHtml(reading) {
+    // The sentences to show: GPT-4o mini's when written, otherwise the system's own.
+    // An older saved insight (before Production was added) gets the system's Production line.
+    function currentReading(reading) {
+        var own = systemReading(reading);
         if (ai.result) {
-            var note = '';
-            if (ai.error) note = esc(ai.error);
-            else if (ai.usedFallback) note = 'GPT-4o mini\'s reply used figures that are not in the shop records, so the system\'s own interpretation is shown. Both are kept in View History.';
-            return '<div' + (ai.status === 'loading' ? ' class="mi-loading"' : '') + '>' + readingHtml(ai.result) + '</div>'
-                + (note ? '<p class="mi-line">' + note + '</p>' : '');
+            return {
+                sales: ai.result.sales || own.sales,
+                inventory: ai.result.inventory || own.inventory,
+                production: ai.result.production || own.production
+            };
         }
-        if (ai.status === 'error') {
-            return '<p class="mi-line">' + esc(ai.error) + ' Below is the system\'s own interpretation of the figures.</p>'
-                + readingHtml(systemReading(reading));
-        }
-        return '<p class="mi-empty">' + (ai.status === 'loading' ? 'GPT-4o mini is writing the interpretation…' : 'Loading the saved interpretation…') + '</p>';
+        if (ai.status === 'error') return own;
+        return null;
     }
 
     function sessionToken() {
@@ -617,6 +600,7 @@
             return;
         }
         if (ai.salesKey !== currentSalesKey()) generate('new-sales');
+        else if (!ai.result.production && ai.status !== 'error') generate('manual');
     }
 
     // Waits a moment so the latest shop records from the server have arrived before comparing sales.
