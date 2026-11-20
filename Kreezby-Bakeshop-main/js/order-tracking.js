@@ -292,10 +292,14 @@
     function paymentInfo(order) {
         var ps = String(order.paymentStatus || '').toLowerCase();
         var method = String(order.paymentMethod || '').toLowerCase();
-        if (ps === 'paid' || ps === 'verified' || (order.paymentVerified && ps !== 'failed' && ps !== 'expired' && ps !== 'awaiting_payment')) {
+        if (ps === 'paid' || ps === 'verified' || (order.paymentVerified && ['failed', 'expired', 'awaiting_payment', 'under_review', 'refund_pending', 'refunded', 'cancelled'].indexOf(ps) < 0)) {
             return { key: 'paid', label: 'Paid' };
         }
         if (ps === 'awaiting_payment') return { key: 'awaiting', label: 'Awaiting payment' };
+        if (ps === 'under_review') return { key: 'failed', label: 'Payment under review' };
+        if (ps === 'refund_pending') return { key: 'failed', label: 'Refund pending' };
+        if (ps === 'refunded') return { key: 'cod', label: 'Refunded' };
+        if (ps === 'cancelled') return { key: 'failed', label: 'Cancelled (not paid)' };
         if (ps === 'expired') return { key: 'expired', label: 'Payment expired' };
         if (ps === 'failed' || order.paymentFailed) return { key: 'failed', label: 'Payment failed' };
         if (method === 'cash_on_delivery' || method === 'cod') return { key: 'cod', label: 'Pay on delivery' };
@@ -656,6 +660,14 @@
                 '<label>Payment</label>' +
                 '<input type="text" readonly class="order-tracking-readonly-field" value="' + escapeHtml(paymentInfo(order).label + (order.paidAt ? ' · ' + formatDate(order.paidAt) : '')) + '">' +
             '</div>' +
+            (order.status === 'Cancelled'
+                ? '<div class="order-tracking-form-group"><label>Cancellation</label><input type="text" readonly class="order-tracking-readonly-field" value="' +
+                    escapeHtml((order.cancelledBy ? 'By ' + order.cancelledBy : 'Cancelled') + (order.cancelledAt ? ' · ' + formatDate(order.cancelledAt) : '') + (order.cancelReason ? ' · ' + order.cancelReason : '')) + '"></div>'
+                : '') +
+            (order.refund
+                ? '<div class="order-tracking-form-group"><label>Refund</label><input type="text" readonly class="order-tracking-readonly-field" value="' +
+                    escapeHtml(refundText(order)) + '"></div>'
+                : '') +
             '<div class="order-tracking-form-group">' +
                 '<label for="ot-status">Order status</label>' +
                 (order.status === 'Cancelled'
@@ -673,6 +685,8 @@
             '</div>') +
             '<div class="order-tracking-form-actions">' +
                 (order.status === 'Cancelled' ? '' : '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-save-btn">Save</button>') +
+                (canManageCancel() && canCancelOrder(order) ? '<button type="button" class="order-tracking-btn" id="ot-cancel-btn" style="color:#b3261e;border-color:#f3c7c3;">Cancel order</button>' : '') +
+                (canManageCancel() && order.paymentStatus === 'refund_pending' ? '<button type="button" class="order-tracking-btn order-tracking-btn-primary" id="ot-refund-btn">Record refund</button>' : '') +
                 (trackUrl
                     ? '<a class="order-tracking-btn order-tracking-btn-link" href="' + trackUrl + '" target="_blank" rel="noopener noreferrer">Track on J&amp;T</a>'
                     : '') +
@@ -682,6 +696,14 @@
         var saveBtn = panel.querySelector('#ot-save-btn');
         if (saveBtn) saveBtn.addEventListener('click', function () {
             saveOrderUpdates(root, orderNumber);
+        });
+        var cancelBtn = panel.querySelector('#ot-cancel-btn');
+        if (cancelBtn) cancelBtn.addEventListener('click', function () {
+            cancelOrderByAdmin(root, orderNumber);
+        });
+        var refundBtn = panel.querySelector('#ot-refund-btn');
+        if (refundBtn) refundBtn.addEventListener('click', function () {
+            recordRefund(root, orderNumber);
         });
         var closeBtn = panel.querySelector('#ot-close-btn');
         if (closeBtn) closeBtn.addEventListener('click', function () {
@@ -714,6 +736,197 @@
             });
             localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(store));
         } catch (e) { /* ignore */ }
+    }
+
+    /* ---- Cancellation and refunds (head admin and admin) ----
+       Cancel: only before the order ships. Stock taken by the order goes back.
+       Not paid yet -> payment "cancelled". Already paid -> "refund_pending" until the refund is recorded.
+       Record refund: after returning the money in the PayMongo dashboard (or in cash), enter its reference.
+       Cancelled and refunded orders are left out of sales totals. */
+    function canManageCancel() {
+        var path = (location.pathname || '').replace(/\\/g, '/').toLowerCase();
+        return path.indexOf('/staff/') < 0 && path.indexOf('/staff_names/') < 0;
+    }
+
+    function canCancelOrder(order) {
+        if (!order || order.status === 'Cancelled') return false;
+        if (order.status === 'Shipped' || order.status === 'Completed') return false;
+        return !order.trackingNumber;
+    }
+
+    function orderTotalAmount(order) {
+        var n = Number(order.totalAmount);
+        if (Number.isFinite(n) && n > 0) return n;
+        return Number(String(order.total || '').replace(/[^\d.]/g, '')) || 0;
+    }
+
+    // Money actually received for the order (what must be returned if it is cancelled).
+    function amountReceived(order) {
+        var ps = String(order.paymentStatus || '').toLowerCase();
+        if (ps === 'under_review') return Number(order.paymongo && order.paymongo.amount) || 0;
+        return paymentInfo(order).key === 'paid' ? orderTotalAmount(order) : 0;
+    }
+
+    function peso(n) {
+        return '₱' + (Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function refundText(order) {
+        var r = order.refund || {};
+        if (r.status === 'refunded') {
+            return 'Refunded ' + peso(r.amount) + (r.reference ? ' · Ref ' + r.reference : '') + (r.refundedAt ? ' · ' + formatDate(r.refundedAt) : '') + (r.refundedBy ? ' · by ' + r.refundedBy : '');
+        }
+        return 'Pending: ' + peso(r.amount) + ' to return to the customer';
+    }
+
+    function actorName() {
+        try {
+            var keys = ['kreezby_session'];
+            for (var i = 0; i < keys.length; i++) {
+                var raw = sessionStorage.getItem(keys[i]) || localStorage.getItem(keys[i]);
+                if (!raw) continue;
+                var s = JSON.parse(raw);
+                var name = s && (s.userName || s.name || s.fullName || s.username || s.identity || s.email);
+                if (name) return String(name);
+            }
+        } catch (e) { /* fall back below */ }
+        var path = (location.pathname || '').toLowerCase();
+        return path.indexOf('head_admin') >= 0 ? 'Head Admin' : 'Admin';
+    }
+
+    function markReceipts(orderNumber, label) {
+        ['kreezbyCustomerReceipts', 'kreezbyOwnerReceipts'].forEach(function (key) {
+            try {
+                var list = JSON.parse(localStorage.getItem(key) || '[]');
+                if (!Array.isArray(list)) return;
+                var touched = false;
+                list.forEach(function (r) {
+                    if (r && r.orderNumber === orderNumber) { r.paymentStatus = label; touched = true; }
+                });
+                if (touched) localStorage.setItem(key, JSON.stringify(list));
+            } catch (e) { /* receipts are optional */ }
+        });
+    }
+
+    function addOrderNote(id, title, description) {
+        try {
+            var notes = JSON.parse(localStorage.getItem('kreezbyNotifications') || '[]');
+            if (!Array.isArray(notes) || notes.some(function (n) { return n && n.id === id; })) return;
+            notes.unshift({ id: id, title: title, description: description, timestamp: new Date().toISOString(), read: false, source: 'order' });
+            localStorage.setItem('kreezbyNotifications', JSON.stringify(notes));
+        } catch (e) { /* notification is optional */ }
+    }
+
+    function withDictionary(done) {
+        if (window.KreezbyDictionary) { done(window.KreezbyDictionary); return; }
+        var tag = document.createElement('script');
+        tag.src = '../js/kreezby-data-dictionary.js?v=20261120deliv';
+        tag.onload = function () { done(window.KreezbyDictionary); };
+        tag.onerror = function () { done(null); };
+        document.body.appendChild(tag);
+    }
+
+    function cancelOrderByAdmin(root, orderNumber) {
+        var orders = loadOrders();
+        var idx = orders.findIndex(function (o) { return o && o.orderNumber === orderNumber; });
+        if (idx < 0) return;
+        var order = orders[idx];
+        if (!canCancelOrder(order)) {
+            showToast(root, 'Only orders that have not shipped yet can be cancelled.');
+            return;
+        }
+        var received = amountReceived(order);
+        var reason = window.prompt('Reason for cancelling ' + orderNumber + ' (shown to the customer):', '');
+        if (reason === null) return;
+        reason = String(reason).trim().slice(0, 200);
+        if (reason.length < 3) { showToast(root, 'Enter the reason for the cancellation.'); return; }
+        var wasDeducted = !!(order.inventoryDeducted || order.posStockPosted);
+        var question = 'Cancel order ' + orderNumber + '?' +
+            (received ? '\n\n' + peso(received) + ' was already paid. The order will show "Refund pending" until you record the refund.' : '') +
+            (wasDeducted ? '\n\nThe pouches taken for this order go back to stock.' : '') +
+            '\n\nThis cannot be undone.';
+        if (!window.confirm(question)) return;
+
+        var now = new Date().toISOString();
+        order.status = 'Cancelled';
+        order.cancelledAt = now;
+        order.cancelledBy = actorName();
+        order.cancelReason = reason;
+        order.statusUpdatedAt = now;
+        if (received > 0) {
+            order.paymentStatus = 'refund_pending';
+            order.refund = { status: 'pending', amount: received, requestedAt: now };
+        } else {
+            order.paymentStatus = 'cancelled';
+        }
+        if (order.paymongo) {
+            order.paymongo = Object.assign({}, order.paymongo, { status: received > 0 ? order.paymongo.status : 'cancelled' });
+            delete order.paymongo.qrImage;
+        }
+        order.inventoryDeducted = false;
+        order.posStockPosted = false;
+        order.stockReturned = wasDeducted;
+        orders[idx] = order;
+        saveOrders(orders);
+        mirrorPurchaseOrder(order);
+        try {
+            var po = JSON.parse(localStorage.getItem('kreezby-po-orders-v1') || '{}') || {};
+            Object.keys(po).forEach(function (code) {
+                var row = po[code];
+                if (row && (code === orderNumber || row.shopOrderNumber === orderNumber || code === order.poCode)) {
+                    row.inventoryDeducted = false;
+                    row.posStockPosted = false;
+                }
+            });
+            localStorage.setItem('kreezby-po-orders-v1', JSON.stringify(po));
+        } catch (e) { /* optional */ }
+        markReceipts(orderNumber, received > 0 ? 'Refund pending' : 'Cancelled');
+        addOrderNote('n-cancel-' + orderNumber, 'Order cancelled',
+            'Order ' + orderNumber + ' was cancelled by ' + order.cancelledBy + '. Reason: ' + reason + (received ? ' Refund pending: ' + peso(received) + '.' : ''));
+        if (wasDeducted) {
+            withDictionary(function (dict) {
+                if (!dict || typeof dict.undoSale !== 'function') return;
+                Object.keys(order.items || {}).forEach(function (key) {
+                    var item = order.items[key];
+                    if (item && item.name) dict.undoSale(item.name, item.qty, String(order.date || '').slice(0, 10));
+                });
+            });
+        }
+        renderTable(root, orderNumber);
+        renderDetail(root, orderNumber);
+        showToast(root, orderNumber + ' was cancelled.' + (received ? ' Refund pending.' : ''));
+    }
+
+    function recordRefund(root, orderNumber) {
+        var orders = loadOrders();
+        var idx = orders.findIndex(function (o) { return o && o.orderNumber === orderNumber; });
+        if (idx < 0) return;
+        var order = orders[idx];
+        if (order.paymentStatus !== 'refund_pending' || !order.refund) return;
+        var owed = Number(order.refund.amount) || 0;
+        var reference = window.prompt('Refund reference for ' + orderNumber + '\n(PayMongo refund ID, or the GCash/bank reference if returned another way):', '');
+        if (reference === null) return;
+        reference = String(reference).trim().slice(0, 80);
+        if (reference.length < 4) { showToast(root, 'Enter the refund reference.'); return; }
+        var amountText = window.prompt('Amount returned to the customer (₱):', owed.toFixed(2));
+        if (amountText === null) return;
+        var amount = Math.round((Number(String(amountText).replace(/[^\d.]/g, '')) || 0) * 100) / 100;
+        if (!(amount > 0) || amount > owed + 0.009) {
+            showToast(root, 'The refund must be more than ₱0 and not more than ' + peso(owed) + '.');
+            return;
+        }
+        var now = new Date().toISOString();
+        order.refund = Object.assign({}, order.refund, { status: 'refunded', amount: amount, expected: owed, reference: reference, refundedAt: now, refundedBy: actorName() });
+        order.paymentStatus = 'refunded';
+        order.statusUpdatedAt = now;
+        orders[idx] = order;
+        saveOrders(orders);
+        markReceipts(orderNumber, 'Refunded');
+        addOrderNote('n-refund-' + orderNumber, 'Refund recorded',
+            peso(amount) + ' was refunded for cancelled order ' + orderNumber + ' (ref ' + reference + ').' + (amount < owed - 0.009 ? ' Less than the ' + peso(owed) + ' paid.' : ''));
+        renderTable(root, orderNumber);
+        renderDetail(root, orderNumber);
+        showToast(root, 'Refund recorded for ' + orderNumber + '.');
     }
 
     function saveOrderUpdates(root, orderNumber) {

@@ -60,17 +60,24 @@
         }
         host.innerHTML = ''
             + '<table class="data-display-table product-recommendation-table">'
-            + '<thead><tr><th>#</th><th>Flavor</th><th>Finished Stock</th><th>Pending Orders</th><th>Bake</th></tr></thead><tbody>'
+            + '<thead><tr><th>#</th><th>Flavor</th><th>Good Stock</th><th>Expired (not counted)</th><th>Customer Orders to Cover</th><th>Retailer Deliveries (7 days)</th><th>Bake</th><th>Packaging</th></tr></thead><tbody>'
             + products.map(function (row, index) {
                 var bake = Number(row.suggestedBake) || 0;
+                var pack = row.packagingAvailable == null ? '—' : (row.packagingShort ? 'Short by ' + esc(row.packagingShort) : 'Enough (' + esc(row.packagingAvailable) + ')');
                 return '<tr><td class="po-col-num">' + (index + 1) + '</td>'
                     + '<td class="sa-flavor"><strong>' + esc(row.name) + '</strong></td>'
                     + '<td class="sa-num">' + esc(row.finishedStock) + '</td>'
-                    + '<td class="sa-num">' + esc(row.pendingOrders) + '</td>'
-                    + '<td class="sa-num">' + (bake > 0 ? ('Bake ' + esc(bake)) : 'Covered') + '</td></tr>';
+                    + '<td class="sa-num">' + esc(row.expiredStock || 0) + '</td>'
+                    + '<td class="sa-num">' + esc(row.pendingStillToCover || 0) + '</td>'
+                    + '<td class="sa-num">' + esc(row.retailerDeliveries || 0) + '</td>'
+                    + '<td class="sa-num">' + (bake > 0 ? ('Bake ' + esc(bake)) : 'Covered') + '</td>'
+                    + '<td class="sa-num">' + pack + '</td></tr>';
             }).join('')
             + '</tbody></table>'
-            + '<p class="product-recommendation-note">Based on available finished products, and pending orders.</p>';
+            + '<p class="product-recommendation-note"><strong>Calculated by the system (formula, no AI):</strong> Bake = customer orders to cover + retailer deliveries in the next 7 days − good stock (0 when covered). '
+            + 'Expired pouches are never counted. Packaging = stand up pouches and flavor stickers on hand. '
+            + (snapshot.totalBake ? 'Total to bake: ' + esc(snapshot.totalBake) + ' pouches, about ' + esc(snapshot.daysNeeded) + ' day(s) at ' + esc(snapshot.dailyCapacity) + ' pouches a day (250 crinkles ÷ 10 per pouch). ' : '')
+            + '<br><strong>Written by GPT-4o mini:</strong> the explanation above only. It cannot change these numbers or any record; if its text does not match the numbers, the system shows its own wording instead.</p>';
     }
 
     function whenReady(done) {

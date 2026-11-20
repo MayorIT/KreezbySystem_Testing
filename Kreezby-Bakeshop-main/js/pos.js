@@ -157,6 +157,7 @@
                 customer: (order.shippingInfo && order.shippingInfo.fullName) || order.accountName || order.poEntity || 'Customer',
                 when: order.date || '',
                 status: order.status || 'Processing',
+                paymentStatus: String(order.paymentStatus || ''),
                 payment: paymentLabel(order.paymentMethod),
                 lines: lines,
                 total: goods,
@@ -178,6 +179,7 @@
                 customer: order.accountName || order.entity || 'Account',
                 when: order.dateCreated || '',
                 status: order.status || 'Processing',
+                paymentStatus: String(order.paymentStatus || ''),
                 payment: paymentLabel(order.paymentMethod || order.payment),
                 lines: lines,
                 total: goods,
@@ -352,7 +354,8 @@
     function stockFor(name) {
         var dict = window.KreezbyDictionary;
         if (!dict || typeof dict.productStock !== 'function') return 0;
-        var qty = dict.productStock(name);
+        // Only good pouches can be sold: expired batches waiting to be disposed of are left out.
+        var qty = typeof dict.sellableStock === 'function' ? dict.sellableStock(name) : dict.productStock(name);
         return qty == null ? 0 : Number(qty) || 0;
     }
 
@@ -367,6 +370,17 @@
             }, 0);
         }
         return 0;
+    }
+
+    // Plain reason a sale could not be recorded (not enough good stock, expired, ...).
+    function saleErrorText(dict, name) {
+        var code = dict && typeof dict.lastSaleError === 'function' ? dict.lastSaleError() : '';
+        if (code === 'insufficient') {
+            var s = typeof dict.lastSaleShort === 'function' ? dict.lastSaleShort() : null;
+            return 'Not enough stock of ' + name + (s ? ': ' + s.wanted + ' needed, only ' + s.available + ' good ' + (s.available === 1 ? 'pouch' : 'pouches') + ' on hand.' : '.');
+        }
+        if (code === 'expired') return name + ' is expired and cannot be sold.';
+        return 'Could not record ' + name + '.';
     }
 
     function stockAvailable(name) {
@@ -730,7 +744,7 @@
                     });
                 }
                 applyingStock = false;
-                setStatus('Could not record ' + lines[i].name + '.', 'warn');
+                setStatus(saleErrorText(dict, lines[i].name), 'warn');
                 render();
                 return;
             }
@@ -878,7 +892,7 @@
             var product = knownProduct(stockLines[i].name);
             var left = dict.recordSale(product.name, stockLines[i].qty, date);
             if (left == null) {
-                return { ok: false, message: 'Could not record ' + product.name + '.' };
+                return { ok: false, message: saleErrorText(dict, product.name) + ' The paid order waits until there is enough stock.' };
             }
         }
         markPosted(order.store, order.id);
@@ -910,9 +924,18 @@
         syncTimer = setTimeout(syncOnlineInventory, delay == null ? 200 : delay);
     }
 
+    // Which online orders take stock out: active cash-on-delivery orders and paid QR Ph orders.
+    // A QR Ph order still waiting for payment (or whose payment failed or expired) and a cancelled
+    // or returned order never take stock; a cancelled order's pouches were already put back.
+    function takesStock(order) {
+        if (/cancel|return|reject|fail|expire|review/i.test(String(order.status || ''))) return false;
+        if (/awaiting|cancel|fail|expire|refund|review/i.test(String(order.paymentStatus || ''))) return false;
+        return true;
+    }
+
     function syncOnlineInventory() {
         if (applyingStock || !document.getElementById('pos-master')) return;
-        var pending = onlineOrders().filter(function (order) { return !order.posted; });
+        var pending = onlineOrders().filter(function (order) { return !order.posted && takesStock(order); });
         if (!pending.length) {
             render();
             return;

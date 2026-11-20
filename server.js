@@ -2955,7 +2955,14 @@ app.get("/api/paymongo/payment-intents/:id", async (req, res) => {
     const info = paymongoPublicIntent(intent);
     // The status check also settles a waiting order, in case the webhook is not set up.
     if (info.status === "succeeded") {
-      try { await settleQrOrder(info.paymentIntentId, "paid", { amount: info.amount }); } catch (error) { /* the page still updates */ }
+      try {
+        const settled = await settleQrOrder(info.paymentIntentId, "paid", { amount: info.amount });
+        // The page asks every few seconds: log only when this check changed the order.
+        if (settled && (settled.result === "paid" || settled.result === "amount_mismatch" || settled.result === "paid_after_cancel")) {
+          await logPaymentEvent({ source: "status_check", type: "payment_intent.succeeded", paymentIntentId: info.paymentIntentId,
+            orderNumber: settled.order ? settled.order.orderNumber : "", amount: info.amount, result: settled.result });
+        }
+      } catch (error) { /* the page still updates */ }
     }
     res.json(Object.assign({ ok: true }, info));
   } catch (error) {
@@ -2966,33 +2973,79 @@ app.get("/api/paymongo/payment-intents/:id", async (req, res) => {
   }
 });
 
+// Every PayMongo event the server receives is kept in payment_events (for audit and testing):
+// source (webhook or status check), PayMongo event type, payment intent and payment references,
+// order number, amount, and what the system did with it (paid, duplicate ignored, failed,
+// expired, amount mismatch, no matching order, invalid signature).
+async function logPaymentEvent(entry) {
+  try {
+    if (!mongoReady) return;
+    await client.db(DB_NAME).collection("payment_events").insertOne(Object.assign({ at: new Date() }, entry));
+  } catch (error) {
+    console.error("Payment event log: " + error.message);
+  }
+}
+
 // PayMongo webhook: https://<site>/api/paymongo/webhook
 // Needs PAYMONGO_WEBHOOK_SECRET (the whsk_... secret of the webhook in the PayMongo dashboard).
 // Marks a waiting QR Ph order paid (or expired) on the server, so it updates even if the
 // customer never returns to the checkout page after paying in GCash.
 async function settleQrOrder(paymentIntentId, outcome, details) {
-  if (!mongoReady || !paymentIntentId || typeof cache.kreezbyOrders !== "string") return null;
+  if (!mongoReady || !paymentIntentId || typeof cache.kreezbyOrders !== "string") return { order: null, result: "not_ready" };
   let orders;
-  try { orders = JSON.parse(cache.kreezbyOrders); } catch (error) { return null; }
-  if (!Array.isArray(orders)) return null;
+  try { orders = JSON.parse(cache.kreezbyOrders); } catch (error) { return { order: null, result: "not_ready" }; }
+  if (!Array.isArray(orders)) return { order: null, result: "not_ready" };
   const order = orders.find((o) => o && o.paymongo && o.paymongo.paymentIntentId === paymentIntentId);
-  if (!order || order.paymentStatus === "paid") return order || null;
-  if (order.status === "Cancelled") return order; // customer cancelled: never flip it back to paid
+  if (!order) return { order: null, result: "no_matching_order" };
+  // The same payment reported again (PayMongo retries, or the webhook and the status check
+  // both report it): nothing changes, so the order is never paid or deducted twice.
+  if (order.paymentStatus === "paid") return { order, result: outcome === "paid" ? "duplicate_ignored" : "already_paid" };
   const now = new Date();
-  if (outcome === "paid") {
+  let result = outcome;
+  if (order.status === "Cancelled") {
+    // Never flip a cancelled order back to paid. If the customer still paid the old QR code,
+    // the money must go back: the order shows "Refund pending" for the admin to refund.
+    if (outcome !== "paid" || order.paymentStatus === "refund_pending" || order.paymentStatus === "refunded") {
+      return { order, result: "order_cancelled" };
+    }
+    result = "paid_after_cancel";
+    const received = details && details.amount != null ? Number(details.amount) : Number(order.totalAmount) || 0;
+    order.paymentStatus = "refund_pending";
+    order.refund = { status: "pending", amount: received, requestedAt: now.toISOString(), note: "Paid after the order was cancelled" };
+    order.paymongo = Object.assign({}, order.paymongo, details || {}, { status: "succeeded" });
+    delete order.paymongo.qrImage;
+  } else if (outcome === "paid" && details && details.amount != null && Number.isFinite(Number(order.totalAmount))
+      && Math.abs(Number(details.amount) - Number(order.totalAmount)) > 0.009) {
+    // The amount paid does not match the order total: hold it for the admin to check.
+    if (order.paymentStatus === "under_review") return { order, result: "duplicate_ignored" };
+    result = "amount_mismatch";
+    order.paymentStatus = "under_review";
+    order.status = "Payment under review";
+    order.paymongo = Object.assign({}, order.paymongo, details || {}, { status: "amount_mismatch", expectedAmount: Number(order.totalAmount) });
+    delete order.paymongo.qrImage;
+  } else if (outcome === "paid") {
     order.paymentStatus = "paid";
     order.paymentVerified = true;
-    if (order.status === "Awaiting payment") order.status = "Processing";
+    // A failed attempt can be followed by a successful one on the same payment.
+    if (order.status === "Awaiting payment" || order.status === "Payment failed") order.status = "Processing";
+    order.paymentFailed = false;
     order.paidAt = order.paidAt || now.toISOString();
     order.paymongo = Object.assign({}, order.paymongo, details || {}, { status: "succeeded" });
     delete order.paymongo.qrImage;
   } else if (outcome === "expired") {
-    if (order.paymentStatus !== "awaiting_payment") return order;
+    if (order.paymentStatus !== "awaiting_payment") return { order, result: "ignored" };
     order.paymentStatus = "expired";
     order.status = "Payment expired";
     order.paymongo = Object.assign({}, order.paymongo, { status: "expired" });
+  } else if (outcome === "failed") {
+    if (order.paymentStatus !== "awaiting_payment") return { order, result: "ignored" };
+    order.paymentStatus = "failed";
+    order.paymentFailed = true;
+    order.status = "Payment failed";
+    order.paymongo = Object.assign({}, order.paymongo, { status: "failed", lastPaymentError: String((details && details.error) || "").slice(0, 240) });
+    delete order.paymongo.qrImage;
   } else {
-    return order;
+    return { order, result: "ignored" };
   }
   const items = { kreezbyOrders: JSON.stringify(orders) };
   ["kreezbyCustomerReceipts", "kreezbyOwnerReceipts"].forEach((key) => {
@@ -3003,14 +3056,48 @@ async function settleQrOrder(paymentIntentId, outcome, details) {
       let touched = false;
       list.forEach((r) => {
         if (r && r.orderNumber === order.orderNumber) {
-          r.paymentStatus = outcome === "paid" ? "Paid" : "Payment expired";
+          r.paymentStatus = ({ paid: "Paid", expired: "Payment expired", failed: "Payment failed", amount_mismatch: "Payment under review", paid_after_cancel: "Refund pending" })[result] || r.paymentStatus;
           touched = true;
         }
       });
       if (touched) items[key] = JSON.stringify(list);
     } catch (error) { /* leave receipts as they are */ }
   });
-  if (outcome === "paid") {
+  if (result === "paid_after_cancel") {
+    try {
+      const notes = JSON.parse(cache.kreezbyNotifications || "[]");
+      if (Array.isArray(notes) && !notes.some((n) => n && n.id === "n-refund-due-" + order.orderNumber)) {
+        notes.unshift({
+          id: "n-refund-due-" + order.orderNumber,
+          title: "Refund needed",
+          description: "Cancelled order " + order.orderNumber + " was paid (₱" + Number(order.refund.amount).toFixed(2) + ") after it was cancelled. Refund it in PayMongo, then record the refund on the order.",
+          timestamp: now.toISOString(),
+          read: false,
+          source: "payment",
+          audiences: ["head", "admin"],
+        });
+        items.kreezbyNotifications = JSON.stringify(notes);
+      }
+    } catch (error) { /* notification is optional */ }
+  }
+  if (result === "amount_mismatch") {
+    try {
+      const notes = JSON.parse(cache.kreezbyNotifications || "[]");
+      if (Array.isArray(notes) && !notes.some((n) => n && n.id === "n-review-" + order.orderNumber)) {
+        notes.unshift({
+          id: "n-review-" + order.orderNumber,
+          title: "Payment needs checking",
+          description: "Order " + order.orderNumber + ": ₱" + Number(details.amount).toFixed(2) + " was paid but the order total is ₱" + Number(order.totalAmount).toFixed(2) + ". Check it in PayMongo before processing the order.",
+          timestamp: now.toISOString(),
+          read: false,
+          source: "payment",
+          audiences: ["head", "admin"],
+        });
+        items.kreezbyNotifications = JSON.stringify(notes);
+      }
+    } catch (error) { /* notification is optional */ }
+  }
+  if (result === "paid") {
     try {
       const notes = JSON.parse(cache.kreezbyNotifications || "[]");
       if (Array.isArray(notes) && !notes.some((n) => n && n.id === "n-paid-" + order.orderNumber)) {
@@ -3036,8 +3123,8 @@ async function settleQrOrder(paymentIntentId, outcome, details) {
   await collection().bulkWrite(ops, { ordered: false });
   await syncCustomerOrderDocs([order]);
   await mirrorSaved(items);
-  console.log("QR order " + order.orderNumber + " marked " + outcome);
-  return order;
+  console.log("QR order " + order.orderNumber + " marked " + result);
+  return { order, result };
 }
 
 app.post("/api/paymongo/webhook", async (req, res) => {
@@ -3060,6 +3147,7 @@ app.post("/api/paymongo/webhook", async (req, res) => {
   const valid = rawBody && parts.t && given && given.length === expected.length && Number.isFinite(age) && age <= 300
     && crypto.timingSafeEqual(Buffer.from(given, "utf8"), Buffer.from(expected, "utf8"));
   if (!valid) {
+    await logPaymentEvent({ source: "webhook", type: String(attrs.type || ""), result: "invalid_signature" });
     res.status(401).json({ ok: false, error: "Invalid signature" });
     return;
   }
@@ -3071,11 +3159,24 @@ app.post("/api/paymongo/webhook", async (req, res) => {
     resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : "");
   try {
     const intentId = String(resourceAttrs.payment_intent_id || (resource.id && String(resource.id).indexOf("pi_") === 0 ? resource.id : "") || "");
+    const amount = resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : undefined;
+    let settled = { order: null, result: "ignored" };
     if (attrs.type === "payment.paid" || attrs.type === "checkout_session.payment.paid") {
-      await settleQrOrder(intentId, "paid", { paymentId: resource.id || "", amount: resourceAttrs.amount != null ? Number(resourceAttrs.amount) / 100 : undefined });
+      settled = await settleQrOrder(intentId, "paid", { paymentId: resource.id || "", amount });
     } else if (attrs.type === "qrph.expired" || attrs.type === "payment.failed") {
-      await settleQrOrder(intentId, attrs.type === "qrph.expired" ? "expired" : "failed");
+      const failure = resourceAttrs.failed_message || resourceAttrs.failed_code || "";
+      settled = await settleQrOrder(intentId, attrs.type === "qrph.expired" ? "expired" : "failed", { error: failure });
     }
+    await logPaymentEvent({
+      source: "webhook",
+      eventId: String((req.body && req.body.data && req.body.data.id) || ""),
+      type: String(attrs.type || ""),
+      paymentIntentId: intentId,
+      paymentId: String(resource.id || ""),
+      orderNumber: settled.order ? settled.order.orderNumber : "",
+      amount,
+      result: settled.result,
+    });
   } catch (error) {
     console.error("Webhook could not update the order: " + error.message);
   }

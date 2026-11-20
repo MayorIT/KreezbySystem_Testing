@@ -705,6 +705,13 @@
                     : '')
             : order.paymentStatus === 'cancelled'
                 ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Cancelled</span></span></div>'
+            : order.paymentStatus === 'refund_pending'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Refund in progress (' + formatMoney(order.refund && order.refund.amount) + ')</span></span></div>'
+            : order.paymentStatus === 'refunded'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-verified">Refunded ' + formatMoney(order.refund && order.refund.amount) + '</span></span></div>' +
+                  (order.refund && order.refund.reference ? '<div class="order-detail-summary-row"><span>Refund reference</span><span>' + escapeHtml(order.refund.reference) + '</span></div>' : '')
+            : order.paymentStatus === 'under_review'
+                ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Payment being checked</span></span></div>'
             : order.paymentStatus === 'expired'
                 ? '<div class="order-detail-summary-row"><span>Payment Status</span><span><span class="payment-pending">Payment expired</span></span></div>'
             : isPaymentFailed(order)
@@ -724,6 +731,9 @@
             '</div>' +
             '</section>' +
 
+            (isCancelled(order) && order.cancelReason && order.cancelledBy !== 'customer'
+                ? '<section class="order-detail-section"><p class="order-cancel-note">Cancelled by Kreezby Bakeshop: ' + escapeHtml(order.cancelReason) + '</p></section>'
+                : '') +
             renderCancelSection(order) +
             '<section class="order-detail-section order-detail-info">' +
             '<div class="order-detail-info-row"><span>Order Number</span><span>' + order.orderNumber + '</span></div>' +

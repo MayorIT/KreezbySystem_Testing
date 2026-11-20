@@ -740,6 +740,8 @@
                 return;
             }
             if (open) {
+                // Stock is back above the alert line: the alert is resolved by itself and logged.
+                logResolved(row, open);
                 delete active[row.code];
                 changed = true;
             }
@@ -749,6 +751,20 @@
         renderLiveRows();
         renderThresholdBar();
         try { checkAlarm(); } catch (e) { /* the alarm is optional */ }
+    }
+
+    var RESOLVED_KEY = 'kreezbyAlertResolvedLog';
+    function logResolved(row, open) {
+        var log = readJson(RESOLVED_KEY, []);
+        if (!Array.isArray(log)) log = [];
+        log.unshift({
+            code: row.code, name: row.name, kind: 'low',
+            lowQty: open && open.qty != null ? open.qty : null,
+            nowQty: row.qty, threshold: row.threshold,
+            acknowledged: !!(open && open.muted),
+            resolvedAt: new Date().toISOString()
+        });
+        writeJson(RESOLVED_KEY, log.slice(0, 50));
     }
 
     function acknowledge(code) {
@@ -851,11 +867,31 @@
                 return '<li><span class="ka-tag ' + l[1] + '">' + escapeHtml(l[0]) + '</span><span>' + escapeHtml(l[2]) + '</span></li>';
             }).join('') + '</ul>'
             : '<p class="ka-empty">Every item is above its reorder point and no batch is near expiry or expired. No action is needed.</p>';
+        var resolved = readJson(RESOLVED_KEY, []);
+        if (!Array.isArray(resolved)) resolved = [];
+        var resolvedHtml = resolved.length
+            ? '<ul class="ka-list">' + resolved.slice(0, 8).map(function (r) {
+                var when = new Date(r.resolvedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                return '<li><span class="ka-tag ok">Resolved</span><span>' + escapeHtml(r.name || r.code) + ': back to ' + r.nowQty
+                    + (r.lowQty != null ? ' (was ' + r.lowQty + ')' : '') + ', above the alert line of ' + r.threshold + ' · ' + escapeHtml(when)
+                    + (r.acknowledged ? ' · had been acknowledged' : '') + '</span></li>';
+            }).join('') + '</ul>'
+            : '<p class="ka-empty">No alert has been resolved yet.</p>';
+        var rules = '<ul class="ka-list">'
+            + '<li><span class="ka-tag warn">Low stock</span><span>Raised when an item is at or below its alert line (set per item in Alert settings, otherwise the shop-wide line). Critical when it is at half the line or out of stock.</span></li>'
+            + '<li><span class="ka-tag info">Reorder point</span><span>Alert line × 1.5. Suggested order = (alert line × 2) − stock on hand. Sent once when stock first drops to it.</span></li>'
+            + '<li><span class="ka-tag warn">Near expiry</span><span>A batch with stock left that expires within its expiry alert days (finished products: 3 days; raw materials: 7 days).</span></li>'
+            + '<li><span class="ka-tag bad">Expired</span><span>A batch past its expiry date. Its pouches are held out of sales until head admin or admin disposes of them (recorded as waste).</span></li>'
+            + '<li><span class="ka-tag info">Frequency</span><span>Stock is checked every time stock changes and when a page opens. The alarm pops up for new alerts; Acknowledge silences it for 4 hours, Remind me later for 30 minutes.</span></li>'
+            + '<li><span class="ka-tag ok">Resolution</span><span>A low-stock alert is resolved by itself once stock goes back above the alert line; an expired alert once the batch is disposed of. Resolved alerts are listed below.</span></li>'
+            + '</ul>';
         host.innerHTML = '<section class="ka-card" role="status">'
             + '<div class="ka-head"><h4>' + escapeHtml(title) + '</h4></div>'
             + '<div class="ka-stats">' + stats + '</div>'
             + body
-            + '</section>';
+            + '</section>'
+            + '<section class="ka-card"><div class="ka-head"><h4>Recently resolved</h4></div>' + resolvedHtml + '</section>'
+            + '<details class="ka-card"><summary style="cursor:pointer;font-weight:700;font-size:14px">Alert rules</summary>' + rules + '</details>';
     }
 
     // Same look as Insights > Management Insight: white card, small stat tiles, tagged lines.

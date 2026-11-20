@@ -679,18 +679,18 @@
             toast('This account is deactivated.', 'warn');
             return;
           } else {
-            // Not matched by the server (or a password changed on this browser): use the browser check.
-            resolved = resolveLoginIdentity(identity);
-            if (!resolved) {
+            // The server is the only judge of a sign-in: no browser-side password check, so a
+            // blocked or unreachable server can never be used to get into an account.
+            if (!mongo) {
+              toast('Cannot reach the server. Check your internet connection and try again.', 'warn');
+              return;
+            }
+            if (mongo.status === 404) {
               toast('Account not found. Please check your email or username.', 'warn');
               return;
             }
-            var expectedPassword = resolveExpectedPassword(identity, resolved);
-            if (password !== expectedPassword) {
-              var hint = (mongo && mongo.stored) ? ' (server has: ' + (mongo.stored.join(', ') || 'no password field') + ')' : '';
-              toast('Invalid password. Please try again.' + hint, 'warn');
-              return;
-            }
+            toast(mongo.error || 'Invalid password. Please try again.', 'warn');
+            return;
           }
           if (window.KreezbyMaintenanceSettings && KreezbyMaintenanceSettings.isLoginBlocked(identity, resolved.userName)) {
             toast('This account is deactivated. It can be turned back on from Maintenance.', 'warn');

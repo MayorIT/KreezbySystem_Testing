@@ -355,7 +355,11 @@
 
         // 4. Interpretation (written by GPT-4o mini from the figures above)
         html += '<section class="mi-card"><h4><span class="mi-num">4</span>Interpretation</h4>' + interpretationHtml(reading) + '</section>';
-        html += '</div></div>';
+        html += '</div>';
+        html += '<p class="mi-empty" style="margin:10px 2px 0;font-size:12px;line-height:1.5"><strong>Calculated by the system (no AI):</strong> parts 1 to 3: sales totals, stock levels, alerts and business situations, from the shop\'s own records. '
+            + '<strong>Written by GPT-4o mini:</strong> part 4 only, from those figures. Every number it writes is checked against the figures; if one does not match, or the AI service cannot be reached, '
+            + 'the system shows its own plain summary instead. The AI only writes text: it cannot change sales, stock or any other record.</p>';
+        html += '</div>';
 
         // Keep the "Show more" list open if the user had opened it before a live update.
         var wasOpen = !!body.querySelector('.mi-more[open]');

@@ -94,9 +94,15 @@
         var orders = readJson('kreezbyOrders', []);
         var map = {};
         if (!Array.isArray(orders)) return map;
+        var now = Date.now();
         orders.forEach(function (order) {
-            if (!order || order.inventoryDeducted || order.paymentStatus !== 'paid') return;
-            if (/cancel|return|reject/i.test(String(order.status || ''))) return;
+            if (!order || order.inventoryDeducted) return;
+            if (/cancel|return|reject|fail|expire|refund/i.test(String(order.status || ''))) return;
+            // Paid orders hold their pouches until they are deducted. A QR Ph order waiting for
+            // payment also holds them while its QR code can still be paid (30 minutes), so two
+            // customers cannot pay for the same last pouches.
+            var waiting = order.paymentStatus === 'awaiting_payment' && (now - Date.parse(order.date || 0)) < 30 * 60 * 1000;
+            if (order.paymentStatus !== 'paid' && !waiting) return;
             Object.keys(order.items || {}).forEach(function (key) {
                 var item = order.items[key];
                 var id = item && productId(item.name);
@@ -106,13 +112,24 @@
         return map;
     }
 
-    /** Pouches a customer can still buy: on hand minus paid orders not yet deducted. */
+    // Expired pouches still on hand (waiting to be disposed of) are never sold to customers.
+    function expiredMap() {
+        var batches = (readJson(DICT_KEY, {}) || {}).product_batches || [];
+        var map = {};
+        batches.forEach(function (b) {
+            if (!b || b.disposed || !b.product_id || b.frozen_remaining == null) return;
+            map[b.product_id] = (map[b.product_id] || 0) + (Number(b.frozen_remaining) || 0);
+        });
+        return map;
+    }
+
+    /** Pouches a customer can still buy: on hand minus expired pouches minus orders holding stock. */
     function available(name) {
         var id = productId(name);
         if (!id) return 0;
         var onHand = Number(stockMap()[id]) || 0;
         var reserved = reservedMap()[id] || 0;
-        return Math.max(0, onHand - reserved);
+        return Math.max(0, onHand - (expiredMap()[id] || 0) - reserved);
     }
 
     function stockLabel(qty) {

@@ -438,6 +438,8 @@
     function isOpenOrderStatus(status) {
         var text = String(status || '').toLowerCase();
         if (!text) return true;
+        // Failed, expired, refunded or held payments are not orders to bake for.
+        if (/fail|expire|refund|review/.test(text)) return false;
         return text !== 'completed' && text !== 'shipped' && text !== 'delivered'
             && text !== 'cancelled' && text !== 'canceled' && text !== 'received'
             && text !== 'rejected' && text !== 'returned';
@@ -476,6 +478,50 @@
         return lines;
     }
 
+    // ---- Production recommendation: a fixed formula (no AI) ----
+    //   Good stock (S)      = pouches on hand − expired pouches (expired are never counted)
+    //   Customer orders (O) = open customer orders whose pouches are not yet taken from stock
+    //   Retailer deliveries (R) = usual pouches of every shop on the Delivery Schedule in the next
+    //                         7 days (retailers receive Chocolate Crinkles only)
+    //   Need                = O + R − S (0 when stock covers it)
+    //   Packaging limit (P) = pouches that can be packed now = min(stand up pouches, flavor stickers)
+    //   Bake                = Need, shown with how many days it takes at the daily capacity
+    //                         (250 crinkles a day ÷ 10 crinkles per pouch = 25 pouches a day).
+    // GPT-4o mini only explains these numbers in words; it cannot change them or any record.
+    var CRINKLES_PER_POUCH = 10;
+    var DAILY_CAPACITY_CRINKLES = 250;
+    var DAILY_CAPACITY_POUCHES = DAILY_CAPACITY_CRINKLES / CRINKLES_PER_POUCH;
+    var RETAILER_PRODUCT = 'Chocolate Crinkles';
+
+    function retailerCommitments(days) {
+        var rows = readJson('kreezby_delivery_schedule_v5', []);
+        if (!Array.isArray(rows)) rows = [];
+        var users = (readJson('kreezby_maintenance_users', {}) || {}).retailers || [];
+        var today = todayIso();
+        var end = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+        var total = 0;
+        rows.forEach(function (row) {
+            if (!row || !row.date || row.date < today || row.date > end) return;
+            (row.shops || []).forEach(function (shop) {
+                var u = users.filter(function (x) {
+                    return x && ((shop.id && (x.id === shop.id || x._id === shop.id)) || String(x.name || x.shopName || '').toLowerCase() === String(shop.name || '').toLowerCase());
+                })[0];
+                total += Number(u && u.usualPcs) || 0;
+            });
+        });
+        return total;
+    }
+
+    function packagingLimit(productName) {
+        var list = packagingForProduct(productName);
+        if (!list.length) return null;
+        var stock = materialStockMap();
+        return list.reduce(function (min, m) {
+            var have = Number(stock[m.material_id]) || 0;
+            return min == null ? have : Math.min(min, have);
+        }, null);
+    }
+
     function productRecommendationSnapshot() {
         var pendingByProduct = {};
         var uncoveredByProduct = {};
@@ -483,22 +529,32 @@
             pendingByProduct[line.productId] = (pendingByProduct[line.productId] || 0) + line.qty;
             if (!line.deducted) uncoveredByProduct[line.productId] = (uncoveredByProduct[line.productId] || 0) + line.qty;
         });
-        var stock = productStockMap();
+        var retailerPouches = retailerCommitments(7);
         var seen = {};
         function rowFor(id, name) {
             if (!id || seen[id]) return null;
             seen[id] = true;
             var product = productById(id);
-            var finishedStock = Number(stock[id]) || 0;
+            var productName = (product && product.product_name) || name || id;
+            var split = productBatches(productName);
+            var goodStock = split.sellable;
+            var expiredStock = split.expired;
             var pendingOrders = pendingByProduct[id] || 0;
             var stillToCover = uncoveredByProduct[id] || 0;
-            var gap = stillToCover - finishedStock;
+            var retailer = productName.toLowerCase() === RETAILER_PRODUCT.toLowerCase() ? retailerPouches : 0;
+            var gap = stillToCover + retailer - goodStock;
+            var bake = gap > 0 ? Math.ceil(gap) : 0;
+            var pack = packagingLimit(productName);
             return {
-                name: (product && product.product_name) || name || id,
-                finishedStock: finishedStock,
+                name: productName,
+                finishedStock: goodStock,
+                expiredStock: expiredStock,
                 pendingOrders: pendingOrders,
                 pendingStillToCover: stillToCover,
-                suggestedBake: gap > 0 ? Math.ceil(gap) : 0
+                retailerDeliveries: retailer,
+                suggestedBake: bake,
+                packagingAvailable: pack,
+                packagingShort: pack != null && bake > pack ? bake - pack : 0
             };
         }
         var products = [];
@@ -510,9 +566,14 @@
             var next = rowFor(id, id);
             if (next) products.push(next);
         });
+        var totalBake = products.reduce(function (t, p) { return t + p.suggestedBake; }, 0);
         return {
             asOf: new Date().toISOString().slice(0, 10),
-            products: products
+            products: products,
+            totalBake: totalBake,
+            dailyCapacity: DAILY_CAPACITY_POUCHES,
+            daysNeeded: totalBake ? Math.ceil(totalBake / DAILY_CAPACITY_POUCHES) : 0,
+            crinklesPerPouch: CRINKLES_PER_POUCH
         };
     }
 
@@ -611,12 +672,17 @@
         return data;
     }
 
+    var lastSaleShort = null;
+
     function saleBlockReason(productName) {
         var id = productId(productName);
         if (!id) return 'unknown';
         var product = productById(id);
         var days = product ? daysUntil(product.expiration_date) : null;
         if (days != null && days < 0) return 'expired';
+        // Every pouch on hand is from an expired batch: nothing can be sold.
+        var split = productBatches(productName);
+        if (split.onHand > 0 && split.sellable <= 0 && split.expired > 0) return 'expired';
         return '';
     }
 
@@ -662,6 +728,14 @@
         var id = productId(productName);
         if (!id) return null;
         var qty = Number(quantity) || 0;
+        if (!(qty > 0)) { lastSaleError = 'invalid'; return null; }
+        // Never sell more than the good (not expired) pouches on hand: stock cannot go negative.
+        var sellable = sellableStock(productName);
+        if (qty > sellable) {
+            lastSaleError = 'insufficient';
+            lastSaleShort = { product: productName, wanted: qty, available: sellable };
+            return null;
+        }
         var saved = savedState();
         var extra = saved.sales_transactions_extra || [];
         extra.push({
@@ -671,7 +745,7 @@
         });
         saved.sales_transactions_extra = extra;
         var stock = productStockMap();
-        stock[id] = Math.max(0, (Number(stock[id]) || 0) - qty);
+        stock[id] = (Number(stock[id]) || 0) - qty;
         saved.product_stock = stock;
         var moves = saved.inventory_transactions_extra || [];
         moves.push({
@@ -688,6 +762,66 @@
         paintStockCells();
         notifyStocks();
         return stock[id];
+    }
+
+    // Retailer deliveries (POS > Retailer Delivery): pouches delivered or given as replacements
+    // leave the finished-product stock. A positive quantity takes stock out; a negative one puts
+    // it back (a saved delivery that was corrected). Not counted as a sale here: retailer sales
+    // are counted from the route sheets (COD on delivery, consignment when collected).
+    function recordDeliveryStock(productName, quantity, note) {
+        lastStockError = '';
+        var id = productId(productName);
+        if (!id) { lastStockError = 'Unknown product.'; return null; }
+        var qty = Number(quantity) || 0;
+        if (!qty) return Number(productStockMap()[id]) || 0;
+        var saved = savedState();
+        var stock = productStockMap();
+        var before = Number(stock[id]) || 0;
+        var after = Math.max(0, before - qty);
+        stock[id] = after;
+        saved.product_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: qty > 0 ? 'stock-out' : 'stock-in',
+            reference_id: id,
+            quantity: Math.abs(qty),
+            before: before,
+            after: after,
+            date: new Date().toISOString(),
+            by: movementActor(),
+            note: String(note || (qty > 0 ? 'Delivered to retailers' : 'Returned: retailer delivery corrected'))
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        snapshot();
+        paintStockCells();
+        notifyStocks();
+        return after;
+    }
+
+    // Pouches pulled out from retailer shops (unsold or expired) come back to the bakeshop but are
+    // NOT returned to sellable stock (they are old). They are only logged, so every retailer
+    // movement can be traced: delivered / replaced = stock out, pulled out = logged return.
+    function recordRetailerReturn(productName, pulled, expired, note) {
+        var id = productId(productName);
+        var qty = Number(pulled) || 0;
+        if (!id || !qty) return null;
+        var saved = savedState();
+        var onHand = Number(productStockMap()[id]) || 0;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: 'retailer-return',
+            reference_id: id,
+            quantity: Math.abs(qty),
+            before: onHand,
+            after: onHand,
+            date: new Date().toISOString(),
+            by: movementActor(),
+            note: String(note || '') + (Number(expired) ? ' (' + Number(expired) + ' expired)' : '')
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        return onHand;
     }
 
     function undoSale(productName, quantity, salesDate) {
@@ -888,20 +1022,108 @@
     }
 
     // Splits what is on hand into batches, newest first kept apart from older stock.
-    // Sales take the oldest stock first, so the pouches still on hand belong to the newest batches.
+    // Sales take the oldest GOOD stock first (first-expiry, first-out), so the pouches still on
+    // hand belong to the newest batches. Once a batch passes its expiry date, the pouches it still
+    // has are frozen (saved as frozen_remaining): they stay counted as expired stock until they are
+    // disposed of, and no sale can take them.
+    function batchExpired(b) {
+        var days = daysUntil(b && b.expiration_date);
+        return days != null && days < 0;
+    }
+
     function productBatches(productName) {
         var id = productId(productName);
-        if (!id) return { batches: [], earlier: 0, onHand: 0 };
+        if (!id) return { batches: [], earlier: 0, onHand: 0, expired: 0, sellable: 0 };
         var onHand = Number(productStockMap()[id]) || 0;
         var records = productBatchRecords(id);
-        var left = onHand;
+        var frozen = 0;
+        records.forEach(function (r) {
+            if (r.frozen_remaining != null && !r.disposed) frozen += Number(r.frozen_remaining) || 0;
+        });
+        frozen = Math.min(frozen, onHand);
+        var left = onHand - frozen;
         var out = [];
+        var newlyFrozen = [];
         for (var i = records.length - 1; i >= 0; i--) {
-            var rem = Math.min(left, Number(records[i].quantity) || 0);
-            left -= rem;
-            out.unshift(Object.assign({}, records[i], { remaining: rem, is_new: i === records.length - 1 }));
+            var r = records[i];
+            var rem;
+            if (r.frozen_remaining != null) {
+                rem = r.disposed ? 0 : Math.min(Number(r.frozen_remaining) || 0, frozen);
+                frozen -= rem;
+            } else {
+                rem = Math.min(left, Number(r.quantity) || 0);
+                left -= rem;
+                if (rem > 0 && batchExpired(r)) newlyFrozen.push({ batch_id: r.batch_id, qty: rem });
+            }
+            out.unshift(Object.assign({}, r, { remaining: rem, is_new: i === records.length - 1, expired: batchExpired(r) && rem > 0 }));
         }
-        return { batches: out, earlier: left, onHand: onHand };
+        if (newlyFrozen.length) freezeBatches(newlyFrozen);
+        var expiredQty = out.reduce(function (sum, b) { return sum + (b.expired ? b.remaining : 0); }, 0);
+        return { batches: out, earlier: left, onHand: onHand, expired: expiredQty, sellable: Math.max(0, onHand - expiredQty) };
+    }
+
+    // Saves how many pouches each newly expired batch still had, so later sales cannot take them.
+    function freezeBatches(list) {
+        var saved = savedState();
+        var batches = saved.product_batches || [];
+        var changed = false;
+        list.forEach(function (item) {
+            batches.forEach(function (b) {
+                if (b && b.batch_id === item.batch_id && b.frozen_remaining == null) {
+                    b.frozen_remaining = item.qty;
+                    b.frozen_at = new Date().toISOString();
+                    changed = true;
+                }
+            });
+        });
+        if (changed) { saved.product_batches = batches; writeState(saved); }
+    }
+
+    // Pouches that may be sold now: on hand minus expired pouches waiting to be disposed of.
+    function sellableStock(productName) {
+        var id = productId(productName);
+        if (!id) return 0;
+        return productBatches(productName).sellable;
+    }
+
+    // Head admin / admin: take an expired batch's pouches out of stock (recorded as waste).
+    function disposeExpiredBatch(batchId, reason) {
+        lastStockError = '';
+        if (!canEditPrice()) { lastStockError = 'Only head admin and admin can dispose of expired stock.'; return null; }
+        var saved = savedState();
+        var batches = saved.product_batches || [];
+        var batch = batches.filter(function (b) { return b && b.batch_id === batchId; })[0];
+        if (!batch) { lastStockError = 'Batch not found.'; return null; }
+        if (!batchExpired(batch)) { lastStockError = 'Only an expired batch can be disposed of.'; return null; }
+        var product = productById(batch.product_id);
+        var split = productBatches(product ? product.product_name : '');
+        var row = split.batches.filter(function (b) { return b.batch_id === batchId; })[0];
+        var qty = row ? row.remaining : 0;
+        if (!(qty > 0)) { lastStockError = 'This batch has no pouches left.'; return null; }
+        saved = savedState();
+        batches = saved.product_batches || [];
+        batches.forEach(function (b) {
+            if (b && b.batch_id === batchId) { b.disposed = true; b.disposed_at = new Date().toISOString(); b.disposed_qty = qty; b.disposed_by = movementActor(); }
+        });
+        saved.product_batches = batches;
+        var stock = productStockMap();
+        stock[batch.product_id] = Math.max(0, (Number(stock[batch.product_id]) || 0) - qty);
+        saved.product_stock = stock;
+        var moves = saved.inventory_transactions_extra || [];
+        moves.push({
+            type: 'waste',
+            reference_id: batch.product_id,
+            quantity: qty,
+            date: new Date().toISOString(),
+            by: movementActor(),
+            note: 'Expired batch ' + (batch.batch_number || '') + ' disposed (expired ' + (batch.expiration_date || '') + ')' + (reason ? ': ' + String(reason).slice(0, 120) : '')
+        });
+        saved.inventory_transactions_extra = moves;
+        writeState(saved);
+        snapshot();
+        paintStockCells();
+        notifyStocks();
+        return qty;
     }
 
     // Retailer price per pouch: one price for every retailer and flavor (₱140 unless head admin /
@@ -962,7 +1184,8 @@
         'stock-in': 'Stock in',
         'stock-out': 'Stock out',
         'usage': 'Used in production',
-        'waste': 'Spoiled / waste'
+        'waste': 'Spoiled / waste',
+        'retailer-return': 'Pulled out from retailer (not resold)'
     };
 
     function movementActor() {
@@ -980,7 +1203,7 @@
         var costValue = costText === '' ? null : Number(costText);
         if (costValue != null && (!isFinite(costValue) || costValue < 0)) { lastMovementError = 'Enter a cost of 0 or more.'; return null; }
         var kind = String(movementType || '').toLowerCase();
-        if (!MOVEMENT_KINDS[kind]) { lastMovementError = 'Choose a movement type.'; return null; }
+        if (!MOVEMENT_KINDS[kind] || kind === 'retailer-return') { lastMovementError = 'Choose a movement type.'; return null; }
         // Stock is never edited or deleted: it comes in (stock in) and raw/packaging materials go
         // out when used in production (recorded by Inventory > Production) or as waste / spoiled,
         // which always needs a reason.
@@ -1092,6 +1315,7 @@
 
     function moveSign(type, qty) {
         if (type === 'stock-in') return { cls: 'rl-in', text: '+' + qty };
+        if (type === 'retailer-return') return { cls: '', text: '0 (' + qty + ' back, not resold)' };
         if (type === 'adjustment') return { cls: qty < 0 ? 'rl-out' : 'rl-in', text: (qty > 0 ? '+' : '') + qty };
         return { cls: 'rl-out', text: '−' + qty };
     }
@@ -1844,6 +2068,7 @@
         productId: productId,
         productById: productById,
         recordSale: recordSale,
+        recordDeliveryStock: recordDeliveryStock,
         undoSale: undoSale,
         saleBlockReason: saleBlockReason,
         lastSaleError: function () { return lastSaleError; },
@@ -1872,6 +2097,10 @@
             var id = productId(name);
             return id ? productStockMap()[id] : null;
         },
+        sellableStock: sellableStock,
+        recordRetailerReturn: recordRetailerReturn,
+        disposeExpiredBatch: disposeExpiredBatch,
+        lastSaleShort: function () { return lastSaleShort; },
         materialByName: materialByName,
         // Every raw and packaging material with its stock on hand (for Inventory > Production).
         materials: function () {

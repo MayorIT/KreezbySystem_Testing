@@ -336,7 +336,7 @@
             var lines = [];
             split.batches.slice().reverse().forEach(function (b) {
                 if (!(b.remaining > 0)) return;
-                lines.push({ tag: b.is_new ? 'New stock' : 'Old stock', batch: b.batch_number, produced: b.production_date, expires: b.expiration_date, qty: b.remaining, expired: isExpired(b.expiration_date) });
+                lines.push({ tag: b.is_new ? 'New stock' : 'Old stock', batch: b.batch_number, batchId: b.batch_id, produced: b.production_date, expires: b.expiration_date, qty: b.remaining, expired: isExpired(b.expiration_date) });
             });
             if (split.earlier > 0) lines.push({ tag: lines.length ? 'Old stock' : '', batch: '', produced: '', expires: '', qty: split.earlier, expired: false });
             if (lines.length) return lines;
@@ -374,6 +374,25 @@
         return lines.some(function (line) { return !line.expired; });
     }
 
+    // Expired batches stay out of sales; head admin / admin dispose of them here (logged as waste).
+    if (!window.__kzDisposeBound) {
+        window.__kzDisposeBound = true;
+        document.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest ? e.target.closest('[data-dispose-batch]') : null;
+            if (!btn) return;
+            e.preventDefault();
+            var dict = window.KreezbyDictionary;
+            if (!dict || typeof dict.disposeExpiredBatch !== 'function') return;
+            var name = btn.getAttribute('data-dispose-name');
+            var qty = btn.getAttribute('data-dispose-qty');
+            var reason = window.prompt('Dispose of ' + qty + ' expired ' + (qty === '1' ? 'pouch' : 'pouches') + ' of ' + name + '?\nThey are taken out of stock and recorded as waste. Add a note (optional):', 'Expired, thrown away');
+            if (reason === null) return;
+            var done = dict.disposeExpiredBatch(btn.getAttribute('data-dispose-batch'), reason);
+            if (done == null) { window.alert(typeof dict.lastStockError === 'function' ? dict.lastStockError() : 'Could not dispose of the batch.'); return; }
+            if (typeof render === 'function') render();
+        });
+    }
+
     function render() {
         if (window.__kzStocksViewMode) viewMode = window.__kzStocksViewMode;
         var body = document.getElementById('stocks-table-body');
@@ -401,6 +420,10 @@
                         ? ' <span class="status-pill-badge" style="font-size:10px;padding:1px 7px;margin-left:4px;background:#ffebee;color:#c62828;">Expired</span>'
                         : (line.tag ? ' <span class="status-pill-badge ' + (line.tag === 'New stock' ? 'received' : 'pending') + '" style="font-size:10px;padding:1px 7px;margin-left:4px;">' + line.tag + '</span>' : '');
                     var sub = line.batch ? '<div style="font-size:11px;color:#7a6558;margin-top:2px;">Batch ' + esc(line.batch) + '</div>' : '';
+                    if (line.expired && line.batchId && viewMode === 'expired' && !isStaffPage()) {
+                        sub += '<button type="button" class="kz-dispose-btn" data-dispose-batch="' + esc(line.batchId) + '" data-dispose-name="' + esc(item.name) + '" data-dispose-qty="' + line.qty + '" ' +
+                            'style="margin-top:6px;padding:4px 10px;border-radius:8px;border:1px solid #f3c7c3;background:#fff;color:#b3261e;font:inherit;font-size:12px;font-weight:700;cursor:pointer;">Dispose (record as waste)</button>';
+                    }
                     return '<tr class="stock-row' + (first ? '' : ' stock-batch-row') + '" data-stock-type="' + esc(item.type) + '" data-stock="' + esc(item.code) + '">' +
                         '<td class="po-col-num">' + (first ? (info.start + index) : '') + '</td>' +
                         '<td class="po-col-type">' + (first ? '<span class="status-pill-badge stock-type-badge ' + esc(item.type) + '">' + esc(typeLabel(item.type)) + '</span>' : '') + '</td>' +
@@ -523,7 +546,8 @@
         var lines = rows.length ? rows.map(function (row) {
             var when = row.date ? new Date(row.date).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
             var balance = row.before != null ? esc(row.before) + ' → ' + esc(row.after) : '—';
-            return '<tr><td>' + esc(when) + '</td><td>' + esc(row.type || 'movement') + '</td><td class="po-num">' + esc(row.quantity) + '</td><td>' + balance + '</td><td>' + esc(row.by || '—') + '</td><td>' + esc(row.note || '') + '</td></tr>';
+            var typeName = ({ 'stock-in': 'Stock in', 'stock-out': 'Stock out', 'usage': 'Used in production', 'waste': 'Waste / disposed', 'retailer-return': 'Pulled out (not resold)' })[row.type] || row.type || 'movement';
+            return '<tr><td>' + esc(when) + '</td><td>' + esc(typeName) + '</td><td class="po-num">' + esc(row.quantity) + '</td><td>' + balance + '</td><td>' + esc(row.by || '—') + '</td><td>' + esc(row.note || '') + '</td></tr>';
         }).join('') : '<tr class="po-empty-row"><td colspan="6">No movements yet.</td></tr>';
         var content = document.getElementById('stocks-details-content');
         if (content) {

@@ -188,7 +188,7 @@
       (cash != null ? esc(api.formatMoney(cash)) : '—') + '</span></div>' +
       '<div class="summary-line"><strong>Total Expense</strong><span>' +
       (expense != null ? esc(api.formatMoney(expense)) : '—') + '</span></div>' +
-      '<div class="summary-line total"><strong>Net Sales</strong><span>' +
+      '<div class="summary-line total"><strong>Net Cash (Collected − Expense)</strong><span>' +
       (net != null ? esc(api.formatMoney(net)) : '—') + '</span></div>' +
       '</div>'
     );
@@ -1263,7 +1263,11 @@
   function paymentBucket(order) {
     var ps = String(order.paymentStatus || '').toLowerCase();
     var st = String(order.status || '').toLowerCase();
+    if (ps === 'refunded') return 'Refunded';
+    if (ps === 'refund_pending') return 'Refund pending';
     if (st === 'cancelled' || ps === 'cancelled') return 'Cancelled';
+    if (ps === 'failed' || order.paymentFailed) return 'Failed';
+    if (ps === 'under_review') return 'Under review';
     if (ps === 'expired' || st === 'payment expired') return 'Expired';
     if (ps === 'paid' || order.paymentVerified) return 'Paid';
     if (ps === 'awaiting_payment' || st === 'awaiting payment') return 'Awaiting payment';
@@ -1295,7 +1299,7 @@
       field('Customer type', '<select id="sales-customer-channel" ' + ctl + '><option value="">All customers</option><option value="walkin">Walk-in (POS)</option><option value="online">Online orders</option></select>') +
       field('Status', '<select id="sales-customer-status" ' + ctl + '><option value="">All</option></select>') +
       field('Payment', '<select id="sales-customer-payment" ' + ctl + '><option value="">All</option>' +
-        ['Paid', 'Awaiting payment', 'Cash - unpaid', 'Cancelled', 'Expired'].map(function (v) { return '<option>' + v + '</option>'; }).join('') + '</select>') +
+        ['Paid', 'Awaiting payment', 'Cash - unpaid', 'Failed', 'Expired', 'Under review', 'Cancelled', 'Refund pending', 'Refunded'].map(function (v) { return '<option>' + v + '</option>'; }).join('') + '</select>') +
       field('Fulfilment', '<select id="sales-customer-fulfil" ' + ctl + '><option value="">All</option><option value="pickup">Pick-up</option><option value="delivery">Delivery</option></select>') +
       field('From', '<input type="date" id="sales-customer-from" ' + ctl + '>') +
       field('To', '<input type="date" id="sales-customer-to" ' + ctl + '>') +

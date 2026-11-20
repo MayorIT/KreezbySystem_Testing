@@ -198,6 +198,15 @@
             '#delivery-pos .dpos-recorded{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding:6px 14px;border-radius:12px;background:#fff;border:1px solid #efe6df;min-width:150px}' +
             '#delivery-pos .dpos-recorded strong{font-size:20px;line-height:1.1;color:#3d2c2a}' +
             '#delivery-pos .dpos-recorded span{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8d6e63;white-space:nowrap}' +
+            '#delivery-pos .dpos-ledger{margin-top:18px}' +
+            '#delivery-pos .dpos-ledger table{border-collapse:collapse;font:inherit;font-size:13.5px;color:#3e2723;background:#fff}' +
+            '#delivery-pos .dpos-ledger th{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:#6d4c41;background:#faf5f0;text-align:left;padding:9px 12px;border-bottom:1px solid #efe6df;white-space:nowrap}' +
+            '#delivery-pos .dpos-ledger td{padding:9px 12px;border-bottom:1px solid #f3ece6;vertical-align:middle;white-space:nowrap}' +
+            '#delivery-pos .dpos-ledger th.n,#delivery-pos .dpos-ledger td.n{text-align:right;font-variant-numeric:tabular-nums}' +
+            '#delivery-pos .dpos-ledger td.dpos-shop{white-space:normal;min-width:180px;font-weight:600}' +
+            '#delivery-pos .dpos-ledger td.dpos-shop small{display:block;font-weight:400;color:#8d6e63;font-size:12px}' +
+            '#delivery-pos .dpos-ledger .dpos-ledger-detail>td{background:#fffaf5;padding:4px 12px 12px}' +
+            '#delivery-pos .dpos-ledger .dpos-ledger-detail table{background:#fffaf5}' +
             '#delivery-pos .dpos-list h4{margin:0 0 10px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#3e2723;line-height:1.4}' +
             '#delivery-pos .dpos-empty{color:#8d6e63;padding:18px;border:1px dashed #e0d6ce;border-radius:12px;text-align:center;margin:0}' +
             /* Sheet: fixed column widths so nothing is squeezed; scrolls sideways when the screen is narrow */
@@ -287,7 +296,7 @@
         return '<div class="dpos-head"><div>' +
                 '<h3>Retailer Delivery</h3>' +
                 '<p class="dpos-sub">Every shop of the area is listed. Type the numbers for the shops delivered to, then press <strong>Save delivery</strong>. Only shops with a number are recorded; they show on the <strong>Retailer</strong> sales list right away.' +
-                (full ? ' Collected fills in by itself (COD: today\'s delivery; Consignment: the last delivery) and can be changed.' : '') + '</p>' +
+                (full ? ' Collected fills in by itself (COD: today\'s delivery; Consignment: the last delivery) and can be changed. Check is paid by check on delivery, so nothing is collected.' : '') + '</p>' +
             '</div></div>' +
             '<div class="dpos-toolbar">' +
                 '<label class="dpos-field">Delivery date<input type="date" data-f="date"></label>' +
@@ -308,6 +317,7 @@
                 '<p class="dpos-status" data-move-status></p>' +
             '</div>' : '') +
             '<div class="dpos-list"><h4 data-list-title>Shops</h4><div data-list><p class="dpos-empty">Loading shops…</p></div></div>' +
+            (full ? '<div class="dpos-list dpos-ledger" data-ledger></div>' : '') +
             '<div class="dpos-actions">' +
                 '<button type="button" class="dpos-save" data-act="save">Save delivery</button>' +
                 '<button type="button" class="dpos-clear" data-act="clear">Clear</button>' +
@@ -512,6 +522,7 @@
         var input = rowInput(tr, 'collected');
         if (!input) return;
         var terms = readTerms(rowInput(tr, 'terms').value);
+        // Check: the check is the payment, handed over on delivery, so nothing is collected in cash.
         input.disabled = terms === 'check';
         if (terms === 'check') { input.value = ''; input.dataset.manual = ''; return; }
         if (input.dataset.manual === '1') return;
@@ -599,6 +610,114 @@
             markRow(tr);
         });
         updateCount(root);
+        renderLedger(root);
+    }
+
+    /* ---- Shop balances: sales, collections and outstanding per shop ----
+       Worked out from the saved route sheets (nothing is typed twice):
+         Delivered  = pouches left at the shop (Cons + COD + Check).
+         Replaced   = new pouches swapped for pouches the shop already paid for (consignment) that went old:
+                      no charge and no new sale, but they still leave the Inventory. Staff are not sold to the shop.
+         Sold       = COD / Check: delivered − pulled out on the same visit.
+                      Consignment: the last consignment delivery − pulled out on this visit (paid at the next visit).
+         Sales (₱)  = Sold × the shop's retailer price.
+         Collected  = cash or check received on that visit.
+         Outstanding = Sales − Collected, carried from visit to visit.
+         On consignment = the last consignment delivery, still at the shop and not yet billed. */
+    function shopPrice(shop) {
+        var a = accounts.filter(function (x) {
+            return (shop.accountId && x.id === shop.accountId) || cleanName(x.name) === cleanName(shop.name);
+        })[0];
+        return a && a.price > 0 ? a.price : retailerPrice();
+    }
+
+    function shopLedger(shop, upto) {
+        var price = shopPrice(shop);
+        var visits = [];
+        sheets.slice().sort(function (a, b) { return String(a.reportDate).localeCompare(String(b.reportDate)); }).forEach(function (sheet) {
+            if (!sheet.reportDate || (upto && sheet.reportDate > upto)) return;
+            (sheet.entries || []).forEach(function (e) {
+                if (sameShop(e, shop) && isRecorded(e)) visits.push({ date: sheet.reportDate, e: e });
+            });
+        });
+        var consAtShop = 0, balance = 0;
+        var t = { delivered: 0, pulled: 0, replaced: 0, sold: 0, sales: 0, collected: 0 };
+        var rows = visits.map(function (v) {
+            var e = v.e;
+            var terms = entryTerms(e);
+            var delivered = deliveredQty(e);
+            var pulled = num(e.po);
+            var sold = terms === 'cons' ? Math.max(0, consAtShop - pulled) : Math.max(0, delivered - pulled);
+            if (terms === 'cons') consAtShop = delivered;
+            else if (delivered) consAtShop = 0;
+            var sales = Math.round(sold * price * 100) / 100;
+            // Check: the check handed over on delivery pays the pouches sold in full.
+            var collected = terms === 'check' ? sales : num(e.collected);
+            balance = Math.round((balance + sales - collected) * 100) / 100;
+            t.delivered += delivered; t.pulled += pulled; t.replaced += num(e.replaced);
+            t.sold += sold; t.sales += sales; t.collected += collected;
+            return { date: v.date, terms: terms, delivered: delivered, pulled: pulled, replaced: num(e.replaced),
+                sold: sold, sales: sales, collected: collected, balance: balance };
+        });
+        return { price: price, rows: rows, totals: t, balance: balance, onConsignment: consAtShop };
+    }
+
+    function renderLedger(root) {
+        var host = root.querySelector('[data-ledger]');
+        if (!host) return;
+        var area = field(root, 'area').value;
+        var date = field(root, 'date').value;
+        var shops = shopsForArea(area).map(function (s) { return { name: s.name, accountId: s.id }; });
+        if (!shops.length) { host.innerHTML = ''; return; }
+        var open = host.getAttribute('data-open') || '';
+        var sum = { sales: 0, collected: 0, balance: 0, onCons: 0 };
+        var body = shops.map(function (shop, i) {
+            var l = shopLedger(shop, date);
+            if (!l.rows.length) return '';
+            var last = l.rows[l.rows.length - 1];
+            sum.sales += l.totals.sales; sum.collected += l.totals.collected; sum.balance += l.balance; sum.onCons += l.onConsignment;
+            var key = String(shop.accountId || cleanName(shop.name));
+            var html = '<tr>' +
+                '<td class="dpos-shop">' + esc(shop.name) + '<small class="dpos-price">' + peso(l.price) + ' / pouch · ' + l.rows.length + ' visit' + (l.rows.length === 1 ? '' : 's') + '</small></td>' +
+                '<td>' + esc(TERM_LABELS[last.terms]) + '</td>' +
+                '<td class="n">' + l.totals.delivered + '</td>' +
+                '<td class="n">' + l.totals.pulled + '</td>' +
+                '<td class="n">' + l.totals.sold + '</td>' +
+                '<td class="n">' + l.onConsignment + '</td>' +
+                '<td class="n">' + peso(l.totals.sales) + '</td>' +
+                '<td class="n">' + peso(l.totals.collected) + '</td>' +
+                '<td class="n"><strong style="color:' + (l.balance > 0.009 ? '#b3261e' : (l.balance < -0.009 ? '#1a56b0' : '#2e7d32')) + '">' + peso(l.balance) + '</strong></td>' +
+                '<td><button type="button" class="dpos-clear" style="height:34px;padding:0 12px" data-ledger-open="' + esc(key) + '">' + (open === key ? 'Hide' : 'Statement') + '</button></td>' +
+                '</tr>';
+            if (open === key) {
+                html += '<tr class="dpos-ledger-detail"><td colspan="10"><table class="dpos-table" style="width:100%;margin:4px 0 10px;background:#fffaf5">' +
+                    '<thead><tr><th>Date</th><th>Terms</th><th class="n">Delivered</th><th class="n">Replaced</th><th class="n">Pulled out</th><th class="n">Sold</th>' +
+                    '<th class="n">Sales (₱)</th><th class="n">Collected (₱)</th><th class="n">Outstanding (₱)</th></tr></thead><tbody>' +
+                    l.rows.map(function (r) {
+                        return '<tr><td>' + esc(r.date) + '</td><td>' + esc(TERM_LABELS[r.terms]) + '</td><td class="n">' + r.delivered + '</td><td class="n">' + r.replaced +
+                            '</td><td class="n">' + r.pulled + '</td><td class="n">' + r.sold + '</td><td class="n">' + peso(r.sales) + '</td><td class="n">' + peso(r.collected) +
+                            '</td><td class="n"><strong>' + peso(r.balance) + '</strong></td></tr>';
+                    }).join('') + '</tbody></table></td></tr>';
+            }
+            return html;
+        }).join('');
+        host.innerHTML = '<h4>Shop balances · ' + esc(areaLabel(area)) + ' · ' + esc(sheetsFrom || '') + ' to ' + esc(date || '') + '</h4>' +
+            '<p class="dpos-sub" style="margin:0 0 10px">Sales = pouches sold × retailer price (COD and Check: on delivery; Consignment: at the next visit). ' +
+            'Collected = cash received (Check: the check given on delivery pays in full). Outstanding = Sales − Collected. On consignment = pouches still at the shop, billed at the next visit. Replaced = new pouches swapped for pouches the shop already paid for, so they are not charged again; enter them only under Replaced, not Pulled out. Staff pouches are not sales to the shop.</p>' +
+            (body ? '<div class="dpos-sheet-wrap"><table class="dpos-table" style="min-width:1020px;width:100%">' +
+                '<thead><tr><th>Shop</th><th>Terms</th><th class="n">Delivered</th><th class="n">Pulled out</th><th class="n">Sold</th><th class="n">On consignment</th>' +
+                '<th class="n">Sales (₱)</th><th class="n">Collected (₱)</th><th class="n">Outstanding (₱)</th><th></th></tr></thead><tbody>' + body +
+                '<tr style="font-weight:800;border-top:2px solid #d7ccc8"><td colspan="5" style="text-align:right">Area total</td><td class="n">' + sum.onCons + '</td><td class="n">' + peso(sum.sales) +
+                '</td><td class="n">' + peso(sum.collected) + '</td><td class="n">' + peso(sum.balance) + '</td><td></td></tr>' +
+                '</tbody></table></div>'
+                : '<p class="dpos-empty">No deliveries recorded for these shops yet.</p>');
+        host.querySelectorAll('[data-ledger-open]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var k = btn.getAttribute('data-ledger-open');
+                host.setAttribute('data-open', host.getAttribute('data-open') === k ? '' : k);
+                renderLedger(root);
+            });
+        });
     }
 
     function refresh(root) {
@@ -703,11 +822,13 @@
                 totalExpense: sheet ? (Number(sheet.totalExpense) || 0) : 0
             };
             return request('/api/route-sheets', report).then(function () {
+                var stockText = '';
+                try { stockText = syncDeliveryStock(report.id, !!sheet, original, entries, report.areaLabel, date); } catch (e) { stockText = ''; }
                 window.__kreezbySalesListRequest = null;
                 if (window.KreezbySales && typeof window.KreezbySales.reloadFromServer === 'function') {
                     window.KreezbySales.reloadFromServer().catch(function () {});
                 }
-                setStatus(root, 'Saved ' + entries.length + ' shop' + (entries.length === 1 ? '' : 's') + ' to the ' + areaLabel(area) + ' route sheet for ' + date + '.', 'ok');
+                setStatus(root, 'Saved ' + entries.length + ' shop' + (entries.length === 1 ? '' : 's') + ' to the ' + areaLabel(area) + ' route sheet for ' + date + '.' + stockText, 'ok');
                 return refresh(root);
             });
         }).catch(function (err) {
@@ -716,6 +837,60 @@
             btn.disabled = false;
             btn.textContent = 'Save delivery';
         });
+    }
+
+    // ---- Finished stock out for retailer deliveries ----
+    // Retailers receive Chocolate Crinkles. Pouches delivered (Cons / COD / Check) plus pouches
+    // given as replacements leave the finished stock when the delivery is saved. What a saved
+    // sheet already took out is remembered, so saving it again only takes out (or puts back)
+    // the difference. Pulled-out pouches are returns from the shops and are not put back on sale.
+    var DELIVERY_PRODUCT = 'Chocolate Crinkles';
+    var DELIVERY_STOCK_KEY = 'kreezby_delivery_stock_v1';
+    function deliveryOut(entries) {
+        return (entries || []).reduce(function (t, e) { return t + deliveredQty(e) + (num(e.replaced) || 0); }, 0);
+    }
+    function readDeliveryStock() {
+        try { var m = JSON.parse(localStorage.getItem(DELIVERY_STOCK_KEY) || '{}'); return m && typeof m === 'object' ? m : {}; } catch (e) { return {}; }
+    }
+    // Returns a short text for the status line, or '' when nothing changed.
+    function syncDeliveryStock(sheetId, existedBefore, previousEntries, entries, areaText, date) {
+        var dict = window.KreezbyDictionary;
+        var map = readDeliveryStock();
+        var already = map[sheetId];
+        // A sheet saved before this was added: what it delivered was never taken out, and its
+        // pouches are long gone, so only changes from now on count.
+        if (already == null) already = existedBefore ? deliveryOut(previousEntries) : 0;
+        var now = deliveryOut(entries);
+        var diff = now - already;
+        // Pulled out (and expired among them) are logged as retailer returns, by difference too.
+        var retKey = sheetId + ':returned';
+        var pulledNow = 0, expiredNow = 0;
+        (entries || []).forEach(function (e) { pulledNow += num(e.po); expiredNow += num(e.expired); });
+        var pulledBefore = map[retKey] != null ? map[retKey] : (existedBefore ? (previousEntries || []).reduce(function (s, e) { return s + num(e.po); }, 0) : 0);
+        if (pulledNow !== pulledBefore && dict && typeof dict.recordRetailerReturn === 'function') {
+            var change = pulledNow - pulledBefore;
+            dict.recordRetailerReturn(DELIVERY_PRODUCT, change, change > 0 ? expiredNow : 0, change > 0
+                ? change + ' pouches pulled out from ' + areaText + ' retailers on ' + date + ', kept out of sellable stock'
+                : 'Pulled-out count for ' + areaText + ' on ' + date + ' corrected (' + change + ')');
+            map[retKey] = pulledNow;
+            try { localStorage.setItem(DELIVERY_STOCK_KEY, JSON.stringify(map)); } catch (e) { /* optional */ }
+        }
+        if (diff && dict && typeof dict.recordDeliveryStock === 'function') {
+            var left = dict.recordDeliveryStock(DELIVERY_PRODUCT, diff, diff > 0
+                ? diff + ' pouches delivered to ' + areaText + ' retailers on ' + date + ' (incl. replacements)'
+                : 'Returned: ' + areaText + ' delivery on ' + date + ' was corrected (' + (-diff) + ' pouches)');
+            if (left == null) return '';
+            map[sheetId] = now;
+            try { localStorage.setItem(DELIVERY_STOCK_KEY, JSON.stringify(map)); } catch (e) { /* optional */ }
+            return diff > 0
+                ? ' ' + diff + ' pouches of ' + DELIVERY_PRODUCT + ' taken out of the Inventory (' + left + ' left).'
+                : ' ' + (-diff) + ' pouches of ' + DELIVERY_PRODUCT + ' put back on the Inventory (' + left + ' on hand).';
+        }
+        if (map[sheetId] !== now) {
+            map[sheetId] = now;
+            try { localStorage.setItem(DELIVERY_STOCK_KEY, JSON.stringify(map)); } catch (e) { /* optional */ }
+        }
+        return '';
     }
 
     function isAllowedPage() {

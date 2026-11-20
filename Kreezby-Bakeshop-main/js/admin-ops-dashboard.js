@@ -166,6 +166,19 @@
         return ps === 'awaiting_payment' || st === 'awaiting payment';
     }
 
+    // Money not (or no longer) kept: a payment held for review, or a delivered order refunded in full.
+    function notASale(order) {
+        var ps = String(order.paymentStatus || '').toLowerCase();
+        if (ps === 'under_review' || ps === 'refund_pending' || ps === 'refunded') return true;
+        if (order.refundRequest && order.refundRequest.code) {
+            try {
+                var rec = (JSON.parse(localStorage.getItem('kreezby-bo-orders-v1') || '{}') || {})[order.refundRequest.code];
+                if (rec && String(rec.statusClass || '').toLowerCase() === 'received') return true;
+            } catch (e) { /* keep the sale */ }
+        }
+        return false;
+    }
+
     // One record per real order: customer orders (online + POS) first, then retailer purchase orders.
     // Purchase-order entries that mirror a customer order are skipped so nothing is counted twice.
     function eachOrder(fn) {
@@ -178,7 +191,7 @@
             if (isExcludedOrder(order, order.orderNumber)) return;
             if (isAwaitingPayment(order)) return; // not an order until it is paid
             fn({
-                status: order.status,
+                status: notASale(order) && !/cancel/i.test(String(order.status || '')) ? 'Refunded' : order.status,
                 date: parseDay(order.date),
                 items: lineItems(order.items),
                 total: Number(String(order.subtotal != null ? order.subtotal : order.total).replace(/[^\d.]/g, '')) || 0
@@ -205,7 +218,7 @@
 
     function statusBucket(status) {
         var text = String(status || '').toLowerCase();
-        if (text.indexOf('cancel') >= 0 || text.indexOf('return') >= 0 || text.indexOf('expired') >= 0 || text.indexOf('fail') >= 0 || text === 'rejected') return 'cancelled';
+        if (text.indexOf('cancel') >= 0 || text.indexOf('refund') >= 0 || text.indexOf('review') >= 0 || text.indexOf('return') >= 0 || text.indexOf('expired') >= 0 || text.indexOf('fail') >= 0 || text === 'rejected') return 'cancelled';
         if (text.indexOf('complete') >= 0 || text === 'delivered') return 'completed';
         return 'processing';
     }

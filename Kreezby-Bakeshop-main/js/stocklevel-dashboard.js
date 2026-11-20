@@ -38,7 +38,9 @@
 
             { category: 'Raw Materials', value: 185400, pct: 91 },
 
-            { category: 'Packaging', value: 18000, pct: 9 }
+            { category: 'Packaging', value: 18000, pct: 9 },
+
+            { category: 'Finished Products', value: 0, pct: 0 }
 
         ],
 
@@ -433,7 +435,7 @@
         inventoryCatalog().forEach(function (item) { catalog[item.code] = item; });
         return (DATA.healthItems || []).map(function (row) {
             var item = catalog[row.code] || { code: row.code, qty: 0, category: row.category };
-            var hasValue = row.category !== 'Finished Products';
+            var hasValue = row.category !== 'Finished Products' || finishedCostPerPouch(row.code) > 0;
             return {
                 item: row.item, code: row.code, category: row.category,
                 qty: Number(item.qty) || 0, stock: row.stock, reorder: row.reorder,
@@ -810,8 +812,34 @@
         }
     }
 
+    // Inventory valuation (cost basis, never the selling price):
+    //   Raw and packaging materials: quantity × weighted-average acquisition cost
+    //     (new cost = (old qty × old cost + added qty × purchase cost) ÷ (old qty + added qty)).
+    //   Finished products: quantity × production cost per pouch = cost of the ingredients used in
+    //     the latest finished production batch ÷ pouches it produced (or the recipe cost per pouch
+    //     when no batch has been finished yet). Products with no production cost are not valued.
+    var VALUATION_NOTE = 'Stock value = quantity × unit cost. Raw and packaging materials use the weighted-average purchase cost; '
+        + 'finished products use the production cost per pouch (ingredient cost of the latest finished batch ÷ pouches produced). Selling prices are not used.';
+
+    function finishedCostPerPouch(code) {
+        var prod = readStore('kreezby_production_v1', {}) || {};
+        var batches = (prod.batches || []).filter(function (b) {
+            return b && b.product_id === code && b.status === 'finished' && Number(b.actual) > 0 && Number(b.cost) > 0;
+        }).sort(function (a, b) { return String(b.finishedAt || '').localeCompare(String(a.finishedAt || '')); });
+        if (batches.length) return Math.round(Number(batches[0].cost) / Number(batches[0].actual) * 100) / 100;
+        var recipe = (prod.recipes || {})[code];
+        var dict = window.KreezbyDictionary;
+        if (recipe && Number(recipe.yield) > 0 && dict && typeof dict.materialUnitCost === 'function') {
+            var cost = (recipe.items || []).reduce(function (t, it) { return t + (Number(it.qty) || 0) * (Number(dict.materialUnitCost(it.material_id)) || 0); }, 0);
+            if (cost > 0) return Math.round(cost / Number(recipe.yield) * 100) / 100;
+        }
+        return 0;
+    }
+
     function valueCatalog() {
-        return inventoryCatalog().filter(function (item) { return item.category !== 'Finished Products'; });
+        return inventoryCatalog().filter(function (item) {
+            return item.category !== 'Finished Products' || finishedCostPerPouch(item.code) > 0;
+        });
     }
 
     // Values always come from real quantity x unit cost, so they follow every stock movement.
@@ -826,6 +854,7 @@
     };
 
     function unitCost(item) {
+        if (item && item.category === 'Finished Products') return finishedCostPerPouch(item.code);
         var local = readStore(STOCK_KEY, {});
         var costs = local.cost || {};
         if (costs[item.code] != null && costs[item.code] !== '') return Number(costs[item.code]) || 0;
@@ -1080,7 +1109,8 @@
 
     function openValueEditor(root, trigger) {
         closeValueEditor();
-        var items = valueCatalog();
+        // Finished products take their value from production cost, so only materials are edited here.
+        var items = valueCatalog().filter(function (item) { return item.category !== 'Finished Products'; });
         var saved = savedValueMap();
         var defaults = saved ? null : defaultValueMap();
         var groups = [];
@@ -1189,6 +1219,7 @@
             + '<div class="sl-detail-hero-value">' + money(k.value) + '</div>'
 
             + '<div class="sl-detail-hero-caption">' + esc(k.caption) + '</div>'
+            + '<div class="sl-detail-hero-caption" style="font-size:12px;opacity:.9;margin-top:4px">' + esc(VALUATION_NOTE) + '</div>'
 
             + '<div class="sl-kpi-trend ' + (k.trendDir === 'down' ? 'sl-trend-down' : 'sl-trend-up') + '">' + (k.trendDir === 'down' ? '▼ ' : '▲ ') + esc(k.trend) + '</div>'
 
